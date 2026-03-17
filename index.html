@@ -23,7 +23,19 @@ function launchApp(){
 
 function showGuidePopup(){
   const p=document.getElementById('guide-popup');
-  if(p){setTimeout(()=>p.classList.add('visible'),300);}
+  if(!p) return;
+  setTimeout(()=>{
+    // find the guide book tab button in #vt
+    const vt=document.getElementById('vt');
+    const btn=vt?vt.querySelector('.tb'):null;
+    const box=p.querySelector('.popup-box');
+    if(btn&&box){
+      const r=btn.getBoundingClientRect();
+      box.style.top=(r.bottom+8)+'px';
+      box.style.left=r.left+'px';
+    }
+    p.classList.add('visible');
+  },400);
 }
 function dismissPopup(){
   const p=document.getElementById('guide-popup');
@@ -131,8 +143,8 @@ input[type=number]:focus{outline:none;border-color:var(--acc)}
 .lgd{display:flex;gap:10px;margin-bottom:6px;font-size:10px;color:var(--tx2);flex-wrap:wrap;align-items:center}
 .ld{width:10px;height:3px;border-radius:2px;display:inline-block;margin-right:2px;vertical-align:middle}
 .ft{font-size:9px;color:var(--tx3);margin-top:8px;line-height:1.7}
-.assess-bar{display:grid;grid-template-columns:repeat(4,1fr) 1.4fr 1fr 1.4fr 1.2fr;gap:0;background:var(--panel);border:0.5px solid var(--bd2);border-radius:0;margin-bottom:8px;overflow:hidden;grid-auto-rows:1fr}
-.as-item{display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:2px;padding:8px 10px;border-right:0.5px solid var(--bd2);height:100%}
+.assess-bar{display:grid;grid-template-columns:repeat(4,1fr) 1.4fr 1fr 1.4fr 1.2fr;grid-template-rows:1fr 1fr;gap:0;background:var(--panel);border:0.5px solid var(--bd2);border-radius:0;margin-bottom:8px;overflow:hidden}
+.as-item{display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:3px;padding:6px 8px;border-right:0.5px solid var(--bd2);border-bottom:0.5px solid var(--bd2);min-height:64px}
 .as-item:last-child{border-right:none}
 .as-lbl{font-size:8px;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;font-weight:700}
 .as-val{font-size:14px;font-weight:700;line-height:1.1}
@@ -228,11 +240,12 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
 
 /* ── GUIDE POPUP ── */
-#guide-popup{position:fixed;inset:0;z-index:8888;display:flex;align-items:flex-start;justify-content:flex-start;pointer-events:none;padding-top:82px;padding-left:max(310px,calc(var(--panel-w,258px) + 16px))}
+#guide-popup{position:fixed;inset:0;z-index:8888;pointer-events:none}
 #guide-popup.visible{pointer-events:all}
-.popup-box{background:var(--panel);border:1px solid var(--acc2);border-radius:12px;padding:18px 22px;max-width:320px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.18);opacity:0;transform:translateY(-12px);transition:all .4s ease;position:relative}
 #guide-popup.visible .popup-box{opacity:1;transform:translateY(0)}
-.popup-arrow{position:absolute;top:-10px;left:24px;width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-bottom:10px solid var(--acc2)}
+.popup-box{background:var(--panel);border:1px solid var(--acc2);border-radius:12px;padding:18px 22px;max-width:300px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.18);opacity:0;transform:translateY(-8px);transition:all .4s ease;position:absolute}
+#guide-popup.visible .popup-box{opacity:1;transform:translateY(0)}
+.popup-arrow{position:absolute;top:-10px;left:20px;width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-bottom:10px solid var(--acc2)}
 .popup-title{font-size:13px;font-weight:700;color:var(--tx);margin-bottom:6px}
 .popup-body{font-size:11px;color:var(--tx2);line-height:1.7;margin-bottom:14px}
 .popup-ok{background:var(--acc2);color:#fff;border:none;border-radius:6px;padding:8px 24px;font-size:12px;font-weight:700;cursor:pointer;width:100%;transition:opacity .2s}
@@ -1123,8 +1136,12 @@ function setLang(lang){
   LANG=lang;
   ['lang-en','lang-en-btn'].forEach(id=>{const b=document.getElementById(id);if(b){b.style.background=lang==='en'?'var(--acc)':'transparent';b.style.color=lang==='en'?'#fff':'var(--tx2)';b.style.borderColor=lang==='en'?'var(--acc)':'var(--bd2)';}});
   ['lang-id','lang-id-btn'].forEach(id=>{const b=document.getElementById(id);if(b){b.style.background=lang==='id'?'var(--acc)':'transparent';b.style.color=lang==='id'?'#fff':'var(--tx2)';b.style.borderColor=lang==='id'?'var(--acc)':'var(--bd2)';}});
-  const ld=document.getElementById('liq-desc');if(ld) ld.textContent=tr?.(LANG==='id'?'liqDesc':'liqDesc')||'liq% = account ÷ notional · higher = safer';
+  const ld=document.getElementById('liq-desc');if(ld) ld.textContent=LANG==='id'?'liq% = akun ÷ notional · lebih tinggi = lebih aman':'liq% = account ÷ notional · higher = safer';
+  // soft render: preserve chart, just update text
+  const _prevCh=ch;
   render();
+  // restore chart ref if destroyed unnecessarily  
+  if(_prevCh&&!ch) ch=_prevCh;
 }
 // ── PANEL COLLAPSE ──
 function togglePanel(){
@@ -1452,7 +1469,7 @@ function render(){
       </div>
     </div>
     <div style="display:grid;grid-template-columns:6fr 4fr;gap:0;align-items:stretch;margin-bottom:8px">
-      <div class="cw" style="margin-bottom:0;height:auto;min-height:168px;position:relative;border-right:none"><canvas id="gc"></canvas><button class="chart-zoom-btn" onclick="openChartZoom()" title="expand chart">⤢ zoom</button></div>
+      <div class="cw" style="margin-bottom:0;height:168px;position:relative;border-right:none;overflow:hidden"><canvas id="gc"></canvas><button class="chart-zoom-btn" onclick="openChartZoom()" title="expand chart">⤢ zoom</button></div>
       <div id="assess-side"></div>
     </div>`;
   }
@@ -1853,7 +1870,19 @@ function launchApp(){
 
 function showGuidePopup(){
   const p=document.getElementById('guide-popup');
-  if(p){setTimeout(()=>p.classList.add('visible'),300);}
+  if(!p) return;
+  setTimeout(()=>{
+    // find the guide book tab button in #vt
+    const vt=document.getElementById('vt');
+    const btn=vt?vt.querySelector('.tb'):null;
+    const box=p.querySelector('.popup-box');
+    if(btn&&box){
+      const r=btn.getBoundingClientRect();
+      box.style.top=(r.bottom+8)+'px';
+      box.style.left=r.left+'px';
+    }
+    p.classList.add('visible');
+  },400);
 }
 function dismissPopup(){
   const p=document.getElementById('guide-popup');
