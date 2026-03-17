@@ -155,15 +155,61 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 .manual-grid input:focus{outline:none;border-color:var(--acc)}
 .manual-grid input:disabled{opacity:.3;pointer-events:none}
 .mgrid-lbl{font-size:8px;color:var(--tx3);text-align:center;margin-bottom:1px}
+
+/* ── INTRO LAYERS ── */
+#layer1,#layer2{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;background:#000;cursor:pointer;transition:opacity .8s ease}
+#layer1.out,#layer2.out{opacity:0;pointer-events:none}
+#layer1.hidden,#layer2.hidden{display:none}
+
+.intro-quote{max-width:640px;text-align:center;padding:0 32px}
+.intro-quote blockquote{font-size:clamp(16px,2.2vw,22px);font-weight:300;color:#e8e8e8;line-height:1.8;letter-spacing:.01em;opacity:0;animation:fadeUp 1.4s ease .4s forwards}
+.intro-quote cite{display:block;font-size:13px;color:#666;margin-top:20px;font-style:normal;letter-spacing:.06em;text-transform:uppercase;opacity:0;animation:fadeUp .8s ease 1.8s forwards}
+.intro-hint{position:absolute;bottom:40px;font-size:11px;color:#333;letter-spacing:.08em;text-transform:uppercase;opacity:0;animation:fadeUp .6s ease 2.6s forwards}
+
+.layer2-content{max-width:560px;text-align:center;padding:0 32px;display:flex;flex-direction:column;align-items:center;gap:28px}
+.l2-credit{font-size:13px;color:#666;letter-spacing:.06em;text-transform:uppercase;opacity:0;animation:fadeUp .8s ease .3s forwards}
+.l2-credit a{color:#00c47a;text-decoration:none;font-weight:700}
+.l2-credit a:hover{text-decoration:underline}
+.l2-disclaimer{font-size:12px;color:#444;line-height:1.9;opacity:0;animation:fadeUp .8s ease .9s forwards;border:0.5px solid #1a1a1a;border-radius:10px;padding:18px 22px;text-align:left}
+.l2-disclaimer strong{color:#888}
+.l2-disclaimer .warn{color:#EF9F27;font-weight:600}
+.launch-btn{opacity:0;animation:fadeUp .8s ease 1.6s forwards;background:transparent;border:1px solid #00c47a;color:#00c47a;font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:14px 48px;border-radius:4px;cursor:pointer;transition:all .25s}
+.launch-btn:hover{background:#00c47a;color:#000}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
 </style>
 </head>
 <body class="t-light">
+<!-- LAYER 1 - philosophy -->
+<div id="layer1" onclick="goLayer2()">
+  <div class="intro-quote">
+    <blockquote>"a trading philosophy is something that cannot just be transferred from one person to another; it's something that you have to acquire yourself through time and effort."</blockquote>
+    <cite>— Richard Driehaus, legendary money manager</cite>
+  </div>
+  <div class="intro-hint">click anywhere to continue</div>
+</div>
+
+<!-- LAYER 2 - intro + disclaimer -->
+<div id="layer2" class="hidden" style="opacity:0;transition:opacity .8s ease">
+  <div class="layer2-content">
+    <div class="l2-credit">created by <a href="https://t.me/CryptoJurnal" target="_blank">@cryptojurnal ↗</a></div>
+    <div class="l2-disclaimer">
+      <strong>before you launch —</strong><br><br>
+      this dashboard is a <span class="warn">projection tool, not a guarantee</span>. all numbers are pre-execution estimates. real results depend on your timing, discipline, and the market.<br><br>
+      this tool does <strong>not account for</strong> trading fees, funding fees, slippage, or exchange costs. use it to <strong>assess and plan</strong> — not to predict.<br><br>
+      <span class="warn">cross margin mode only.</span> liq% calculations are designed for cross margin. isolated margin will produce different results.<br><br>
+      <strong>the outcome is yours.</strong> we help you prepare. the bet is on you. 🎯
+    </div>
+    <button class="launch-btn" onclick="launchApp()">launch the app</button>
+  </div>
+</div>
+
 <div class="app">
 
 <!-- LEFT PANEL -->
 <div class="panel-left" id="left-panel">
   <button class="collapse-btn" id="collapse-btn" onclick="togglePanel()" title="collapse panel">‹</button>
-  <div class="collapsed-label" onclick="togglePanel()">bet with style · controls</div>
+  <div class="collapsed-label" onclick="togglePanel()">WZ scalp · controls</div>
   <div class="pl-body">
   <div class="pl-head">
     <h1>bet all the time, bet with style</h1>
@@ -202,13 +248,13 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
     </div>
     <div class="row">
       <span class="lbl">type ($)</span>
-      <input type="number" id="cap-in" value="1000" min="1" max="10000000000" oninput="onCapIn(this.value)">
+      <input type="number" id="cap-in" value="100" min="1" max="10000000000" oninput="onCapIn(this.value)">
     </div>
     <div class="row">
       <span class="lbl">slide</span>
-      <input type="range" id="cap-sl" min="100" max="10000000000" step="1000" value="1000" oninput="onCapSl(this.value)">
+      <input type="range" id="cap-sl" min="100" max="10000000000" step="1000" value="100" oninput="onCapSl(this.value)">
     </div>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin:3px 0 4px"><span style="font-size:9px;color:var(--tx3)">current</span><span style="font-size:14px;font-weight:700;color:var(--acc2);background:var(--sf2);padding:2px 8px;border-radius:5px;border:0.5px solid var(--bd2)" id="cap-vl">$1,000</span></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin:3px 0 4px"><span style="font-size:9px;color:var(--tx3)">current</span><span style="font-size:14px;font-weight:700;color:var(--acc2);background:var(--sf2);padding:2px 8px;border-radius:5px;border:0.5px solid var(--bd2)" id="cap-vl">$100</span></div>
   </div>
   <button class="save-btn" id="save-cap" onclick="saveSection('cap')">💾 save capital</button>
 
@@ -219,17 +265,17 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
     <div class="seclbl">leverage</div>
     <div class="prs" id="lv-prs">
       <button class="pr" onclick="setLev(5,this)">5×</button>
-      <button onclick="setLev(10,this)" class="pr g">10×</button>
+      <button onclick="setLev(10,this)" class="pr g on">10×</button>
       <button class="pr" onclick="setLev(20,this)">20×</button>
       <button class="pr" onclick="setLev(50,this)">50×</button>
       <button class="pr" onclick="setLev(100,this)">100×</button>
     </div>
     <div class="row">
       <span class="lbl">type (×)</span>
-      <input type="number" id="lv-in" value="5" min="1" max="100" oninput="onLevIn(this.value)">
+      <input type="number" id="lv-in" value="10" min="1" max="100" oninput="onLevIn(this.value)">
     </div>
-    <input type="range" id="lv-sl" min="1" max="100" step="1" value="5" oninput="onLevSl(this.value)" style="width:100%;margin:2px 0 3px">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span style="font-size:9px;color:var(--tx3)">current</span><span style="font-size:14px;font-weight:700;color:var(--acc2);background:var(--sf2);padding:2px 8px;border-radius:5px;border:0.5px solid var(--bd2)" id="lv-vl">5×</span></div>
+    <input type="range" id="lv-sl" min="1" max="100" step="1" value="10" oninput="onLevSl(this.value)" style="width:100%;margin:2px 0 3px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span style="font-size:9px;color:var(--tx3)">current</span><span style="font-size:14px;font-weight:700;color:var(--acc2);background:var(--sf2);padding:2px 8px;border-radius:5px;border:0.5px solid var(--bd2)" id="lv-vl">10×</span></div>
   </div>
 
   <div class="divider"></div>
@@ -245,22 +291,22 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
     </div>
     <div class="row">
       <span class="lbl">type ($)</span>
-      <input type="number" id="not-in" value="2500" min="1" max="100000000000" oninput="onNotIn(this.value)">
+      <input type="number" id="not-in" value="250" min="1" max="100000000000" oninput="onNotIn(this.value)">
     </div>
     <div class="row">
       <span class="lbl">slide</span>
-      <input type="range" id="not-sl" min="1" max="100000000000" step="1000" value="2500" oninput="onNotSl(this.value)">
+      <input type="range" id="not-sl" min="1" max="100000000000" step="1000" value="250" oninput="onNotSl(this.value)">
     </div>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin:3px 0 4px"><span style="font-size:9px;color:var(--tx3)">current</span><span style="font-size:14px;font-weight:700;color:var(--acc2);background:var(--sf2);padding:2px 8px;border-radius:5px;border:0.5px solid var(--bd2)" id="not-vl">$2,500</span></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin:3px 0 4px"><span style="font-size:9px;color:var(--tx3)">current</span><span style="font-size:14px;font-weight:700;color:var(--acc2);background:var(--sf2);padding:2px 8px;border-radius:5px;border:0.5px solid var(--bd2)" id="not-vl">$250</span></div>
     <div class="comp-row">
       <div class="ci"><div class="cl">actual margin</div><div class="cv" id="c-am">$16.67</div><div style="font-size:7px;color:var(--tx3)">notional ÷ lev</div></div>
       <div class="ci"><div class="cl">fm% of acct</div><div class="cv" id="c-fm">15.2%</div><div style="font-size:7px;color:var(--tx3)">capital at risk</div></div>
       <div class="ci"><div class="cl">liq% t1 m01</div><div class="cv" id="c-lq" style="color:#1D9E75">40%</div><div style="font-size:7px;color:var(--tx3)">spot drop → wipe</div></div>
     </div>
     <div style="font-size:8px;color:var(--tx3);padding:3px 1px;line-height:1.6;margin-top:3px">
-      <span style="color:var(--tx2)">acct</span> <span id="c-acct" style="color:var(--tx);font-weight:600">$1,000</span>
+      <span style="color:var(--tx2)">acct</span> <span id="c-acct" style="color:var(--tx);font-weight:600">$100</span>
       × <span id="c-ratio" style="color:var(--acc2);font-weight:600">2.50</span>
-      = <span id="c-not2" style="font-weight:600">$2,500</span>
+      = <span id="c-not2" style="font-weight:600">$250</span>
       → margin <span id="c-am2" style="color:var(--acc);font-weight:600">$16.67</span>
     </div>
   </div>
@@ -389,7 +435,7 @@ body.t-ocean .g-warn,.body.t-forest .g-warn,.body.t-sunset .g-warn,.body.t-laven
   <div class="g-sec-title">⚙️ controls — how to use them</div>
   <div class="g-step"><div class="g-step-num">1</div><div class="g-step-body"><b>set starting capital</b> — your actual account size. this doesn't affect liq% directly (the ratio is what matters) but it scales all dollar amounts in the projection.</div></div>
   <div class="g-step"><div class="g-step-num">2</div><div class="g-step-body"><b>set leverage</b> — higher leverage means smaller actual margin per trade but also shrinks your liq% buffer. watch the liq% in the notional panel update live.</div></div>
-  <div class="g-step"><div class="g-step-num">3</div><div class="g-step-body"><b>set notional (trade 1)</b> — this is your first trade's position size. the comp panel shows actual margin, fm%, and liq% in real time. <b>40% is the minimum floor — aim above 100% for a healthy setup.</b> "link to capital" toggle controls whether notional auto-scales when you change capital.</div></div>
+  <div class="g-step"><div class="g-step-num">3</div><div class="g-step-body"><b>set notional (trade 1)</b> — this is your first trade's position size. the comp panel shows actual margin, fm%, and liq% in real time. <b>keep liq% above 40% for healthy risk.</b> "link to capital" toggle controls whether notional auto-scales when you change capital.</div></div>
   <div class="g-step"><div class="g-step-num">4</div><div class="g-step-body"><b>set trade slots</b> — 10 slots, each with target% and freq. set either to 0 to skip that trade. the sequence runs top to bottom, notional compounding with each trade's profit.</div></div>
   <div class="g-step"><div class="g-step-num">5</div><div class="g-step-body"><b>global mode vs manual</b> — when global is ON, all months use the same trade targets. turn it OFF to set different targets per month in the full trade detail view — useful for adapting to different market conditions.</div></div>
   <div class="g-step"><div class="g-step-num">6</div><div class="g-step-body"><b>zero months</b> — months where you don't trade (unclear market, rest, etc). click the ⊘ button on any month to mark it as zero. click again to activate. zero months pause compounding but don't reset anything.</div></div>
@@ -403,7 +449,7 @@ body.t-ocean .g-warn,.body.t-forest .g-warn,.body.t-sunset .g-warn,.body.t-laven
   <div class="g-term"><span class="g-term-name">risk score</span><span class="g-term-def">composite 0–100 score. <b>lower = safer.</b> factors: liq% buffer (main weight), leverage level, fm% of account, number of active trades. hover the score for what's driving it.</span></div>
   <div class="g-term"><span class="g-term-name">liq t1 buffer</span><span class="g-term-def">same as liq% for trade 1 month 1. the <b>fill bar</b> shows it visually — green = good buffer, amber = watchable, red = danger.</span></div>
   <div class="g-term"><span class="g-term-name">account lifespan</span><span class="g-term-def">estimated how long the account structure survives adverse conditions. from <b>minutes</b> (extreme risk) to <b>generational</b> (almost unliquidatable). formula: (liq%)² ÷ leverage factor ÷ margin factor.</span></div>
-  <div class="g-tip"><b>the golden setup:</b> liq% > 100% (40% = floor not target) · leverage ≤ 15× · fm% ≤ 20% → account lifespan "months to years" · risk score below 30. adjust based on your conviction and market conditions.</div>
+  <div class="g-tip"><b>the golden setup:</b> liq% ≥ 40% · leverage ≤ 15× · fm% ≤ 20% → account lifespan "months to years" · risk score below 30 · this is the WZ scalp baseline. adjust based on your conviction and market conditions.</div>
 </div>
 
 <div class="g-sec">
@@ -422,28 +468,6 @@ body.t-ocean .g-warn,.body.t-forest .g-warn,.body.t-sunset .g-warn,.body.t-laven
 </div>
 
 <div class="g-sec">
-  <div class="g-sec-title">⚠️ important — read before you bet</div>
-  <div style="background:var(--sf2);border:1px solid var(--bd2);border-radius:8px;padding:14px 16px;margin-bottom:10px">
-    <div style="font-size:12px;font-weight:700;color:var(--tx);margin-bottom:8px">this dashboard is a projection tool, not a guarantee</div>
-    <div style="font-size:11px;color:var(--tx2);line-height:1.8">all numbers are <b>pre-execution estimates</b>. real results depend on your execution — entry timing, exit discipline, market conditions. this tool does <b>not account for</b> trading fees, funding fees, slippage, spread, or any exchange costs. actual returns will differ.<br><br>
-    <b>cross margin mode only</b> — this dashboard is designed exclusively for <b>cross margin mode</b>. isolated margin behaves differently and liq% will not reflect reality in isolated mode.<br><br>
-    <b>assessment, not advice.</b> we help you find the right formula before you bet. once you're in, the outcome is yours — wins and losses depend on your personal execution, experience, and the market. bet responsibly.
-    </div>
-  </div>
-</div>
-<div class="g-sec">
-  <div class="g-sec-title">🎨 customization — make it yours</div>
-  <div class="g-term"><span class="g-term-name">month labels</span><span class="g-term-def">in full trade detail, click any month label (m01...) and type your own — e.g. <b>"april 2026"</b>. dashed underline = editable.</span></div>
-  <div class="g-term"><span class="g-term-name">trade labels</span><span class="g-term-def">click "trade 1" etc in detail view and type the asset pair — e.g. <b>"MOODENG/USDT"</b>. helps you track which slot maps to which asset.</span></div>
-  <div class="g-term"><span class="g-term-name">color themes</span><span class="g-term-def">6 themes in the panel: light, dark, ocean, forest, sunset, lavender. click the dots. theme saves automatically.</span></div>
-  <div class="g-term"><span class="g-term-name">link to capital</span><span class="g-term-def">toggle in the notional panel. <b>off</b> (default): notional stays fixed, liq% improves as capital grows = safer. <b>on</b>: notional scales with capital to maintain same liq% ratio.</span></div>
-  <div class="g-term"><span class="g-term-name">global on/off</span><span class="g-term-def">toggle in trade slots. <b>on</b>: one global setup for all months. <b>off</b>: set targets and freq independently per month in the detail view. skipped trades stay editable so you can reactivate anytime.</span></div>
-  <div class="g-term"><span class="g-term-name">collapse panel</span><span class="g-term-def">click the colored circle on the panel edge to collapse controls. dashboard expands full width. click the slim sidebar to bring it back.</span></div>
-  <div class="g-term"><span class="g-term-name">⊘ zero month</span><span class="g-term-def">click ⊘ beside any month label to mark it as no-trade. click the zero row to reactivate.</span></div>
-  <div class="g-term"><span class="g-term-name">⚡ margin push</span><span class="g-term-def">in full detail, each month header has a push input. type e.g. 1.4 to boost trade 1 notional by 40% for that month only. trades 2-10 compound naturally from the higher base.</span></div>
-  <div class="g-tip"><b>everything is per-tab:</b> 36-month and quarter have separate capital, trades, labels, zeros, and push settings. customize each independently.</div>
-</div>
-<div class="g-sec">
   <div class="g-sec-title">💾 saving your work</div>
   <div class="g-term"><span class="g-term-name">save capital</span><span class="g-term-def">saves starting capital to browser storage. survives page reload.</span></div>
   <div class="g-term"><span class="g-term-name">save position</span><span class="g-term-def">saves leverage, notional, and KPI scale.</span></div>
@@ -457,17 +481,17 @@ const ZERO_36_DEF=[6,11,17,22,30,35];
 const TOTAL=36;
 
 // SEPARATE STATE PER TAB
-const DEF_BT=[35,28,0,32,40,0,25,30,0,22];
+const DEF_BT=[8,1,1,2,10,1,5,1,5,5];
 const DEF_ML={}; // month labels {m: 'custom label'}
 const DEF_TL={}; // trade labels {t: 'asset name'} t=1..10
-const DEF_FR=[1,1,1,1,1,1,1,1,1,1];
+const DEF_FR=[1,4,2,2,1,3,1,5,1,1];
 
 let TAB='36', THEME='t-light', VIEW='sum', ch=null, GLOBAL_MODE=true;
 
 // each tab has its own full state
 const S={
-  '36':{P:1000,LEV:5,NOT:2500,KPI:1.0,BT:[...DEF_BT],FR:[...DEF_FR],WD:{},ML:{},TL:{},MT:{},ZM:new Set([...ZERO_36_DEF]),MP:{}},
-  'q': {P:1000,LEV:5,NOT:2500,KPI:1.0,BT:[...DEF_BT],FR:[...DEF_FR],WD:{},ML:{},TL:{},MT:{},ZM:new Set([]),MP:{}}
+  '36':{P:100,LEV:10,NOT:250,KPI:1.0,BT:[...DEF_BT],FR:[...DEF_FR],WD:{},ML:{},TL:{},MT:{},ZM:new Set([...ZERO_36_DEF]),MP:{}},
+  'q': {P:100,LEV:10,NOT:250,KPI:1.0,BT:[...DEF_BT],FR:[...DEF_FR],WD:{},ML:{},TL:{},MT:{},ZM:new Set([]),MP:{}}
 };
 
 function gs(){return S[TAB];}
@@ -1159,11 +1183,6 @@ function setView(v,btn){
   document.getElementById('vt')?.querySelectorAll('.tb').forEach(b=>b.classList.remove('on'));
   if(btn)btn.classList.add('on');
   if(v==='guide'){renderGuide();return;}
-  // restore table if guide replaced it
-  const tw=document.querySelector('.tw');
-  if(tw && !document.getElementById('tbl')){
-    tw.innerHTML='<table id="tbl"></table>';
-  }
   renderTbl(sim());
 }
 
@@ -1249,6 +1268,27 @@ try{
   if(t){THEME=t;document.body.className=t;document.querySelectorAll('.th-btn').forEach(b=>b.classList.toggle('on',b.dataset.t===t));}
 }catch(e){}
 render();
+
+// ── INTRO NAVIGATION ──
+function goLayer2(){
+  const l1=document.getElementById('layer1');
+  l1.classList.add('out');
+  setTimeout(()=>{
+    l1.classList.add('hidden');
+    const l2=document.getElementById('layer2');
+    l2.classList.remove('hidden');
+    // trigger reflow then fade in
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      l2.style.opacity='1';
+    }));
+  },800);
+}
+
+function launchApp(){
+  const l2=document.getElementById('layer2');
+  l2.classList.add('out');
+  setTimeout(()=>{l2.classList.add('hidden');},800);
+}
 </script>
 </body>
 </html>
