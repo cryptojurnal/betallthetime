@@ -106,36 +106,55 @@ input[type=number]:focus{outline:none;border-color:var(--acc)}
 .act-count span{font-weight:700;color:var(--acc2)}
 
 /* right panel */
-.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:10px}
-.mc{background:var(--panel);border-radius:7px;padding:7px 8px;border:0.5px solid var(--bd2);transition:background .25s}
-.mll{font-size:9px;color:var(--tx2);margin-bottom:2px}
-.mvv{font-size:13px;font-weight:700}
-.ms{font-size:9px;color:var(--tx2);margin-top:1px}
-.note{background:var(--panel);border-left:2px solid var(--acc);border-radius:0 6px 6px 0;padding:6px 10px;font-size:10px;color:var(--tx2);margin-bottom:10px;line-height:1.6;transition:background .25s}
-.cw{position:relative;width:100%;height:180px;margin-bottom:10px;background:var(--panel);border-radius:8px;padding:10px;border:0.5px solid var(--bd2);transition:background .25s}
-.tog{display:flex;border:0.5px solid var(--bd2);border-radius:6px;overflow:hidden;width:fit-content;margin-bottom:8px;background:var(--tog);transition:all .25s}
+.metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:0;margin-bottom:8px;border:0.5px solid var(--bd2);overflow:hidden}
+.mc{background:var(--panel);border-radius:0;padding:5px 7px;border-right:0.5px solid var(--bd2);border-bottom:0.5px solid var(--bd2);transition:background .25s}
+.mc:nth-child(5n){border-right:none}
+.mc:nth-last-child(-n+5){border-bottom:none}
+.mll{font-size:8px;color:var(--tx2);margin-bottom:1px;text-transform:uppercase;letter-spacing:.04em}
+.mvv{font-size:12px;font-weight:700}
+.ms{font-size:8px;color:var(--tx2);margin-top:1px}
+.note{background:var(--panel);border-left:2px solid var(--acc);padding:5px 10px;font-size:10px;color:var(--tx2);margin-bottom:8px;line-height:1.6;transition:background .25s}
+.cw{position:relative;width:100%;height:180px;margin-bottom:0;background:var(--panel);border-radius:0;padding:10px;border:0.5px solid var(--bd2);transition:background .25s}
+.tog{display:flex;border:0.5px solid var(--bd2);border-radius:0;overflow:hidden;width:fit-content;margin-bottom:8px;background:var(--tog);transition:all .25s}
 .tb{padding:4px 11px;font-size:11px;cursor:pointer;border:none;background:transparent;color:var(--tx2)}
 .tb.on{background:var(--togon);color:var(--togonc);font-weight:600}
 .lgd{display:flex;gap:10px;margin-bottom:6px;font-size:10px;color:var(--tx2);flex-wrap:wrap;align-items:center}
 .ld{width:10px;height:3px;border-radius:2px;display:inline-block;margin-right:2px;vertical-align:middle}
 .ft{font-size:9px;color:var(--tx3);margin-top:8px;line-height:1.7}
-.assess-bar{display:grid;grid-template-columns:repeat(4,1fr) 1.4fr 1fr 1.4fr 1.2fr;gap:0;background:var(--panel);border:0.5px solid var(--bd2);border-radius:8px;margin-bottom:10px;overflow:hidden}
-.as-item{display:flex;flex-direction:column;justify-content:center;gap:3px;padding:11px 13px;border-right:0.5px solid var(--bd2)}
+.assess-bar{display:grid;grid-template-columns:repeat(4,1fr) 1.4fr 1fr 1.4fr 1.2fr;gap:0;background:var(--panel);border:0.5px solid var(--bd2);border-radius:0;margin-bottom:8px;overflow:hidden}
+.as-item{display:flex;flex-direction:column;justify-content:center;gap:2px;padding:8px 10px;border-right:0.5px solid var(--bd2)}
 .as-item:last-child{border-right:none}
-.as-lbl{font-size:9px;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;font-weight:700}
-.as-val{font-size:15px;font-weight:700;line-height:1.1}
-.as-sub{font-size:9px;color:var(--tx2);line-height:1.3}
-.risk-pill{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.03em}
+.as-lbl{font-size:8px;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;font-weight:700}
+.as-val{font-size:14px;font-weight:700;line-height:1.1}
+.as-sub{font-size:8px;color:var(--tx2);line-height:1.3}
+.risk-pill{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:3px;font-size:10px;font-weight:700;letter-spacing:.03em}
 .rp-safe{background:#EAF3DE;color:#3B6D11}
 .rp-med{background:#FAEEDA;color:#854F0B}
 .rp-high{background:#FCEBEB;color:#A32D2D}
 .rp-extreme{background:#A32D2D;color:#fff}
-.as-bar-track{width:80px;height:5px;background:var(--bd2);border-radius:3px;overflow:hidden;margin-top:2px}
-.as-bar-fill{height:100%;border-radius:3px;transition:width .3s}
+.as-bar-track{width:100%;height:3px;background:var(--bd2);overflow:hidden;margin-top:2px}
+.as-bar-fill{height:100%;transition:width .3s}
+/* side metric cards grid (36-month right panel + quarter below tabs) */
+.sc-grid{display:grid;grid-template-columns:1fr 1fr;border:0.5px solid var(--bd2);overflow:hidden;margin-bottom:8px}
+.sc-item{display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px;padding:7px 9px;border-right:0.5px solid var(--bd2);border-bottom:0.5px solid var(--bd2);background:var(--panel)}
+.sc-item:nth-child(4n){border-right:none}
+.sc-item:nth-last-child(-n+4){border-bottom:none}
+.sc-lbl{font-size:8px;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;font-weight:700}
+.sc-val{font-size:14px;font-weight:700;line-height:1.1}
+.sc-sub{font-size:8px;color:var(--tx2);line-height:1.3}
+/* chart zoom */
+#chart-zoom-overlay{position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,0.55);backdrop-filter:blur(5px);display:flex;align-items:center;justify-content:center;cursor:pointer;animation:fadeInOv .2s ease}
+@keyframes fadeInOv{from{opacity:0}to{opacity:1}}
+#chart-zoom-box{background:var(--panel);border:0.5px solid var(--bd2);padding:16px;width:84vw;height:68vh;position:relative;cursor:default;display:flex;flex-direction:column;gap:8px;animation:scaleIn .2s ease}
+@keyframes scaleIn{from{transform:scale(0.95);opacity:0}to{transform:scale(1);opacity:1}}
+#chart-zoom-canvas{flex:1;min-height:0}
+#chart-zoom-close{position:absolute;top:10px;right:12px;background:transparent;border:0.5px solid var(--bd2);color:var(--tx2);font-size:13px;cursor:pointer;padding:2px 8px;letter-spacing:.05em}
+.chart-zoom-btn{position:absolute;bottom:8px;right:8px;background:var(--sf2);border:0.5px solid var(--bd2);color:var(--tx3);font-size:9px;padding:2px 7px;cursor:pointer;letter-spacing:.04em;transition:all .15s}
+.chart-zoom-btn:hover{color:var(--acc2);border-color:var(--acc2)}
 
 /* table */
 .tw{overflow-x:auto}
-table{border-collapse:collapse;font-size:11px;width:100%;min-width:640px;background:var(--panel);border-radius:8px;overflow:hidden;border:0.5px solid var(--bd2);transition:background .25s}
+table{border-collapse:collapse;font-size:11px;width:100%;min-width:640px;background:var(--panel);border-radius:0;overflow:hidden;border:0.5px solid var(--bd2);transition:background .25s}
 th{padding:6px 7px;background:var(--sf2);border-bottom:0.5px solid var(--bd2);font-weight:700;font-size:9px;color:var(--tx2);text-align:right;white-space:nowrap;letter-spacing:.04em;text-transform:uppercase}
 th:first-child{text-align:left}
 td{padding:5px 7px;border-bottom:0.5px solid var(--bd2);text-align:right;white-space:nowrap;color:var(--tx)}
@@ -231,7 +250,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 <!-- LEFT PANEL -->
 <div class="panel-left" id="left-panel">
   <button class="collapse-btn" id="collapse-btn" onclick="togglePanel()" title="collapse panel">‹</button>
-  <div class="collapsed-label" onclick="togglePanel()">WZ scalp · controls</div>
+  <div class="collapsed-label" onclick="togglePanel()">bet all the time · controls</div>
   <div class="pl-body">
   <div class="pl-head">
     <h1>bet all the time, bet with style</h1>
@@ -258,8 +277,8 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
   <div class="sec">
     <div class="seclbl">starting capital</div>
     <div class="prs" id="cap-prs">
-      <button class="pr on" onclick="setP(100,this)">$100</button>
-      <button class="pr" onclick="setP(1000,this)">$1k</button>
+      <button class="pr" onclick="setP(100,this)">$100</button>
+      <button class="pr on" onclick="setP(1000,this)">$1k</button>
       <button class="pr" onclick="setP(10000,this)">$10k</button>
       <button class="pr" onclick="setP(100000,this)">$100k</button>
       <button class="pr" onclick="setP(1000000,this)">$1M</button>
@@ -270,13 +289,13 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
     </div>
     <div class="row">
       <span class="lbl">type ($)</span>
-      <input type="number" id="cap-in" value="100" min="1" max="10000000000" oninput="onCapIn(this.value)">
+      <input type="number" id="cap-in" value="1000" min="1" max="10000000000" oninput="onCapIn(this.value)">
     </div>
     <div class="row">
       <span class="lbl">slide</span>
-      <input type="range" id="cap-sl" min="100" max="10000000000" step="1000" value="100" oninput="onCapSl(this.value)">
+      <input type="range" id="cap-sl" min="100" max="10000000000" step="1000" value="1000" oninput="onCapSl(this.value)">
     </div>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin:3px 0 4px"><span style="font-size:9px;color:var(--tx3)">current</span><span style="font-size:14px;font-weight:700;color:var(--acc2);background:var(--sf2);padding:2px 8px;border-radius:5px;border:0.5px solid var(--bd2)" id="cap-vl">$100</span></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin:3px 0 4px"><span style="font-size:9px;color:var(--tx3)">current</span><span style="font-size:14px;font-weight:700;color:var(--acc2);background:var(--sf2);padding:2px 8px;border-radius:5px;border:0.5px solid var(--bd2)" id="cap-vl">$1,000</span></div>
   </div>
   <button class="save-btn" id="save-cap" onclick="saveSection('cap')">💾 save capital</button>
 
@@ -286,18 +305,18 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
   <div class="sec">
     <div class="seclbl">leverage</div>
     <div class="prs" id="lv-prs">
-      <button class="pr" onclick="setLev(5,this)">5×</button>
-      <button onclick="setLev(10,this)" class="pr g on">10×</button>
+      <button class="pr on" onclick="setLev(5,this)">5×</button>
+      <button onclick="setLev(10,this)" class="pr">10×</button>
       <button class="pr" onclick="setLev(20,this)">20×</button>
       <button class="pr" onclick="setLev(50,this)">50×</button>
       <button class="pr" onclick="setLev(100,this)">100×</button>
     </div>
     <div class="row">
       <span class="lbl">type (×)</span>
-      <input type="number" id="lv-in" value="10" min="1" max="100" oninput="onLevIn(this.value)">
+      <input type="number" id="lv-in" value="5" min="1" max="100" oninput="onLevIn(this.value)">
     </div>
-    <input type="range" id="lv-sl" min="1" max="100" step="1" value="10" oninput="onLevSl(this.value)" style="width:100%;margin:2px 0 3px">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span style="font-size:9px;color:var(--tx3)">current</span><span style="font-size:14px;font-weight:700;color:var(--acc2);background:var(--sf2);padding:2px 8px;border-radius:5px;border:0.5px solid var(--bd2)" id="lv-vl">10×</span></div>
+    <input type="range" id="lv-sl" min="1" max="100" step="1" value="5" oninput="onLevSl(this.value)" style="width:100%;margin:2px 0 3px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span style="font-size:9px;color:var(--tx3)">current</span><span style="font-size:14px;font-weight:700;color:var(--acc2);background:var(--sf2);padding:2px 8px;border-radius:5px;border:0.5px solid var(--bd2)" id="lv-vl">5×</span></div>
   </div>
 
   <div class="divider"></div>
@@ -308,28 +327,36 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
       <div class="seclbl" style="margin-bottom:0">notional (trade 1)</div>
       <div style="display:flex;align-items:center;gap:4px">
         <span style="font-size:8px;color:var(--tx3)">link to capital</span>
-        <button id="not-link-btn" onclick="toggleNotLink()" title="when ON: notional scales with capital to maintain liq%" style="font-size:9px;padding:1px 7px;border-radius:10px;border:0.5px solid var(--bd2);background:var(--btn);color:var(--tx3);cursor:pointer;font-weight:700">off</button>
+        <button id="not-link-btn" onclick="toggleNotLink()" title="when ON: notional scales with capital. OFF = notional stays fixed (safer default)" style="font-size:9px;padding:1px 7px;border-radius:10px;border:0.5px solid var(--bd2);background:var(--btn);color:var(--tx3);cursor:pointer;font-weight:700">off</button>
       </div>
+    </div>
+    <div class="prs" id="not-prs">
+      <button class="pr" onclick="setNot(100,this)">$100</button>
+      <button class="pr" onclick="setNot(1000,this)">$1k</button>
+      <button class="pr" onclick="setNot(10000,this)">$10k</button>
+      <button class="pr" onclick="setNot(1000000,this)">$1M</button>
+      <button class="pr" onclick="setNot(10000000,this)">$10M</button>
+      <button class="pr" onclick="setNot(1000000000,this)">$1B</button>
     </div>
     <div class="row">
       <span class="lbl">type ($)</span>
-      <input type="number" id="not-in" value="250" min="1" max="100000000000" oninput="onNotIn(this.value)">
+      <input type="number" id="not-in" value="2500" min="1" max="100000000000" oninput="onNotIn(this.value)">
     </div>
     <div class="row">
       <span class="lbl">slide</span>
-      <input type="range" id="not-sl" min="1" max="100000000000" step="1000" value="250" oninput="onNotSl(this.value)">
+      <input type="range" id="not-sl" min="1" max="100000000000" step="1000" value="2500" oninput="onNotSl(this.value)">
     </div>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin:3px 0 4px"><span style="font-size:9px;color:var(--tx3)">current</span><span style="font-size:14px;font-weight:700;color:var(--acc2);background:var(--sf2);padding:2px 8px;border-radius:5px;border:0.5px solid var(--bd2)" id="not-vl">$250</span></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin:3px 0 4px"><span style="font-size:9px;color:var(--tx3)">current</span><span style="font-size:14px;font-weight:700;color:var(--acc2);background:var(--sf2);padding:2px 8px;border-radius:5px;border:0.5px solid var(--bd2)" id="not-vl">$2,500</span></div>
     <div class="comp-row">
-      <div class="ci"><div class="cl">actual margin</div><div class="cv" id="c-am">$16.67</div><div style="font-size:7px;color:var(--tx3)">notional ÷ lev</div></div>
-      <div class="ci"><div class="cl">fm% of acct</div><div class="cv" id="c-fm">15.2%</div><div style="font-size:7px;color:var(--tx3)">capital at risk</div></div>
-      <div class="ci"><div class="cl">liq% t1 m01</div><div class="cv" id="c-lq" style="color:#1D9E75">40%</div><div style="font-size:7px;color:var(--tx3)">spot drop → wipe</div></div>
+      <div class="ci"><div class="cl">actual margin</div><div class="cv" id="c-am">$500</div><div style="font-size:7px;color:var(--tx3)">notional ÷ lev</div></div>
+      <div class="ci"><div class="cl">fm% of acct</div><div class="cv" id="c-fm">50.0%</div><div style="font-size:7px;color:var(--tx3)">capital at risk</div></div>
+      <div class="ci"><div class="cl">liq% t1 m01</div><div class="cv" id="c-lq" style="color:#EF9F27">40.0%</div><div style="font-size:7px;color:var(--tx3)">spot drop → wipe</div></div>
     </div>
     <div style="font-size:8px;color:var(--tx3);padding:3px 1px;line-height:1.6;margin-top:3px">
-      <span style="color:var(--tx2)">acct</span> <span id="c-acct" style="color:var(--tx);font-weight:600">$100</span>
+      <span style="color:var(--tx2)">acct</span> <span id="c-acct" style="color:var(--tx);font-weight:600">$1,000</span>
       × <span id="c-ratio" style="color:var(--acc2);font-weight:600">2.50</span>
-      = <span id="c-not2" style="font-weight:600">$250</span>
-      → margin <span id="c-am2" style="color:var(--acc);font-weight:600">$16.67</span>
+      = <span id="c-not2" style="font-weight:600">$2,500</span>
+      → margin <span id="c-am2" style="color:var(--acc);font-weight:600">$500</span>
     </div>
   </div>
   <button class="save-btn" id="save-pos" onclick="saveSection('pos')">💾 save position</button>
@@ -403,6 +430,71 @@ async function fetchIDR(force){
 // ── LANGUAGE ──
 let LANG='en';
 
+// ── TRANSLATION ──
+const TR={
+en:{
+  cagr_lbl:'3yr CAGR', cagr_sub:'annualized, combined NW',
+  total_ret_lbl:'total return', total_ret_sub:(c)=>`36mo on ${c} principal`,
+  end_acct_lbl:'end account m36', banked_lbl:'total banked', banked_sub:'profits taken out',
+  nw_lbl:'combined NW', nw_sub:'account + banked',
+  milestone_lbl:'$1M milestone', beyond36:'beyond 36', milestone_hit:'NW hits $1M at ', milestone_miss:'increase capital or returns',
+  avg_lbl:'avg monthly gain', avg_sub:'active months only', per_active_month:'per active month',
+  seq_lbl:'max seq upside', per_seq:'per sequence', trades:'trades', months:'months',
+  liq_mc_lbl:'liq% t1 · month 1', liq_mc_sub:(n)=>`spot must drop ${n}% to wipe t1`,
+  q_end_lbl:'quarter end', total_gain_lbl:'total gain', active_trades:'active trades', active:'active',
+  note_setup:'setup', note_margin:'actual margin', note_at:'at',
+  note_liq:(n)=>`spot must drop ${n}% to liquidate trade 1`,
+  note_wd:'withdrawal input in table · liq drops after wd (less buffer next month)',
+  label_hint:'✏️ click any month or trade name to rename it — make every label yours',
+  sc_risk:'risk score', sc_liq:'liq t1 buffer', sc_liq_sub:'spot drop → wipe',
+  sc_lev:'leverage', sc_of_acct:'of acct', sc_avg:'avg monthly', sc_avg_sub:'active months',
+  sc_cagr:'3yr CAGR', sc_cagr_sub:'account + banked', sc_life:'lifespan',
+  sc_seq:'seq potential', sc_verdict:'verdict',
+  rl_SAFE:'SAFE', rl_MODERATE:'MODERATE', rl_HIGH:'HIGH RISK', rl_EXTREME:'EXTREME',
+  verdict_solid:'setup looks solid',
+  age_minutes:'minutes', age_hours:'hours', age_days:'days', age_weeks:'weeks', age_months:'months',
+  'age_~1 year':'~1 year', age_years:'years', 'age_a decade':'a decade', age_generational:'generational',
+  age_sub_minutes:'one bad candle ends it', age_sub_hours:'extremely fragile',
+  age_sub_days:'volatile session → gone', age_sub_weeks:'dangerous · tighten risk',
+  age_sub_months:'manageable, stay sharp', 'age_sub_~1 year':'solid · respect the plan',
+  age_sub_years:'disciplined trader energy', 'age_sub_a decade':'institutional grade',
+  age_sub_generational:'almost unliquidatable',
+},
+id:{
+  cagr_lbl:'CAGR 3 thn', cagr_sub:'dianualisasi, NW gabungan',
+  total_ret_lbl:'total return', total_ret_sub:(c)=>`36 bln dari modal ${c}`,
+  end_acct_lbl:'akun akhir m36', banked_lbl:'total ditarik', banked_sub:'profit yg sudah ditarik',
+  nw_lbl:'NW gabungan', nw_sub:'akun + ditarik',
+  milestone_lbl:'target $1 Juta', beyond36:'lewat 36 bln', milestone_hit:'NW capai $1M di ', milestone_miss:'tambah modal atau tingkatkan return',
+  avg_lbl:'rata-rata bulanan', avg_sub:'bulan aktif saja', per_active_month:'per bulan aktif',
+  seq_lbl:'potensi seq maks', per_seq:'per sekuens', trades:'trade', months:'bulan',
+  liq_mc_lbl:'liq% t1 · bulan 1', liq_mc_sub:(n)=>`harga perlu turun ${n}% untuk likuidasi t1`,
+  q_end_lbl:'akhir kuartal', total_gain_lbl:'total gain', active_trades:'trade aktif', active:'aktif',
+  note_setup:'setup', note_margin:'margin aktual', note_at:'di',
+  note_liq:(n)=>`harga perlu turun ${n}% untuk likuidasi trade 1`,
+  note_wd:'input penarikan di tabel · liq turun setelah penarikan (buffer lebih kecil bulan depan)',
+  label_hint:'✏️ klik nama bulan atau trade untuk mengganti — buat setiap label milikmu sendiri',
+  sc_risk:'skor risiko', sc_liq:'buffer liq t1', sc_liq_sub:'harga turun → likuidasi',
+  sc_lev:'leverage', sc_of_acct:'dari akun', sc_avg:'rata-rata bulanan', sc_avg_sub:'bulan aktif',
+  sc_cagr:'CAGR 3 thn', sc_cagr_sub:'akun + ditarik', sc_life:'ketahanan akun',
+  sc_seq:'potensi sekuens', sc_verdict:'kesimpulan',
+  rl_SAFE:'AMAN', rl_MODERATE:'MODERAT', rl_HIGH:'RISIKO TINGGI', rl_EXTREME:'EKSTREM',
+  verdict_solid:'setup terlihat solid',
+  age_minutes:'menit', age_hours:'jam', age_days:'hari', age_weeks:'minggu', age_months:'bulan',
+  'age_~1 year':'~1 tahun', age_years:'tahun', 'age_a decade':'satu dekade', age_generational:'generasional',
+  age_sub_minutes:'satu candle buruk bisa habis', age_sub_hours:'sangat rapuh',
+  age_sub_days:'satu sesi volatil → habis', age_sub_weeks:'berbahaya · kencangkan risiko',
+  age_sub_months:'masih aman, tetap waspada', 'age_sub_~1 year':'solid · ikuti rencananya',
+  age_sub_years:'energi trader disiplin', 'age_sub_a decade':'kelas institusional',
+  age_sub_generational:'hampir tidak bisa dilikuidasi',
+}};
+function t(key,arg){
+  const lang=LANG||'en';
+  const val=(TR[lang]&&TR[lang][key]!==undefined)?TR[lang][key]:((TR.en&&TR.en[key]!==undefined)?TR.en[key]:key);
+  if(typeof val==='function') return val(arg);
+  return val;
+}
+
 const GUIDE_HTML=`
 <style>
 .guide-wrap{max-width:720px;padding:4px 0 20px;font-size:12px;line-height:1.7;color:var(--tx)}
@@ -423,6 +515,9 @@ const GUIDE_HTML=`
 .g-warn{background:#FAEEDA;border-radius:8px;padding:10px 14px;font-size:11px;color:#854F0B;margin:10px 0;line-height:1.7}
 body.t-dark .g-warn{background:#2a1a00;color:#EF9F27}
 body.t-ocean .g-warn,.body.t-forest .g-warn,.body.t-sunset .g-warn,.body.t-lavender .g-warn{background:var(--sf2);color:var(--tx2)}
+.g-toggle-demo{display:inline-flex;align-items:center;gap:6px;background:var(--sf2);border:0.5px solid var(--bd2);border-radius:6px;padding:4px 10px;font-size:10px;color:var(--tx2);margin:4px 0}
+.g-tog-on{padding:2px 8px;border-radius:4px;background:var(--togon);color:var(--togonc);font-size:10px;font-weight:700}
+.g-tog-off{padding:2px 8px;border-radius:4px;background:transparent;color:var(--tx2);font-size:10px}
 </style>
 
 <div class="g-title">bet all the time, bet with style · guide</div>
@@ -452,7 +547,7 @@ body.t-ocean .g-warn,.body.t-forest .g-warn,.body.t-sunset .g-warn,.body.t-laven
   <div class="g-term"><span class="g-term-name">actual margin</span><span class="g-term-def">the <b>real capital from your account used as collateral</b> for trade 1. formula: notional ÷ leverage. this is what you actually risk per trade entry.</span></div>
   <div class="g-term"><span class="g-term-name">fm% (frac margin)</span><span class="g-term-def"><b>fractional margin</b> — actual margin as a % of your total account. if fm% = 16%, you're deploying 16% of your account as margin for trade 1. lower = safer.</span></div>
   <div class="g-term"><span class="g-term-name">carry-forward</span><span class="g-term-def">each trade's notional <b>grows by adding the previous trade's profit.</b> so if trade 1 notional = $250 and profit = $20, trade 2 notional = $270. this compounds within the sequence naturally.</span></div>
-  <div class="g-tip"><b>the relationship:</b> liq% = account ÷ notional × 100. so if account = $100 and notional = $250, liq% = 40%. if you withdraw $50, account drops to $50, liq% drops to 20% — you're now twice as close to liquidation. this is why withdrawal affects liq%.</div>
+  <div class="g-tip"><b>the relationship:</b> liq% = account ÷ notional × 100. so if account = $1,000 and notional = $2,500, liq% = 40%. if you withdraw $500, account drops to $500, liq% drops to 20% — you're now twice as close to liquidation. this is why withdrawal directly impacts your safety buffer.</div>
 </div>
 
 <div class="g-sec">
@@ -474,24 +569,61 @@ body.t-ocean .g-warn,.body.t-forest .g-warn,.body.t-sunset .g-warn,.body.t-laven
 </div>
 
 <div class="g-sec">
+  <div class="g-sec-title">🔘 toggle switches — tiny but essential</div>
+  <div style="font-size:11px;color:var(--tx2);margin-bottom:10px;line-height:1.7">this dashboard has several toggle switches that control important behaviors. here's exactly what each one does:</div>
+
+  <div class="g-term">
+    <span class="g-term-name">link to capital<br><span style="font-weight:400;font-size:9px;color:var(--tx3)">(notional panel)</span></span>
+    <span class="g-term-def">
+      <div class="g-toggle-demo"><span class="g-tog-off">off</span><span style="color:var(--tx3);font-size:10px">↔</span><span class="g-tog-on">on</span></div><br>
+      <b>off (default — recommended):</b> notional stays fixed when you change capital. safer behavior — your position size doesn't jump around automatically.<br>
+      <b>on:</b> notional scales proportionally with capital to maintain the same liq% ratio. useful when you want the risk profile to stay consistent as capital grows. <b>watch out</b> — turning this on and bumping capital will automatically increase notional and may surprise you.
+    </span>
+  </div>
+
+  <div class="g-term" style="margin-top:8px">
+    <span class="g-term-name">global mode<br><span style="font-weight:400;font-size:9px;color:var(--tx3)">(trade slots panel)</span></span>
+    <span class="g-term-def">
+      <div class="g-toggle-demo"><span class="g-tog-on">● on</span><span style="color:var(--tx3);font-size:10px">↔</span><span class="g-tog-off">○ off</span></div><br>
+      <b>on (default):</b> all 36 months use the same 10 trade slots you've configured in the left panel. simple and clean — one formula, applied everywhere.<br>
+      <b>off (per-month mode):</b> unlocks manual target/freq inputs in the full trade detail view for every individual month. lets you adapt to different market conditions month by month — bull month gets aggressive targets, choppy month gets conservative. the trade slot panel in the left dims when in manual mode (you edit directly in the table instead).
+    </span>
+  </div>
+
+  <div class="g-tip"><b>pro tip:</b> start with global mode on to test your base formula. when you have a strong view on an upcoming month (e.g. a known catalyst or halving event), switch to manual mode and push that month's targets up. keep global mode on for the rest.</div>
+</div>
+
+<div class="g-sec">
+  <div class="g-sec-title">🎨 customization — everything is editable</div>
+  <div style="font-size:11px;color:var(--tx2);margin-bottom:10px;line-height:1.7">almost every label and value in this dashboard can be customized. here's what you can change freely:</div>
+  <div class="g-term"><span class="g-term-name">month labels</span><span class="g-term-def">click any month name in the summary or detail table and type your own label — e.g. <b>"april 2026"</b>, <b>"halving month"</b>, or anything that gives it meaning. labels survive saves.</span></div>
+  <div class="g-term"><span class="g-term-name">trade labels</span><span class="g-term-def">in the full trade detail view, click any trade row label to rename it — e.g. <b>"BTC/USDT long"</b>, <b>"MOODENG pump"</b>, or your own shorthand. useful for tracking which asset each slot targets.</span></div>
+  <div class="g-term"><span class="g-term-name">withdrawal column</span><span class="g-term-def">click any cell in the withdrawal column (monthly summary or detail view) to type a withdrawal amount for that month. the field highlights in accent color when active. it deducts from gross end balance and lowers liq% for the next month.</span></div>
+  <div class="g-term"><span class="g-term-name">margin push ⚡</span><span class="g-term-def">in the detail view, the push field on each month header lets you type a multiplier (e.g. 1.5) to boost trade 1's notional for that specific month only. the cell glows green when active. use sparingly.</span></div>
+  <div class="g-term"><span class="g-term-name">zero month ⊘</span><span class="g-term-def">click the ⊘ button on any month row to mark it as a zero month (no trading). click again to reactivate. zero months are shown dimmed in the table. in summary view, click the entire zero row to toggle it back.</span></div>
+  <div class="g-term"><span class="g-term-name">themes</span><span class="g-term-def">6 color themes available: Light, Dark, Ocean, Forest, Sunset, Lavender. pick from the color dots at the top of the left panel. theme preference is saved to your browser.</span></div>
+  <div class="g-tip"><b>labels and zero months auto-save</b> the moment you edit them — no button needed. for capital, position, and trade settings, use the 💾 save buttons in the left panel so you can experiment freely without overwriting your saved state. <b>36-month and quarter tabs save independently.</b></div>
+</div>
+
+<div class="g-sec">
   <div class="g-sec-title">⚙️ controls — how to use them</div>
-  <div class="g-step"><div class="g-step-num">1</div><div class="g-step-body"><b>set starting capital</b> — your actual account size. this doesn't affect liq% directly (the ratio is what matters) but it scales all dollar amounts in the projection.</div></div>
+  <div class="g-step"><div class="g-step-num">1</div><div class="g-step-body"><b>set starting capital</b> — your actual account size. use the preset buttons ($100 · $1k · $10k · $100k · $1M · $10M · $100M · $1B · $10B) or type/slide manually. capital doesn't affect liq% directly — the ratio to notional is what matters.</div></div>
   <div class="g-step"><div class="g-step-num">2</div><div class="g-step-body"><b>set leverage</b> — higher leverage means smaller actual margin per trade but also shrinks your liq% buffer. watch the liq% in the notional panel update live.</div></div>
-  <div class="g-step"><div class="g-step-num">3</div><div class="g-step-body"><b>set notional (trade 1)</b> — this is your first trade's position size. the comp panel shows actual margin, fm%, and liq% in real time. <b>keep liq% above 40% for healthy risk.</b> "link to capital" toggle controls whether notional auto-scales when you change capital.</div></div>
+  <div class="g-step"><div class="g-step-num">3</div><div class="g-step-body"><b>set notional (trade 1)</b> — your first trade's position size. use the preset buttons ($100 · $1k · $10k · $1M · $10M · $1B) or type/slide freely. the comp panel shows actual margin, fm%, and liq% in real time. <b>keep liq% at or above 40% — that's your floor, not your target.</b> aim for 100%+ liq for a genuinely healthy setup. "link to capital" toggle controls whether notional auto-scales when you change capital.</div></div>
   <div class="g-step"><div class="g-step-num">4</div><div class="g-step-body"><b>set trade slots</b> — 10 slots, each with target% and freq. set either to 0 to skip that trade. the sequence runs top to bottom, notional compounding with each trade's profit.</div></div>
-  <div class="g-step"><div class="g-step-num">5</div><div class="g-step-body"><b>global mode vs manual</b> — when global is ON, all months use the same trade targets. turn it OFF to set different targets per month in the full trade detail view — useful for adapting to different market conditions.</div></div>
-  <div class="g-step"><div class="g-step-num">6</div><div class="g-step-body"><b>zero months</b> — months where you don't trade (unclear market, rest, etc). click the ⊘ button on any month to mark it as zero. click again to activate. zero months pause compounding but don't reset anything.</div></div>
-  <div class="g-step"><div class="g-step-num">7</div><div class="g-step-body"><b>withdrawal</b> — type any amount in the withdrawal column (monthly summary or detail view). this deducts from that month's gross end balance. <b>important: withdrawing reduces your account which lowers liq% for the next month.</b> you're trading on less buffer.</div></div>
-  <div class="g-step"><div class="g-step-num">8</div><div class="g-step-body"><b>margin push up (⚡)</b> — in full trade detail, type a multiplier (e.g. 1.4) in the push field on a month header. only trade 1 of that month gets multiplied. trades 2-10 compound naturally from that higher base. this is an acceleration tactic for when you're confident.</div></div>
+  <div class="g-step"><div class="g-step-num">5</div><div class="g-step-body"><b>global mode vs manual</b> — when global is ON, all months use the same trade targets. turn it OFF to set different targets per month in the full trade detail view.</div></div>
+  <div class="g-step"><div class="g-step-num">6</div><div class="g-step-body"><b>zero months</b> — months where you don't trade. click the ⊘ button on any month to mark it as zero. click again to activate.</div></div>
+  <div class="g-step"><div class="g-step-num">7</div><div class="g-step-body"><b>withdrawal</b> — type any amount in the withdrawal column. <b>important: withdrawing reduces your account which lowers liq% for the next month.</b> always check liq t1 after setting a withdrawal.</div></div>
+  <div class="g-step"><div class="g-step-num">8</div><div class="g-step-body"><b>margin push up (⚡)</b> — in full trade detail, type a multiplier (e.g. 1.4) in the push field. only trade 1 of that month gets multiplied. trades 2–10 compound naturally from that higher base.</div></div>
   <div class="g-warn">⚠ key rule: when you withdraw, your liq% drops for the next month. the projection shows this — watch the liq t1 column. if it drops below 20%, you're in the danger zone. always check liq% after setting a withdrawal amount.</div>
 </div>
 
 <div class="g-sec">
-  <div class="g-sec-title">🎯 risk assessment bar — quick read</div>
-  <div class="g-term"><span class="g-term-name">risk score</span><span class="g-term-def">composite 0–100 score. <b>lower = safer.</b> factors: liq% buffer (main weight), leverage level, fm% of account, number of active trades. hover the score for what's driving it.</span></div>
-  <div class="g-term"><span class="g-term-name">liq t1 buffer</span><span class="g-term-def">same as liq% for trade 1 month 1. the <b>fill bar</b> shows it visually — green = good buffer, amber = watchable, red = danger.</span></div>
-  <div class="g-term"><span class="g-term-name">account lifespan</span><span class="g-term-def">estimated how long the account structure survives adverse conditions. from <b>minutes</b> (extreme risk) to <b>generational</b> (almost unliquidatable). formula: (liq%)² ÷ leverage factor ÷ margin factor.</span></div>
-  <div class="g-tip"><b>the golden setup:</b> liq% ≥ 40% · leverage ≤ 15× · fm% ≤ 20% → account lifespan "months to years" · risk score below 30 · this is the WZ scalp baseline. adjust based on your conviction and market conditions.</div>
+  <div class="g-sec-title">🎯 risk assessment — quick read</div>
+  <div class="g-term"><span class="g-term-name">risk score</span><span class="g-term-def">composite 0–100 score. <b>lower = safer.</b> factors: liq% buffer (main weight), leverage level, fm% of account, number of active trades.</span></div>
+  <div class="g-term"><span class="g-term-name">liq t1 buffer</span><span class="g-term-def">same as liq% for trade 1 month 1. the fill bar shows it visually — green = good buffer, amber = watchable, red = danger.</span></div>
+  <div class="g-term"><span class="g-term-name">account lifespan</span><span class="g-term-def">estimated how long the account structure survives adverse conditions. from <b>minutes</b> (extreme) to <b>generational</b> (almost unliquidatable). formula: (liq%)² ÷ leverage factor ÷ margin factor.</span></div>
+  <div class="g-tip"><b>the bet all the time baseline:</b> liq% ≥ 40% (floor) · leverage ≤ 15× · fm% ≤ 20% → risk score below 30, lifespan "months to years". <b>a truly healthy setup targets liq% above 100%</b> — that means the market would need to completely collapse to wipe you. 40% is where you draw the line, not where you aim.</div>
 </div>
 
 <div class="g-sec">
@@ -499,7 +631,7 @@ body.t-ocean .g-warn,.body.t-forest .g-warn,.body.t-sunset .g-warn,.body.t-laven
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
     <div style="background:#EAF3DE;border-radius:7px;padding:10px 12px">
       <div style="font-size:11px;font-weight:700;color:#3B6D11;margin-bottom:6px">✓ healthy setup</div>
-      <div style="font-size:10px;color:#3B6D11;line-height:1.8">liq% t1 ≥ 40%<br>leverage ≤ 15×<br>fm% ≤ 20%<br>account lifespan: months → years<br>risk score &lt; 30<br>active trades: 5–10<br>at least 1 zero month per 6</div>
+      <div style="font-size:10px;color:#3B6D11;line-height:1.8">liq% t1 ≥ 100% (ideal)<br>liq% t1 ≥ 40% (minimum floor)<br>leverage ≤ 15×<br>fm% ≤ 20%<br>account lifespan: months → years<br>risk score &lt; 30<br>active trades: 5–10<br>at least 1 zero month per 6</div>
     </div>
     <div style="background:#FCEBEB;border-radius:7px;padding:10px 12px">
       <div style="font-size:11px;font-weight:700;color:#A32D2D;margin-bottom:6px">✕ danger zone</div>
@@ -514,26 +646,209 @@ body.t-ocean .g-warn,.body.t-forest .g-warn,.body.t-sunset .g-warn,.body.t-laven
   <div class="g-term"><span class="g-term-name">save capital</span><span class="g-term-def">saves starting capital to browser storage. survives page reload.</span></div>
   <div class="g-term"><span class="g-term-name">save position</span><span class="g-term-def">saves leverage, notional, and KPI scale.</span></div>
   <div class="g-term"><span class="g-term-name">save trades</span><span class="g-term-def">saves all 10 trade targets and freqs.</span></div>
-  <div class="g-term"><span class="g-term-name">save labels</span><span class="g-term-def">saves your custom month labels (e.g. "april 2026") and trade labels (e.g. "MOODENG/USDT").</span></div>
-  <div class="g-term"><span class="g-term-name">save zeros</span><span class="g-term-def">saves which months are marked as zero months.</span></div>
-  <div class="g-tip"><b>36-month and quarter tabs have separate state.</b> capital, trades, and labels set in one tab don't affect the other. save each tab independently.</div>
+  <div class="g-tip"><b>labels and zero months save automatically</b> the moment you edit them — no button needed. capital, position, and trade settings use manual save buttons so you can experiment freely without overwriting your saved state. <b>36-month and quarter tabs have separate state</b> — save each independently.</div>
+</div>
+
+<div class="g-sec" style="border:1.5px solid #E24B4A;border-radius:10px;padding:14px 16px;background:#FCEBEB">
+  <div class="g-sec-title" style="color:#A32D2D;border-bottom-color:#f5c6c6">⚠️ important — read before you onboard</div>
+  <div style="font-size:11px;color:#7a2020;line-height:1.8">
+    <b>this dashboard is a projection and assessment tool — not a trading guarantee.</b><br><br>
+    all numbers you see are <b>pre-execution estimates</b> based on the inputs you provide. real results will differ depending on your timing, discipline, market conditions, and execution quality.<br><br>
+    <b>what this dashboard does NOT calculate:</b><br>
+    · trading fees (maker/taker)<br>
+    · funding fees (perpetual contracts)<br>
+    · slippage and spread costs<br>
+    · exchange-specific liquidation mechanics<br>
+    · partial fills or execution delays<br><br>
+    the final outcome depends entirely on <b>your own execution</b>. this tool helps you prepare and assess your setup before entering — the bet itself, and the results, are yours alone. any gains or losses are the direct result of your personal trading decisions and experience.<br><br>
+    <b style="color:#A32D2D">🔒 cross margin mode only.</b> the liq% formula (account ÷ notional × 100) is designed specifically for cross margin. if you are using isolated margin, the liquidation mechanics are different and this dashboard's liq% will not apply accurately. always confirm your margin mode before relying on these projections.
+  </div>
 </div>
 `;
+
+
+const GUIDE_HTML_ID=`
+<style>
+.guide-wrap{max-width:720px;padding:4px 0 20px;font-size:12px;line-height:1.7;color:var(--tx)}
+.g-title{font-size:18px;font-weight:700;color:var(--tx);margin-bottom:4px}
+.g-sub{font-size:11px;color:var(--tx2);margin-bottom:20px}
+.g-sec{margin-bottom:22px}
+.g-sec-title{font-size:13px;font-weight:700;color:var(--acc2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;padding-bottom:5px;border-bottom:0.5px solid var(--bd2)}
+.g-term{display:grid;grid-template-columns:140px 1fr;gap:8px 16px;margin-bottom:8px;align-items:start}
+.g-term-name{font-size:11px;font-weight:700;color:var(--tx);background:var(--sf2);padding:3px 8px;border-radius:5px;white-space:nowrap}
+.g-term-def{font-size:11px;color:var(--tx2);line-height:1.6}
+.g-term-def b{color:var(--tx);font-weight:600}
+.g-tip{background:var(--sf2);border-left:3px solid var(--acc2);border-radius:0 8px 8px 0;padding:10px 14px;font-size:11px;color:var(--tx2);margin:10px 0;line-height:1.7}
+.g-tip b{color:var(--acc2)}
+.g-step{display:flex;gap:12px;align-items:flex-start;margin-bottom:10px}
+.g-step-num{width:24px;height:24px;border-radius:50%;background:var(--acc);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.g-step-body{font-size:11px;color:var(--tx2);line-height:1.7}
+.g-step-body b{color:var(--tx);font-weight:600}
+.g-warn{background:#FAEEDA;border-radius:8px;padding:10px 14px;font-size:11px;color:#854F0B;margin:10px 0;line-height:1.7}
+body.t-dark .g-warn{background:#2a1a00;color:#EF9F27}
+.g-toggle-demo{display:inline-flex;align-items:center;gap:6px;background:var(--sf2);border:0.5px solid var(--bd2);border-radius:6px;padding:4px 10px;font-size:10px;color:var(--tx2);margin:4px 0}
+.g-tog-on{padding:2px 8px;border-radius:4px;background:var(--togon);color:var(--togonc);font-size:10px;font-weight:700}
+.g-tog-off{padding:2px 8px;border-radius:4px;background:transparent;color:var(--tx2);font-size:10px}
+</style>
+
+<div class="g-title">bet all the time, bet with style · panduan</div>
+<div class="g-sub">oleh <a href="https://t.me/CryptoJurnal" target="_blank" style="color:var(--acc2);font-weight:700;text-decoration:none">@cryptojurnal ↗</a> · konsep dasar · tetap simpel, tetap disiplin</div>
+
+<div class="g-sec">
+  <div class="g-sec-title">🗂️ dua tab — mulai dari sini</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+    <div style="background:var(--sf2);border-radius:8px;padding:14px 16px;border-left:3px solid var(--acc2)">
+      <div style="font-size:13px;font-weight:700;color:var(--tx);margin-bottom:6px">36-MONTH · proyeksi jangka panjang</div>
+      <div style="font-size:11px;color:var(--tx2);line-height:1.7"><b>rencana utamamu</b>. set sekali, biarkan compounding bekerja selama 36 bulan. gunakan ini untuk <b>merencanakan strategi</b>, stress-test setup risiko, dan lihat ke mana arah modal kamu. bukan untuk otak-atik harian — ini adalah gambaran besar. anggap saja sebagai <b>blueprint trading</b>-mu.</div>
+      <div style="margin-top:8px;font-size:10px;color:var(--acc2);font-weight:600">cocok untuk: perencanaan · alokasi modal · keyakinan jangka panjang</div>
+    </div>
+    <div style="background:var(--sf2);border-radius:8px;padding:14px 16px;border-left:3px solid var(--acc)">
+      <div style="font-size:13px;font-weight:700;color:var(--tx);margin-bottom:6px">QUARTER · asesmen jangka pendek</div>
+      <div style="font-size:11px;color:var(--tx2);line-height:1.7"><b>lab trading langsungmu</b>. 3 bulan, tanpa zero month, murni eksekusi. gunakan ini <b>sebelum masuk trade</b> untuk memvalidasi setup — cek apakah liq%, leverage, dan notional masuk akal untuk kondisi pasar saat ini. anggap sebagai <b>checklist pra-terbang</b> sebelum kamu bet.</div>
+      <div style="margin-top:8px;font-size:10px;color:var(--acc);font-weight:600">cocok untuk: scalp · day trade · validasi cepat · uji formula</div>
+    </div>
+  </div>
+  <div class="g-tip"><b>alur kerja:</b> gunakan tab quarter untuk menemukan formula yang tepat sesuai kondisi pasar → setelah yakin, pindahkan pengaturan tersebut ke 36-month untuk proyeksi penuh. kedua tab punya state yang sepenuhnya independen, jadi kamu bisa eksperimen bebas di quarter tanpa mengganggu rencana utama.</div>
+</div>
+
+<div class="g-sec">
+  <div class="g-sec-title">🔑 konsep inti — baca ini dulu</div>
+  <div class="g-term"><span class="g-term-name">liq%</span><span class="g-term-def">persentase likuidasi. <b>seberapa jauh harga spot harus turun (atau naik berlawanan arahmu) sebelum posisimu terhapus.</b> ini adalah angka terpenting di seluruh dashboard. makin tinggi = makin aman. jika liq% = 40%, pasar perlu bergerak 40% melawan entrymu untuk melikuidasi trade 1.</span></div>
+  <div class="g-term"><span class="g-term-name">notional</span><span class="g-term-def"><b>total ukuran posisi setelah leverage diterapkan.</b> jika kamu menempatkan $100 margin aktual di leverage 10×, notional = $1.000. inilah yang sebenarnya diperdagangkan exchange untukmu.</span></div>
+  <div class="g-term"><span class="g-term-name">actual margin</span><span class="g-term-def"><b>modal nyata dari akunmu yang digunakan sebagai jaminan</b> untuk trade 1. rumus: notional ÷ leverage. inilah yang benar-benar kamu risiko per entri trade.</span></div>
+  <div class="g-term"><span class="g-term-name">fm% (frac margin)</span><span class="g-term-def"><b>fractional margin</b> — actual margin sebagai % dari total akunmu. jika fm% = 16%, kamu mendeploy 16% akun sebagai margin untuk trade 1. makin rendah = makin aman.</span></div>
+  <div class="g-term"><span class="g-term-name">carry-forward</span><span class="g-term-def">notional setiap trade <b>bertambah dengan profit trade sebelumnya.</b> jadi jika notional trade 1 = $250 dan profit = $20, notional trade 2 = $270. ini compounding alami dalam satu sekuens.</span></div>
+  <div class="g-tip"><b>hubungannya:</b> liq% = akun ÷ notional × 100. jadi jika akun = $1.000 dan notional = $2.500, liq% = 40%. jika kamu menarik $500, akun turun ke $500, liq% turun ke 20% — kamu kini dua kali lebih dekat ke likuidasi. itulah mengapa penarikan langsung berdampak pada buffer keamananmu.</div>
+</div>
+
+<div class="g-sec">
+  <div class="g-sec-title">📊 penjelasan metrik dashboard</div>
+  <div class="g-term"><span class="g-term-name">account</span><span class="g-term-def"><b>saldo akun trading aktifmu</b> di akhir setiap bulan setelah semua trade dan penarikan.</span></div>
+  <div class="g-term"><span class="g-term-name">banked</span><span class="g-term-def">profit yang sudah <b>ditarik secara fisik</b> dari akun. uang ini aman — tidak compounding lagi tapi juga tidak bisa dilikuidasi.</span></div>
+  <div class="g-term"><span class="g-term-name">combined NW</span><span class="g-term-def"><b>kekayaan bersih = akun + ditarik.</b> ini adalah posisi keuangan nyatamu. selalu nilai kesuksesanmu dari angka ini, bukan hanya saldo akun.</span></div>
+  <div class="g-term"><span class="g-term-name">seq potential</span><span class="g-term-def">maksimum <b>total % gain dalam satu sekuens penuh</b> (semua 10 trade digabung). ini adalah batas atas untuk satu bulan jika setiap trade aktif mencapai target.</span></div>
+  <div class="g-term"><span class="g-term-name">single profit</span><span class="g-term-def">profit dari <b>satu eksekusi</b> trade tersebut (notional × target%). satu trade, satu kali.</span></div>
+  <div class="g-term"><span class="g-term-name">combine profit</span><span class="g-term-def">single profit × freq. jika single profit = $20 dan freq = 4, combine profit = $80. <b>inilah yang benar-benar ditambahkan ke akunmu</b> untuk slot trade tersebut.</span></div>
+  <div class="g-term"><span class="g-term-name">freq</span><span class="g-term-def">berapa kali kamu mengeksekusi setup trade tersebut dalam sekuens. <b>freq makin tinggi = total profit makin besar tapi eksposur juga makin besar.</b> set ke 0 untuk skip trade tersebut sepenuhnya.</span></div>
+  <div class="g-term"><span class="g-term-name">3yr CAGR</span><span class="g-term-def"><b>compound annual growth rate selama 36 bulan.</b> menormalisasi total return menjadi angka tahunan. benchmark: S&P 500 ~10% · Warren Buffett ~20% · Druckenmiller ~30%. di atas 50% di crypto dengan risiko terkontrol adalah level elite.</span></div>
+  <div class="g-term"><span class="g-term-name">$1M milestone</span><span class="g-term-def">bulan ketika <b>NW gabungan (akun + ditarik) pertama kali menembus $1.000.000.</b> bukan hanya akun — total kekayaan. ini target sesungguhnya.</span></div>
+  <div class="g-term"><span class="g-term-name">account lifespan</span><span class="g-term-def">estimasi seberapa lama struktur akun bertahan di kondisi buruk. dari <b>menit</b> (ekstrem) hingga <b>generasional</b> (hampir tidak bisa dilikuidasi). rumus: (liq%)² ÷ faktor leverage ÷ faktor margin. bukan jaminan — sinyal terkalibrasi.</span></div>
+  <div class="g-term"><span class="g-term-name">liq t1 vs liq last</span><span class="g-term-def">liq t1 = buffer di awal bulan (trade 1). liq last = buffer di akhir sekuens (trade aktif terakhir). <b>liq tumbuh sepanjang sekuens</b> karena akun bertumbuh sementara notional juga bertumbuh tapi lebih lambat. perhatikan liq t1 — titik tersempitmu.</span></div>
+  <div class="g-term"><span class="g-term-name">margin push ⚡</span><span class="g-term-def">multiplier per bulan pada notional trade 1. jika push = 1.4×, trade 1 dimulai 40% lebih besar dari carry-forward. <b>ini sengaja mengurangi liq% bulan tersebut</b> (risiko lebih besar, potensi lebih besar). gunakan hanya di bulan high-conviction.</span></div>
+  <div class="g-term"><span class="g-term-name">zero month ⊘</span><span class="g-term-def">bulan di mana kamu tidak trading. <b>tidak ada profit, tidak ada kerugian, tidak ada compounding.</b> notional carry-forward dijeda dan dilanjutkan bulan aktif berikutnya. gunakan untuk kondisi pasar tidak jelas, acara pribadi, atau istirahat terencana.</span></div>
+  <div class="g-term"><span class="g-term-name">global vs manual</span><span class="g-term-def">global mode menerapkan satu setup trade ke semua bulan. manual mode memungkinkan kamu <b>set target dan freq berbeda per bulan</b> di tampilan detail penuh — berguna ketika kondisi pasar berubah di tengah rencana.</span></div>
+</div>
+
+<div class="g-sec">
+  <div class="g-sec-title">🔘 toggle switch — kecil tapi krusial</div>
+  <div style="font-size:11px;color:var(--tx2);margin-bottom:10px;line-height:1.7">dashboard ini punya beberapa toggle switch yang mengontrol perilaku penting. ini penjelasan masing-masing:</div>
+  <div class="g-term">
+    <span class="g-term-name">link to capital<br><span style="font-weight:400;font-size:9px;color:var(--tx3)">(panel notional)</span></span>
+    <span class="g-term-def">
+      <div class="g-toggle-demo"><span class="g-tog-off">off</span><span style="color:var(--tx3);font-size:10px">↔</span><span class="g-tog-on">on</span></div><br>
+      <b>off (default — disarankan):</b> notional tetap saat kamu mengubah modal. perilaku lebih aman — ukuran posisimu tidak berubah otomatis.<br>
+      <b>on:</b> notional menyesuaikan secara proporsional dengan modal untuk mempertahankan rasio liq% yang sama. berguna saat kamu ingin profil risiko tetap konsisten seiring bertumbuhnya modal. <b>hati-hati</b> — mengaktifkan ini dan menaikkan modal akan otomatis meningkatkan notional dan bisa mengejutkanmu.
+    </span>
+  </div>
+  <div class="g-term" style="margin-top:8px">
+    <span class="g-term-name">global mode<br><span style="font-weight:400;font-size:9px;color:var(--tx3)">(panel trade slots)</span></span>
+    <span class="g-term-def">
+      <div class="g-toggle-demo"><span class="g-tog-on">● on</span><span style="color:var(--tx3);font-size:10px">↔</span><span class="g-tog-off">○ off</span></div><br>
+      <b>on (default):</b> semua 36 bulan menggunakan 10 slot trade yang sama yang kamu konfigurasi di panel kiri. simpel dan bersih — satu formula, diterapkan ke semua bulan.<br>
+      <b>off (mode per-bulan):</b> membuka input target/freq manual di tampilan detail penuh untuk setiap bulan individual. memungkinkan adaptasi ke kondisi pasar berbeda tiap bulan — bulan bullish pakai target agresif, bulan choppy pakai target konservatif.
+    </span>
+  </div>
+  <div class="g-tip"><b>pro tip:</b> mulai dengan global mode on untuk menguji formula dasarmu. saat kamu punya pandangan kuat tentang bulan tertentu (misalnya ada katalis atau event halving), beralih ke manual mode dan naikkan target bulan itu.</div>
+</div>
+
+<div class="g-sec">
+  <div class="g-sec-title">🎨 kustomisasi — semua bisa diedit</div>
+  <div style="font-size:11px;color:var(--tx2);margin-bottom:10px;line-height:1.7">hampir setiap label dan nilai di dashboard ini bisa dikustomisasi. ini yang bisa kamu ubah bebas:</div>
+  <div class="g-term"><span class="g-term-name">label bulan</span><span class="g-term-def">klik nama bulan mana saja di tabel summary atau detail dan ketik label sendiri — mis. <b>"april 2026"</b>, <b>"bulan halving"</b>, atau apapun yang bermakna bagimu. label tersimpan otomatis.</span></div>
+  <div class="g-term"><span class="g-term-name">label trade</span><span class="g-term-def">di tampilan detail penuh, klik label baris trade mana saja untuk mengganti namanya — mis. <b>"BTC/USDT long"</b>, <b>"MOODENG pump"</b>, atau singkatanmu sendiri. berguna untuk melacak aset mana yang ditarget tiap slot.</span></div>
+  <div class="g-term"><span class="g-term-name">kolom withdrawal</span><span class="g-term-def">klik sel mana saja di kolom withdrawal untuk mengetik jumlah penarikan bulan tersebut. field menyala saat aktif. ini dikurangi dari saldo akhir gross dan menurunkan liq% bulan berikutnya.</span></div>
+  <div class="g-term"><span class="g-term-name">margin push ⚡</span><span class="g-term-def">di tampilan detail, field push di setiap header bulan memungkinkan kamu mengetik multiplier (mis. 1.5) untuk meningkatkan notional trade 1 bulan tersebut saja. sel menyala hijau saat aktif. gunakan dengan hemat.</span></div>
+  <div class="g-term"><span class="g-term-name">zero month ⊘</span><span class="g-term-def">klik tombol ⊘ di baris bulan mana saja untuk menandainya sebagai zero month (tidak trading). klik lagi untuk mengaktifkan kembali. zero month ditampilkan redup di tabel.</span></div>
+  <div class="g-term"><span class="g-term-name">tema</span><span class="g-term-def">tersedia 6 tema warna: Light, Dark, Ocean, Forest, Sunset, Lavender. pilih dari titik warna di bagian atas panel kiri. preferensi tema tersimpan di browser.</span></div>
+  <div class="g-tip"><b>label dan zero month tersimpan otomatis</b> begitu kamu mengeditnya — tidak perlu tombol. untuk pengaturan modal, posisi, dan trade, gunakan tombol 💾 save di panel kiri agar kamu bisa eksperimen bebas tanpa menimpa state tersimpan. <b>tab 36-month dan quarter masing-masing punya state independen.</b></div>
+</div>
+
+<div class="g-sec">
+  <div class="g-sec-title">⚙️ kontrol — cara menggunakannya</div>
+  <div class="g-step"><div class="g-step-num">1</div><div class="g-step-body"><b>set starting capital</b> — ukuran akun aktualmu. gunakan tombol preset ($100 · $1k · $10k · $100k · $1M · dst) atau ketik/geser manual. modal tidak langsung mempengaruhi liq% — rasio ke notional-lah yang menentukan.</div></div>
+  <div class="g-step"><div class="g-step-num">2</div><div class="g-step-body"><b>set leverage</b> — leverage lebih tinggi berarti margin aktual per trade lebih kecil tapi juga mempersempit buffer liq%-mu. perhatikan liq% di panel notional yang update secara live.</div></div>
+  <div class="g-step"><div class="g-step-num">3</div><div class="g-step-body"><b>set notional (trade 1)</b> — ukuran posisi trade pertamamu. gunakan tombol preset atau ketik/geser bebas. panel comp menampilkan actual margin, fm%, dan liq% secara real time. <b>jaga liq% di atas atau sama dengan 40% — itu adalah floor, bukan target.</b> targetkan liq% 100%+ untuk setup yang benar-benar sehat.</div></div>
+  <div class="g-step"><div class="g-step-num">4</div><div class="g-step-body"><b>set trade slots</b> — 10 slot, masing-masing dengan target% dan freq. set salah satunya ke 0 untuk skip trade. sekuens berjalan dari atas ke bawah, notional compounding dengan profit setiap trade.</div></div>
+  <div class="g-step"><div class="g-step-num">5</div><div class="g-step-body"><b>global mode vs manual</b> — saat global ON, semua bulan menggunakan target trade yang sama. matikan untuk set target berbeda per bulan di tampilan detail penuh.</div></div>
+  <div class="g-step"><div class="g-step-num">6</div><div class="g-step-body"><b>zero months</b> — bulan di mana kamu tidak trading. klik tombol ⊘ di bulan mana saja untuk menandainya sebagai zero. klik lagi untuk mengaktifkan.</div></div>
+  <div class="g-step"><div class="g-step-num">7</div><div class="g-step-body"><b>withdrawal</b> — ketik jumlah di kolom withdrawal. <b>penting: menarik dana mengurangi akunmu yang menurunkan liq% untuk bulan berikutnya.</b> selalu cek liq t1 setelah set penarikan.</div></div>
+  <div class="g-step"><div class="g-step-num">8</div><div class="g-step-body"><b>margin push up (⚡)</b> — di detail penuh, ketik multiplier (mis. 1.4) di field push. hanya trade 1 bulan tersebut yang dikalikan. trade 2–10 compounding alami dari basis yang lebih tinggi itu.</div></div>
+  <div class="g-warn">⚠ aturan kunci: saat kamu menarik, liq%-mu turun untuk bulan berikutnya. proyeksi menunjukkan ini — perhatikan kolom liq t1. jika turun di bawah 20%, kamu berada di zona bahaya. selalu cek liq% setelah set jumlah penarikan.</div>
+</div>
+
+<div class="g-sec">
+  <div class="g-sec-title">🎯 risk assessment — baca cepat</div>
+  <div class="g-term"><span class="g-term-name">risk score</span><span class="g-term-def">skor komposit 0–100. <b>makin rendah = makin aman.</b> faktor: buffer liq% (bobot utama), level leverage, fm% dari akun, jumlah trade aktif.</span></div>
+  <div class="g-term"><span class="g-term-name">liq t1 buffer</span><span class="g-term-def">sama dengan liq% untuk trade 1 bulan 1. bar isian menunjukkannya secara visual — hijau = buffer bagus, kuning = perlu diperhatikan, merah = bahaya.</span></div>
+  <div class="g-term"><span class="g-term-name">account lifespan</span><span class="g-term-def">estimasi berapa lama struktur akun bertahan di kondisi buruk. dari <b>menit</b> (ekstrem) hingga <b>generasional</b> (hampir tidak bisa dilikuidasi). rumus: (liq%)² ÷ faktor leverage ÷ faktor margin.</span></div>
+  <div class="g-tip"><b>baseline bet all the time:</b> liq% ≥ 40% (floor) · leverage ≤ 15× · fm% ≤ 20% → risk score di bawah 30, lifespan "bulan hingga tahun". <b>setup yang benar-benar sehat menargetkan liq% di atas 100%</b> — artinya pasar perlu runtuh total untuk menghabiskanmu. 40% adalah garis batasmu, bukan targetmu.</div>
+</div>
+
+<div class="g-sec">
+  <div class="g-sec-title">✅ apa yang membuat setup bagus — checklist cepat</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+    <div style="background:#EAF3DE;border-radius:7px;padding:10px 12px">
+      <div style="font-size:11px;font-weight:700;color:#3B6D11;margin-bottom:6px">✓ setup sehat</div>
+      <div style="font-size:10px;color:#3B6D11;line-height:1.8">liq% t1 ≥ 100% (ideal)<br>liq% t1 ≥ 40% (batas minimum)<br>leverage ≤ 15×<br>fm% ≤ 20%<br>ketahanan akun: bulan → tahun<br>risk score &lt; 30<br>trade aktif: 5–10<br>minimal 1 zero month per 6 bulan</div>
+    </div>
+    <div style="background:#FCEBEB;border-radius:7px;padding:10px 12px">
+      <div style="font-size:11px;font-weight:700;color:#A32D2D;margin-bottom:6px">✕ zona bahaya</div>
+      <div style="font-size:10px;color:#A32D2D;line-height:1.8">liq% t1 &lt; 20%<br>leverage ≥ 25×<br>fm% &gt; 40%<br>ketahanan akun: jam → hari<br>risk score &gt; 60<br>menarik tanpa cek liq%<br>margin push setiap bulan</div>
+    </div>
+  </div>
+  <div class="g-tip"><b>aturan disiplin:</b> jangan pernah masuk trade tanpa cek liq% dulu. jika liq% di bawah 30%, kurangi notional atau tambah modal sebelum buka posisi. pasar tidak peduli rencanamu — struktur risikomu adalah satu-satunya yang bisa kamu kendalikan.</div>
+</div>
+
+<div class="g-sec">
+  <div class="g-sec-title">💾 menyimpan pekerjaan</div>
+  <div class="g-term"><span class="g-term-name">save capital</span><span class="g-term-def">menyimpan starting capital ke browser storage. tetap ada setelah halaman di-reload.</span></div>
+  <div class="g-term"><span class="g-term-name">save position</span><span class="g-term-def">menyimpan leverage, notional, dan KPI scale.</span></div>
+  <div class="g-term"><span class="g-term-name">save trades</span><span class="g-term-def">menyimpan semua 10 target trade dan freq.</span></div>
+  <div class="g-tip"><b>label dan zero month tersimpan otomatis</b> begitu kamu mengeditnya — tidak perlu tombol. pengaturan modal, posisi, dan trade menggunakan tombol save manual agar kamu bisa eksperimen bebas tanpa menimpa state tersimpan. <b>tab 36-month dan quarter punya state terpisah</b> — simpan masing-masing secara independen.</div>
+</div>
+
+<div class="g-sec" style="border:1.5px solid #E24B4A;border-radius:10px;padding:14px 16px;background:#FCEBEB">
+  <div class="g-sec-title" style="color:#A32D2D;border-bottom-color:#f5c6c6">⚠️ penting — baca sebelum onboard</div>
+  <div style="font-size:11px;color:#7a2020;line-height:1.8">
+    <b>dashboard ini adalah alat proyeksi dan asesmen — bukan jaminan trading.</b><br><br>
+    semua angka yang kamu lihat adalah <b>estimasi pra-eksekusi</b> berdasarkan input yang kamu berikan. hasil nyata akan berbeda tergantung timing, disiplin, kondisi pasar, dan kualitas eksekusimu.<br><br>
+    <b>yang TIDAK dihitung dashboard ini:</b><br>
+    · biaya trading (maker/taker)<br>
+    · funding fee (kontrak perpetual)<br>
+    · slippage dan spread<br>
+    · mekanisme likuidasi spesifik exchange<br>
+    · partial fill atau keterlambatan eksekusi<br><br>
+    hasil akhir sepenuhnya bergantung pada <b>eksekusimu sendiri</b>. alat ini membantumu mempersiapkan dan menilai setup sebelum masuk — taruhan itu sendiri, dan hasilnya, adalah milikmu sepenuhnya. keuntungan atau kerugian apapun adalah hasil langsung dari keputusan dan pengalaman trading pribadimu.<br><br>
+    <b style="color:#A32D2D">🔒 hanya untuk cross margin mode.</b> rumus liq% (akun ÷ notional × 100) dirancang khusus untuk cross margin. jika kamu menggunakan isolated margin, mekanisme likuidasinya berbeda dan liq% dashboard ini tidak akan berlaku secara akurat. selalu konfirmasi mode margin sebelum mengandalkan proyeksi ini.
+  </div>
+</div>
+`;
+
 const ZERO_36_DEF=[6,11,17,22,30,35];
 const TOTAL=36;
 
 // SEPARATE STATE PER TAB
-const DEF_BT=[8,1,1,2,10,1,5,1,5,5];
+const DEF_BT=[28,35,0,32,25,0,40,22,0,30]; // 3 skips, avg active ≈ 30.3%
 const DEF_ML={}; // month labels {m: 'custom label'}
 const DEF_TL={}; // trade labels {t: 'asset name'} t=1..10
-const DEF_FR=[1,4,2,2,1,3,1,5,1,1];
+const DEF_FR=[1,1,0,1,1,0,1,1,0,1];
 
 let TAB='36', THEME='t-light', VIEW='sum', ch=null, GLOBAL_MODE=true;
 
 // each tab has its own full state
 const S={
-  '36':{P:100,LEV:10,NOT:250,KPI:1.0,BT:[...DEF_BT],FR:[...DEF_FR],WD:{},ML:{},TL:{},MT:{},ZM:new Set([...ZERO_36_DEF]),MP:{}},
-  'q': {P:100,LEV:10,NOT:250,KPI:1.0,BT:[...DEF_BT],FR:[...DEF_FR],WD:{},ML:{},TL:{},MT:{},ZM:new Set([]),MP:{}}
+  '36':{P:1000,LEV:5,NOT:2500,KPI:1.0,BT:[...DEF_BT],FR:[...DEF_FR],WD:{},ML:{},TL:{},MT:{},ZM:new Set([...ZERO_36_DEF]),MP:{}},
+  'q': {P:1000,LEV:5,NOT:2500,KPI:1.0,BT:[...DEF_BT],FR:[...DEF_FR],WD:{},ML:{},TL:{},MT:{},ZM:new Set([]),MP:{}}
 };
 
 function gs(){return S[TAB];}
@@ -795,6 +1110,7 @@ function toggleZeroMonth(m){
   const s=gs();
   if(s.ZM.has(m)) s.ZM.delete(m);
   else s.ZM.add(m);
+  try{localStorage.setItem('wz_'+TAB+'_zero',JSON.stringify({ZM:[...s.ZM]}));}catch(e){}
   render();
 }
 
@@ -831,8 +1147,14 @@ function onManualFR(m,i,v){
 }
 
 // ── LABEL EDITING ──
-function onMonthLabel(m,v){gs().ML[m]=v.trim();} 
-function onTradeLabel(t,v){gs().TL[t]=v.trim();}
+function onMonthLabel(m,v){
+  gs().ML[m]=v.trim();
+  try{localStorage.setItem('wz_'+TAB+'_labels',JSON.stringify({ML:{...gs().ML},TL:{...gs().TL}}));}catch(e){}
+} 
+function onTradeLabel(t,v){
+  gs().TL[t]=v.trim();
+  try{localStorage.setItem('wz_'+TAB+'_labels',JSON.stringify({ML:{...gs().ML},TL:{...gs().TL}}));}catch(e){}
+}
 function getML(m){return gs().ML[m]||getMLabel(m);}
 function getTL(t){return gs().TL[t]||('trade '+t);}
 
@@ -850,34 +1172,36 @@ function buildAssessment(months, s){
   // risk score 0-100 (lower = safer)
   let riskScore=0;
   let riskReasons=[];
+  const _id=LANG==='id';
   
   // liq proximity risk (main factor)
-  if(liqT1<20){riskScore+=40;riskReasons.push('liq buffer critical (<20%)');}
-  else if(liqT1<35){riskScore+=25;riskReasons.push('liq buffer tight (<35%)');}
+  if(liqT1<20){riskScore+=40;riskReasons.push(_id?'buffer liq kritis (<20%)':'liq buffer critical (<20%)');}
+  else if(liqT1<35){riskScore+=25;riskReasons.push(_id?'buffer liq sempit (<35%)':'liq buffer tight (<35%)');}
   else if(liqT1<50){riskScore+=10;}
   
   // leverage risk
-  if(s.LEV>=25){riskScore+=25;riskReasons.push('very high leverage (≥25×)');}
-  else if(s.LEV>=20){riskScore+=15;riskReasons.push('high leverage (≥20×)');}
+  if(s.LEV>=25){riskScore+=25;riskReasons.push(_id?'leverage sangat tinggi (≥25×)':'very high leverage (≥25×)');}
+  else if(s.LEV>=20){riskScore+=15;riskReasons.push(_id?'leverage tinggi (≥20×)':'high leverage (≥20×)');}
   else if(s.LEV>=15){riskScore+=8;}
   
   // fm% risk (how much account is deployed)
   const fm=s.NOT/s.LEV/s.P*100;
-  if(fm>40){riskScore+=20;riskReasons.push('margin >40% of account');}
+  if(fm>40){riskScore+=20;riskReasons.push(_id?'margin >40% dari akun':'margin >40% of account');}
   else if(fm>25){riskScore+=10;}
   else if(fm>15){riskScore+=4;}
   
   // concentration (few active trades = higher variance)
-  if(actTr<=3){riskScore+=10;riskReasons.push('only '+actTr+' active trades');}
+  if(actTr<=3){riskScore+=10;riskReasons.push(_id?'hanya '+actTr+' trade aktif':'only '+actTr+' active trades');}
   else if(actTr<=5){riskScore+=4;}
   
   riskScore=Math.min(100,riskScore);
   
-  let riskLabel,riskClass,riskEmoji;
-  if(riskScore<=20){riskLabel='SAFE';riskClass='rp-safe';riskEmoji='✓';}
-  else if(riskScore<=45){riskLabel='MODERATE';riskClass='rp-med';riskEmoji='⚡';}
-  else if(riskScore<=70){riskLabel='HIGH RISK';riskClass='rp-high';riskEmoji='⚠';}
-  else{riskLabel='EXTREME';riskClass='rp-extreme';riskEmoji='✕';}
+  let riskLabelKey,riskClass,riskEmoji;
+  if(riskScore<=20){riskLabelKey='SAFE';riskClass='rp-safe';riskEmoji='✓';}
+  else if(riskScore<=45){riskLabelKey='MODERATE';riskClass='rp-med';riskEmoji='⚡';}
+  else if(riskScore<=70){riskLabelKey='HIGH';riskClass='rp-high';riskEmoji='⚠';}
+  else{riskLabelKey='EXTREME';riskClass='rp-extreme';riskEmoji='✕';}
+  const riskLabel=t('rl_'+riskLabelKey);
   
   // liq bar color
   const liqBarColor=liqT1>=60?'#1D9E75':liqT1>=40?'#EF9F27':'#E24B4A';
@@ -891,7 +1215,7 @@ function buildAssessment(months, s){
   const avgSingleProfit=act.length&&act[0].trades.length?act[0].trades.filter(t=>!t.skip).reduce((a,t)=>a+t.sp,0):0;
   const lossT=act.length&&act[0].trades.length?act[0].trades.find(t=>t.tgt<0):null;
   
-  const tooltip=riskReasons.length?riskReasons.join(' · '):'setup looks solid';
+  const tooltip=riskReasons.length?riskReasons.join(' · '):t('verdict_solid');
   
   // ── ACCOUNT LIFESPAN ESTIMATE ──
   // logic: survival = (liq buffer)² ÷ leverage_factor ÷ margin_factor
@@ -969,6 +1293,64 @@ function buildAssessment(months, s){
   </div>`;
 }
 
+// 36-month side panel: 3-col × 2-row, 6 precision cards, aligns flush with chart
+function buildAssessmentCards(months, s){
+  const liqT1=s.P/s.NOT*100;
+  const act=months.filter(r=>!r.isZ);
+  const avgPct=act.length?act.reduce((a,r)=>a+r.pct,0)/act.length:0;
+  const last=months[months.length-1];
+  const cagr=(Math.pow(Math.max(last.nw,s.P)/s.P,1/3)-1)*100;
+  const mp=s.BT.reduce((a,t,i)=>a+(t>0&&s.FR[i]>0?t*s.KPI/100*s.FR[i]:0),0)*100;
+  const actTr=s.BT.filter((t,i)=>t>0&&s.FR[i]>0).length;
+  let rs=0,rr=[];
+  if(liqT1<20){rs+=40;rr.push(LANG==='id'?'buffer liq kritis (<20%)':'liq buffer critical (<20%)');}
+  else if(liqT1<35){rs+=25;rr.push(LANG==='id'?'buffer liq sempit (<35%)':'liq buffer tight (<35%)');}
+  else if(liqT1<50){rs+=10;}
+  if(s.LEV>=25){rs+=25;rr.push(LANG==='id'?'leverage sangat tinggi (≥25×)':'very high leverage (≥25×)');}
+  else if(s.LEV>=20){rs+=15;}else if(s.LEV>=15){rs+=8;}
+  const fm=s.NOT/s.LEV/s.P*100;
+  if(fm>40){rs+=20;rr.push(LANG==='id'?'margin >40% dari akun':'margin >40% of account');}
+  else if(fm>25){rs+=10;}else if(fm>15){rs+=4;}
+  if(actTr<=3){rs+=10;rr.push(LANG==='id'?'hanya '+actTr+' trade aktif':'only '+actTr+' active trades');}
+  else if(actTr<=5){rs+=4;}
+  rs=Math.min(100,rs);
+  let rlKey,rc2,re;
+  if(rs<=20){rlKey='SAFE';rc2='rp-safe';re='✓';}
+  else if(rs<=45){rlKey='MODERATE';rc2='rp-med';re='⚡';}
+  else if(rs<=70){rlKey='HIGH';rc2='rp-high';re='⚠';}
+  else{rlKey='EXTREME';rc2='rp-extreme';re='✕';}
+  const rl=t('rl_'+rlKey);
+  const liqC=liqT1>=60?'#1D9E75':liqT1>=40?'#EF9F27':'#E24B4A';
+  const riskC=rs<=20?'#1D9E75':rs<=45?'#EF9F27':rs<=70?'#E24B4A':'#7a0000';
+  const liqF=Math.pow(liqT1/100,2),levF=Math.max(0.1,s.LEV/10),fmF=Math.max(0.1,fm/20);
+  const sv=liqF/levF/fmF;
+  let av,as2,ac;
+  if(sv<0.001){av='minutes';as2='one bad candle ends it';ac='#A32D2D';}
+  else if(sv<0.01){av='hours';as2='extremely fragile';ac='#A32D2D';}
+  else if(sv<0.05){av='days';as2='volatile session gone';ac='#E24B4A';}
+  else if(sv<0.15){av='weeks';as2='dangerous tighten risk';ac='#EF9F27';}
+  else if(sv<0.5){av='months';as2='manageable stay sharp';ac='#EF9F27';}
+  else if(sv<1.5){av='~1 year';as2='solid respect the plan';ac='#1D9E75';}
+  else if(sv<5){av='years';as2='disciplined trader energy';ac='#1D9E75';}
+  else if(sv<12){av='a decade';as2='institutional grade';ac='#185FA5';}
+  else{av='generational';as2='almost unliquidatable';ac='#185FA5';}
+  const tooltip=rr.length?rr.join(' · '):t('verdict_solid');
+  const bk=(pct,col)=>`<div style="width:100%;height:3px;background:var(--bd2);overflow:hidden;margin-top:3px"><div style="width:${Math.min(pct,100)}%;height:100%;background:${col}"></div></div>`;
+  const c=(lbl,valH,sub,ex='')=>`<div class="sc-item"><div class="sc-lbl">${lbl}</div>${valH}<div class="sc-sub">${sub}</div>${ex}</div>`;
+  const tAge=t('age_'+av);
+  const tAgeSub=t('age_sub_'+av);
+  return `<div class="sc-grid" style="grid-template-columns:repeat(4,1fr);height:100%">
+    ${c(t('sc_risk'),`<div class="sc-val"><span class="risk-pill ${rc2}">${re} ${rl}</span></div>`,rs+'/100',bk(rs,riskC))}
+    ${c(t('sc_liq'),`<div class="sc-val" style="color:${liqC}">${liqT1.toFixed(1)}%</div>`,t('sc_liq_sub'),bk(Math.min(liqT1,100),liqC))}
+    ${c(t('sc_lev'),`<div class="sc-val" style="color:${s.LEV>=20?'#E24B4A':s.LEV>=15?'#EF9F27':'#1D9E75'}">${s.LEV}×</div>`,`fm ${fm.toFixed(1)}% ${t('sc_of_acct')}`)}
+    ${c(t('sc_avg'),`<div class="sc-val">${avgPct.toFixed(1)}%</div>`,t('sc_avg_sub'))}
+    ${c(t('sc_cagr'),`<div class="sc-val" style="color:#BA7517">${cagr.toFixed(1)}%</div>`,t('sc_cagr_sub'))}
+    ${c(t('sc_life'),`<div class="sc-val" style="color:${ac}">${tAge!==('age_'+av)?tAge:av}</div>`,tAgeSub!==('age_sub_'+av)?tAgeSub:as2)}
+    ${c(t('sc_seq'),`<div class="sc-val" style="color:#1D9E75">+${mp.toFixed(1)}%</div>`,`${actTr}/10 ${t('active')}`)}
+    ${c(t('sc_verdict'),`<div class="sc-val" style="font-size:10px;color:var(--tx2);line-height:1.3;white-space:normal;font-weight:600">${tooltip}</div>`,'')}
+  </div>`;
+}
+
 // ── RENDER ──
 function render(){
   updComp();
@@ -991,29 +1373,30 @@ function render(){
   let mh='<div class="metrics">';
   if(isQ){
     mh+=`
-      <div class="mc"><div class="mll">quarter end</div><div class="mvv" style="color:var(--acc2)">${fmt(last.eA)}</div><div class="ms">${fIDR(last.eA)}</div></div>
-      <div class="mc"><div class="mll">total gain</div><div class="mvv" style="color:var(--acc2)">+${tr.toFixed(1)}%</div><div class="ms">${fmt(last.eA-s.P)}</div></div>
-      <div class="mc"><div class="mll">combined NW</div><div class="mvv" style="color:var(--acc)">${fmt(last.nw)}</div><div class="ms">${fIDR(last.nw)}</div></div>
-      <div class="mc"><div class="mll">total banked</div><div class="mvv">${fmt(last.banked)}</div><div class="ms">3 months</div></div>
-      <div class="mc"><div class="mll">avg monthly</div><div class="mvv">${avgPct.toFixed(1)}%</div><div class="ms">per active month</div></div>
-      <div class="mc"><div class="mll">seq potential</div><div class="mvv">${mp.toFixed(1)}%</div><div class="ms">${actTr} active trades</div></div>
+      <div class="mc"><div class="mll">${t('q_end_lbl')}</div><div class="mvv" style="color:var(--acc2)">${fmt(last.eA)}</div><div class="ms">${fIDR(last.eA)}</div></div>
+      <div class="mc"><div class="mll">${t('total_gain_lbl')}</div><div class="mvv" style="color:var(--acc2)">+${tr.toFixed(1)}%</div><div class="ms">${fmt(last.eA-s.P)}</div></div>
+      <div class="mc"><div class="mll">${t('nw_lbl')}</div><div class="mvv" style="color:var(--acc)">${fmt(last.nw)}</div><div class="ms">${fIDR(last.nw)}</div></div>
+      <div class="mc"><div class="mll">${t('banked_lbl')}</div><div class="mvv">${fmt(last.banked)}</div><div class="ms">3 ${t('months')}</div></div>
+      <div class="mc"><div class="mll">${t('avg_lbl')}</div><div class="mvv">${avgPct.toFixed(1)}%</div><div class="ms">${t('per_active_month')}</div></div>
+      <div class="mc"><div class="mll">${t('seq_lbl')}</div><div class="mvv">${mp.toFixed(1)}%</div><div class="ms">${actTr} ${t('active_trades')}</div></div>
     `;
   } else {
     mh+=`
-      <div class="mc"><div class="mll">3yr CAGR</div><div class="mvv" style="color:var(--acc2)">${cagr.toFixed(1)}%</div><div class="ms">annualized, combined NW</div></div>
-      <div class="mc"><div class="mll">total return</div><div class="mvv">${tr>9999?(tr/1000).toFixed(0)+'k%':tr.toFixed(0)+'%'}</div><div class="ms">36mo on ${fmt(s.P)} principal</div></div>
-      <div class="mc"><div class="mll">end account m36</div><div class="mvv" style="color:var(--acc2)">${fmt(last.eA)}</div><div class="ms">${fIDR(last.eA)}</div></div>
-      <div class="mc"><div class="mll">total banked</div><div class="mvv" style="color:var(--acc)">${fmt(last.banked)}</div><div class="ms">profits taken out</div></div>
-      <div class="mc"><div class="mll">combined NW</div><div class="mvv">${fmt(last.nw)}</div><div class="ms">account + banked · ${fIDR(last.nw)}</div></div>
-      <div class="mc"><div class="mll">$1M milestone</div><div class="mvv" style="color:${m1M?'var(--acc2)':'#E24B4A'}">${m1M?getMLabel(m1M.m):'beyond 36'}</div><div class="ms">${m1M?'NW hits $1M at '+getMLabel(m1M.m):'increase capital or returns'}</div></div>
-      <div class="mc"><div class="mll">avg monthly gain</div><div class="mvv">${avgPct.toFixed(1)}%</div><div class="ms">active months only · ${(36-s.ZM.size)} active</div></div>
-      <div class="mc"><div class="mll">max seq upside</div><div class="mvv">${mp.toFixed(1)}%</div><div class="ms">${actTr}/10 trades · per sequence</div></div>
-      <div class="mc"><div class="mll">liq% t1 · month 1</div><div class="mvv" style="color:${lc(liqT1)}">${liqT1.toFixed(1)}%</div><div class="ms">spot must drop ${liqT1.toFixed(0)}% to wipe t1</div></div>
+      <div class="mc"><div class="mll">${t('cagr_lbl')}</div><div class="mvv" style="color:var(--acc2)">${cagr.toFixed(1)}%</div><div class="ms">${t('cagr_sub')}</div></div>
+      <div class="mc"><div class="mll">${t('total_ret_lbl')}</div><div class="mvv">${tr>9999?(tr/1000).toFixed(0)+'k%':tr.toFixed(0)+'%'}</div><div class="ms">${t('total_ret_sub',fmt(s.P))}</div></div>
+      <div class="mc"><div class="mll">${t('end_acct_lbl')}</div><div class="mvv" style="color:var(--acc2)">${fmt(last.eA)}</div><div class="ms">${fIDR(last.eA)}</div></div>
+      <div class="mc"><div class="mll">${t('banked_lbl')}</div><div class="mvv" style="color:var(--acc)">${fmt(last.banked)}</div><div class="ms">${t('banked_sub')}</div></div>
+      <div class="mc"><div class="mll">${t('nw_lbl')}</div><div class="mvv">${fmt(last.nw)}</div><div class="ms">${t('nw_sub')} · ${fIDR(last.nw)}</div></div>
+      <div class="mc"><div class="mll">${t('milestone_lbl')}</div><div class="mvv" style="color:${m1M?'var(--acc2)':'#E24B4A'}">${m1M?getMLabel(m1M.m):t('beyond36')}</div><div class="ms">${m1M?t('milestone_hit')+getMLabel(m1M.m):t('milestone_miss')}</div></div>
+      <div class="mc"><div class="mll">${t('avg_lbl')}</div><div class="mvv">${avgPct.toFixed(1)}%</div><div class="ms">${t('avg_sub')} · ${(36-s.ZM.size)} ${t('active')}</div></div>
+      <div class="mc"><div class="mll">${t('seq_lbl')}</div><div class="mvv">${mp.toFixed(1)}%</div><div class="ms">${actTr}/10 ${t('trades')} · ${t('per_seq')}</div></div>
+      <div class="mc"><div class="mll">${t('liq_mc_lbl')}</div><div class="mvv" style="color:${lc(liqT1)}">${liqT1.toFixed(1)}%</div><div class="ms">${t('liq_mc_sub',liqT1.toFixed(0))}</div></div>
+      <div class="mc" style="opacity:.35;pointer-events:none"><div class="mll" style="color:var(--tx3)">— —</div><div class="mvv" style="color:var(--tx3)">—</div><div class="ms" style="color:var(--tx3)">your slot</div></div>
     `;
   }
   mh+='</div>';
 
-  const noteText=`setup: acct ${fmt(s.P)} · notional t1 ${fmt(s.NOT)} (${(s.NOT/s.P).toFixed(2)}× acct) · actual margin ${fmt(s.NOT/s.LEV)} at ${s.LEV}× lev · liq t1 = ${liqT1.toFixed(1)}% (spot must drop ${liqT1.toFixed(0)}% to liquidate trade 1) · ${actTr}/10 trades active · kpi scale ${s.KPI.toFixed(2)}× · withdrawal input in table · liq drops after wd (less buffer next month)`;
+  const noteText=`${t('note_setup')}: acct ${fmt(s.P)} · notional t1 ${fmt(s.NOT)} (${(s.NOT/s.P).toFixed(2)}× acct) · ${t('note_margin')} ${fmt(s.NOT/s.LEV)} ${t('note_at')} ${s.LEV}× lev · liq t1 = ${liqT1.toFixed(1)}% (${t('note_liq',liqT1.toFixed(0))}) · ${actTr}/10 ${t('trades')} ${t('active')} · kpi scale ${s.KPI.toFixed(2)}× · ${t('note_wd')}`;
 
   let IDR_LIVE=typeof IDR!=='undefined'?IDR:16700;
   let IDR_TIME=typeof IDR_LAST_UPDATE!=='undefined'?IDR_LAST_UPDATE:'';
@@ -1032,27 +1415,26 @@ function render(){
         <span style="font-size:8px;color:var(--tx3)" id="idr-rate-time">${IDR_TIME?'upd '+IDR_TIME:'live'}</span>
         <button onclick="fetchIDR(true)" title="refresh rate" style="background:transparent;border:none;color:var(--acc2);font-size:14px;cursor:pointer;padding:0;line-height:1" id="idr-refresh">↻</button>
         <span style="width:1px;height:14px;background:var(--bd2);display:inline-block;margin:0 2px"></span>
-        <button id="lang-en-btn" onclick="setLang('en')" style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;border:0.5px solid var(--acc);background:var(--acc);color:#fff;cursor:pointer">EN</button>
-        <button id="lang-id-btn" onclick="setLang('id')" style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;border:0.5px solid var(--bd2);background:transparent;color:var(--tx2);cursor:pointer">ID</button>
+        <button id="lang-en-btn" onclick="setLang('en')" style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;border:0.5px solid ${LANG==='en'?'var(--acc)':'var(--bd2)'};background:${LANG==='en'?'var(--acc)':'transparent'};color:${LANG==='en'?'#fff':'var(--tx2)'};cursor:pointer">EN</button>
+        <button id="lang-id-btn" onclick="setLang('id')" style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;border:0.5px solid ${LANG==='id'?'var(--acc)':'var(--bd2)'};background:${LANG==='id'?'var(--acc)':'transparent'};color:${LANG==='id'?'#fff':'var(--tx2)'};cursor:pointer">ID</button>
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:10px;align-items:start">
-      <div class="cw" style="margin-bottom:0"><canvas id="gc"></canvas></div>
+    <div style="display:grid;grid-template-columns:3fr 7fr;gap:0;align-items:stretch;margin-bottom:8px">
+      <div class="cw" style="margin-bottom:0;height:auto;min-height:168px;position:relative;border-right:none"><canvas id="gc"></canvas><button class="chart-zoom-btn" onclick="openChartZoom()" title="expand chart">⤢ zoom</button></div>
       <div id="assess-side"></div>
     </div>`;
   }
 
-  const togH=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+  const assessH=isQ?buildAssessment(months,s):'';
+  const togH=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">
     <div class="tog" id="vt" style="margin-bottom:0">
       <button class="tb ${VIEW==='sum'?'on':''}" onclick="setView('sum',this)">monthly summary</button>
       <button class="tb ${VIEW==='det'?'on':''}" onclick="setView('det',this)">full trade detail</button>
       <button class="tb ${VIEW==='guide'?'on':''}" onclick="setView('guide',this)">📖 guide</button>
     </div>
-    <button class="save-btn" id="save-labels" onclick="saveSection('labels')" style="margin:0;padding:4px 10px;font-size:10px">💾 labels</button>
-    <button class="save-btn" id="save-zero" onclick="saveSection('zero')" style="margin:0;padding:4px 10px;font-size:10px">💾 zeros</button>
+    <span style="font-size:9px;color:var(--tx3);font-style:italic">${t('label_hint')}</span>
   </div>`;
 
-  const assessH=buildAssessment(months,s);
   if(ch){ch.destroy();ch=null;}
   rc.innerHTML=mh+`<div class="note">${noteText}</div>`+chartH+(isQ?assessH:'')+togH+`<div class="tw"><table id="tbl"></table></div><p class="ft">liq% = account ÷ notional × 100 · higher = safer · 0 target or freq = trade skipped · usd/idr live</p>`;
 
@@ -1090,7 +1472,7 @@ function render(){
       });
     }
     const aside=document.getElementById('assess-side');
-    if(aside) aside.innerHTML=assessH;
+    if(aside) aside.innerHTML=buildAssessmentCards(months,s);
   } else {
     ch=null;
   }
@@ -1251,13 +1633,16 @@ function setView(v,btn){
   document.getElementById('vt')?.querySelectorAll('.tb').forEach(b=>b.classList.remove('on'));
   if(btn)btn.classList.add('on');
   if(v==='guide'){renderGuide();return;}
+  // if table was replaced by guide content, do full render to restore it
+  if(!document.getElementById('tbl')){render();return;}
   renderTbl(sim());
 }
 
 function renderGuide(){
   const tw=document.querySelector('.tw');
   if(!tw)return;
-  tw.innerHTML=`<div class="guide-wrap">${GUIDE_HTML}</div>`;
+  const html=LANG==='id'?GUIDE_HTML_ID:GUIDE_HTML;
+  tw.innerHTML=`<div class="guide-wrap">${html}</div>`;
 }
 
 // ── CONTROLS ──
@@ -1319,13 +1704,86 @@ function onLevSl(v){
 function onNotIn(v){
   const s=gs();s.NOT=Math.max(1,parseFloat(v)||s.NOT);
   document.getElementById('not-sl').value=Math.min(s.NOT,100000000000);
-  document.getElementById('not-vl').textContent='$'+s.NOT.toLocaleString();render();
+  document.getElementById('not-vl').textContent='$'+s.NOT.toLocaleString();
+  document.querySelectorAll('#not-prs .pr').forEach(b=>b.classList.remove('on'));render();
 }
 function onNotSl(v){
   const s=gs();s.NOT=parseInt(v);
   document.getElementById('not-in').value=s.NOT;
-  document.getElementById('not-vl').textContent='$'+s.NOT.toLocaleString();render();
+  document.getElementById('not-vl').textContent='$'+s.NOT.toLocaleString();
+  document.querySelectorAll('#not-prs .pr').forEach(b=>b.classList.remove('on'));render();
 }
+function setNot(v,btn){
+  const s=gs();s.NOT=v;
+  document.getElementById('not-in').value=v;
+  document.getElementById('not-sl').value=Math.min(v,100000000000);
+  document.getElementById('not-vl').textContent='$'+v.toLocaleString();
+  document.querySelectorAll('#not-prs .pr').forEach(b=>b.classList.remove('on'));
+  if(btn)btn.classList.add('on');
+  render();
+}
+
+// ── CHART ZOOM ──
+let zoomChart=null;
+function openChartZoom(){
+  if(document.getElementById('chart-zoom-overlay')) return;
+  const s=gs();
+  const months=sim();
+  const lbs=['start',...months.map(r=>r.lb)];
+  const d1=[s.P,...months.map(r=>r.eA)];
+  const d2=[0,...months.map(r=>r.banked)];
+  const d3=[s.P,...months.map(r=>r.nw)];
+
+  const overlay=document.createElement('div');
+  overlay.id='chart-zoom-overlay';
+  overlay.innerHTML=`<div id="chart-zoom-box" onclick="event.stopPropagation()">
+    <button id="chart-zoom-close" onclick="closeChartZoom()">✕ close</button>
+    <div style="display:flex;gap:12px;align-items:center;font-size:10px;color:var(--tx2)">
+      <span><span style="display:inline-block;width:10px;height:3px;background:#1D9E75;border-radius:2px;margin-right:3px;vertical-align:middle"></span>account</span>
+      <span><span style="display:inline-block;width:10px;height:3px;background:var(--acc);border-radius:2px;margin-right:3px;vertical-align:middle"></span>banked</span>
+      <span><span style="display:inline-block;width:10px;height:3px;background:#BA7517;border-radius:2px;margin-right:3px;vertical-align:middle"></span>NW</span>
+      <span style="font-size:9px;color:var(--tx3)">log scale</span>
+    </div>
+    <canvas id="chart-zoom-canvas"></canvas>
+  </div>`;
+  overlay.onclick=closeChartZoom;
+  document.body.appendChild(overlay);
+
+  const ctx=document.getElementById('chart-zoom-canvas').getContext('2d');
+  zoomChart=new Chart(ctx,{
+    type:'line',
+    data:{labels:lbs,datasets:[
+      {label:'account',data:d1,borderColor:'#1D9E75',pointRadius:0,borderWidth:2,tension:.4,fill:false},
+      {label:'banked', data:d2,borderColor:'var(--acc)',pointRadius:0,borderWidth:1.5,tension:.4,fill:false,borderDash:[5,3]},
+      {label:'NW',     data:d3,borderColor:'#BA7517',pointRadius:0,borderWidth:1.5,tension:.4,fill:false},
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${fmt(c.raw)}`}}},
+      scales:{
+        x:{grid:{display:false},ticks:{font:{size:10},color:'#888',maxTicksLimit:18,autoSkip:true}},
+        y:{type:'logarithmic',grid:{color:'rgba(128,128,128,0.07)'},ticks:{font:{size:10},color:'#888',
+          callback:v=>{
+            const mk=[50,100,500,1000,5000,10000,50000,100000,500000,1e6,5e6,1e7,1e8,1e9];
+            if(mk.some(x=>Math.abs(v-x)/(x||1)<0.06)){
+              if(v>=1e9)return'$'+(v/1e9).toFixed(1)+'B';
+              if(v>=1e6)return'$'+(v/1e6).toFixed(1)+'M';
+              if(v>=1000)return'$'+(v/1000).toFixed(0)+'k';
+              return'$'+v;
+            }return null;
+          }
+        }}
+      }
+    }
+  });
+  document.addEventListener('keydown',onZoomEsc);
+}
+function closeChartZoom(){
+  if(zoomChart){zoomChart.destroy();zoomChart=null;}
+  const ov=document.getElementById('chart-zoom-overlay');
+  if(ov) ov.remove();
+  document.removeEventListener('keydown',onZoomEsc);
+}
+function onZoomEsc(e){if(e.key==='Escape')closeChartZoom();}
 
 // ── INIT ──
 loadAll();
