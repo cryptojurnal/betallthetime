@@ -131,8 +131,8 @@ input[type=number]:focus{outline:none;border-color:var(--acc)}
 .lgd{display:flex;gap:10px;margin-bottom:6px;font-size:10px;color:var(--tx2);flex-wrap:wrap;align-items:center}
 .ld{width:10px;height:3px;border-radius:2px;display:inline-block;margin-right:2px;vertical-align:middle}
 .ft{font-size:9px;color:var(--tx3);margin-top:8px;line-height:1.7}
-.assess-bar{display:grid;grid-template-columns:repeat(4,1fr) 1.4fr 1fr 1.4fr 1.2fr;gap:0;background:var(--panel);border:0.5px solid var(--bd2);border-radius:0;margin-bottom:8px;overflow:hidden}
-.as-item{display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:2px;padding:8px 10px;border-right:0.5px solid var(--bd2)}
+.assess-bar{display:grid;grid-template-columns:repeat(4,1fr) 1.4fr 1fr 1.4fr 1.2fr;gap:0;background:var(--panel);border:0.5px solid var(--bd2);border-radius:0;margin-bottom:8px;overflow:hidden;grid-auto-rows:1fr}
+.as-item{display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:2px;padding:8px 10px;border-right:0.5px solid var(--bd2);height:100%}
 .as-item:last-child{border-right:none}
 .as-lbl{font-size:8px;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;font-weight:700}
 .as-val{font-size:14px;font-weight:700;line-height:1.1}
@@ -228,11 +228,11 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
 
 /* ── GUIDE POPUP ── */
-#guide-popup{position:fixed;inset:0;z-index:8888;display:flex;align-items:flex-start;justify-content:center;pointer-events:none;padding-top:80px}
+#guide-popup{position:fixed;inset:0;z-index:8888;display:flex;align-items:flex-start;justify-content:flex-start;pointer-events:none;padding-top:82px;padding-left:max(310px,calc(var(--panel-w,258px) + 16px))}
 #guide-popup.visible{pointer-events:all}
-.popup-box{background:var(--panel);border:1px solid var(--acc2);border-radius:12px;padding:18px 22px;max-width:340px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.18);opacity:0;transform:translateY(-12px);transition:all .4s ease;position:relative}
+.popup-box{background:var(--panel);border:1px solid var(--acc2);border-radius:12px;padding:18px 22px;max-width:320px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.18);opacity:0;transform:translateY(-12px);transition:all .4s ease;position:relative}
 #guide-popup.visible .popup-box{opacity:1;transform:translateY(0)}
-.popup-arrow{position:absolute;top:-10px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-bottom:10px solid var(--acc2)}
+.popup-arrow{position:absolute;top:-10px;left:24px;width:0;height:0;border-left:10px solid transparent;border-right:10px solid transparent;border-bottom:10px solid var(--acc2)}
 .popup-title{font-size:13px;font-weight:700;color:var(--tx);margin-bottom:6px}
 .popup-body{font-size:11px;color:var(--tx2);line-height:1.7;margin-bottom:14px}
 .popup-ok{background:var(--acc2);color:#fff;border:none;border-radius:6px;padding:8px 24px;font-size:12px;font-weight:700;cursor:pointer;width:100%;transition:opacity .2s}
@@ -307,10 +307,11 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
   <!-- capital -->
   <div class="sec">
     <div class="seclbl">starting capital</div>
-    <div class="prs" id="cap-prs">
-      <button class="pr" onclick="setP(100,this)">$100</button>
-      <button class="pr on" onclick="setP(1000,this)">$1k</button>
+    <div id="cap-prs" style="display:grid;grid-template-columns:repeat(5,1fr);gap:3px;margin-bottom:4px">
+      <button class="pr on" onclick="setP(100,this)">$100</button>
+      <button class="pr" onclick="setP(1000,this)">$1k</button>
       <button class="pr" onclick="setP(10000,this)">$10k</button>
+      <button class="pr" onclick="setP(20000,this)">$20k</button>
       <button class="pr" onclick="setP(100000,this)">$100k</button>
       <button class="pr" onclick="setP(1000000,this)">$1M</button>
       <button class="pr" onclick="setP(10000000,this)">$10M</button>
@@ -1450,7 +1451,7 @@ function render(){
         <button id="lang-id-btn" onclick="setLang('id')" style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;border:0.5px solid ${LANG==='id'?'var(--acc)':'var(--bd2)'};background:${LANG==='id'?'var(--acc)':'transparent'};color:${LANG==='id'?'#fff':'var(--tx2)'};cursor:pointer">ID</button>
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:3fr 7fr;gap:0;align-items:stretch;margin-bottom:8px">
+    <div style="display:grid;grid-template-columns:6fr 4fr;gap:0;align-items:stretch;margin-bottom:8px">
       <div class="cw" style="margin-bottom:0;height:auto;min-height:168px;position:relative;border-right:none"><canvas id="gc"></canvas><button class="chart-zoom-btn" onclick="openChartZoom()" title="expand chart">⤢ zoom</button></div>
       <div id="assess-side"></div>
     </div>`;
@@ -1459,8 +1460,8 @@ function render(){
   const assessH=isQ?buildAssessment(months,s):'';
   const togH=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">
     <div class="tog" id="vt" style="margin-bottom:0">
-      <button class="tb ${VIEW==='sum'?'on':''}" onclick="setView('sum',this)">monthly summary</button>
       <button class="tb ${VIEW==='guide'?'on':''}" onclick="setView('guide',this)">📖 guide book</button>
+      <button class="tb ${VIEW==='sum'?'on':''}" onclick="setView('sum',this)">monthly summary</button>
       <button class="tb ${VIEW==='det'?'on':''}" onclick="setView('det',this)">full trade detail</button>
     </div>
     <span style="font-size:9px;color:var(--tx3);font-style:italic">${t('label_hint')}</span>
@@ -1472,7 +1473,7 @@ function render(){
   if(!isQ){
     const lbs=['start',...months.map(r=>r.lb)];
     const d1=[s.P,...months.map(r=>r.eA)];
-    const d2=[0,...months.map(r=>r.banked)];
+    const d2=[null,...months.map(r=>r.banked>0?r.banked:null)];
     const d3=[s.P,...months.map(r=>r.nw)];
     const _cs=getComputedStyle(document.body);
     const _acc=_cs.getPropertyValue('--acc').trim()||'#185fa5';
@@ -1492,7 +1493,7 @@ function render(){
           {label:'NW',     data:d3,borderColor:'#BA7517',pointRadius:0,borderWidth:1.5,tension:.4,fill:false},
         ]},
         options:{responsive:true,maintainAspectRatio:false,
-          plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${fmt(c.raw)}`}}},
+          spanGaps:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.raw?` ${c.dataset.label}: ${fmt(c.raw)}`:null}}},
           scales:{
             x:{grid:{display:false},ticks:{font:{size:9},color:'#888',maxTicksLimit:12,autoSkip:true}},
             y:{type:'logarithmic',grid:{color:'rgba(128,128,128,0.07)'},ticks:{font:{size:9},color:'#888',
