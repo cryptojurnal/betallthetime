@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>bet all the time, bet with style</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13px;line-height:1.4;min-height:100vh;transition:background .25s,color .25s}
+
+/* ── THEMES ── */
+body.t-light{--bg:#f4f4f1;--panel:#fff;--bd:#e8e8e5;--bd2:#eeeeea;--sf:#f9f9f7;--sf2:#f5f5f3;--tx:#1a1a1a;--tx2:#888;--tx3:#bbb;--acc:#185fa5;--acc2:#1D9E75;--mh:#1a1a1a;--mhc:#fff;--mhs:#a7f3d0;--inp:#f9f9f7;--btn:#f5f5f3;--btno:#e6f1fb;--btonc:#185fa5;--tog:#fff;--togon:#1a1a1a;--togonc:#fff;--tabact:#1a1a1a;--tabactc:#fff;--wd-on:#e6f1fb;--wd-onc:#185fa5}
+body.t-dark{--bg:#0d0d0d;--panel:#111;--bd:#222;--bd2:#1e1e1e;--sf:#181818;--sf2:#141414;--tx:#e0e0e0;--tx2:#555;--tx3:#333;--acc:#00c47a;--acc2:#00c47a;--mh:#00c47a;--mhc:#000;--mhs:#004d30;--inp:#1a1a1a;--btn:#1a1a1a;--btno:#0a2a1a;--btonc:#00c47a;--tog:#1a1a1a;--togon:#00c47a;--togonc:#000;--tabact:#00c47a;--tabactc:#000;--wd-on:#0a2a1a;--wd-onc:#00c47a}
+body.t-ocean{--bg:#060e1a;--panel:#0a1220;--bd:#0d1e33;--bd2:#0f2040;--sf:#0d1828;--sf2:#0a1520;--tx:#b8d4f0;--tx2:#3a6a9a;--tx3:#1a3a5a;--acc:#2090e0;--acc2:#00c0a0;--mh:#0a4080;--mhc:#b8d4f0;--mhs:#0a3060;--inp:#0a1828;--btn:#0a1828;--btno:#0a2a4a;--btonc:#2090e0;--tog:#0a1828;--togon:#2090e0;--togonc:#fff;--tabact:#2090e0;--tabactc:#fff;--wd-on:#0a2040;--wd-onc:#2090e0}
+body.t-forest{--bg:#0a0f08;--panel:#0e1409;--bd:#1a2410;--bd2:#18200e;--sf:#111808;--sf2:#0e1506;--tx:#b0d090;--tx2:#3a6020;--tx3:#1a3010;--acc:#60c030;--acc2:#40e060;--mh:#1a4010;--mhc:#b0d090;--mhs:#0a2008;--inp:#0e1809;--btn:#0e1809;--btno:#0a2008;--btonc:#60c030;--tog:#0e1809;--togon:#60c030;--togonc:#000;--tabact:#60c030;--tabactc:#000;--wd-on:#0a2008;--wd-onc:#60c030}
+body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e1008;--sf2:#180e06;--tx:#f0c090;--tx2:#906030;--tx3:#503020;--acc:#f08030;--acc2:#e06020;--mh:#601808;--mhc:#f0c090;--mhs:#300c04;--inp:#1e1008;--btn:#1e1008;--btno:#301808;--btonc:#f08030;--tog:#1e1008;--togon:#f08030;--togonc:#fff;--tabact:#f08030;--tabactc:#fff;--wd-on:#301808;--wd-onc:#f08030}
+body.t-lavender{--bg:#f0eef8;--panel:#fff;--bd:#d8d4f0;--bd2:#e4e0f4;--sf:#f8f6ff;--sf2:#f0eef8;--tx:#2a1a4a;--tx2:#8070b0;--tx3:#c0b0e0;--acc:#7050c0;--acc2:#5060e0;--mh:#4030a0;--mhc:#fff;--mhs:#c0b8f0;--inp:#f8f6ff;--btn:#f0eef8;--btno:#e0d8f8;--btonc:#7050c0;--tog:#fff;--togon:#4030a0;--togonc:#fff;--tabact:#4030a0;--tabactc:#fff;--wd-on:#e0d8f8;--wd-onc:#7050c0}
+
+.app{display:flex;height:100vh;overflow:hidden;background:var(--bg);color:var(--tx)}
+.panel-left.collapsed{width:36px!important;min-width:36px!important;overflow:hidden}
+.panel-left.collapsed .pl-body{display:none}
+.collapse-btn{position:absolute;top:50%;transform:translateY(-50%);right:-14px;width:28px;height:28px;border-radius:50%;background:var(--acc);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;z-index:10;transition:all .2s;box-shadow:0 2px 6px rgba(0,0,0,.25)}
+.collapse-btn:hover{opacity:.85;transform:translateY(-50%) scale(1.1)}
+.panel-left{position:relative}
+.panel-left.collapsed .collapse-btn{right:-12px}
+.collapsed-label{display:none;writing-mode:vertical-rl;text-orientation:mixed;font-size:9px;font-weight:700;color:var(--tx3);letter-spacing:.08em;text-transform:uppercase;padding:12px 0;cursor:pointer;user-select:none;width:32px;align-items:center;justify-content:center;height:100%}
+.panel-left.collapsed .collapsed-label{display:flex}
+.panel-left.collapsed{overflow:hidden}
+.panel-left{width:258px;min-width:258px;background:var(--panel);border-right:0.5px solid var(--bd);overflow-y:auto;flex-shrink:0;transition:background .25s,border-color .25s,width .25s,min-width .25s}
+.panel-right{flex:1;overflow-y:auto;background:var(--bg);padding:14px;transition:background .25s;min-width:0}
+
+/* head */
+.pl-head{padding:11px 13px 9px;border-bottom:0.5px solid var(--bd2);display:flex;flex-direction:column;gap:4px}
+.pl-head h1{font-size:12px;font-weight:700;color:var(--tx);letter-spacing:.01em}
+.pl-head p{font-size:9px;color:var(--tx2)}
+
+/* mode tabs */
+.mode-tabs{display:flex;border-bottom:0.5px solid var(--bd2)}
+.mt{flex:1;padding:7px 4px;font-size:10px;font-weight:700;text-align:center;cursor:pointer;border:none;background:transparent;color:var(--tx2);letter-spacing:.03em;text-transform:uppercase;transition:all .2s}
+.mt.on{color:var(--tabact);border-bottom:2px solid var(--tabact);background:var(--sf2)}
+
+/* theme picker */
+.theme-row{display:flex;gap:5px;padding:8px 13px;border-bottom:0.5px solid var(--bd2);align-items:center;flex-wrap:wrap}
+.theme-lbl{font-size:9px;color:var(--tx3);font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin-right:2px;white-space:nowrap}
+.th-btn{width:18px;height:18px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:border-color .2s;flex-shrink:0}
+.th-btn.on{border-color:var(--tx);}
+.th-btn[data-t=t-light]{background:#f4f4f1;border-color:#ccc}
+.th-btn[data-t=t-dark]{background:#111}
+.th-btn[data-t=t-ocean]{background:#0a2a5a}
+.th-btn[data-t=t-forest]{background:#1a4010}
+.th-btn[data-t=t-sunset]{background:#601808}
+.th-btn[data-t=t-lavender]{background:#7050c0}
+
+/* sections */
+.sec{padding:8px 13px 0}
+.seclbl{font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--tx3);margin-bottom:4px}
+.row{display:flex;align-items:center;gap:5px;margin:2px 0}
+.lbl{font-size:10px;color:var(--tx2);min-width:50px;flex-shrink:0}
+.val{font-size:11px;font-weight:600;min-width:70px;text-align:right;flex-shrink:0;color:var(--tx)}
+input[type=range]{flex:1;accent-color:var(--acc);height:3px;cursor:pointer}
+input[type=number]{width:64px;padding:3px 5px;font-size:10px;border:0.5px solid var(--bd2);border-radius:4px;background:var(--inp);color:var(--tx);text-align:right;transition:border-color .2s}
+input[type=number]:focus{outline:none;border-color:var(--acc)}
+.prs{display:flex;gap:3px;flex-wrap:nowrap;margin:2px 0 4px;overflow-x:auto}
+.pr{font-size:9px;padding:2px 5px;border-radius:4px;border:0.5px solid var(--bd2);background:var(--btn);color:var(--tx2);cursor:pointer;transition:all .15s;white-space:nowrap}
+.pr.on{background:var(--btno);color:var(--btonc);border-color:var(--acc)}
+.divider{height:0.5px;background:var(--bd2);margin:7px 13px}
+.comp-row{display:flex;gap:0;margin:5px 0 2px;background:var(--sf2);border-radius:6px;overflow:hidden}
+.ci{flex:1;padding:4px 3px;text-align:center;border-right:0.5px solid var(--bd2)}
+.ci:last-child{border-right:none}
+.cl{font-size:8px;color:var(--tx2);text-transform:uppercase;letter-spacing:.04em}
+.cv{font-size:11px;font-weight:600;margin-top:1px;color:var(--tx)}
+
+/* save button */
+.save-btn{display:flex;align-items:center;justify-content:center;gap:4px;margin:6px 13px 0;padding:5px;border:0.5px solid var(--bd2);border-radius:6px;background:var(--btn);color:var(--tx2);font-size:10px;font-weight:600;cursor:pointer;transition:all .2s;letter-spacing:.02em}
+.save-btn:hover{background:var(--btno);color:var(--btonc);border-color:var(--acc)}
+.save-ok{color:var(--acc2)!important}
+
+/* trade grid */
+.tg-header{display:grid;grid-template-columns:24px 1fr 1fr;gap:3px;margin-bottom:2px}
+.tg-hl{font-size:8px;font-weight:700;color:var(--tx3);text-align:center;letter-spacing:.04em;text-transform:uppercase}
+.tg-row{display:grid;grid-template-columns:24px 1fr 1fr;gap:3px;margin:2px 0;align-items:center}
+.tg-no{font-size:9px;color:var(--tx2);text-align:center;font-weight:600}
+.tg-in{width:100%;padding:3px 3px;font-size:10px;text-align:center;border:0.5px solid var(--bd2);border-radius:4px;background:var(--inp);color:var(--tx)}
+.tg-in:focus{outline:none;border-color:var(--acc)}
+.tg-in.fi{border-color:var(--acc2);opacity:.8}
+.tg-in.skipped{opacity:.3}
+.act-count{font-size:9px;color:var(--tx2);margin-top:3px}
+.act-count span{font-weight:700;color:var(--acc2)}
+
+/* right panel */
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:10px}
+.mc{background:var(--panel);border-radius:7px;padding:7px 8px;border:0.5px solid var(--bd2);transition:background .25s}
+.mll{font-size:9px;color:var(--tx2);margin-bottom:2px}
+.mvv{font-size:13px;font-weight:700}
+.ms{font-size:9px;color:var(--tx2);margin-top:1px}
+.note{background:var(--panel);border-left:2px solid var(--acc);border-radius:0 6px 6px 0;padding:6px 10px;font-size:10px;color:var(--tx2);margin-bottom:10px;line-height:1.6;transition:background .25s}
+.cw{position:relative;width:100%;height:180px;margin-bottom:10px;background:var(--panel);border-radius:8px;padding:10px;border:0.5px solid var(--bd2);transition:background .25s}
+.tog{display:flex;border:0.5px solid var(--bd2);border-radius:6px;overflow:hidden;width:fit-content;margin-bottom:8px;background:var(--tog);transition:all .25s}
+.tb{padding:4px 11px;font-size:11px;cursor:pointer;border:none;background:transparent;color:var(--tx2)}
+.tb.on{background:var(--togon);color:var(--togonc);font-weight:600}
+.lgd{display:flex;gap:10px;margin-bottom:6px;font-size:10px;color:var(--tx2);flex-wrap:wrap;align-items:center}
+.ld{width:10px;height:3px;border-radius:2px;display:inline-block;margin-right:2px;vertical-align:middle}
+.ft{font-size:9px;color:var(--tx3);margin-top:8px;line-height:1.7}
+.assess-bar{display:grid;grid-template-columns:repeat(4,1fr) 1.4fr 1fr 1.4fr 1.2fr;gap:0;background:var(--panel);border:0.5px solid var(--bd2);border-radius:8px;margin-bottom:10px;overflow:hidden}
+.as-item{display:flex;flex-direction:column;justify-content:center;gap:3px;padding:11px 13px;border-right:0.5px solid var(--bd2)}
+.as-item:last-child{border-right:none}
+.as-lbl{font-size:9px;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;font-weight:700}
+.as-val{font-size:15px;font-weight:700;line-height:1.1}
+.as-sub{font-size:9px;color:var(--tx2);line-height:1.3}
+.risk-pill{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.03em}
+.rp-safe{background:#EAF3DE;color:#3B6D11}
+.rp-med{background:#FAEEDA;color:#854F0B}
+.rp-high{background:#FCEBEB;color:#A32D2D}
+.rp-extreme{background:#A32D2D;color:#fff}
+.as-bar-track{width:80px;height:5px;background:var(--bd2);border-radius:3px;overflow:hidden;margin-top:2px}
+.as-bar-fill{height:100%;border-radius:3px;transition:width .3s}
+
+/* table */
+.tw{overflow-x:auto}
+table{border-collapse:collapse;font-size:11px;width:100%;min-width:640px;background:var(--panel);border-radius:8px;overflow:hidden;border:0.5px solid var(--bd2);transition:background .25s}
+th{padding:6px 7px;background:var(--sf2);border-bottom:0.5px solid var(--bd2);font-weight:700;font-size:9px;color:var(--tx2);text-align:right;white-space:nowrap;letter-spacing:.04em;text-transform:uppercase}
+th:first-child{text-align:left}
+td{padding:5px 7px;border-bottom:0.5px solid var(--bd2);text-align:right;white-space:nowrap;color:var(--tx)}
+td:first-child{text-align:left}
+tr:nth-child(even) td{background:var(--sf)}
+tr.mh>td{background:var(--mh)!important;color:var(--mhc)!important;font-weight:700;font-size:11px;padding:7px 7px}
+tr.mh-z>td{background:var(--sf2)!important;color:var(--tx2)!important;font-size:10px;padding:5px 7px}
+tr.skip-row>td{color:var(--tx3);font-style:italic}
+tr.zero-row>td{color:var(--tx3);font-style:italic}
+
+/* inline WD input in table */
+.wd-cell{display:flex;align-items:center;justify-content:flex-end;gap:4px}
+.wd-inp{width:70px;padding:2px 5px;font-size:10px;border:0.5px solid var(--bd2);border-radius:4px;background:var(--inp);color:var(--tx);text-align:right;transition:all .2s}
+.wd-inp:focus{outline:none;border-color:var(--acc)}
+.wd-inp.active{border-color:var(--acc);background:var(--wd-on);color:var(--wd-onc);font-weight:700}
+.mp-inp{width:52px;padding:2px 4px;font-size:10px;border:0.5px solid var(--acc2);border-radius:4px;background:var(--inp);color:var(--tx);text-align:center;transition:all .2s}
+.mp-inp:focus{outline:none;border-color:var(--acc2)}
+.mp-inp.active{background:#EAF3DE;color:#3B6D11;border-color:#60c030;font-weight:700}
+body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a}
+
+/* badges */
+.rl{font-size:9px;padding:1px 5px;border-radius:3px;background:#EAF3DE;color:#3B6D11;font-weight:600}
+.rm{font-size:9px;padding:1px 5px;border-radius:3px;background:#FAEEDA;color:#854F0B;font-weight:600}
+.rh{font-size:9px;padding:1px 5px;border-radius:3px;background:#FCEBEB;color:#A32D2D;font-weight:600}
+.sk{font-size:9px;padding:1px 5px;border-radius:3px;background:var(--sf2);color:var(--tx3)}
+.post-liq{font-size:9px;padding:1px 5px;border-radius:3px;background:var(--sf2);color:var(--tx2);margin-left:3px}
+.lbl-in{background:transparent;border:none;border-bottom:1px dashed var(--bd2);color:var(--mhc);font-size:11px;font-weight:600;padding:1px 2px;width:90px;cursor:text;outline:none;font-family:inherit}
+.lbl-in:focus{border-bottom-color:var(--acc);background:rgba(255,255,255,0.08)}
+.lbl-trade{color:var(--tx2);font-weight:400;font-size:10px;width:86px}
+.lbl-sum{color:var(--tx);border-bottom:1px dashed var(--bd2);background:transparent;border-top:none;border-left:none;border-right:none;font-size:11px;font-weight:700;padding:1px 2px;width:86px;cursor:text;outline:none;font-family:inherit}
+.lbl-sum:focus{border-bottom-color:var(--acc)}
+.manual-grid{display:flex;gap:3px;flex-wrap:wrap;padding:4px 0}
+.manual-grid input{width:38px;padding:2px 3px;font-size:9px;text-align:center;border:0.5px solid var(--bd2);border-radius:3px;background:var(--inp);color:var(--tx)}
+.manual-grid input:focus{outline:none;border-color:var(--acc)}
+.manual-grid input:disabled{opacity:.3;pointer-events:none}
+.mgrid-lbl{font-size:8px;color:var(--tx3);text-align:center;margin-bottom:1px}
+</style>
+</head>
+<body class="t-light">
+<div class="app">
+
+<!-- LEFT PANEL -->
+<div class="panel-left" id="left-panel">
+  <button class="collapse-btn" id="collapse-btn" onclick="togglePanel()" title="collapse panel">‹</button>
+  <div class="collapsed-label" onclick="togglePanel()">bet with style · controls</div>
+  <div class="pl-body">
+  <div class="pl-head">
+    <h1>bet all the time, bet with style</h1>
+    <p>liq% = account ÷ notional · higher = safer · <span style="color:var(--acc2)">by @cryptojurnal</span></p>
+  </div>
+
+  <div class="mode-tabs">
+    <button class="mt on" id="tab-36" onclick="setTab('36')">36-month</button>
+    <button class="mt" id="tab-q" onclick="setTab('q')">quarter</button>
+  </div>
+
+  <div class="theme-row">
+    <span class="theme-lbl">theme</span>
+    <div class="th-btn on" data-t="t-light" style="background:#f4f4f1;border-color:#ccc" onclick="setTheme('t-light',this)" title="light"></div>
+    <div class="th-btn" data-t="t-dark" style="background:#111" onclick="setTheme('t-dark',this)" title="dark"></div>
+    <div class="th-btn" data-t="t-ocean" style="background:#0a2a5a" onclick="setTheme('t-ocean',this)" title="ocean"></div>
+    <div class="th-btn" data-t="t-forest" style="background:#1a4010" onclick="setTheme('t-forest',this)" title="forest"></div>
+    <div class="th-btn" data-t="t-sunset" style="background:#601808" onclick="setTheme('t-sunset',this)" title="sunset"></div>
+    <div class="th-btn" data-t="t-lavender" style="background:#7050c0" onclick="setTheme('t-lavender',this)" title="lavender"></div>
+  </div>
+
+  <!-- capital -->
+  <div class="sec">
+    <div class="seclbl">starting capital</div>
+    <div class="prs" id="cap-prs">
+      <button class="pr on" onclick="setP(100,this)">$100</button>
+      <button class="pr" onclick="setP(1000,this)">$1k</button>
+      <button class="pr" onclick="setP(10000,this)">$10k</button>
+      <button class="pr" onclick="setP(100000,this)">$100k</button>
+      <button class="pr" onclick="setP(1000000,this)">$1M</button>
+      <button class="pr" onclick="setP(10000000,this)">$10M</button>
+      <button class="pr" onclick="setP(100000000,this)">$100M</button>
+      <button class="pr" onclick="setP(1000000000,this)">$1B</button>
+      <button class="pr" onclick="setP(10000000000,this)">$10B</button>
+    </div>
+    <div class="row">
+      <span class="lbl">type ($)</span>
+      <input type="number" id="cap-in" value="100" min="1" max="10000000000" oninput="onCapIn(this.value)">
+    </div>
+    <div class="row">
+      <span class="lbl">slide</span>
+      <input type="range" id="cap-sl" min="100" max="10000000000" step="1000" value="100" oninput="onCapSl(this.value)">
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin:3px 0 4px"><span style="font-size:9px;color:var(--tx3)">current</span><span style="font-size:14px;font-weight:700;color:var(--acc2);background:var(--sf2);padding:2px 8px;border-radius:5px;border:0.5px solid var(--bd2)" id="cap-vl">$100</span></div>
+  </div>
+  <button class="save-btn" id="save-cap" onclick="saveSection('cap')">💾 save capital</button>
+
+  <div class="divider"></div>
+
+  <!-- leverage -->
+  <div class="sec">
+    <div class="seclbl">leverage</div>
+    <div class="prs" id="lv-prs">
+      <button class="pr" onclick="setLev(5,this)">5×</button>
+      <button onclick="setLev(10,this)" class="pr g on">10×</button>
+      <button class="pr" onclick="setLev(20,this)">20×</button>
+      <button class="pr" onclick="setLev(50,this)">50×</button>
+      <button class="pr" onclick="setLev(100,this)">100×</button>
+    </div>
+    <div class="row">
+      <span class="lbl">type (×)</span>
+      <input type="number" id="lv-in" value="10" min="1" max="100" oninput="onLevIn(this.value)">
+    </div>
+    <input type="range" id="lv-sl" min="1" max="100" step="1" value="10" oninput="onLevSl(this.value)" style="width:100%;margin:2px 0 3px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span style="font-size:9px;color:var(--tx3)">current</span><span style="font-size:14px;font-weight:700;color:var(--acc2);background:var(--sf2);padding:2px 8px;border-radius:5px;border:0.5px solid var(--bd2)" id="lv-vl">10×</span></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- notional -->
+  <div class="sec">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+      <div class="seclbl" style="margin-bottom:0">notional (trade 1)</div>
+      <div style="display:flex;align-items:center;gap:4px">
+        <span style="font-size:8px;color:var(--tx3)">link to capital</span>
+        <button id="not-link-btn" onclick="toggleNotLink()" title="when ON: notional scales with capital to maintain liq%" style="font-size:9px;padding:1px 7px;border-radius:10px;border:0.5px solid var(--bd2);background:var(--btn);color:var(--tx3);cursor:pointer;font-weight:700">off</button>
+      </div>
+    </div>
+    <div class="row">
+      <span class="lbl">type ($)</span>
+      <input type="number" id="not-in" value="250" min="1" max="100000000000" oninput="onNotIn(this.value)">
+    </div>
+    <div class="row">
+      <span class="lbl">slide</span>
+      <input type="range" id="not-sl" min="1" max="100000000000" step="1000" value="250" oninput="onNotSl(this.value)">
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin:3px 0 4px"><span style="font-size:9px;color:var(--tx3)">current</span><span style="font-size:14px;font-weight:700;color:var(--acc2);background:var(--sf2);padding:2px 8px;border-radius:5px;border:0.5px solid var(--bd2)" id="not-vl">$250</span></div>
+    <div class="comp-row">
+      <div class="ci"><div class="cl">actual margin</div><div class="cv" id="c-am">$16.67</div><div style="font-size:7px;color:var(--tx3)">notional ÷ lev</div></div>
+      <div class="ci"><div class="cl">fm% of acct</div><div class="cv" id="c-fm">15.2%</div><div style="font-size:7px;color:var(--tx3)">capital at risk</div></div>
+      <div class="ci"><div class="cl">liq% t1 m01</div><div class="cv" id="c-lq" style="color:#1D9E75">40%</div><div style="font-size:7px;color:var(--tx3)">spot drop → wipe</div></div>
+    </div>
+    <div style="font-size:8px;color:var(--tx3);padding:3px 1px;line-height:1.6;margin-top:3px">
+      <span style="color:var(--tx2)">acct</span> <span id="c-acct" style="color:var(--tx);font-weight:600">$100</span>
+      × <span id="c-ratio" style="color:var(--acc2);font-weight:600">2.50</span>
+      = <span id="c-not2" style="font-weight:600">$250</span>
+      → margin <span id="c-am2" style="color:var(--acc);font-weight:600">$16.67</span>
+    </div>
+  </div>
+  <button class="save-btn" id="save-pos" onclick="saveSection('pos')">💾 save position</button>
+
+  <div class="divider"></div>
+
+  <!-- kpi -->
+  <div class="sec">
+    <div class="seclbl">kpi scale (global)</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin:2px 0 1px">
+      <span style="font-size:10px;color:var(--tx2)">slide</span>
+      <span style="font-size:12px;font-weight:700;color:var(--tx)" id="kpi-vl">1.00×</span>
+    </div>
+    <input type="range" id="kpi-sl" min="0.2" max="3" step="0.05" value="1" oninput="onKpiSl(this.value)" style="width:100%;margin:2px 0 4px">
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- trade targets -->
+  <div class="sec">
+    <div class="seclbl">trade slots</div>
+    <div style="font-size:9px;color:var(--tx3);margin-bottom:4px">target% or freq = 0 → skip</div>
+    <div class="tg-header">
+      <div class="tg-hl">#</div>
+      <div class="tg-hl">tgt%</div>
+      <div class="tg-hl">freq</div>
+    </div>
+    <div id="tg"></div>
+    <div class="act-count" id="act-count"><span>10</span> active</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:6px;padding:4px 13px 0">
+    <span style="font-size:9px;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;font-weight:700">global mode</span>
+    <button id="global-toggle" onclick="toggleGlobal()" style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:5px;border:0.5px solid var(--acc2);background:var(--btno);color:var(--acc2);cursor:pointer">● on</button>
+    <span style="font-size:9px;color:var(--tx3)">off = per-month</span>
+  </div>
+
+  <button class="save-btn" id="save-trades" onclick="saveSection('trades')" style="margin-bottom:4px">💾 save trades</button>
+
+
+</div><!-- pl-body -->
+</div><!-- panel-left -->
+
+<!-- RIGHT PANEL -->
+<div class="panel-right">
+  <div id="right-content"></div>
+</div>
+
+</div>
+
+<script>
+const IDR=16700;
+
+// ── GUIDE CONTENT ──
+const GUIDE_HTML=`
+<style>
+.guide-wrap{max-width:720px;padding:4px 0 20px;font-size:12px;line-height:1.7;color:var(--tx)}
+.g-title{font-size:18px;font-weight:700;color:var(--tx);margin-bottom:4px}
+.g-sub{font-size:11px;color:var(--tx2);margin-bottom:20px}
+.g-sec{margin-bottom:22px}
+.g-sec-title{font-size:13px;font-weight:700;color:var(--acc2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;padding-bottom:5px;border-bottom:0.5px solid var(--bd2)}
+.g-term{display:grid;grid-template-columns:140px 1fr;gap:8px 16px;margin-bottom:8px;align-items:start}
+.g-term-name{font-size:11px;font-weight:700;color:var(--tx);background:var(--sf2);padding:3px 8px;border-radius:5px;white-space:nowrap}
+.g-term-def{font-size:11px;color:var(--tx2);line-height:1.6}
+.g-term-def b{color:var(--tx);font-weight:600}
+.g-tip{background:var(--sf2);border-left:3px solid var(--acc2);border-radius:0 8px 8px 0;padding:10px 14px;font-size:11px;color:var(--tx2);margin:10px 0;line-height:1.7}
+.g-tip b{color:var(--acc2)}
+.g-step{display:flex;gap:12px;align-items:flex-start;margin-bottom:10px}
+.g-step-num{width:24px;height:24px;border-radius:50%;background:var(--acc);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.g-step-body{font-size:11px;color:var(--tx2);line-height:1.7}
+.g-step-body b{color:var(--tx);font-weight:600}
+.g-warn{background:#FAEEDA;border-radius:8px;padding:10px 14px;font-size:11px;color:#854F0B;margin:10px 0;line-height:1.7}
+body.t-dark .g-warn{background:#2a1a00;color:#EF9F27}
+body.t-ocean .g-warn,.body.t-forest .g-warn,.body.t-sunset .g-warn,.body.t-lavender .g-warn{background:var(--sf2);color:var(--tx2)}
+</style>
+
+<div class="g-title">bet all the time, bet with style · guide</div>
+<div class="g-sub">essential concepts and how to use this tool · keep it simple, keep it disciplined</div>
+
+<div class="g-sec">
+  <div class="g-sec-title">🔑 core concepts — read these first</div>
+  <div class="g-term"><span class="g-term-name">liq%</span><span class="g-term-def">liquidation percentage. <b>how far the spot price must drop (or rise against you) before your position gets wiped.</b> this is the most important number in the whole dashboard. higher = safer. if liq% = 40%, the market needs to move 40% against your entry to liquidate trade 1.</span></div>
+  <div class="g-term"><span class="g-term-name">notional</span><span class="g-term-def">the <b>total position size after leverage is applied.</b> if you put $100 actual margin at 10× leverage, notional = $1,000. this is what the exchange is actually trading for you.</span></div>
+  <div class="g-term"><span class="g-term-name">actual margin</span><span class="g-term-def">the <b>real capital from your account used as collateral</b> for trade 1. formula: notional ÷ leverage. this is what you actually risk per trade entry.</span></div>
+  <div class="g-term"><span class="g-term-name">fm% (frac margin)</span><span class="g-term-def"><b>fractional margin</b> — actual margin as a % of your total account. if fm% = 16%, you're deploying 16% of your account as margin for trade 1. lower = safer.</span></div>
+  <div class="g-term"><span class="g-term-name">carry-forward</span><span class="g-term-def">each trade's notional <b>grows by adding the previous trade's profit.</b> so if trade 1 notional = $250 and profit = $20, trade 2 notional = $270. this compounds within the sequence naturally.</span></div>
+  <div class="g-tip"><b>the relationship:</b> liq% = account ÷ notional × 100. so if account = $100 and notional = $250, liq% = 40%. if you withdraw $50, account drops to $50, liq% drops to 20% — you're now twice as close to liquidation. this is why withdrawal affects liq%.</div>
+</div>
+
+<div class="g-sec">
+  <div class="g-sec-title">📊 dashboard metrics explained</div>
+  <div class="g-term"><span class="g-term-name">account</span><span class="g-term-def">your <b>live trading account balance</b> at the end of each month after all trades and withdrawals.</span></div>
+  <div class="g-term"><span class="g-term-name">banked</span><span class="g-term-def">profits you have <b>physically withdrawn</b> from the account. this money is safe — it doesn't compound anymore but it also can't be liquidated.</span></div>
+  <div class="g-term"><span class="g-term-name">combined NW</span><span class="g-term-def"><b>net worth = account + banked.</b> this is your real financial position. always assess your success by this number, not just the account balance.</span></div>
+  <div class="g-term"><span class="g-term-name">seq potential</span><span class="g-term-def">maximum <b>total % gain in one full sequence</b> (all 10 trades combined). this is the ceiling for one month if every active trade hits target.</span></div>
+  <div class="g-term"><span class="g-term-name">single profit</span><span class="g-term-def">profit from <b>one execution</b> of that trade (notional × target%). one trade, one time.</span></div>
+  <div class="g-term"><span class="g-term-name">combine profit</span><span class="g-term-def">single profit × freq. if single profit = $20 and freq = 4, combine profit = $80. <b>this is what actually gets added to your account</b> for that trade slot.</span></div>
+  <div class="g-term"><span class="g-term-name">freq</span><span class="g-term-def">how many times you execute that trade setup in the sequence. <b>higher freq = more total profit but also more exposure.</b> set to 0 to skip that trade entirely.</span></div>
+  <div class="g-term"><span class="g-term-name">3yr CAGR</span><span class="g-term-def"><b>compound annual growth rate over 36 months.</b> this normalizes the total return into a yearly figure so you can compare it to benchmarks like S&P 500 (~10%) or Buffett (~20%).</span></div>
+  <div class="g-term"><span class="g-term-name">$1M milestone</span><span class="g-term-def">the month when your <b>combined NW (account + banked) first crosses $1,000,000.</b> not just account — total wealth.</span></div>
+  <div class="g-term"><span class="g-term-name">account lifespan</span><span class="g-term-def">estimated survival time based on risk structure (liq%, leverage, fm%). <b>how long statistically before an adverse market move wipes a position.</b> this is not a guarantee — it's a calibrated estimate from the risk ratios.</span></div>
+</div>
+
+<div class="g-sec">
+  <div class="g-sec-title">⚙️ controls — how to use them</div>
+  <div class="g-step"><div class="g-step-num">1</div><div class="g-step-body"><b>set starting capital</b> — your actual account size. this doesn't affect liq% directly (the ratio is what matters) but it scales all dollar amounts in the projection.</div></div>
+  <div class="g-step"><div class="g-step-num">2</div><div class="g-step-body"><b>set leverage</b> — higher leverage means smaller actual margin per trade but also shrinks your liq% buffer. watch the liq% in the notional panel update live.</div></div>
+  <div class="g-step"><div class="g-step-num">3</div><div class="g-step-body"><b>set notional (trade 1)</b> — this is your first trade's position size. the comp panel shows actual margin, fm%, and liq% in real time. <b>keep liq% above 40% for healthy risk.</b> "link to capital" toggle controls whether notional auto-scales when you change capital.</div></div>
+  <div class="g-step"><div class="g-step-num">4</div><div class="g-step-body"><b>set trade slots</b> — 10 slots, each with target% and freq. set either to 0 to skip that trade. the sequence runs top to bottom, notional compounding with each trade's profit.</div></div>
+  <div class="g-step"><div class="g-step-num">5</div><div class="g-step-body"><b>global mode vs manual</b> — when global is ON, all months use the same trade targets. turn it OFF to set different targets per month in the full trade detail view — useful for adapting to different market conditions.</div></div>
+  <div class="g-step"><div class="g-step-num">6</div><div class="g-step-body"><b>zero months</b> — months where you don't trade (unclear market, rest, etc). click the ⊘ button on any month to mark it as zero. click again to activate. zero months pause compounding but don't reset anything.</div></div>
+  <div class="g-step"><div class="g-step-num">7</div><div class="g-step-body"><b>withdrawal</b> — type any amount in the withdrawal column (monthly summary or detail view). this deducts from that month's gross end balance. <b>important: withdrawing reduces your account which lowers liq% for the next month.</b> you're trading on less buffer.</div></div>
+  <div class="g-step"><div class="g-step-num">8</div><div class="g-step-body"><b>margin push up (⚡)</b> — in full trade detail, type a multiplier (e.g. 1.4) in the push field on a month header. only trade 1 of that month gets multiplied. trades 2-10 compound naturally from that higher base. this is an acceleration tactic for when you're confident.</div></div>
+  <div class="g-warn">⚠ key rule: when you withdraw, your liq% drops for the next month. the projection shows this — watch the liq t1 column. if it drops below 20%, you're in the danger zone. always check liq% after setting a withdrawal amount.</div>
+</div>
+
+<div class="g-sec">
+  <div class="g-sec-title">🎯 risk assessment bar — quick read</div>
+  <div class="g-term"><span class="g-term-name">risk score</span><span class="g-term-def">composite 0–100 score. <b>lower = safer.</b> factors: liq% buffer (main weight), leverage level, fm% of account, number of active trades. hover the score for what's driving it.</span></div>
+  <div class="g-term"><span class="g-term-name">liq t1 buffer</span><span class="g-term-def">same as liq% for trade 1 month 1. the <b>fill bar</b> shows it visually — green = good buffer, amber = watchable, red = danger.</span></div>
+  <div class="g-term"><span class="g-term-name">account lifespan</span><span class="g-term-def">estimated how long the account structure survives adverse conditions. from <b>minutes</b> (extreme risk) to <b>generational</b> (almost unliquidatable). formula: (liq%)² ÷ leverage factor ÷ margin factor.</span></div>
+  <div class="g-tip"><b>the golden setup:</b> liq% ≥ 40% · leverage ≤ 15× · fm% ≤ 20% → account lifespan "months to years" · risk score below 30 · this is the baseline. adjust based on your conviction and market conditions.</div>
+</div>
+
+<div class="g-sec">
+  <div class="g-sec-title">💾 saving your work</div>
+  <div class="g-term"><span class="g-term-name">save capital</span><span class="g-term-def">saves starting capital to browser storage. survives page reload.</span></div>
+  <div class="g-term"><span class="g-term-name">save position</span><span class="g-term-def">saves leverage, notional, and KPI scale.</span></div>
+  <div class="g-term"><span class="g-term-name">save trades</span><span class="g-term-def">saves all 10 trade targets and freqs.</span></div>
+  <div class="g-term"><span class="g-term-name">save labels</span><span class="g-term-def">saves your custom month labels (e.g. "april 2026") and trade labels (e.g. "MOODENG/USDT").</span></div>
+  <div class="g-term"><span class="g-term-name">save zeros</span><span class="g-term-def">saves which months are marked as zero months.</span></div>
+  <div class="g-tip"><b>36-month and quarter tabs have separate state.</b> capital, trades, and labels set in one tab don't affect the other. save each tab independently.</div>
+</div>
+`;
+const ZERO_36_DEF=[6,11,17,22,30,35];
+const TOTAL=36;
+
+// SEPARATE STATE PER TAB
+const DEF_BT=[8,1,1,2,10,1,5,1,5,5];
+const DEF_ML={}; // month labels {m: 'custom label'}
+const DEF_TL={}; // trade labels {t: 'asset name'} t=1..10
+const DEF_FR=[1,4,2,2,1,3,1,5,1,1];
+
+let TAB='36', THEME='t-light', VIEW='sum', ch=null, GLOBAL_MODE=true;
+
+// each tab has its own full state
+const S={
+  '36':{P:100,LEV:10,NOT:250,KPI:1.0,BT:[...DEF_BT],FR:[...DEF_FR],WD:{},ML:{},TL:{},MT:{},ZM:new Set([...ZERO_36_DEF]),MP:{}},
+  'q': {P:100,LEV:10,NOT:250,KPI:1.0,BT:[...DEF_BT],FR:[...DEF_FR],WD:{},ML:{},TL:{},MT:{},ZM:new Set([]),MP:{}}
+};
+
+function gs(){return S[TAB];}
+
+// ── SAVE / LOAD ──
+function saveSection(sec){
+  const s=gs();
+  const key='wz_'+TAB+'_'+sec;
+  let data={};
+  if(sec==='cap') data={P:s.P};
+  if(sec==='pos') data={LEV:s.LEV,NOT:s.NOT,KPI:s.KPI};
+  if(sec==='trades') data={BT:[...s.BT],FR:[...s.FR]};
+  if(sec==='wd') data={WD:{...s.WD}};
+  if(sec==='labels') data={ML:{...s.ML},TL:{...s.TL}};
+  if(sec==='zero') data={ZM:[...s.ZM]};
+  try{localStorage.setItem(key,JSON.stringify(data));flashSave('save-'+sec);}catch(e){}
+}
+function flashSave(id){
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.classList.add('save-ok');
+  el.textContent='✓ saved!';
+  setTimeout(()=>{el.classList.remove('save-ok');el.textContent='💾 save '+id.replace('save-','');},1500);
+}
+function loadAll(){
+  ['36','q'].forEach(tab=>{
+    ['cap','pos','trades','wd','labels','zero'].forEach(sec=>{
+      const key='wz_'+tab+'_'+sec;
+      try{
+        const raw=localStorage.getItem(key);
+        if(!raw)return;
+        const d=JSON.parse(raw);
+        if(sec==='cap'&&d.P) S[tab].P=d.P;
+        if(sec==='pos'){if(d.LEV)S[tab].LEV=d.LEV;if(d.NOT)S[tab].NOT=d.NOT;if(d.KPI)S[tab].KPI=d.KPI;}
+        if(sec==='trades'){if(d.BT)S[tab].BT=[...d.BT];if(d.FR)S[tab].FR=[...d.FR];}
+        if(sec==='wd'&&d.WD)S[tab].WD={...d.WD};
+        if(sec==='labels'){if(d.ML)S[tab].ML={...d.ML};if(d.TL)S[tab].TL={...d.TL};}
+        if(sec==='zero'&&d.ZM)S[tab].ZM=new Set(d.ZM);
+      }catch(e){}
+    });
+    // load theme
+    try{const t=localStorage.getItem('wz_theme');if(t)THEME=t;}catch(e){}
+  });
+}
+
+function syncControls(){
+  const s=gs();
+  document.getElementById('cap-in').value=s.P;
+  document.getElementById('cap-sl').value=Math.min(s.P,10000000000);
+  document.getElementById('cap-vl').textContent='$'+s.P.toLocaleString();
+  document.getElementById('lv-in').value=s.LEV;
+  document.getElementById('lv-sl').value=Math.min(s.LEV,50);
+  document.getElementById('lv-vl').textContent=s.LEV+'×';
+  document.getElementById('not-in').value=s.NOT;
+  document.getElementById('not-sl').value=Math.min(s.NOT,100000000000);
+  document.getElementById('not-vl').textContent='$'+s.NOT.toLocaleString();
+  document.getElementById('kpi-sl').value=s.KPI;
+  document.getElementById('kpi-vl').textContent=s.KPI.toFixed(2)+'×';
+  for(let i=0;i<10;i++){
+    const bt=document.getElementById('bt'+i);
+    const fr=document.getElementById('fr'+i);
+    if(bt)bt.value=s.BT[i];
+    if(fr)fr.value=s.FR[i];
+  }
+  // preset buttons
+  document.querySelectorAll('#cap-prs .pr').forEach(b=>{
+    const txt=b.textContent.trim().replace('$','');
+    let val=0;
+    if(txt.endsWith('B')) val=parseFloat(txt)*1000000000;
+    else if(txt.endsWith('M')) val=parseFloat(txt)*1000000;
+    else if(txt.endsWith('k')) val=parseFloat(txt)*1000;
+    else val=parseFloat(txt);
+    b.classList.toggle('on',val===s.P);
+  });
+  document.querySelectorAll('#lv-prs .pr').forEach(b=>b.classList.toggle('on',parseInt(b.textContent)===s.LEV));
+  updGrid();updComp();
+}
+
+// ── GRID ──
+function initGrid(){
+  const g=document.getElementById('tg');g.innerHTML='';
+  const s=gs();
+  for(let i=0;i<10;i++){
+    const r=document.createElement('div');r.className='tg-row';
+    r.innerHTML=`<div class="tg-no">T${i+1}</div>
+<input type="number" class="tg-in" id="bt${i}" value="${s.BT[i]}" min="0" max="500" step="0.1" oninput="onBT(${i},this.value)">
+<input type="number" class="tg-in fi" id="fr${i}" value="${s.FR[i]}" min="0" max="20" step="1" oninput="onFR(${i},this.value)">`;
+    g.appendChild(r);
+  }
+  updGrid();
+}
+function updGrid(){
+  const s=gs();let act=0;
+  for(let i=0;i<10;i++){
+    const skip=s.BT[i]===0||s.FR[i]===0;
+    document.getElementById('bt'+i)?.classList.toggle('skipped',skip);
+    document.getElementById('fr'+i)?.classList.toggle('skipped',skip);
+    if(!skip)act++;
+  }
+  const el=document.getElementById('act-count');
+  if(el)el.innerHTML=`<span>${act}</span> active · ${10-act} skipped`;
+}
+function onBT(i,v){gs().BT[i]=parseFloat(v)||0;updGrid();render();}
+function onFR(i,v){gs().FR[i]=parseInt(v)||0;updGrid();render();}
+function onKpiSl(v){gs().KPI=parseFloat(v);document.getElementById('kpi-vl').textContent=gs().KPI.toFixed(2)+'×';render();}
+
+// ── SIMULATION ──
+function getMLabel(m){return 'm'+String(m).padStart(2,'0');}
+
+function runSeq(startAcc,lev,initNot,bt,fr,kpi){
+  let acc=startAcc,not=initNot;
+  const trades=[];
+  for(let i=0;i<10;i++){
+    const skip=bt[i]===0||fr[i]===0;
+    const am=not/lev,fm=am/acc*100,liq=acc/not*100;
+    if(skip){trades.push({no:i+1,skip:true,not,am,fm,liq,tgt:0,freq:0,sp:0,cp:0,accB:acc,accA:acc});continue;}
+    const tgt=bt[i]*kpi/100;
+    const sp=not*tgt,cp=sp*fr[i];
+    trades.push({no:i+1,skip:false,not,am,fm,liq,tgt:bt[i]*kpi,freq:fr[i],sp,cp,accB:acc,accA:acc+cp});
+    acc+=cp;not+=sp;
+  }
+  // lastNotional = notional that would be used for next trade (carry-forward)
+  return{trades,endAcc:acc,lastNotional:not};
+}
+
+function sim(){
+  const s=gs();
+  const isQ=TAB==='q';
+  const zeroSet=s.ZM;
+  const total=isQ?3:TOTAL;
+  const months=[];
+  let acc=s.P,banked=0;
+  // carry-forward: track last active trade's notional
+  // on first month, seed from INIT_NOT setting
+  let prevLastNotional=s.NOT;
+
+  for(let m=1;m<=total;m++){
+    const lb=getMLabel(m),isZ=zeroSet.has(m);
+    if(isZ){
+      // zero month: notional plan pauses, carry stays unchanged
+      months.push({m,lb,isZ:true,sA:acc,eA:acc,gA:acc,wd:0,banked,nw:acc+banked,trades:[],pct:0,
+        postLiq:null,initNot:prevLastNotional,liqT1:acc/prevLastNotional*100,mp:1});
+      continue;
+    }
+    // margin push up: multiplies the carried notional
+    const mp=parseFloat(s.MP[m])||1.0;
+    const initNot=prevLastNotional*mp;
+    const liqT1=acc/initNot*100;
+    const{bt:mBT,fr:mFR}=getMonthTrades(m);
+    const{trades,endAcc:gA}=runSeq(acc,s.LEV,initNot,mBT,mFR,s.KPI);
+    const wdAmt=parseFloat(s.WD[m])||0;
+    const wd=Math.min(wdAmt,gA*0.99);
+    const fA=gA-wd;
+    banked+=wd;
+    const postLiq=wd>0?(fA/initNot*100):null;
+    const pct=(gA-acc)/acc*100;
+    // last active trade's notional becomes next month's base
+    const lastActiveTrade=trades.filter(t=>!t.skip).slice(-1)[0];
+    prevLastNotional=lastActiveTrade?lastActiveTrade.not+lastActiveTrade.sp:initNot;
+    months.push({m,lb,isZ:false,sA:acc,eA:fA,gA,wd,banked,nw:fA+banked,trades,pct,postLiq,initNot,liqT1,mp});
+    acc=fA;
+  }
+  return months;
+}
+
+// ── FORMATTING ──
+function fmt(v){
+  if(v==null)return'—';
+  const a=Math.abs(v),sg=v<0?'-':'';
+  if(a>=1e9)return sg+'$'+(a/1e9).toFixed(2)+'B';
+  if(a>=1e6)return sg+'$'+(a/1e6).toFixed(2)+'M';
+  if(a>=1000)return sg+'$'+Math.round(a).toLocaleString();
+  return sg+'$'+(a<0.01?a.toFixed(4):a.toFixed(2));
+}
+function fIDR(v){
+  const x=v*IDR;
+  if(x>=1e12)return'Rp'+(x/1e12).toFixed(2)+'T';
+  if(x>=1e9)return'Rp'+(x/1e9).toFixed(2)+'B';
+  if(x>=1e6)return'Rp'+Math.round(x/1e6)+'M';
+  return'Rp'+Math.round(x/1e3)+'K';
+}
+function lc(l){return l>=60?'#1D9E75':l>=40?'#EF9F27':'#E24B4A';}
+function rtag(l){
+  if(l>=60)return'<span class="rl">low</span>';
+  if(l>=40)return'<span class="rm">med</span>';
+  return'<span class="rh">high</span>';
+}
+
+// ── NOTIONAL LINK TO CAPITAL ──
+let NOT_LINKED=false; // default: notional stays fixed, safer behavior
+
+function toggleNotLink(){
+  NOT_LINKED=!NOT_LINKED;
+  const btn=document.getElementById('not-link-btn');
+  if(btn){
+    btn.textContent=NOT_LINKED?'on':'off';
+    btn.style.color=NOT_LINKED?'var(--acc2)':'var(--tx3)';
+    btn.style.borderColor=NOT_LINKED?'var(--acc2)':'var(--bd2)';
+    btn.style.background=NOT_LINKED?'var(--btno)':'var(--btn)';
+  }
+}
+
+function updComp(){
+  const s=gs();
+  const am=s.NOT/s.LEV,fm=am/s.P*100,liq=s.P/s.NOT*100;
+  const ratio=s.NOT/s.P;
+  document.getElementById('c-am').textContent=fmt(am);
+  document.getElementById('c-fm').textContent=fm.toFixed(1)+'%';
+  const el=document.getElementById('c-lq');
+  el.textContent=liq.toFixed(1)+'%';el.style.color=lc(liq);
+  const ca=document.getElementById('c-acct'); if(ca) ca.textContent=fmt(s.P);
+  const cr=document.getElementById('c-ratio'); if(cr) cr.textContent=ratio.toFixed(2);
+  const cn=document.getElementById('c-not2'); if(cn) cn.textContent=fmt(s.NOT);
+  const ca2=document.getElementById('c-am2'); if(ca2) ca2.textContent=fmt(am);
+}
+
+// inline WD handler - called from table
+function onPushUp(m,v){
+  const val=parseFloat(v)||1.0;
+  gs().PU[m]=val<=0?1.0:val;
+  render();
+}
+
+function onMP(m,v){
+  const val=parseFloat(v)||1.0;
+  gs().MP[m]=Math.max(1,val);
+  const el=document.getElementById('mp-inp-'+m);
+  if(el) el.classList.toggle('active',val>1);
+  render();
+}
+function onWdInline(m,v){
+  const val=parseFloat(v)||0;
+  gs().WD[m]=val;
+  const el=document.getElementById('wd-inp-'+m);
+  if(el)el.classList.toggle('active',val>0);
+  render();
+}
+
+// ── PANEL COLLAPSE ──
+function togglePanel(){
+  const panel=document.getElementById('left-panel');
+  const btn=document.getElementById('collapse-btn');
+  panel.classList.toggle('collapsed');
+  const isCollapsed=panel.classList.contains('collapsed');
+  if(btn) btn.textContent=isCollapsed?'›':'‹';
+  // force chart resize after transition
+  setTimeout(()=>{if(ch){ch.resize();}},280);
+}
+
+// ── ZERO MONTH TOGGLE ──
+function toggleZeroMonth(m){
+  const s=gs();
+  if(s.ZM.has(m)) s.ZM.delete(m);
+  else s.ZM.add(m);
+  render();
+}
+
+// ── GLOBAL / MANUAL MODE ──
+function toggleGlobal(){
+  GLOBAL_MODE=!GLOBAL_MODE;
+  const btn=document.getElementById('global-toggle');
+  const tg=document.getElementById('tg');
+  const actc=document.getElementById('act-count');
+  const saveT=document.getElementById('save-trades');
+  if(btn){btn.textContent=GLOBAL_MODE?'● on':'○ off';btn.style.borderColor=GLOBAL_MODE?'var(--acc2)':'var(--tx3)';btn.style.color=GLOBAL_MODE?'var(--acc2)':'var(--tx3)';}
+  [tg,actc,saveT].forEach(el=>{if(el){el.style.opacity=GLOBAL_MODE?'1':'0.35';el.style.pointerEvents=GLOBAL_MODE?'':'none';}});
+  render();
+}
+function getMonthTrades(m){
+  const s=gs();
+  if(GLOBAL_MODE) return {bt:s.BT,fr:s.FR};
+  const mt=s.MT[m];
+  if(mt) return {bt:mt.bt,fr:mt.fr};
+  // default to global as starting point
+  return {bt:[...s.BT],fr:[...s.FR]};
+}
+function onManualBT(m,i,v){
+  const s=gs();
+  if(!s.MT[m]) s.MT[m]={bt:[...s.BT],fr:[...s.FR]};
+  s.MT[m].bt[i]=parseFloat(v)||0;
+  render();
+}
+function onManualFR(m,i,v){
+  const s=gs();
+  if(!s.MT[m]) s.MT[m]={bt:[...s.BT],fr:[...s.FR]};
+  s.MT[m].fr[i]=parseInt(v)||0;
+  render();
+}
+
+// ── LABEL EDITING ──
+function onMonthLabel(m,v){gs().ML[m]=v.trim();} 
+function onTradeLabel(t,v){gs().TL[t]=v.trim();}
+function getML(m){return gs().ML[m]||getMLabel(m);}
+function getTL(t){return gs().TL[t]||('trade '+t);}
+
+// ── RISK ASSESSMENT ──
+function buildAssessment(months, s){
+  const isQ=TAB==='q';
+  const liqT1=s.P/s.NOT*100;
+  const act=months.filter(r=>!r.isZ);
+  const avgPct=act.length?act.reduce((a,r)=>a+r.pct,0)/act.length:0;
+  const last=months[months.length-1];
+  const cagr=isQ?null:(Math.pow(Math.max(last.nw,s.P)/s.P,1/3)-1)*100;
+  const mp=s.BT.reduce((a,t,i)=>a+(t>0&&s.FR[i]>0?t*s.KPI/100*s.FR[i]:0),0)*100;
+  const actTr=s.BT.filter((t,i)=>t>0&&s.FR[i]>0).length;
+  
+  // risk score 0-100 (lower = safer)
+  let riskScore=0;
+  let riskReasons=[];
+  
+  // liq proximity risk (main factor)
+  if(liqT1<20){riskScore+=40;riskReasons.push('liq buffer critical (<20%)');}
+  else if(liqT1<35){riskScore+=25;riskReasons.push('liq buffer tight (<35%)');}
+  else if(liqT1<50){riskScore+=10;}
+  
+  // leverage risk
+  if(s.LEV>=25){riskScore+=25;riskReasons.push('very high leverage (≥25×)');}
+  else if(s.LEV>=20){riskScore+=15;riskReasons.push('high leverage (≥20×)');}
+  else if(s.LEV>=15){riskScore+=8;}
+  
+  // fm% risk (how much account is deployed)
+  const fm=s.NOT/s.LEV/s.P*100;
+  if(fm>40){riskScore+=20;riskReasons.push('margin >40% of account');}
+  else if(fm>25){riskScore+=10;}
+  else if(fm>15){riskScore+=4;}
+  
+  // concentration (few active trades = higher variance)
+  if(actTr<=3){riskScore+=10;riskReasons.push('only '+actTr+' active trades');}
+  else if(actTr<=5){riskScore+=4;}
+  
+  riskScore=Math.min(100,riskScore);
+  
+  let riskLabel,riskClass,riskEmoji;
+  if(riskScore<=20){riskLabel='SAFE';riskClass='rp-safe';riskEmoji='✓';}
+  else if(riskScore<=45){riskLabel='MODERATE';riskClass='rp-med';riskEmoji='⚡';}
+  else if(riskScore<=70){riskLabel='HIGH RISK';riskClass='rp-high';riskEmoji='⚠';}
+  else{riskLabel='EXTREME';riskClass='rp-extreme';riskEmoji='✕';}
+  
+  // liq bar color
+  const liqBarColor=liqT1>=60?'#1D9E75':liqT1>=40?'#EF9F27':'#E24B4A';
+  const riskBarColor=riskScore<=20?'#1D9E75':riskScore<=45?'#EF9F27':riskScore<=70?'#E24B4A':'#7a0000';
+  
+  // worst month liq (last trade of last active month)
+  const worstM=act.length?act[act.length-1]:null;
+  const worstLiq=worstM?(worstM.trades.filter(t=>!t.skip).slice(-1)[0]?.liq||0):0;
+  
+  // breakeven trades needed (how many trades to cover 1 loss)
+  const avgSingleProfit=act.length&&act[0].trades.length?act[0].trades.filter(t=>!t.skip).reduce((a,t)=>a+t.sp,0):0;
+  const lossT=act.length&&act[0].trades.length?act[0].trades.find(t=>t.tgt<0):null;
+  
+  const tooltip=riskReasons.length?riskReasons.join(' · '):'setup looks solid';
+  
+  // ── ACCOUNT LIFESPAN ESTIMATE ──
+  // logic: survival = (liq buffer)² ÷ leverage_factor ÷ margin_factor
+  // liq² because 80% buffer is exponentially safer than 40% (market move probability)
+  // leverage_factor = lev/10 (normalized to 10× baseline)
+  // margin_factor = fm/20 (normalized to 20% baseline)
+  const liqFactor = Math.pow(liqT1/100, 2);
+  const levFactor = Math.max(0.1, s.LEV/10);
+  const fmFactor  = Math.max(0.1, fm/20);
+  const survScore = liqFactor / levFactor / fmFactor;
+
+  let ageVal, ageSub, ageColor;
+  if(survScore < 0.001){
+    ageVal='minutes';   ageSub='one bad candle ends it'; ageColor='#A32D2D';
+  } else if(survScore < 0.01){
+    ageVal='hours';     ageSub='extremely fragile setup'; ageColor='#A32D2D';
+  } else if(survScore < 0.05){
+    ageVal='days';      ageSub='one volatile session → gone'; ageColor='#E24B4A';
+  } else if(survScore < 0.15){
+    ageVal='weeks';     ageSub='dangerous · tighten the risk'; ageColor='#EF9F27';
+  } else if(survScore < 0.5){
+    ageVal='months';    ageSub='manageable but stay sharp'; ageColor='#EF9F27';
+  } else if(survScore < 1.5){
+    ageVal='~1 year';   ageSub='solid · respect the plan'; ageColor='#1D9E75';
+  } else if(survScore < 5){
+    ageVal='years';     ageSub='disciplined trader energy'; ageColor='#1D9E75';
+  } else if(survScore < 12){
+    ageVal='a decade';  ageSub='institutional grade setup'; ageColor='#185FA5';
+  } else {
+    ageVal='generational'; ageSub='almost unliquidatable'; ageColor='#185FA5';
+  }
+
+  return `<div class="assess-bar">
+    <div class="as-item">
+      <div class="as-lbl">risk score</div>
+      <div class="as-val"><span class="risk-pill ${riskClass}">${riskEmoji} ${riskLabel}</span></div>
+      <div class="as-bar-track"><div class="as-bar-fill" style="width:${riskScore}%;background:${riskBarColor}"></div></div>
+      <div class="as-sub" title="${tooltip}">${riskScore}/100 · hover for detail</div>
+    </div>
+    <div class="as-item">
+      <div class="as-lbl">liq t1 buffer</div>
+      <div class="as-val" style="color:${liqBarColor}">${liqT1.toFixed(1)}%</div>
+      <div class="as-bar-track"><div class="as-bar-fill" style="width:${Math.min(liqT1,100)}%;background:${liqBarColor}"></div></div>
+      <div class="as-sub">spot move → wipe trade 1</div>
+    </div>
+    <div class="as-item">
+      <div class="as-lbl">leverage</div>
+      <div class="as-val" style="color:${s.LEV>=20?'#E24B4A':s.LEV>=15?'#EF9F27':'#1D9E75'}">${s.LEV}×</div>
+      <div class="as-sub">margin = ${fm.toFixed(1)}% of account</div>
+    </div>
+    <div class="as-item">
+      <div class="as-lbl">seq potential</div>
+      <div class="as-val" style="color:#1D9E75">+${mp.toFixed(1)}%</div>
+      <div class="as-sub">${actTr} of 10 trades active</div>
+    </div>
+    <div class="as-item">
+      <div class="as-lbl">avg monthly</div>
+      <div class="as-val">${avgPct.toFixed(1)}%</div>
+      <div class="as-sub">avg gain · active months</div>
+    </div>
+    <div class="as-item">
+      <div class="as-lbl">${isQ?'3mo return':'3yr CAGR'}</div>
+      <div class="as-val" style="color:#BA7517">${isQ?((last.nw/s.P-1)*100).toFixed(1)+'%':cagr.toFixed(1)+'%'}</div>
+      <div class="as-sub">account + banked</div>
+    </div>
+    <div class="as-item">
+      <div class="as-lbl">verdict</div>
+      <div class="as-val" style="font-size:11px;color:var(--tx2);line-height:1.4;white-space:normal;font-weight:600">${tooltip}</div>
+    </div>
+    <div class="as-item">
+      <div class="as-lbl">account lifespan</div>
+      <div class="as-val" style="color:${ageColor};font-size:17px">${ageVal}</div>
+      <div class="as-sub">${ageSub}</div>
+    </div>
+  </div>`;
+}
+
+// ── RENDER ──
+function render(){
+  updComp();
+  const s=gs();
+  const isQ=TAB==='q';
+  const months=sim();
+  const last=months[months.length-1];
+  const act=months.filter(r=>!r.isZ);
+  const avgPct=act.length?act.reduce((a,r)=>a+r.pct,0)/act.length:0;
+  const actTr=s.BT.filter((t,i)=>t>0&&s.FR[i]>0).length;
+  const mp=s.BT.reduce((a,t,i)=>a+(t>0&&s.FR[i]>0?t*s.KPI/100*s.FR[i]:0),0)*100;
+  const liqT1=s.P/s.NOT*100;
+  const cagr=isQ?null:(Math.pow(Math.max(last.nw,s.P)/s.P,1/3)-1)*100;
+  const tr=(last.nw/s.P-1)*100;
+  const m1M=!isQ?months.find(r=>r.nw>=1000000):null;
+
+  const rc=document.getElementById('right-content');
+
+  // metrics
+  let mh='<div class="metrics">';
+  if(isQ){
+    mh+=`
+      <div class="mc"><div class="mll">quarter end</div><div class="mvv" style="color:var(--acc2)">${fmt(last.eA)}</div><div class="ms">${fIDR(last.eA)}</div></div>
+      <div class="mc"><div class="mll">total gain</div><div class="mvv" style="color:var(--acc2)">+${tr.toFixed(1)}%</div><div class="ms">${fmt(last.eA-s.P)}</div></div>
+      <div class="mc"><div class="mll">combined NW</div><div class="mvv" style="color:var(--acc)">${fmt(last.nw)}</div><div class="ms">${fIDR(last.nw)}</div></div>
+      <div class="mc"><div class="mll">total banked</div><div class="mvv">${fmt(last.banked)}</div><div class="ms">3 months</div></div>
+      <div class="mc"><div class="mll">avg monthly</div><div class="mvv">${avgPct.toFixed(1)}%</div><div class="ms">per active month</div></div>
+      <div class="mc"><div class="mll">seq potential</div><div class="mvv">${mp.toFixed(1)}%</div><div class="ms">${actTr} active trades</div></div>
+    `;
+  } else {
+    mh+=`
+      <div class="mc"><div class="mll">3yr CAGR</div><div class="mvv" style="color:var(--acc2)">${cagr.toFixed(1)}%</div><div class="ms">annualized, combined NW</div></div>
+      <div class="mc"><div class="mll">total return</div><div class="mvv">${tr>9999?(tr/1000).toFixed(0)+'k%':tr.toFixed(0)+'%'}</div><div class="ms">36mo on ${fmt(s.P)} principal</div></div>
+      <div class="mc"><div class="mll">end account m36</div><div class="mvv" style="color:var(--acc2)">${fmt(last.eA)}</div><div class="ms">${fIDR(last.eA)}</div></div>
+      <div class="mc"><div class="mll">total banked</div><div class="mvv" style="color:var(--acc)">${fmt(last.banked)}</div><div class="ms">profits taken out</div></div>
+      <div class="mc"><div class="mll">combined NW</div><div class="mvv">${fmt(last.nw)}</div><div class="ms">account + banked · ${fIDR(last.nw)}</div></div>
+      <div class="mc"><div class="mll">$1M milestone</div><div class="mvv" style="color:${m1M?'var(--acc2)':'#E24B4A'}">${m1M?getMLabel(m1M.m):'beyond 36'}</div><div class="ms">${m1M?'NW hits $1M at '+getMLabel(m1M.m):'increase capital or returns'}</div></div>
+      <div class="mc"><div class="mll">avg monthly gain</div><div class="mvv">${avgPct.toFixed(1)}%</div><div class="ms">active months only · ${(36-s.ZM.size)} active</div></div>
+      <div class="mc"><div class="mll">max seq upside</div><div class="mvv">${mp.toFixed(1)}%</div><div class="ms">${actTr}/10 trades · per sequence</div></div>
+      <div class="mc"><div class="mll">liq% t1 · month 1</div><div class="mvv" style="color:${lc(liqT1)}">${liqT1.toFixed(1)}%</div><div class="ms">spot must drop ${liqT1.toFixed(0)}% to wipe t1</div></div>
+    `;
+  }
+  mh+='</div>';
+
+  const noteText=`setup: acct ${fmt(s.P)} · notional t1 ${fmt(s.NOT)} (${(s.NOT/s.P).toFixed(2)}× acct) · actual margin ${fmt(s.NOT/s.LEV)} at ${s.LEV}× lev · liq t1 = ${liqT1.toFixed(1)}% (spot must drop ${liqT1.toFixed(0)}% to liquidate trade 1) · ${actTr}/10 trades active · kpi scale ${s.KPI.toFixed(2)}× · withdrawal input in table · liq drops after wd (less buffer next month)`;
+
+  let chartH='';
+  if(!isQ){
+    chartH=`<div class="lgd">
+      <span><span class="ld" style="background:#1D9E75"></span>account</span>
+      <span><span class="ld" style="background:var(--acc)"></span>banked</span>
+      <span><span class="ld" style="background:#BA7517"></span>NW</span>
+      <span style="font-size:9px;color:var(--tx3)">logarithmic scale · ⊘ = zero month (no trade) · editable in table</span>
+    </div><div class="cw"><canvas id="gc"></canvas></div>`;
+  }
+
+  const togH=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+    <div class="tog" id="vt" style="margin-bottom:0">
+      <button class="tb ${VIEW==='sum'?'on':''}" onclick="setView('sum',this)">monthly summary</button>
+      <button class="tb ${VIEW==='det'?'on':''}" onclick="setView('det',this)">full trade detail</button>
+      <button class="tb ${VIEW==='guide'?'on':''}" onclick="setView('guide',this)">📖 guide</button>
+    </div>
+    <button class="save-btn" id="save-labels" onclick="saveSection('labels')" style="margin:0;padding:4px 10px;font-size:10px">💾 labels</button>
+    <button class="save-btn" id="save-zero" onclick="saveSection('zero')" style="margin:0;padding:4px 10px;font-size:10px">💾 zeros</button>
+  </div>`;
+
+  const assessH=buildAssessment(months,s);
+  if(ch){ch.destroy();ch=null;}
+  rc.innerHTML=mh+`<div class="note">${noteText}</div>`+chartH+assessH+togH+`<div class="tw"><table id="tbl"></table></div><p class="ft">liq% = account ÷ notional × 100 · higher = safer · 0 target or freq = trade skipped · idr @rp16,700</p>`;
+
+  if(!isQ){
+    const lbs=['start',...months.map(r=>r.lb)];
+    const d1=[s.P,...months.map(r=>r.eA)];
+    const d2=[0,...months.map(r=>r.banked)];
+    const d3=[s.P,...months.map(r=>r.nw)];
+    if(ch){ch.data.labels=lbs;ch.data.datasets[0].data=d1;ch.data.datasets[1].data=d2;ch.data.datasets[2].data=d3;ch.update('none');}
+    else{
+      ch=new Chart(document.getElementById('gc').getContext('2d'),{
+        type:'line',
+        data:{labels:lbs,datasets:[
+          {label:'account',data:d1,borderColor:'#1D9E75',pointRadius:0,borderWidth:2,tension:.4,fill:false},
+          {label:'banked', data:d2,borderColor:'var(--acc)',pointRadius:0,borderWidth:1.5,tension:.4,fill:false,borderDash:[5,3]},
+          {label:'NW',     data:d3,borderColor:'#BA7517',pointRadius:0,borderWidth:1.5,tension:.4,fill:false},
+        ]},
+        options:{responsive:true,maintainAspectRatio:false,
+          plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${fmt(c.raw)}`}}},
+          scales:{
+            x:{grid:{display:false},ticks:{font:{size:9},color:'#888',maxTicksLimit:12,autoSkip:true}},
+            y:{type:'logarithmic',grid:{color:'rgba(128,128,128,0.07)'},ticks:{font:{size:9},color:'#888',
+              callback:v=>{
+                const mk=[50,100,500,1000,5000,10000,50000,100000,500000,1e6,5e6,1e7,1e8,1e9];
+                if(mk.some(x=>Math.abs(v-x)/(x||1)<0.06)){
+                  if(v>=1e9)return'$'+(v/1e9).toFixed(1)+'B';
+                  if(v>=1e6)return'$'+(v/1e6).toFixed(1)+'M';
+                  if(v>=1000)return'$'+(v/1000).toFixed(0)+'k';
+                  return'$'+v;
+                }return null;
+              }
+            }}
+          }
+        }
+      });
+    }
+  } else {
+    ch=null;
+  }
+  renderTbl(months);
+}
+
+function renderTbl(months){
+  if(VIEW==='guide'){renderGuide();return;}
+  const tbl=document.getElementById('tbl');if(!tbl)return;
+  const s=gs();
+  let h='';
+  if(VIEW==='sum'){
+    h=`<thead><tr>
+      <th>month</th><th>start</th><th>end</th>
+      <th>monthly%</th><th>net gain</th>
+      <th>withdrawal ✏️</th>
+      <th>banked</th><th>NW</th>
+      <th>liq t1</th><th>liq last</th><th>risk</th>
+    </tr></thead><tbody>`;
+    months.forEach(mo=>{
+      if(mo.isZ){
+        h+=`<tr class="zero-row" style="cursor:pointer" onclick="toggleZeroMonth(${mo.m})" title="click to remove zero month">
+          <td><input class="lbl-sum" value="${getML(mo.m)}" placeholder="${mo.lb}" onchange="onMonthLabel(${mo.m},this.value)" onclick="event.stopPropagation();this.select()"></td>
+          <td>${fmt(mo.sA)}</td>
+          <td colspan="9" style="text-align:center;font-size:10px;color:var(--tx3)">⊘ zero month · no trades · <span style="color:var(--acc);font-size:9px">click to activate</span></td>
+          <td></td>
+        </tr>`;
+        return;
+      }
+      const gain=mo.gA-mo.sA;
+      const actTr=mo.trades.filter(t=>!t.skip);
+      const l1=mo.liqT1||0;
+      const ll=actTr.length?actTr[actTr.length-1].liq:0;
+      const wdVal=s.WD[mo.m]||0;
+      h+=`<tr>
+        <td style="white-space:nowrap"><input class="lbl-sum" value="${getML(mo.m)}" placeholder="${mo.lb}" onchange="onMonthLabel(${mo.m},this.value)" onclick="this.select()" style="width:72px"> <span onclick="toggleZeroMonth(${mo.m})" title="set as zero month" style="cursor:pointer;font-size:9px;color:var(--tx3);padding:1px 4px;border:0.5px solid var(--bd2);border-radius:3px;user-select:none" onmouseover="this.style.color='var(--acc)'" onmouseout="this.style.color='var(--tx3)'">⊘</span>${mo.mp>1?`<span style="background:#EAF3DE;color:#3B6D11;font-size:9px;padding:1px 4px;border-radius:3px;font-weight:700;margin-left:2px">⚡${mo.mp.toFixed(1)}×</span>`:''}</td>
+        <td>${fmt(mo.sA)}</td>
+        <td style="color:var(--acc2);font-weight:700">${mo.wd>0?`<span style='color:var(--tx2);font-size:10px'>${fmt(mo.gA)}</span> <span style='color:#E24B4A;font-size:9px'>−${fmt(mo.wd)}</span><br><span style='font-weight:700'>${fmt(mo.eA)}</span>`:fmt(mo.eA)}</td>
+        <td>${mo.pct.toFixed(1)}%</td>
+        <td>+${fmt(gain)}</td>
+        <td><div class="wd-cell"><input type="number" class="wd-inp${wdVal>0?' active':''}" id="wd-inp-${mo.m}" value="${wdVal||''}" min="0" step="1" placeholder="0" oninput="onWdInline(${mo.m},this.value)"></div></td>
+        <td style="color:var(--acc)">${fmt(mo.banked)}</td>
+        <td style="font-weight:700">${fmt(mo.nw)}</td>
+        <td style="color:${lc(l1)};font-weight:700">${l1.toFixed(0)}%</td>
+        <td style="color:${lc(ll)};font-weight:700">${ll.toFixed(0)}%</td>
+        <td>${rtag(l1)}</td>
+      </tr>
+      `;
+    });
+  } else {
+    h=`<thead><tr>
+      <th>month / trade</th>
+      <th>notional</th><th>margin</th><th>fm%</th><th>liq%</th>
+      <th>target%</th><th>freq</th>
+      <th>single profit</th><th>combine profit</th>
+      <th>account</th><th>withdrawal ✏️</th>
+    </tr></thead><tbody>`;
+    months.forEach(mo=>{
+      if(mo.isZ){
+        h+=`<tr class="mh-z" style="cursor:pointer" onclick="toggleZeroMonth(${mo.m})" title="click to remove zero month">
+          <td colspan="11">${getML(mo.m)} · ⊘ zero month · account: ${fmt(mo.sA)} · <span style="color:var(--acc);font-size:9px">click to activate</span></td>
+        </tr>`;
+        return;
+      }
+      const actTr=mo.trades.filter(t=>!t.skip);
+      const l1=mo.liqT1||0;
+      const ll=actTr.length?actTr[actTr.length-1].liq:0;
+      const wdVal=s.WD[mo.m]||0;
+      const postInfo='';
+      const mLabel=getML(mo.m);
+      const balanceInfo=mo.wd>0
+        ?`<span style="color:var(--mhs)">gross: ${fmt(mo.gA)}</span> <span style="color:#E24B4A;font-size:10px">−${fmt(mo.wd)} wd</span> <span style="color:var(--mhc);font-weight:700">→ ${fmt(mo.eA)}</span>`
+        :`<span style="color:var(--mhc);font-weight:700">${fmt(mo.eA)}</span>`;
+      h+=`<tr class="mh">
+        <td style="white-space:nowrap"><input class="lbl-in" value="${mLabel}" placeholder="label..." onchange="onMonthLabel(${mo.m},this.value)" onclick="this.select()" style="width:72px"> <span onclick="toggleZeroMonth(${mo.m})" title="set as zero month" style="cursor:pointer;font-size:9px;color:var(--tx3);padding:1px 4px;border:0.5px solid var(--bd2);border-radius:3px;user-select:none" onmouseover="this.style.color='var(--acc)'" onmouseout="this.style.color='var(--tx3)'">⊘</span></td>
+        <td style="color:var(--mhs)">start: ${fmt(mo.sA)}</td>
+        <td colspan="2"></td>
+        <td style="color:var(--mhs)">${l1.toFixed(0)}%→${ll.toFixed(0)}%</td>
+        <td colspan="2"></td>
+        <td style="white-space:nowrap">
+          <input type="number" class="mp-inp${(s.MP[mo.m]||1)>1?' active':''}" id="mp-inp-d-${mo.m}" value="${s.MP[mo.m]>1?s.MP[mo.m]:''}" min="1" max="10" step="0.1" placeholder="1×" title="margin push up multiplier for this month" oninput="onMP(${mo.m},this.value)" style="width:46px">
+          <span style="font-size:8px;color:var(--tx3)">× push</span>
+          ${mo.mp>1?`<span style="background:#EAF3DE;color:#3B6D11;font-size:9px;padding:1px 5px;border-radius:3px;font-weight:700;margin-left:2px">⚡${mo.mp.toFixed(2)}×</span>`:''}
+        </td>
+        <td style="color:var(--mhs)">+${mo.pct.toFixed(1)}%</td>
+        <td>end: ${balanceInfo}</td>
+        <td><div class="wd-cell"><input type="number" class="wd-inp${wdVal>0?' active':''}" id="wd-inp-d-${mo.m}" value="${wdVal||''}" min="0" step="1" placeholder="0" oninput="onWdInline(${mo.m},this.value)"></div></td>
+      </tr>`;
+      mo.trades.forEach(t=>{
+        if(t.skip){
+          if(!GLOBAL_MODE){
+            // manual mode: show editable inputs even when skipped so user can type back
+            const mt=gs().MT[mo.m];
+            const btVal=mt?mt.bt[t.no-1]:0;
+            const frVal=mt?mt.fr[t.no-1]:0;
+            const tLabel=getTL(t.no);
+            h+=`<tr class="skip-row">
+              <td style="padding-left:6px"><input class="lbl-in lbl-trade" value="${tLabel}" placeholder="trade ${t.no}..." onchange="onTradeLabel(${t.no},this.value)" onclick="this.select()"></td>
+              <td colspan="3" style="color:var(--tx3);font-size:9px;font-style:italic">skipped — type to reactivate ↓</td>
+              <td></td>
+              <td><input type="number" value="${btVal}" min="0" max="500" step="0.1" placeholder="tgt%" style="width:44px;padding:2px 3px;font-size:10px;text-align:center;border:0.5px solid var(--bd2);border-radius:3px;background:var(--inp);color:var(--acc);font-weight:700" oninput="onManualBT(${mo.m},${t.no-1},this.value)"></td>
+              <td><input type="number" value="${frVal}" min="0" max="20" step="1" placeholder="freq" style="width:36px;padding:2px 3px;font-size:10px;text-align:center;border:0.5px solid var(--acc2);border-radius:3px;background:var(--inp);color:var(--acc2);font-weight:700" oninput="onManualFR(${mo.m},${t.no-1},this.value)"></td>
+              <td colspan="4" style="color:var(--tx3);font-size:9px;text-align:center">set both > 0 to activate</td>
+              <td></td>
+            </tr>`;
+          } else {
+            h+=`<tr class="skip-row"><td style="padding-left:16px;font-size:10px">trade ${t.no}</td><td colspan="10" style="text-align:center"><span class="sk">skipped · 0 target or freq</span></td></tr>`;
+          }
+          return;
+        }
+        const tLabel=getTL(t.no);
+        const isT1Push=t.no===1&&mo.mp>1;
+        h+=`<tr${isT1Push?' style="background:rgba(96,192,48,0.07)"':''}>
+          <td style="padding-left:6px"><input class="lbl-in lbl-trade" value="${tLabel}" placeholder="trade ${t.no}..." onchange="onTradeLabel(${t.no},this.value)" onclick="this.select()"></td>
+          <td style="font-weight:${isT1Push?'700':'600'};${isT1Push?'color:var(--acc2);':''}">${fmt(t.not)}${isT1Push?` <span style="font-size:8px;background:#EAF3DE;color:#3B6D11;padding:1px 4px;border-radius:3px;font-weight:700;vertical-align:middle">⚡push</span>`:''}</td>
+          <td style="color:var(--acc)">${fmt(t.am)}</td>
+          <td>${t.fm.toFixed(1)}%</td>
+          <td style="color:${lc(t.liq)};font-weight:700">${t.liq.toFixed(1)}%</td>
+          <td>${!GLOBAL_MODE
+            ?`<input type="number" value="${((gs().MT[mo.m]?.bt[t.no-1]??t.tgt/s.KPI)).toFixed(1)}" min="0" max="500" step="0.1" style="width:44px;padding:2px 3px;font-size:10px;text-align:center;border:0.5px solid var(--bd2);border-radius:3px;background:var(--inp);color:var(--acc);font-weight:700" oninput="onManualBT(${mo.m},${t.no-1},this.value)">`
+            :`${t.tgt.toFixed(2)}%`}</td>
+          <td>${!GLOBAL_MODE
+            ?`<input type="number" value="${gs().MT[mo.m]?.fr[t.no-1]??t.freq}" min="0" max="20" step="1" style="width:36px;padding:2px 3px;font-size:10px;text-align:center;border:0.5px solid var(--acc2);border-radius:3px;background:var(--inp);color:var(--acc2);font-weight:700" oninput="onManualFR(${mo.m},${t.no-1},this.value)">`
+            :`<span style="color:var(--tx2)">${t.freq}×</span>`}</td>
+          <td>+${fmt(t.sp)}</td>
+          <td style="color:var(--acc2);font-weight:600">+${fmt(t.cp)}</td>
+          <td style="font-weight:700">${fmt(t.accA)}</td>
+          <td></td>
+        </tr>`;
+      });
+    });
+  }
+  if(VIEW!=='guide') tbl.innerHTML=h+'</tbody>';
+}
+
+// ── TAB / THEME ──
+function setTab(t){
+  TAB=t;
+  document.getElementById('tab-36').classList.toggle('on',t==='36');
+  document.getElementById('tab-q').classList.toggle('on',t==='q');
+  ch=null;
+  initGrid();
+  syncControls();
+  render();
+}
+
+function setTheme(t,btn){
+  THEME=t;
+  document.body.className=t;
+  document.querySelectorAll('.th-btn').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+  try{localStorage.setItem('wz_theme',t);}catch(e){}
+  if(ch){ch.destroy();ch=null;}
+  render();
+}
+
+function setView(v,btn){
+  VIEW=v;
+  document.getElementById('vt')?.querySelectorAll('.tb').forEach(b=>b.classList.remove('on'));
+  if(btn)btn.classList.add('on');
+  if(v==='guide'){renderGuide();return;}
+  renderTbl(sim());
+}
+
+function renderGuide(){
+  const tw=document.querySelector('.tw');
+  if(!tw)return;
+  tw.innerHTML=`<div class="guide-wrap">${GUIDE_HTML}</div>`;
+}
+
+// ── CONTROLS ──
+function setP(v,btn){
+  const s=gs();s.P=v;
+  if(NOT_LINKED){
+    s.NOT=Math.round(v*2.5);
+    document.getElementById('not-in').value=s.NOT;
+    document.getElementById('not-sl').value=Math.min(s.NOT,5000000);
+    document.getElementById('not-vl').textContent='$'+s.NOT.toLocaleString();
+  }
+  document.getElementById('cap-in').value=v;
+  document.getElementById('cap-sl').value=Math.min(v,10000000000);
+  document.getElementById('cap-vl').textContent='$'+v.toLocaleString();
+  document.querySelectorAll('#cap-prs .pr').forEach(b=>b.classList.remove('on'));
+  if(btn)btn.classList.add('on');
+  render();
+}
+function onCapIn(v){
+  const s=gs();s.P=Math.max(1,parseFloat(v)||s.P);
+  if(NOT_LINKED){
+    s.NOT=Math.round(s.P*2.5);
+    document.getElementById('not-in').value=s.NOT;
+    document.getElementById('not-sl').value=Math.min(s.NOT,5000000);
+    document.getElementById('not-vl').textContent='$'+s.NOT.toLocaleString();
+  }
+  document.getElementById('cap-sl').value=Math.min(s.P,10000000000);
+  document.getElementById('cap-vl').textContent='$'+s.P.toLocaleString();
+  document.querySelectorAll('#cap-prs .pr').forEach(b=>b.classList.remove('on'));render();
+}
+function onCapSl(v){
+  const s=gs();s.P=parseInt(v);
+  if(NOT_LINKED){
+    s.NOT=Math.round(s.P*2.5);
+    document.getElementById('not-in').value=s.NOT;
+    document.getElementById('not-sl').value=Math.min(s.NOT,5000000);
+    document.getElementById('not-vl').textContent='$'+s.NOT.toLocaleString();
+  }
+  document.getElementById('cap-in').value=s.P;
+  document.getElementById('cap-vl').textContent='$'+s.P.toLocaleString();
+  document.querySelectorAll('#cap-prs .pr').forEach(b=>b.classList.remove('on'));render();
+}
+function setLev(v,btn){
+  const s=gs();s.LEV=v;
+  document.getElementById('lv-sl').value=v;document.getElementById('lv-in').value=v;document.getElementById('lv-vl').textContent=v+'×';
+  document.querySelectorAll('#lv-prs .pr').forEach(b=>b.classList.remove('on'));
+  if(btn)btn.classList.add('on');render();
+}
+function onLevIn(v){
+  const s=gs();s.LEV=Math.max(1,parseInt(v)||s.LEV);
+  document.getElementById('lv-sl').value=Math.min(s.LEV,50);document.getElementById('lv-vl').textContent=s.LEV+'×';
+  document.querySelectorAll('#lv-prs .pr').forEach(b=>b.classList.remove('on'));render();
+}
+function onLevSl(v){
+  const s=gs();s.LEV=parseInt(v);
+  document.getElementById('lv-in').value=s.LEV;document.getElementById('lv-vl').textContent=s.LEV+'×';
+  document.querySelectorAll('#lv-prs .pr').forEach(b=>b.classList.remove('on'));render();
+}
+function onNotIn(v){
+  const s=gs();s.NOT=Math.max(1,parseFloat(v)||s.NOT);
+  document.getElementById('not-sl').value=Math.min(s.NOT,100000000000);
+  document.getElementById('not-vl').textContent='$'+s.NOT.toLocaleString();render();
+}
+function onNotSl(v){
+  const s=gs();s.NOT=parseInt(v);
+  document.getElementById('not-in').value=s.NOT;
+  document.getElementById('not-vl').textContent='$'+s.NOT.toLocaleString();render();
+}
+
+// ── INIT ──
+loadAll();
+initGrid();
+syncControls();
+try{
+  const t=localStorage.getItem('wz_theme');
+  if(t){THEME=t;document.body.className=t;document.querySelectorAll('.th-btn').forEach(b=>b.classList.toggle('on',b.dataset.t===t));}
+}catch(e){}
+render();
+</script>
+</body>
+</html>
