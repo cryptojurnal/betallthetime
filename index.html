@@ -157,23 +157,30 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 .mgrid-lbl{font-size:8px;color:var(--tx3);text-align:center;margin-bottom:1px}
 
 /* ── INTRO LAYERS ── */
-#layer1,#layer2{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;background:#000;cursor:pointer;transition:opacity .8s ease}
+#layer1,#layer2{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;background:#000;transition:opacity .9s ease}
 #layer1.out,#layer2.out{opacity:0;pointer-events:none}
 #layer1.hidden,#layer2.hidden{display:none}
 
-.intro-quote{max-width:640px;text-align:center;padding:0 32px}
-.intro-quote blockquote{font-size:clamp(16px,2.2vw,22px);font-weight:300;color:#e8e8e8;line-height:1.8;letter-spacing:.01em;opacity:0;animation:fadeUp 1.4s ease .4s forwards}
-.intro-quote cite{display:block;font-size:13px;color:#666;margin-top:20px;font-style:normal;letter-spacing:.06em;text-transform:uppercase;opacity:0;animation:fadeUp .8s ease 1.8s forwards}
-.intro-hint{position:absolute;bottom:40px;font-size:11px;color:#333;letter-spacing:.08em;text-transform:uppercase;opacity:0;animation:fadeUp .6s ease 2.6s forwards}
+.intro-quote{max-width:700px;text-align:center;padding:0 40px}
+.intro-quote blockquote{font-size:clamp(22px,3vw,32px);font-weight:300;color:#e8e8e8;line-height:1.9;letter-spacing:.01em;opacity:0;animation:fadeUp 1.4s ease .4s forwards}
+.intro-quote cite{display:block;font-size:15px;color:#555;margin-top:24px;font-style:normal;letter-spacing:.08em;text-transform:uppercase;opacity:0;animation:fadeUp .8s ease 1.8s forwards}
 
-.layer2-content{max-width:560px;text-align:center;padding:0 32px;display:flex;flex-direction:column;align-items:center;gap:28px}
-.l2-credit{font-size:13px;color:#666;letter-spacing:.06em;text-transform:uppercase;opacity:0;animation:fadeUp .8s ease .3s forwards}
-.l2-credit a{color:#00c47a;text-decoration:none;font-weight:700}
+.intro-hint{position:absolute;bottom:48px;display:flex;align-items:center;gap:10px;opacity:0;animation:fadeUp .6s ease 2.6s forwards}
+.hint-text{font-size:12px;color:#444;letter-spacing:.1em;text-transform:uppercase}
+.bubble-wrap{display:flex;gap:5px;align-items:center}
+.bubble{width:7px;height:7px;border-radius:50%;background:#00c47a;animation:bubble 1.4s ease-in-out infinite}
+.bubble:nth-child(2){animation-delay:.2s}
+.bubble:nth-child(3){animation-delay:.4s}
+@keyframes bubble{0%,80%,100%{transform:scale(0.6);opacity:.3}40%{transform:scale(1);opacity:1}}
+
+.layer2-content{max-width:580px;text-align:center;padding:0 36px;display:flex;flex-direction:column;align-items:center;gap:30px}
+.l2-credit{font-size:15px;color:#666;letter-spacing:.06em;text-transform:uppercase;opacity:0;animation:fadeUp .8s ease .3s forwards}
+.l2-credit a{color:#00c47a;text-decoration:none;font-weight:700;font-size:17px}
 .l2-credit a:hover{text-decoration:underline}
-.l2-disclaimer{font-size:12px;color:#444;line-height:1.9;opacity:0;animation:fadeUp .8s ease .9s forwards;border:0.5px solid #1a1a1a;border-radius:10px;padding:18px 22px;text-align:left}
+.l2-disclaimer{font-size:13px;color:#444;line-height:1.9;opacity:0;animation:fadeUp .8s ease .9s forwards;border:0.5px solid #1a1a1a;border-radius:10px;padding:20px 24px;text-align:left}
 .l2-disclaimer strong{color:#888}
 .l2-disclaimer .warn{color:#EF9F27;font-weight:600}
-.launch-btn{opacity:0;animation:fadeUp .8s ease 1.6s forwards;background:transparent;border:1px solid #00c47a;color:#00c47a;font-size:13px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:14px 48px;border-radius:4px;cursor:pointer;transition:all .25s}
+.launch-btn{opacity:0;animation:fadeUp .8s ease 1.6s forwards;background:transparent;border:1.5px solid #00c47a;color:#00c47a;font-size:14px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:16px 56px;border-radius:4px;cursor:pointer;transition:all .25s}
 .launch-btn:hover{background:#00c47a;color:#000}
 
 @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
@@ -186,11 +193,15 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
     <blockquote>"a trading philosophy is something that cannot just be transferred from one person to another; it's something that you have to acquire yourself through time and effort."</blockquote>
     <cite>— Richard Driehaus, legendary money manager</cite>
   </div>
-  <div class="intro-hint">click anywhere to continue</div>
+  <div class="intro-hint">
+    <div class="bubble-wrap"><div class="bubble"></div><div class="bubble"></div><div class="bubble"></div></div>
+    <span class="hint-text">click anywhere to continue</span>
+    <div class="bubble-wrap"><div class="bubble"></div><div class="bubble"></div><div class="bubble"></div></div>
+  </div>
 </div>
 
 <!-- LAYER 2 - intro + disclaimer -->
-<div id="layer2" class="hidden" style="opacity:0;transition:opacity .8s ease">
+<div id="layer2" class="hidden" style="opacity:0;transition:opacity .9s ease">
   <div class="layer2-content">
     <div class="l2-credit">created by <a href="https://t.me/CryptoJurnal" target="_blank">@cryptojurnal ↗</a></div>
     <div class="l2-disclaimer">
@@ -198,7 +209,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
       this dashboard is a <span class="warn">projection tool, not a guarantee</span>. all numbers are pre-execution estimates. real results depend on your timing, discipline, and the market.<br><br>
       this tool does <strong>not account for</strong> trading fees, funding fees, slippage, or exchange costs. use it to <strong>assess and plan</strong> — not to predict.<br><br>
       <span class="warn">cross margin mode only.</span> liq% calculations are designed for cross margin. isolated margin will produce different results.<br><br>
-      <strong>the outcome is yours.</strong> we help you prepare. the bet is on you. 🎯
+      <strong>the outcome is yours.</strong> we help you prepare. the bet is on you 🎯
     </div>
     <button class="launch-btn" onclick="launchApp()">launch the app</button>
   </div>
@@ -215,6 +226,10 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
     <h1>bet all the time, bet with style</h1>
     <p><a href="https://t.me/CryptoJurnal" target="_blank" style="color:var(--acc2);font-weight:700;text-decoration:none;font-size:9px">by @cryptojurnal ↗</a></p>
     <p style="color:var(--tx3);font-size:9px">liq% = account ÷ notional · higher = safer</p>
+    <div style="display:flex;gap:6px;margin-top:2px">
+      <button onclick="setLang('en')" id="lang-en" style="font-size:9px;padding:1px 7px;border-radius:4px;border:0.5px solid var(--bd2);background:var(--acc);color:#fff;cursor:pointer;font-weight:700">EN</button>
+      <button onclick="setLang('id')" id="lang-id" style="font-size:9px;padding:1px 7px;border-radius:4px;border:0.5px solid var(--bd2);background:var(--btn);color:var(--tx2);cursor:pointer">ID</button>
+    </div>
   </div>
 
   <div class="mode-tabs">
@@ -358,7 +373,14 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 </div>
 
 <script>
-const IDR=16700;
+let IDR=16700; // fallback, updated async
+async function fetchIDR(){
+  try{
+    const r=await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+    const d=await r.json();
+    if(d.rates&&d.rates.IDR){IDR=d.rates.IDR;render();}
+  }catch(e){console.log('IDR fetch failed, using fallback');}
+}
 
 // ── GUIDE CONTENT ──
 const GUIDE_HTML=`
@@ -478,6 +500,43 @@ body.t-ocean .g-warn,.body.t-forest .g-warn,.body.t-sunset .g-warn,.body.t-laven
 </div>
 `;
 const ZERO_36_DEF=[6,11,17,22,30,35];
+let LANG='en';
+const T={
+  en:{
+    'monthly summary':'monthly summary','full trade detail':'full trade detail',
+    'month':'month','start':'start','end':'end','monthly%':'monthly%','net gain':'net gain',
+    'withdrawal':'withdrawal ✏️','banked':'banked','nw':'NW','liq t1':'liq t1','liq last':'liq last','risk':'risk',
+    'zero month':'zero month · no trades','save capital':'💾 save capital','save position':'💾 save position',
+    'save trades':'💾 save trades','starting capital':'starting capital','leverage':'leverage',
+    'notional (trade 1)':'notional (trade 1)','kpi scale (global)':'kpi scale (global)',
+    'trade slots':'trade slots','setup looks solid':'setup looks solid',
+    'liq desc':'liq% = account ÷ notional · higher = safer'
+  },
+  id:{
+    'monthly summary':'ringkasan bulanan','full trade detail':'detail semua trade',
+    'month':'bulan','start':'awal','end':'akhir','monthly%':'bulanan%','net gain':'keuntungan',
+    'withdrawal':'penarikan ✏️','banked':'disimpan','nw':'kekayaan bersih','liq t1':'liq t1','liq last':'liq akhir','risk':'risiko',
+    'zero month':'bulan kosong · tidak trading','save capital':'💾 simpan modal','save position':'💾 simpan posisi',
+    'save trades':'💾 simpan trade','starting capital':'modal awal','leverage':'leverage',
+    'notional (trade 1)':'notional (trade 1)','kpi scale (global)':'skala kpi (global)',
+    'trade slots':'slot trade','setup looks solid':'setup terlihat solid',
+    'liq desc':'liq% = akun ÷ notional · lebih tinggi = lebih aman'
+  }
+};
+function t(key){return T[LANG][key]||T.en[key]||key;}
+function setLang(lang){
+  LANG=lang;
+  document.getElementById('lang-en').style.background=lang==='en'?'var(--acc)':'var(--btn)';
+  document.getElementById('lang-en').style.color=lang==='en'?'#fff':'var(--tx2)';
+  document.getElementById('lang-id').style.background=lang==='id'?'var(--acc)':'var(--btn)';
+  document.getElementById('lang-id').style.color=lang==='id'?'#fff':'var(--tx2)';
+  // update static labels
+  document.querySelector('.pl-head p[style*="tx3"]').textContent=t('liq desc');
+  document.getElementById('save-cap').textContent=t('save capital');
+  document.getElementById('save-pos').textContent=t('save position');
+  document.getElementById('save-trades').textContent=t('save trades');
+  render();
+}
 const TOTAL=36;
 
 // SEPARATE STATE PER TAB
@@ -968,12 +1027,18 @@ function render(){
 
   let chartH='';
   if(!isQ){
-    chartH=`<div class="lgd">
-      <span><span class="ld" style="background:#1D9E75"></span>account</span>
-      <span><span class="ld" style="background:var(--acc)"></span>banked</span>
-      <span><span class="ld" style="background:#BA7517"></span>NW</span>
-      <span style="font-size:9px;color:var(--tx3)">logarithmic scale · ⊘ = zero month (no trade) · editable in table</span>
-    </div><div class="cw"><canvas id="gc"></canvas></div>`;
+    chartH=`<div style="display:grid;grid-template-columns:1.6fr 1fr;gap:10px;margin-bottom:10px;align-items:start">
+      <div>
+        <div class="lgd" style="margin-bottom:6px">
+          <span><span class="ld" style="background:#1D9E75"></span>account</span>
+          <span><span class="ld" style="background:var(--acc)"></span>banked</span>
+          <span><span class="ld" style="background:#BA7517"></span>NW</span>
+          <span style="font-size:9px;color:var(--tx3)">log scale · ⊘ = zero month</span>
+        </div>
+        <div class="cw" style="margin-bottom:0"><canvas id="gc"></canvas></div>
+      </div>
+      <div id="assess-side"></div>
+    </div>`;
   }
 
   const togH=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
@@ -988,7 +1053,7 @@ function render(){
 
   const assessH=buildAssessment(months,s);
   if(ch){ch.destroy();ch=null;}
-  rc.innerHTML=mh+`<div class="note">${noteText}</div>`+chartH+assessH+togH+`<div class="tw"><table id="tbl"></table></div><p class="ft">liq% = account ÷ notional × 100 · higher = safer · 0 target or freq = trade skipped · idr @rp16,700</p>`;
+  rc.innerHTML=mh+`<div class="note">${noteText}</div>`+chartH+togH+`<div class="tw"><table id="tbl"></table></div><p class="ft">liq% = account ÷ notional × 100 · higher = safer · 0 target or freq = trade skipped · idr @rp16,700</p>`;
 
   if(!isQ){
     const lbs=['start',...months.map(r=>r.lb)];
@@ -1023,8 +1088,16 @@ function render(){
         }
       });
     }
+    // inject assess into side panel
+    const aside=document.getElementById('assess-side');
+    if(aside) aside.innerHTML=assessH;
   } else {
     ch=null;
+  }
+  // quarter: inject assess after note
+  if(isQ){
+    const rc2=document.getElementById('right-content');
+    if(rc2){const nb=rc2.querySelector('.note');if(nb&&!rc2.querySelector('.assess-bar'))nb.insertAdjacentHTML('afterend',assessH);}
   }
   renderTbl(months);
 }
@@ -1268,26 +1341,25 @@ try{
   if(t){THEME=t;document.body.className=t;document.querySelectorAll('.th-btn').forEach(b=>b.classList.toggle('on',b.dataset.t===t));}
 }catch(e){}
 render();
+fetchIDR();
 
 // ── INTRO NAVIGATION ──
 function goLayer2(){
   const l1=document.getElementById('layer1');
+  if(!l1)return;
   l1.classList.add('out');
   setTimeout(()=>{
     l1.classList.add('hidden');
     const l2=document.getElementById('layer2');
     l2.classList.remove('hidden');
-    // trigger reflow then fade in
-    requestAnimationFrame(()=>requestAnimationFrame(()=>{
-      l2.style.opacity='1';
-    }));
-  },800);
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{l2.style.opacity='1';}));
+  },900);
 }
-
 function launchApp(){
   const l2=document.getElementById('layer2');
+  if(!l2)return;
   l2.classList.add('out');
-  setTimeout(()=>{l2.classList.add('hidden');},800);
+  setTimeout(()=>l2.classList.add('hidden'),900);
 }
 </script>
 </body>
