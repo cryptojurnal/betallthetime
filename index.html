@@ -163,11 +163,12 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 <!-- LEFT PANEL -->
 <div class="panel-left" id="left-panel">
   <button class="collapse-btn" id="collapse-btn" onclick="togglePanel()" title="collapse panel">‹</button>
-  <div class="collapsed-label" onclick="togglePanel()">bet with style · controls</div>
+  <div class="collapsed-label" onclick="togglePanel()">WZ scalp · controls</div>
   <div class="pl-body">
   <div class="pl-head">
     <h1>bet all the time, bet with style</h1>
-    <p>liq% = account ÷ notional · higher = safer · <span style="color:var(--acc2)">by @cryptojurnal</span></p>
+    <p><a href="https://t.me/CryptoJurnal" target="_blank" style="color:var(--acc2);font-weight:700;text-decoration:none;font-size:9px">by @cryptojurnal ↗</a></p>
+    <p style="color:var(--tx3);font-size:9px">liq% = account ÷ notional · higher = safer</p>
   </div>
 
   <div class="mode-tabs">
@@ -337,7 +338,24 @@ body.t-ocean .g-warn,.body.t-forest .g-warn,.body.t-sunset .g-warn,.body.t-laven
 </style>
 
 <div class="g-title">bet all the time, bet with style · guide</div>
-<div class="g-sub">essential concepts and how to use this tool · keep it simple, keep it disciplined</div>
+<div class="g-sub">by <a href="https://t.me/CryptoJurnal" target="_blank" style="color:var(--acc2);font-weight:700;text-decoration:none">@cryptojurnal ↗</a> · essential concepts · keep it simple, keep it disciplined</div>
+
+<div class="g-sec">
+  <div class="g-sec-title">🗂️ the two tabs — start here</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+    <div style="background:var(--sf2);border-radius:8px;padding:14px 16px;border-left:3px solid var(--acc2)">
+      <div style="font-size:13px;font-weight:700;color:var(--tx);margin-bottom:6px">36-MONTH · long term projection</div>
+      <div style="font-size:11px;color:var(--tx2);line-height:1.7">your <b>master plan</b>. set it once, let compounding do the work over 36 months. use this to <b>onboard a strategy</b>, stress-test your risk setup, and see where your capital ends up. this is not for day-to-day tweaking — this is the big picture. think of it as your <b>trading blueprint</b>.</div>
+      <div style="margin-top:8px;font-size:10px;color:var(--acc2);font-weight:600">ideal for: planning · capital allocation · long-term conviction</div>
+    </div>
+    <div style="background:var(--sf2);border-radius:8px;padding:14px 16px;border-left:3px solid var(--acc)">
+      <div style="font-size:13px;font-weight:700;color:var(--tx);margin-bottom:6px">QUARTER · short term assessment</div>
+      <div style="font-size:11px;color:var(--tx2);line-height:1.7">your <b>live trading lab</b>. 3 months, zero zero-months, pure execution. use this <b>before entering a trade</b> to validate your setup — check if liq%, leverage, and notional make sense for the current market. think of it as your <b>pre-flight checklist</b> before you bet.</div>
+      <div style="margin-top:8px;font-size:10px;color:var(--acc);font-weight:600">ideal for: scalp · day trade · quick validation · formula testing</div>
+    </div>
+  </div>
+  <div class="g-tip"><b>workflow:</b> use the quarter tab to find the right formula for current conditions → once confident, port those settings to 36-month for the full projection. both tabs have completely independent state so you can freely experiment in quarter without touching your master plan.</div>
+</div>
 
 <div class="g-sec">
   <div class="g-sec-title">🔑 core concepts — read these first</div>
@@ -358,9 +376,13 @@ body.t-ocean .g-warn,.body.t-forest .g-warn,.body.t-sunset .g-warn,.body.t-laven
   <div class="g-term"><span class="g-term-name">single profit</span><span class="g-term-def">profit from <b>one execution</b> of that trade (notional × target%). one trade, one time.</span></div>
   <div class="g-term"><span class="g-term-name">combine profit</span><span class="g-term-def">single profit × freq. if single profit = $20 and freq = 4, combine profit = $80. <b>this is what actually gets added to your account</b> for that trade slot.</span></div>
   <div class="g-term"><span class="g-term-name">freq</span><span class="g-term-def">how many times you execute that trade setup in the sequence. <b>higher freq = more total profit but also more exposure.</b> set to 0 to skip that trade entirely.</span></div>
-  <div class="g-term"><span class="g-term-name">3yr CAGR</span><span class="g-term-def"><b>compound annual growth rate over 36 months.</b> this normalizes the total return into a yearly figure so you can compare it to benchmarks like S&P 500 (~10%) or Buffett (~20%).</span></div>
-  <div class="g-term"><span class="g-term-name">$1M milestone</span><span class="g-term-def">the month when your <b>combined NW (account + banked) first crosses $1,000,000.</b> not just account — total wealth.</span></div>
-  <div class="g-term"><span class="g-term-name">account lifespan</span><span class="g-term-def">estimated survival time based on risk structure (liq%, leverage, fm%). <b>how long statistically before an adverse market move wipes a position.</b> this is not a guarantee — it's a calibrated estimate from the risk ratios.</span></div>
+  <div class="g-term"><span class="g-term-name">3yr CAGR</span><span class="g-term-def"><b>compound annual growth rate over 36 months.</b> normalizes total return into a yearly figure. benchmark: S&amp;P 500 ~10% · Warren Buffett ~20% · Druckenmiller ~30%. anything above 50% in crypto with controlled risk is elite.</span></div>
+  <div class="g-term"><span class="g-term-name">$1M milestone</span><span class="g-term-def">the month when your <b>combined NW (account + banked) first crosses $1,000,000.</b> not just account — total wealth. this is the real target.</span></div>
+  <div class="g-term"><span class="g-term-name">account lifespan</span><span class="g-term-def">estimated survival time based on risk structure. <b>from minutes (extreme) to generational (almost unliquidatable).</b> formula: (liq%)² ÷ leverage factor ÷ margin factor. not a guarantee — a calibrated signal.</span></div>
+  <div class="g-term"><span class="g-term-name">liq t1 vs liq last</span><span class="g-term-def">liq t1 = buffer at the start of the month (trade 1). liq last = buffer at the end of the sequence (last active trade). <b>liq grows through the sequence</b> because account grows while notional also grows but slower. watch liq t1 — it's your tightest point.</span></div>
+  <div class="g-term"><span class="g-term-name">margin push ⚡</span><span class="g-term-def">per-month multiplier on trade 1 notional. if push = 1.4×, trade 1 starts 40% larger than carry-forward. <b>this deliberately reduces liq% on that month</b> (more risk, more potential). use on high-conviction months only.</span></div>
+  <div class="g-term"><span class="g-term-name">zero month ⊘</span><span class="g-term-def">a month where you don't trade. <b>no profit, no loss, no compounding.</b> the carry-forward notional pauses and resumes next active month. use for unclear market conditions, personal events, or planned rest.</span></div>
+  <div class="g-term"><span class="g-term-name">global vs manual</span><span class="g-term-def">global mode applies one trade setup to all months. manual mode lets you <b>set different targets and freqs per month</b> in the full detail view — useful when market conditions change mid-plan.</span></div>
 </div>
 
 <div class="g-sec">
@@ -381,7 +403,22 @@ body.t-ocean .g-warn,.body.t-forest .g-warn,.body.t-sunset .g-warn,.body.t-laven
   <div class="g-term"><span class="g-term-name">risk score</span><span class="g-term-def">composite 0–100 score. <b>lower = safer.</b> factors: liq% buffer (main weight), leverage level, fm% of account, number of active trades. hover the score for what's driving it.</span></div>
   <div class="g-term"><span class="g-term-name">liq t1 buffer</span><span class="g-term-def">same as liq% for trade 1 month 1. the <b>fill bar</b> shows it visually — green = good buffer, amber = watchable, red = danger.</span></div>
   <div class="g-term"><span class="g-term-name">account lifespan</span><span class="g-term-def">estimated how long the account structure survives adverse conditions. from <b>minutes</b> (extreme risk) to <b>generational</b> (almost unliquidatable). formula: (liq%)² ÷ leverage factor ÷ margin factor.</span></div>
-  <div class="g-tip"><b>the golden setup:</b> liq% ≥ 40% · leverage ≤ 15× · fm% ≤ 20% → account lifespan "months to years" · risk score below 30 · this is the baseline. adjust based on your conviction and market conditions.</div>
+  <div class="g-tip"><b>the golden setup:</b> liq% ≥ 40% · leverage ≤ 15× · fm% ≤ 20% → account lifespan "months to years" · risk score below 30 · this is the WZ scalp baseline. adjust based on your conviction and market conditions.</div>
+</div>
+
+<div class="g-sec">
+  <div class="g-sec-title">✅ what makes a good setup — quick checklist</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+    <div style="background:#EAF3DE;border-radius:7px;padding:10px 12px">
+      <div style="font-size:11px;font-weight:700;color:#3B6D11;margin-bottom:6px">✓ healthy setup</div>
+      <div style="font-size:10px;color:#3B6D11;line-height:1.8">liq% t1 ≥ 40%<br>leverage ≤ 15×<br>fm% ≤ 20%<br>account lifespan: months → years<br>risk score &lt; 30<br>active trades: 5–10<br>at least 1 zero month per 6</div>
+    </div>
+    <div style="background:#FCEBEB;border-radius:7px;padding:10px 12px">
+      <div style="font-size:11px;font-weight:700;color:#A32D2D;margin-bottom:6px">✕ danger zone</div>
+      <div style="font-size:10px;color:#A32D2D;line-height:1.8">liq% t1 &lt; 20%<br>leverage ≥ 25×<br>fm% &gt; 40%<br>account lifespan: hours → days<br>risk score &gt; 60<br>withdrawal without checking liq%<br>margin push every month</div>
+    </div>
+  </div>
+  <div class="g-tip"><b>the discipline rule:</b> never enter a trade without checking liq% first. if liq% is below 30%, reduce notional or increase capital before opening. the market doesn't care about your plan — your risk structure is the only thing you control.</div>
 </div>
 
 <div class="g-sec">
