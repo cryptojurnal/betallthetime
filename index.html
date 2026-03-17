@@ -49,8 +49,8 @@ body.t-lavender{--bg:#f0eef8;--panel:#fff;--bd:#d8d4f0;--bd2:#e4e0f4;--sf:#f8f6f
 
 /* head */
 .pl-head{padding:11px 13px 9px;border-bottom:0.5px solid var(--bd2);display:flex;flex-direction:column;gap:4px}
-.pl-head h1{font-size:12px;font-weight:700;color:var(--tx);letter-spacing:.01em}
-.pl-head p{font-size:9px;color:var(--tx2)}
+.pl-head h1{font-size:16px;font-weight:800;color:var(--tx);letter-spacing:.01em;line-height:1.3}
+.pl-head p{font-size:11px;color:var(--tx2)}
 
 /* mode tabs */
 .mode-tabs{display:flex;border-bottom:0.5px solid var(--bd2)}
@@ -122,7 +122,7 @@ input[type=number]:focus{outline:none;border-color:var(--acc)}
 .ld{width:10px;height:3px;border-radius:2px;display:inline-block;margin-right:2px;vertical-align:middle}
 .ft{font-size:9px;color:var(--tx3);margin-top:8px;line-height:1.7}
 .assess-bar{display:grid;grid-template-columns:repeat(4,1fr) 1.4fr 1fr 1.4fr 1.2fr;gap:0;background:var(--panel);border:0.5px solid var(--bd2);border-radius:0;margin-bottom:8px;overflow:hidden}
-.as-item{display:flex;flex-direction:column;justify-content:center;gap:2px;padding:8px 10px;border-right:0.5px solid var(--bd2)}
+.as-item{display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:2px;padding:8px 10px;border-right:0.5px solid var(--bd2)}
 .as-item:last-child{border-right:none}
 .as-lbl{font-size:8px;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;font-weight:700}
 .as-val{font-size:14px;font-weight:700;line-height:1.1}
@@ -276,10 +276,11 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
   <!-- capital -->
   <div class="sec">
     <div class="seclbl">starting capital</div>
-    <div class="prs" id="cap-prs">
-      <button class="pr" onclick="setP(100,this)">$100</button>
-      <button class="pr on" onclick="setP(1000,this)">$1k</button>
+    <div id="cap-prs" style="display:grid;grid-template-columns:repeat(5,1fr);gap:3px;margin-bottom:4px">
+      <button class="pr on" onclick="setP(100,this)">$100</button>
+      <button class="pr" onclick="setP(1000,this)">$1k</button>
       <button class="pr" onclick="setP(10000,this)">$10k</button>
+      <button class="pr" onclick="setP(20000,this)">$20k</button>
       <button class="pr" onclick="setP(100000,this)">$100k</button>
       <button class="pr" onclick="setP(1000000,this)">$1M</button>
       <button class="pr" onclick="setP(10000000,this)">$10M</button>
@@ -1443,13 +1444,21 @@ function render(){
     const d1=[s.P,...months.map(r=>r.eA)];
     const d2=[0,...months.map(r=>r.banked)];
     const d3=[s.P,...months.map(r=>r.nw)];
-    if(ch){ch.data.labels=lbs;ch.data.datasets[0].data=d1;ch.data.datasets[1].data=d2;ch.data.datasets[2].data=d3;ch.update('none');}
+    const st=getComputedStyle(document.body);
+    const accColor=st.getPropertyValue('--acc').trim()||'#185fa5';
+    if(ch){
+      ch.data.labels=lbs;
+      ch.data.datasets[0].data=d1;
+      ch.data.datasets[1].data=d2;ch.data.datasets[1].borderColor=accColor;
+      ch.data.datasets[2].data=d3;
+      ch.update('none');
+    }
     else{
       ch=new Chart(document.getElementById('gc').getContext('2d'),{
         type:'line',
         data:{labels:lbs,datasets:[
           {label:'account',data:d1,borderColor:'#1D9E75',pointRadius:0,borderWidth:2,tension:.4,fill:false},
-          {label:'banked', data:d2,borderColor:'var(--acc)',pointRadius:0,borderWidth:1.5,tension:.4,fill:false,borderDash:[5,3]},
+          {label:'banked', data:d2,borderColor:accColor,pointRadius:0,borderWidth:1.5,tension:.4,fill:false,borderDash:[5,3]},
           {label:'NW',     data:d3,borderColor:'#BA7517',pointRadius:0,borderWidth:1.5,tension:.4,fill:false},
         ]},
         options:{responsive:true,maintainAspectRatio:false,
