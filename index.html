@@ -166,17 +166,18 @@ body.t-lavender{--bg:#f0eef8;--panel:#fff;--bd:#d8d4f0;--bd2:#e4e0f4;--sf:#f8f6f
 
 
 /* ── AI ASSISTANT ── */
-#ai-fab{position:fixed;bottom:22px;right:22px;z-index:9000;width:50px;height:50px;border-radius:50%;background:var(--acc2);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 4px 18px rgba(0,0,0,.35);transition:transform .2s,box-shadow .2s}
-#ai-fab:hover{transform:scale(1.08);box-shadow:0 6px 28px rgba(0,0,0,.45)}
+#ai-fab{position:fixed;bottom:22px;right:22px;z-index:9000;width:50px;height:50px;border-radius:50%;background:var(--acc2);border:none;cursor:grab;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 4px 18px rgba(0,0,0,.35);transition:box-shadow .2s;user-select:none;touch-action:none}
+#ai-fab:hover{box-shadow:0 6px 28px rgba(0,0,0,.45)}
+#ai-fab.dragging{cursor:grabbing;box-shadow:0 8px 32px rgba(0,0,0,.5);transform:scale(1.06)}
 #ai-notif{position:absolute;top:2px;right:2px;width:11px;height:11px;background:#E24B4A;border-radius:50%;border:2px solid #fff;display:none}
-#ai-panel{position:fixed;bottom:84px;right:22px;z-index:8999;width:340px;max-height:520px;display:flex;flex-direction:column;background:var(--bg);border:1px solid var(--bd2);border-radius:14px;box-shadow:0 8px 40px rgba(0,0,0,.4);opacity:0;pointer-events:none;transform:translateY(14px) scale(.97);transition:opacity .22s,transform .22s}
-#ai-panel.open{opacity:1;pointer-events:all;transform:translateY(0) scale(1)}
+#ai-panel{position:fixed;z-index:8999;width:320px;max-height:380px;display:flex;flex-direction:column;background:var(--bg);border:1px solid var(--bd2);border-radius:14px;box-shadow:0 8px 40px rgba(0,0,0,.4);opacity:0;pointer-events:none;transition:opacity .22s,transform .22s;transform:scale(.97)}
+#ai-panel.open{opacity:1;pointer-events:all;transform:scale(1)}
 #ai-head{display:flex;align-items:center;justify-content:space-between;padding:11px 14px 9px;border-bottom:0.5px solid var(--bd2);flex-shrink:0}
 .ai-htitle{font-size:12px;font-weight:700;color:var(--tx);display:flex;align-items:center;gap:6px}
 .ai-hbtn{background:none;border:none;cursor:pointer;color:var(--tx3);padding:0;line-height:1;font-size:11px}
 .ai-hbtn:hover{color:var(--tx)}
 .ai-hclose{font-size:17px}
-#ai-msgs{flex:1;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:8px;min-height:0}
+#ai-msgs{flex:1;overflow-y:auto;padding:8px 12px;display:flex;flex-direction:column;gap:6px;min-height:60px;max-height:200px}
 #ai-msgs::-webkit-scrollbar{width:3px}
 #ai-msgs::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:3px}
 .ai-m{max-width:88%;font-size:11px;line-height:1.65;padding:7px 10px;border-radius:10px;word-break:break-word}
@@ -2838,9 +2839,11 @@ var AI_CHIPS_ID=["apa itu liq%?","cara kerja biaya?","spot vs leverage?","cara p
 
 function aiToggle(){
   AI_OPEN=!AI_OPEN;
-  document.getElementById('ai-panel').classList.toggle('open',AI_OPEN);
+  var panel=document.getElementById('ai-panel');
+  panel.classList.toggle('open',AI_OPEN);
   document.getElementById('ai-notif').style.display='none';
   if(AI_OPEN){
+    aiPositionPanel();
     if(!AI_KEY){
       aiShowKeyScreen();
     } else {
@@ -2853,6 +2856,29 @@ function aiToggle(){
       if(el)el.focus();
     },200);
   }
+}
+
+function aiPositionPanel(){
+  var fab=document.getElementById('ai-fab');
+  var panel=document.getElementById('ai-panel');
+  if(!fab||!panel)return;
+  var fr=fab.getBoundingClientRect();
+  var zoom=parseFloat(getComputedStyle(document.documentElement).zoom)||1;
+  var fx=fr.left/zoom, fy=fr.top/zoom;
+  var fw=fr.width/zoom, fh=fr.height/zoom;
+  var pw=320, ph=380;
+  var W=window.innerWidth/zoom, H=window.innerHeight/zoom;
+  // prefer above fab, align right edge
+  var px=Math.min(fx+fw-pw, W-pw-8);
+  var py=fy-ph-8;
+  // if not enough space above, go below
+  if(py<8) py=fy+fh+8;
+  px=Math.max(8,px);
+  py=Math.max(8,Math.min(py,H-ph-8));
+  panel.style.left=px+'px';
+  panel.style.top=py+'px';
+  panel.style.right='';
+  panel.style.bottom='';
 }
 
 function aiShowKeyScreen(){
@@ -3022,6 +3048,60 @@ function aiClear(){
   aiUpdateChips();
   aiWelcome();
 }
+
+// ── DRAG TO REPOSITION ──
+(function(){
+  var fab, dx, dy, dragging=false, hasMoved=false;
+  function onDown(e){
+    fab=document.getElementById('ai-fab');
+    var pt=e.touches?e.touches[0]:e;
+    var zoom=parseFloat(getComputedStyle(document.documentElement).zoom)||1;
+    var r=fab.getBoundingClientRect();
+    dx=pt.clientX/zoom-r.left/zoom;
+    dy=pt.clientY/zoom-r.top/zoom;
+    dragging=true; hasMoved=false;
+    fab.classList.add('dragging');
+    e.preventDefault();
+  }
+  function onMove(e){
+    if(!dragging)return;
+    var pt=e.touches?e.touches[0]:e;
+    var zoom=parseFloat(getComputedStyle(document.documentElement).zoom)||1;
+    var W=window.innerWidth/zoom, H=window.innerHeight/zoom;
+    var x=pt.clientX/zoom-dx;
+    var y=pt.clientY/zoom-dy;
+    x=Math.max(8,Math.min(x,W-58));
+    y=Math.max(8,Math.min(y,H-58));
+    fab.style.left=x+'px'; fab.style.top=y+'px';
+    fab.style.right='auto'; fab.style.bottom='auto';
+    hasMoved=true;
+    if(AI_OPEN) aiPositionPanel();
+    try{localStorage.setItem('wz_ai_pos',JSON.stringify({x:x,y:y}));}catch(ex){}
+    e.preventDefault();
+  }
+  function onUp(e){
+    if(!dragging)return;
+    dragging=false;
+    if(fab)fab.classList.remove('dragging');
+    // if barely moved, treat as click = toggle
+    if(!hasMoved) aiToggle();
+  }
+  window.addEventListener('DOMContentLoaded',function(){
+    var f=document.getElementById('ai-fab');
+    if(!f)return;
+    // restore saved position
+    try{
+      var saved=JSON.parse(localStorage.getItem('wz_ai_pos'));
+      if(saved){f.style.left=saved.x+'px';f.style.top=saved.y+'px';f.style.right='auto';f.style.bottom='auto';}
+    }catch(ex){}
+    f.addEventListener('mousedown',onDown);
+    f.addEventListener('touchstart',onDown,{passive:false});
+    window.addEventListener('mousemove',onMove);
+    window.addEventListener('touchmove',onMove,{passive:false});
+    window.addEventListener('mouseup',onUp);
+    window.addEventListener('touchend',onUp);
+  });
+})();
 function aiSetLang(lang){
   AI_LANG=lang;
   var en=document.getElementById('ai-lb-en');
