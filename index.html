@@ -400,7 +400,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 .bubble:nth-child(2){animation-delay:.2s}
 .bubble:nth-child(3){animation-delay:.4s}
 @keyframes bubble{0%,80%,100%{transform:scale(0.6);opacity:.3}40%{transform:scale(1);opacity:1}}
-.layer2-content{max-width:580px;text-align:center;padding:0 36px;display:flex;flex-direction:column;align-items:center;gap:30px}
+.layer2-content{max-width:520px;text-align:center;padding:0 36px;display:flex;flex-direction:column;align-items:center;gap:0}
 .l2-credit{font-size:15px;color:#666;letter-spacing:.06em;text-transform:uppercase;opacity:0;animation:fadeUp .8s ease .3s forwards}
 .l2-credit a{color:#00c47a;text-decoration:none;font-weight:700;font-size:17px}
 .l2-credit a:hover{text-decoration:underline}
@@ -455,15 +455,40 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 <!-- LAYER 2 - intro + disclaimer -->
 <div id="layer2" class="hidden" style="opacity:0;transition:opacity .9s ease">
   <div class="layer2-content">
-    <div class="l2-credit">created by <a href="https://t.me/CryptoJurnal" target="_blank">@cryptojurnal ↗</a></div>
-    <div class="l2-disclaimer">
-      <strong>before you launch —</strong><br><br>
-      this dashboard is a <span class="warn">projection tool, not a guarantee</span>. all numbers are pre-execution estimates. real results depend on your timing, discipline, and the market.<br><br>
-      this tool does <strong>not account for</strong> trading fees, funding fees, slippage, or exchange costs.<br><br>
-      <span class="warn">cross margin mode only.</span> liq% is designed for cross margin. isolated margin will produce different results.<br><br>
-      <strong>the outcome is yours.</strong> we help you prepare. the bet is on you 🎯
+
+    <!-- disclaimer box with credit title ON the border line -->
+    <div style="position:relative;opacity:0;animation:fadeUp .8s ease .4s forwards;width:100%">
+      <!-- credit sits centered on the top border line -->
+      <div class="l2-credit" style="position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:#000;padding:0 16px;white-space:nowrap;font-size:13px;letter-spacing:.08em">created by <a href="https://t.me/CryptoJurnal" target="_blank">@cryptojurnal ↗</a></div>
+      <div class="l2-disclaimer" style="padding:28px 24px 20px">
+        <div style="font-size:11px;font-weight:700;color:#EF9F27;letter-spacing:.06em;text-transform:uppercase;margin-bottom:14px">⚠ risk disclosure</div>
+
+        <div style="margin-bottom:12px;padding-bottom:12px;border-bottom:0.5px solid #1e1e1e">
+          <span style="color:#888;font-weight:600">this is a projection tool, not financial advice.</span>
+          <span style="color:#555"> all numbers are estimates based on your inputs. real trading results will differ — markets are unpredictable, execution is imperfect, and discipline varies.</span>
+        </div>
+
+        <div style="margin-bottom:12px;padding-bottom:12px;border-bottom:0.5px solid #1e1e1e;display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div>
+            <div style="font-size:10px;color:#EF9F27;font-weight:600;margin-bottom:4px">what is calculated ✓</div>
+            <div style="font-size:11px;color:#555;line-height:1.7">· compounding returns<br>· liq% buffer (cross margin)<br>· trade fees (maker/taker)<br>· funding fees<br>· net P&L after fees</div>
+          </div>
+          <div>
+            <div style="font-size:10px;color:#A32D2D;font-weight:600;margin-bottom:4px">what is not calculated ✗</div>
+            <div style="font-size:11px;color:#555;line-height:1.7">· slippage & spread<br>· partial fills<br>· execution delays<br>· isolated margin liq<br>· emotional decisions</div>
+          </div>
+        </div>
+
+        <div style="font-size:11px;color:#555;line-height:1.7">
+          <span style="color:#EF9F27;font-weight:600">cross margin only.</span> liq% formula assumes cross margin. isolated margin behaves differently and these numbers won't apply.<br><br>
+          <span style="color:#888;font-weight:600">the bet is yours.</span> this tool helps you prepare and stress-test your setup — gains and losses from actual trading are entirely your own responsibility.
+        </div>
+      </div>
     </div>
-    <button class="launch-btn" onclick="launchApp()">launch the app</button>
+
+    <!-- launch button flush with bottom of the box -->
+    <button class="launch-btn" onclick="launchApp()" style="margin-top:-8px">launch the app</button>
+
   </div>
 </div>
 <!-- BLUR PANELS (4 sides surrounding guide tab cutout) -->
@@ -1718,9 +1743,45 @@ function setLang(lang){
     ?'dibuat oleh <a href="https://t.me/CryptoJurnal" target="_blank">@cryptojurnal ↗</a>'
     :'created by <a href="https://t.me/CryptoJurnal" target="_blank">@cryptojurnal ↗</a>';
   const l2disc=document.querySelector('.l2-disclaimer');
-  if(l2disc) l2disc.innerHTML=id
-    ?'<strong>sebelum kamu launch —</strong><br><br>dashboard ini adalah <span class="warn">alat proyeksi, bukan jaminan</span>. semua angka adalah estimasi pra-eksekusi. hasil nyata bergantung pada timing, disiplin, dan kondisi pasar.<br><br>alat ini <strong>tidak memperhitungkan</strong> biaya trading, biaya funding, slippage, atau biaya exchange.<br><br><span class="warn">hanya untuk cross margin mode.</span> liq% dirancang untuk cross margin. isolated margin akan menghasilkan hasil yang berbeda.<br><br><strong>hasilnya adalah tanggung jawabmu.</strong> kami membantu kamu mempersiapkan. taruhannya ada padamu 🎯'
-    :'<strong>before you launch —</strong><br><br>this dashboard is a <span class="warn">projection tool, not a guarantee</span>. all numbers are pre-execution estimates. real results depend on your timing, discipline, and the market.<br><br>this tool does <strong>not account for</strong> trading fees, funding fees, slippage, or exchange costs.<br><br><span class="warn">cross margin mode only.</span> liq% is designed for cross margin. isolated margin will produce different results.<br><br><strong>the outcome is yours.</strong> we help you prepare. the bet is on you 🎯';
+  if(l2disc) l2disc.innerHTML=id?`
+    <div style="font-size:11px;font-weight:700;color:#EF9F27;letter-spacing:.06em;text-transform:uppercase;margin-bottom:14px">⚠ pengungkapan risiko</div>
+    <div style="margin-bottom:12px;padding-bottom:12px;border-bottom:0.5px solid #1e1e1e">
+      <span style="color:#888;font-weight:600">ini adalah alat proyeksi, bukan saran keuangan.</span>
+      <span style="color:#555"> semua angka adalah estimasi berdasarkan inputmu. hasil trading nyata akan berbeda — pasar tidak bisa diprediksi, eksekusi tidak sempurna, dan disiplin tiap orang berbeda.</span>
+    </div>
+    <div style="margin-bottom:12px;padding-bottom:12px;border-bottom:0.5px solid #1e1e1e;display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div>
+        <div style="font-size:10px;color:#EF9F27;font-weight:600;margin-bottom:4px">yang dihitung ✓</div>
+        <div style="font-size:11px;color:#555;line-height:1.7">· return compounding<br>· liq% buffer (cross margin)<br>· biaya trade (maker/taker)<br>· biaya funding<br>· net P&L setelah biaya</div>
+      </div>
+      <div>
+        <div style="font-size:10px;color:#A32D2D;font-weight:600;margin-bottom:4px">yang tidak dihitung ✗</div>
+        <div style="font-size:11px;color:#555;line-height:1.7">· slippage & spread<br>· partial fill<br>· keterlambatan eksekusi<br>· liq isolated margin<br>· keputusan emosional</div>
+      </div>
+    </div>
+    <div style="font-size:11px;color:#555;line-height:1.7">
+      <span style="color:#EF9F27;font-weight:600">hanya cross margin.</span> rumus liq% mengasumsikan cross margin. isolated margin berperilaku berbeda dan angka ini tidak berlaku.<br><br>
+      <span style="color:#888;font-weight:600">taruhannya milikmu.</span> alat ini membantumu mempersiapkan dan stress-test setup — keuntungan dan kerugian dari trading nyata sepenuhnya tanggung jawabmu.
+    </div>`:`
+    <div style="font-size:11px;font-weight:700;color:#EF9F27;letter-spacing:.06em;text-transform:uppercase;margin-bottom:14px">⚠ risk disclosure</div>
+    <div style="margin-bottom:12px;padding-bottom:12px;border-bottom:0.5px solid #1e1e1e">
+      <span style="color:#888;font-weight:600">this is a projection tool, not financial advice.</span>
+      <span style="color:#555"> all numbers are estimates based on your inputs. real trading results will differ — markets are unpredictable, execution is imperfect, and discipline varies.</span>
+    </div>
+    <div style="margin-bottom:12px;padding-bottom:12px;border-bottom:0.5px solid #1e1e1e;display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <div>
+        <div style="font-size:10px;color:#EF9F27;font-weight:600;margin-bottom:4px">what is calculated ✓</div>
+        <div style="font-size:11px;color:#555;line-height:1.7">· compounding returns<br>· liq% buffer (cross margin)<br>· trade fees (maker/taker)<br>· funding fees<br>· net P&L after fees</div>
+      </div>
+      <div>
+        <div style="font-size:10px;color:#A32D2D;font-weight:600;margin-bottom:4px">what is not calculated ✗</div>
+        <div style="font-size:11px;color:#555;line-height:1.7">· slippage & spread<br>· partial fills<br>· execution delays<br>· isolated margin liq<br>· emotional decisions</div>
+      </div>
+    </div>
+    <div style="font-size:11px;color:#555;line-height:1.7">
+      <span style="color:#EF9F27;font-weight:600">cross margin only.</span> liq% formula assumes cross margin. isolated margin behaves differently and these numbers won't apply.<br><br>
+      <span style="color:#888;font-weight:600">the bet is yours.</span> this tool helps you prepare and stress-test your setup — gains and losses from actual trading are entirely your own responsibility.
+    </div>`;
   const launchBtn=document.querySelector('.launch-btn');
   if(launchBtn) launchBtn.textContent=id?'mulai app':'launch the app';
 
