@@ -204,6 +204,21 @@ input[type=number]:focus{outline:none;border-color:var(--acc)}
 .lgd{display:flex;gap:10px;margin-bottom:6px;font-size:10px;color:var(--tx2);flex-wrap:wrap;align-items:center}
 .ld{width:10px;height:3px;border-radius:2px;display:inline-block;margin-right:2px;vertical-align:middle}
 .ft{font-size:9px;color:var(--tx3);margin-top:8px;line-height:1.7}
+/* ── FEE PANEL ── */
+.fee-row{display:flex;align-items:center;gap:4px;margin:2px 0}
+.fee-lbl{font-size:9px;color:var(--tx2);min-width:58px;flex-shrink:0}
+.fee-inp{width:52px;padding:2px 4px;font-size:10px;border:0.5px solid var(--bd2);border-radius:4px;background:var(--inp);color:var(--tx);text-align:right;transition:border-color .2s,background .3s}
+.fee-inp:focus{outline:none;border-color:var(--acc)}
+.fee-inp.active{border-color:var(--acc2);background:var(--btno)}
+.fee-unit{font-size:9px;color:var(--tx3)}
+.fee-live-row{display:flex;align-items:center;gap:4px;margin:4px 0 2px;flex-wrap:wrap}
+#fee-live-btn{font-size:10px;padding:1px 7px;border:0.5px solid var(--acc2);background:var(--btno);color:var(--acc2);border-radius:4px;cursor:pointer;font-weight:700;transition:all .2s}
+#fee-live-btn:hover{opacity:.8}
+#fee-live-status{font-size:8px;color:var(--tx3)}
+select.fee-sel{font-size:9px;padding:1px 3px;border:0.5px solid var(--bd2);border-radius:4px;background:var(--inp);color:var(--tx);cursor:pointer}
+/* fee cols in detail table */
+.fee-neg{color:#E24B4A}
+.fee-net{color:var(--acc2);font-weight:700}
 /* ── WIPE ERROR STATE ── */
 .wipe-banner{display:flex;align-items:center;gap:10px;padding:8px 12px;background:#FCEBEB;border:1.5px solid #E24B4A;border-radius:0;margin-bottom:6px}
 body.t-dark .wipe-banner{background:#2a0a0a;border-color:#7a0000}
@@ -552,6 +567,47 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 
   <button class="save-btn" id="save-trades" onclick="saveSection('trades')" style="margin-bottom:2px">💾 save trades</button>
 
+  <div class="divider"></div>
+
+  <!-- fee settings -->
+  <div class="sec">
+    <div class="seclbl">fees & funding</div>
+    <div class="fee-row">
+      <span class="fee-lbl">maker %</span>
+      <input type="number" class="fee-inp" id="fee-maker" value="0.02" min="0" max="1" step="0.001" onchange="FEE.maker=parseFloat(this.value)||0;softUpdate()">
+      <span class="fee-unit">%</span>
+    </div>
+    <div class="fee-row">
+      <span class="fee-lbl">taker %</span>
+      <input type="number" class="fee-inp" id="fee-taker" value="0.05" min="0" max="1" step="0.001" onchange="FEE.taker=parseFloat(this.value)||0;softUpdate()">
+      <span class="fee-unit">%</span>
+    </div>
+    <div class="fee-row">
+      <span class="fee-lbl">funding %</span>
+      <input type="number" class="fee-inp" id="fee-funding" value="0.01" min="0" max="1" step="0.0001" onchange="FEE.funding=parseFloat(this.value)||0;softUpdate()">
+      <span class="fee-unit">% / 8h</span>
+    </div>
+    <div class="fee-row">
+      <span class="fee-lbl">holds (8h)</span>
+      <input type="number" class="fee-inp" id="fee-holds" value="1" min="0" max="100" step="1" onchange="FEE.holds=parseFloat(this.value)||0;softUpdate()">
+      <span class="fee-unit">× per trade</span>
+    </div>
+    <div class="fee-live-row">
+      <select class="fee-sel" id="fee-exchange" onchange="FEE_LIVE.exchange=this.value;document.getElementById('fee-sym-wrap').dataset.ex=this.value">
+        <option value="binance">Binance</option>
+        <option value="bybit">Bybit</option>
+        <option value="okx">OKX</option>
+      </select>
+      <select class="fee-sel" id="fee-symbol" onchange="FEE_LIVE.symbol=this.value">
+        <option value="BTCUSDT">BTC</option>
+        <option value="ETHUSDT">ETH</option>
+        <option value="SOLUSDT">SOL</option>
+        <option value="BNBUSDT">BNB</option>
+      </select>
+      <button id="fee-live-btn" onclick="fetchLiveFundingRate()">↻</button>
+      <span id="fee-live-status" style="font-size:8px;color:var(--tx3)">tap ↻ for live rate</span>
+    </div>
+  </div>
 
 </div><!-- pl-body -->
 </div><!-- panel-left -->
@@ -585,7 +641,46 @@ async function fetchIDR(force){
   }catch(e){const btn=document.getElementById('idr-refresh');if(btn)btn.style.opacity='1';}
 }
 
-// ── GUIDE CONTENT ──
+// ── LIVE FUNDING RATE ──
+async function fetchLiveFundingRate(){
+  const btn=document.getElementById('fee-live-btn');
+  const statusEl=document.getElementById('fee-live-status');
+  if(btn){btn.style.opacity='.4';btn.textContent='⟳';}
+  if(statusEl) statusEl.textContent='fetching...';
+  FEE_LIVE.loading=true;
+  try{
+    const ex=FEE_LIVE.exchange, sym=FEE_LIVE.symbol;
+    let rate=null;
+    if(ex==='binance'){
+      const r=await fetch(`https://fapi.binance.com/fapi/v1/premiumIndex?symbol=${sym}`);
+      const d=await r.json();
+      rate=d.lastFundingRate?Math.abs(parseFloat(d.lastFundingRate)*100):null;
+    } else if(ex==='bybit'){
+      const r=await fetch(`https://api.bybit.com/v5/market/tickers?category=linear&symbol=${sym}`);
+      const d=await r.json();
+      rate=d.result?.list?.[0]?.fundingRate?Math.abs(parseFloat(d.result.list[0].fundingRate)*100):null;
+    } else if(ex==='okx'){
+      const instId=sym.replace('USDT','-USDT-SWAP').replace('USDC','-USDC-SWAP');
+      const r=await fetch(`https://www.okx.com/api/v5/public/funding-rate?instId=${instId}`);
+      const d=await r.json();
+      rate=d.data?.[0]?.fundingRate?Math.abs(parseFloat(d.data[0].fundingRate)*100):null;
+    }
+    if(rate!==null){
+      FEE_LIVE.rate=rate;
+      FEE.funding=Math.round(rate*10000)/10000;
+      const inp=document.getElementById('fee-funding');
+      if(inp){inp.value=FEE.funding;inp.classList.add('active');setTimeout(()=>inp.classList.remove('active'),1200);}
+      if(statusEl) statusEl.textContent=`live · ${ex}`;
+      softUpdate();
+    } else {
+      if(statusEl) statusEl.textContent='no data';
+    }
+  } catch(e){
+    if(statusEl) statusEl.textContent='failed';
+  }
+  FEE_LIVE.loading=false;
+  if(btn){btn.style.opacity='1';btn.textContent='↻';}
+}
 // ── LANGUAGE ──
 let LANG='en';
 
@@ -1003,6 +1098,9 @@ const DEF_TL={}; // trade labels {t: 'asset name'} t=1..10
 const DEF_FR=[1,1,0,1,1,0,1,1,0,1];
 
 let TAB='36', THEME='t-light', VIEW='sum', ch=null, GLOBAL_MODE=true, TOP_PANEL_COLLAPSED=false, IS_WIPED=false, lbl_w=false;
+// ── FEE STATE ──
+let FEE={maker:0.02, taker:0.05, funding:0.01, interval:8, holds:1}; // % values
+let FEE_LIVE={rate:null, exchange:'binance', symbol:'BTCUSDT', loading:false};
 
 // each tab has its own full state
 const S={
@@ -1852,12 +1950,15 @@ function renderTbl(months){
       <th>notional</th><th>margin</th><th>fm%</th><th>liq%</th>
       <th>target%</th><th>freq</th>
       <th>single profit</th><th>combine profit</th>
+      <th style="color:#E24B4A">maker+taker</th>
+      <th style="color:#E24B4A">funding</th>
+      <th style="color:var(--acc2)">net profit</th>
       <th>account</th><th>withdrawal ✏️</th>
     </tr></thead><tbody>`;
     months.forEach(mo=>{
       if(mo.isZ){
         h+=`<tr class="mh-z" style="cursor:pointer" onclick="toggleZeroMonth(${mo.m})" title="click to remove zero month">
-          <td colspan="11">${getML(mo.m)} · ⊘ zero month · account: ${fmt(mo.sA)} · <span style="color:var(--acc);font-size:9px">click to activate</span></td>
+          <td colspan="14">${getML(mo.m)} · ⊘ zero month · account: ${fmt(mo.sA)} · <span style="color:var(--acc);font-size:9px">click to activate</span></td>
         </tr>`;
         return;
       }
@@ -1867,7 +1968,7 @@ function renderTbl(months){
       const wdVal=s.WD[mo.m]||0;
       const postInfo='';
       if(IS_WIPED){
-        h+=`<tr class="wipe-row"><td>${getML(mo.m)}</td><td colspan="10">💸 ${lbl_w?'setup tidak valid — liq% < 1%':'invalid setup — liq% < 1%'}</td></tr>`;
+        h+=`<tr class="wipe-row"><td>${getML(mo.m)}</td><td colspan="13">💸 ${lbl_w?'setup tidak valid — liq% < 1%':'invalid setup — liq% < 1%'}</td></tr>`;
         return;
       }
       const mLabel=getML(mo.m);
@@ -1879,14 +1980,14 @@ function renderTbl(months){
         <td style="color:var(--mhs)">start: ${fmt(mo.sA)}</td>
         <td colspan="2"></td>
         <td style="color:var(--mhs)">${l1.toFixed(0)}%→${ll.toFixed(0)}%</td>
-        <td colspan="2"></td>
+        <td colspan="5"></td>
         <td style="white-space:nowrap">
           <input type="number" class="mp-inp${(s.MP[mo.m]||1)>1?' active':''}" id="mp-inp-d-${mo.m}" value="${s.MP[mo.m]>1?s.MP[mo.m]:''}" min="1" max="10" step="0.1" placeholder="1×" title="margin push up multiplier for this month" oninput="onMP(${mo.m},this.value)" style="width:46px">
           <span style="font-size:8px;color:var(--tx3)">× push</span>
           ${mo.mp>1?`<span style="background:#EAF3DE;color:#3B6D11;font-size:9px;padding:1px 5px;border-radius:3px;font-weight:700;margin-left:2px">⚡${mo.mp.toFixed(2)}×</span>`:''}
         </td>
-        <td style="color:var(--mhs)">+${mo.pct.toFixed(1)}%</td>
-        <td>end: ${balanceInfo}</td>
+        <td colspan="2" style="color:var(--mhs)">+${mo.pct.toFixed(1)}%</td>
+        <td colspan="2">end: ${balanceInfo}</td>
         <td><div class="wd-cell"><input type="number" class="wd-inp${wdVal>0?' active':''}" id="wd-inp-d-${mo.m}" value="${wdVal||''}" min="0" step="1" placeholder="0" onchange="onWdInline(${mo.m},this.value)" onblur="onWdInline(${mo.m},this.value)"></div></td>
       </tr>`;
       mo.trades.forEach(t=>{
@@ -1903,11 +2004,11 @@ function renderTbl(months){
               <td></td>
               <td><input type="number" value="${btVal}" min="0" max="500" step="0.1" placeholder="tgt%" style="width:44px;padding:2px 3px;font-size:10px;text-align:center;border:0.5px solid var(--bd2);border-radius:3px;background:var(--inp);color:var(--acc);font-weight:700" oninput="onManualBT(${mo.m},${t.no-1},this.value)"></td>
               <td><input type="number" value="${frVal}" min="0" max="20" step="1" placeholder="freq" style="width:36px;padding:2px 3px;font-size:10px;text-align:center;border:0.5px solid var(--acc2);border-radius:3px;background:var(--inp);color:var(--acc2);font-weight:700" oninput="onManualFR(${mo.m},${t.no-1},this.value)"></td>
-              <td colspan="4" style="color:var(--tx3);font-size:9px;text-align:center">set both > 0 to activate</td>
+              <td colspan="7" style="color:var(--tx3);font-size:9px;text-align:center">set both > 0 to activate</td>
               <td></td>
             </tr>`;
           } else {
-            h+=`<tr class="skip-row"><td style="padding-left:16px;font-size:10px">trade ${t.no}</td><td colspan="10" style="text-align:center"><span class="sk">skipped · 0 target or freq</span></td></tr>`;
+            h+=`<tr class="skip-row"><td style="padding-left:16px;font-size:10px">trade ${t.no}</td><td colspan="13" style="text-align:center"><span class="sk">skipped · 0 target or freq</span></td></tr>`;
           }
           return;
         }
@@ -1927,6 +2028,18 @@ function renderTbl(months){
             :`<span style="color:var(--tx2)">${t.freq}×</span>`}</td>
           <td>+${fmt(t.sp)}</td>
           <td style="color:var(--acc2);font-weight:600">+${fmt(t.cp)}</td>
+          ${(()=>{
+            const makerFee=(FEE.maker/100)*t.not;
+            const takerFee=(FEE.taker/100)*t.not;
+            const tradeFee=(makerFee+takerFee)*t.freq;
+            const fundFee=(FEE.funding/100)*t.not*FEE.holds*t.freq;
+            const totalFee=tradeFee+fundFee;
+            const netCp=t.cp-totalFee;
+            const liqAfterFee=((t.accA-totalFee)/t.not*100);
+            return `<td class="fee-neg" title="maker+taker per freq">−${fmt(tradeFee)}</td>
+              <td class="fee-neg" title="funding fee (${FEE.funding}% × ${FEE.holds} holds × ${t.freq}freq)">−${fmt(fundFee)}</td>
+              <td class="${netCp>=0?'fee-net':'fee-neg'}">${netCp>=0?'+':''}${fmt(netCp)}<div style="font-size:8px;color:${liqAfterFee<40?'#E24B4A':'var(--tx3)'}">liq ${liqAfterFee.toFixed(0)}%</div></td>`;
+          })()}
           <td style="font-weight:700">${fmt(t.accA)}</td>
           <td></td>
         </tr>`;
