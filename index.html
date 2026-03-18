@@ -999,6 +999,23 @@ body.t-ocean .g-warn,.body.t-forest .g-warn,.body.t-sunset .g-warn,.body.t-laven
   <div class="g-tip"><b>labels and zero months save automatically</b> the moment you edit them — no button needed. capital, position, and trade settings use manual save buttons so you can experiment freely without overwriting your saved state. <b>36-month and quarter tabs have separate state</b> — save each independently.</div>
 </div>
 
+<div class="g-sec">
+  <div class="g-sec-title">◈ spot mode</div>
+  <div style="font-size:11px;color:var(--tx2);margin-bottom:10px;line-height:1.7">spot mode simulates <b>buying and holding an asset without leverage</b>. your full capital is your position — no margin, no liquidation risk, no funding fee. you can still project compounding returns across 36 months or a single quarter.</div>
+
+  <div class="g-term"><span class="g-term-name">how to switch</span><span class="g-term-def">in the left panel under <b>leverage · spot mode</b>, click the <b>◈ spot</b> button. the badge next to the dashboard title confirms which mode you are in. each tab remembers its own mode independently — you can have one tab in leverage and another in spot for direct comparison.</span></div>
+
+  <div class="g-term"><span class="g-term-name">what changes in spot</span><span class="g-term-def"><b>leverage slider</b> disabled — position size equals your full capital. <b>notional</b> disabled — follows account automatically. <b>funding fee</b> removed — no perpetual contract in spot. <b>liq%</b> irrelevant — you cannot be liquidated, worst case is position goes to zero.</span></div>
+
+  <div class="g-term"><span class="g-term-name">fee structure in spot</span><span class="g-term-def">spot fees are higher than futures — standard tier is 0.1% on most exchanges vs 0.02–0.05% futures. the dashboard pre-fills correct spot rates when you switch mode and select your exchange. the same <b>2× rule</b> applies: every trade pays fee twice — open + close. choose maker (limit order) or taker (market order) based on how you actually execute.</span></div>
+
+  <div class="g-term"><span class="g-term-name">size× (position size multiplier)</span><span class="g-term-def">in spot mode, the <b>size×</b> in the detail table scales how much of your capital you deploy that month. at 1× you deploy 100% of your account. use it as a position sizing tool to simulate partial deployment — not as leverage.</span></div>
+
+  <div class="g-term"><span class="g-term-name">risk score in spot</span><span class="g-term-def">no liquidation means the risk score uses different criteria: <b>fee drag</b> (high fee rates eating returns), <b>concentration</b> (too few active trades = high variance), <b>target aggression</b> (unrealistically high % targets), and <b>win/loss ratio</b>. lower score = fee-efficient, diversified, realistic.</span></div>
+
+  <div class="g-tip"><b>spot vs leverage:</b> use spot to project a buy-and-hold compounding strategy or see what the same setup looks like without leverage risk. use leverage for futures with margin. run both side by side in separate tabs.</div>
+</div>
+
 <div class="g-sec" style="border:1.5px solid #E24B4A;border-radius:10px;padding:14px 16px;background:#FCEBEB">
   <div class="g-sec-title" style="color:#A32D2D;border-bottom-color:#f5c6c6">⚠️ important — read before you onboard</div>
   <div style="font-size:11px;color:#7a2020;line-height:1.8">
@@ -1165,6 +1182,23 @@ body.t-dark .g-warn{background:#2a1a00;color:#EF9F27}
   <div class="g-term"><span class="g-term-name">save position</span><span class="g-term-def">menyimpan leverage, notional, dan KPI scale.</span></div>
   <div class="g-term"><span class="g-term-name">save trades</span><span class="g-term-def">menyimpan semua 10 target trade dan freq.</span></div>
   <div class="g-tip"><b>label dan zero month tersimpan otomatis</b> begitu kamu mengeditnya — tidak perlu tombol. pengaturan modal, posisi, dan trade menggunakan tombol save manual agar kamu bisa eksperimen bebas tanpa menimpa state tersimpan. <b>tab 36-month dan quarter punya state terpisah</b> — simpan masing-masing secara independen.</div>
+</div>
+
+<div class="g-sec">
+  <div class="g-sec-title">◈ mode spot</div>
+  <div style="font-size:11px;color:var(--tx2);margin-bottom:10px;line-height:1.7">mode spot mensimulasikan <b>membeli dan memegang aset tanpa leverage</b>. seluruh modal kamu adalah posisimu — tanpa margin, tanpa risiko likuidasi, tanpa biaya funding. kamu tetap bisa memproyeksikan compounding return selama 36 bulan atau satu kuartal.</div>
+
+  <div class="g-term"><span class="g-term-name">cara beralih</span><span class="g-term-def">di panel kiri bagian <b>leverage · spot mode</b>, klik tombol <b>◈ spot</b>. badge di sebelah judul dashboard mengkonfirmasi mode aktif. setiap tab menyimpan modenya sendiri — satu tab leverage, satu tab spot untuk perbandingan langsung.</span></div>
+
+  <div class="g-term"><span class="g-term-name">apa yang berubah di mode spot</span><span class="g-term-def"><b>slider leverage</b> dinonaktifkan — ukuran posisi sama dengan modal penuh. <b>notional</b> dinonaktifkan — mengikuti akun otomatis. <b>biaya funding</b> dihapus — tidak ada kontrak perpetual di spot. <b>liq%</b> tidak relevan — kamu tidak bisa dilikuidasi.</span></div>
+
+  <div class="g-term"><span class="g-term-name">struktur biaya di spot</span><span class="g-term-def">biaya spot lebih tinggi dari futures — tier standar 0.1% di sebagian besar exchange vs 0.02–0.05% futures. dashboard otomatis mengisi tarif spot yang benar saat kamu beralih mode. <b>aturan 2×</b> tetap berlaku: setiap trade bayar biaya dua kali — buka + tutup.</span></div>
+
+  <div class="g-term"><span class="g-term-name">size× (pengali ukuran posisi)</span><span class="g-term-def">di mode spot, <b>size×</b> di header tabel detail menentukan berapa banyak modal yang di-deploy bulan itu. gunakan sebagai alat sizing posisi untuk mensimulasikan deployment parsial — bukan leverage.</span></div>
+
+  <div class="g-term"><span class="g-term-name">risk score di mode spot</span><span class="g-term-def">risk score menggunakan kriteria berbeda: <b>fee drag</b>, <b>konsentrasi trade</b>, <b>agresivitas target</b>, dan <b>rasio win/loss</b>. skor rendah = efisien biaya, terdiversifikasi, target realistis.</span></div>
+
+  <div class="g-tip"><b>spot vs leverage:</b> gunakan spot untuk buy-and-hold compounding atau melihat setup tanpa risiko leverage. jalankan keduanya berdampingan di tab terpisah.</div>
 </div>
 
 <div class="g-sec" style="border:1.5px solid #E24B4A;border-radius:10px;padding:14px 16px;background:#FCEBEB">
@@ -1834,30 +1868,40 @@ function buildAssessment(months, s){
   const wins=s.BT.filter((t,i)=>t>0&&s.FR[i]>0).length;
   const losses=s.BT.filter((t,i)=>t<0&&s.FR[i]>0).length;
   
-  // risk score 0-100 (lower = safer)
+  // risk score 0-100 (lower = safer) — different criteria for spot vs leverage
   let riskScore=0;
   let riskReasons=[];
   const _id=LANG==='id';
-  
-  // liq proximity risk (main factor)
-  if(liqT1<20){riskScore+=40;riskReasons.push(_id?'buffer liq kritis (<20%)':'liq buffer critical (<20%)');}
-  else if(liqT1<35){riskScore+=25;riskReasons.push(_id?'buffer liq sempit (<35%)':'liq buffer tight (<35%)');}
-  else if(liqT1<50){riskScore+=10;}
-  
-  // leverage risk
-  if(s.LEV>=25){riskScore+=25;riskReasons.push(_id?'leverage sangat tinggi (≥25×)':'very high leverage (≥25×)');}
-  else if(s.LEV>=20){riskScore+=15;riskReasons.push(_id?'leverage tinggi (≥20×)':'high leverage (≥20×)');}
-  else if(s.LEV>=15){riskScore+=8;}
-  
-  // fm% risk (how much account is deployed)
-  const fm=s.NOT/s.LEV/s.P*100;
-  if(fm>40){riskScore+=20;riskReasons.push(_id?'margin >40% dari akun':'margin >40% of account');}
-  else if(fm>25){riskScore+=10;}
-  else if(fm>15){riskScore+=4;}
-  
-  // concentration (few active trades = higher variance)
-  if(actTr<=3){riskScore+=10;riskReasons.push(_id?'hanya '+actTr+' trade aktif':'only '+actTr+' active trades');}
-  else if(actTr<=5){riskScore+=4;}
+
+  if(isSpot){
+    // Spot risk factors: fee drag, concentration, target aggression
+    const feeRate=(s.FEE.method==='maker'?s.FEE.maker:s.FEE.taker);
+    const feeDrag=feeRate*2*actTr; // total fee % per month per active trade
+    if(feeRate>=0.1){riskScore+=20;riskReasons.push(_id?'biaya spot tinggi ('+feeRate+'%)':'high spot fee ('+feeRate+'%)');}
+    else if(feeRate>=0.05){riskScore+=10;}
+    if(actTr<=3){riskScore+=25;riskReasons.push(_id?'hanya '+actTr+' trade aktif':'only '+actTr+' active trades');}
+    else if(actTr<=5){riskScore+=10;}
+    const avgTgt=actTr?s.BT.filter((t,i)=>t>0&&s.FR[i]>0).reduce((a,t)=>a+t,0)/Math.max(wins,1):0;
+    if(avgTgt>15){riskScore+=20;riskReasons.push(_id?'target agresif (avg '+avgTgt.toFixed(0)+'%)':'aggressive targets (avg '+avgTgt.toFixed(0)+'%)');}
+    else if(avgTgt>8){riskScore+=8;}
+    if(losses>=wins&&wins>0){riskScore+=20;riskReasons.push(_id?'lebih banyak loss dari win':'more losses than wins');}
+    else if(losses>0&&losses>=wins*0.5){riskScore+=8;}
+    if(mp<0){riskScore+=15;riskReasons.push(_id?'net sekuens negatif':'negative net sequence');}
+  } else {
+    // Leverage risk factors: liq buffer, leverage level, margin deployment
+    if(liqT1<20){riskScore+=40;riskReasons.push(_id?'buffer liq kritis (<20%)':'liq buffer critical (<20%)');}
+    else if(liqT1<35){riskScore+=25;riskReasons.push(_id?'buffer liq sempit (<35%)':'liq buffer tight (<35%)');}
+    else if(liqT1<50){riskScore+=10;}
+    if(s.LEV>=25){riskScore+=25;riskReasons.push(_id?'leverage sangat tinggi (≥25×)':'very high leverage (≥25×)');}
+    else if(s.LEV>=20){riskScore+=15;riskReasons.push(_id?'leverage tinggi (≥20×)':'high leverage (≥20×)');}
+    else if(s.LEV>=15){riskScore+=8;}
+    const fm=s.NOT/s.LEV/s.P*100;
+    if(fm>40){riskScore+=20;riskReasons.push(_id?'margin >40% dari akun':'margin >40% of account');}
+    else if(fm>25){riskScore+=10;}
+    else if(fm>15){riskScore+=4;}
+    if(actTr<=3){riskScore+=10;riskReasons.push(_id?'hanya '+actTr+' trade aktif':'only '+actTr+' active trades');}
+    else if(actTr<=5){riskScore+=4;}
+  }
   
   riskScore=Math.min(100,riskScore);
   
@@ -1998,17 +2042,29 @@ function buildAssessmentCards(months, s){
   const cagr=(Math.pow(Math.max(last.nw,s.P)/s.P,1/3)-1)*100;
   const {actTr,wins,losses,net:mp}=seqStats(s);
   let rs=0,rr=[];
-  if(liqT1<20){rs+=40;rr.push(LANG==='id'?'buffer liq kritis (<20%)':'liq buffer critical (<20%)');}
-  else if(liqT1<35){rs+=25;rr.push(LANG==='id'?'buffer liq sempit (<35%)':'liq buffer tight (<35%)');}
-  else if(liqT1<50){rs+=10;}
-  if(!isSpot){
+  if(isSpot){
+    const feeRate=(s.FEE.method==='maker'?s.FEE.maker:s.FEE.taker);
+    if(feeRate>=0.1){rs+=20;rr.push(LANG==='id'?'biaya spot tinggi ('+feeRate+'%)':'high spot fee ('+feeRate+'%)');}
+    else if(feeRate>=0.05){rs+=10;}
+    if(actTr<=3){rs+=25;rr.push(LANG==='id'?'hanya '+actTr+' trade aktif':'only '+actTr+' active trades');}
+    else if(actTr<=5){rs+=10;}
+    const avgTgt=actTr?s.BT.filter((t,i)=>t>0&&s.FR[i]>0).reduce((a,t)=>a+t,0)/Math.max(wins,1):0;
+    if(avgTgt>15){rs+=20;rr.push(LANG==='id'?'target agresif (avg '+avgTgt.toFixed(0)+'%)':'aggressive targets (avg '+avgTgt.toFixed(0)+'%)');}
+    else if(avgTgt>8){rs+=8;}
+    if(losses>=wins&&wins>0){rs+=20;rr.push(LANG==='id'?'lebih banyak loss dari win':'more losses than wins');}
+    else if(losses>0&&losses>=wins*0.5){rs+=8;}
+    if(mp<0){rs+=15;rr.push(LANG==='id'?'net sekuens negatif':'negative net sequence');}
+  } else {
+    if(liqT1<20){rs+=40;rr.push(LANG==='id'?'buffer liq kritis (<20%)':'liq buffer critical (<20%)');}
+    else if(liqT1<35){rs+=25;rr.push(LANG==='id'?'buffer liq sempit (<35%)':'liq buffer tight (<35%)');}
+    else if(liqT1<50){rs+=10;}
     if(s.LEV>=25){rs+=25;rr.push(LANG==='id'?'leverage sangat tinggi (≥25×)':'very high leverage (≥25×)');}
     else if(s.LEV>=20){rs+=15;}else if(s.LEV>=15){rs+=8;}
     if(fm>40){rs+=20;rr.push(LANG==='id'?'margin >40% dari akun':'margin >40% of account');}
     else if(fm>25){rs+=10;}else if(fm>15){rs+=4;}
+    if(actTr<=3){rs+=10;rr.push(LANG==='id'?'hanya '+actTr+' trade aktif':'only '+actTr+' active trades');}
+    else if(actTr<=5){rs+=4;}
   }
-  if(actTr<=3){rs+=10;rr.push(LANG==='id'?'hanya '+actTr+' trade aktif':'only '+actTr+' active trades');}
-  else if(actTr<=5){rs+=4;}
   rs=Math.min(100,rs);
   let rlKey,rc2,re;
   if(rs<=20){rlKey='SAFE';rc2='rp-safe';re='✓';}
@@ -2018,18 +2074,21 @@ function buildAssessmentCards(months, s){
   const rl=t('rl_'+rlKey);
   const liqC=liqT1>=60?'#1D9E75':liqT1>=40?'#EF9F27':'#E24B4A';
   const riskC=rs<=20?'#1D9E75':rs<=45?'#EF9F27':rs<=70?'#E24B4A':'#7a0000';
-  const liqF=Math.pow(liqT1/100,2),levF=Math.max(0.1,s.LEV/10),fmF=Math.max(0.1,fm/20);
-  const sv=liqF/levF/fmF;
-  let av,as2,ac;
-  if(sv<0.001){av='minutes';as2='one bad candle ends it';ac='#A32D2D';}
-  else if(sv<0.01){av='hours';as2='extremely fragile';ac='#A32D2D';}
-  else if(sv<0.05){av='days';as2='volatile session gone';ac='#E24B4A';}
-  else if(sv<0.15){av='weeks';as2='dangerous tighten risk';ac='#EF9F27';}
-  else if(sv<0.5){av='months';as2='manageable stay sharp';ac='#EF9F27';}
-  else if(sv<1.5){av='~1 year';as2='solid respect the plan';ac='#1D9E75';}
-  else if(sv<5){av='years';as2='disciplined trader energy';ac='#1D9E75';}
-  else if(sv<12){av='a decade';as2='institutional grade';ac='#185FA5';}
-  else{av='generational';as2='almost unliquidatable';ac='#185FA5';}
+  // lifespan estimate — leverage only
+  let av='n/a',as2='spot mode',ac='#5DC96A';
+  if(!isSpot){
+    const liqF=Math.pow(liqT1/100,2),levF=Math.max(0.1,s.LEV/10),fmF=Math.max(0.1,fm/20);
+    const sv=liqF/levF/fmF;
+    if(sv<0.001){av='minutes';as2='one bad candle ends it';ac='#A32D2D';}
+    else if(sv<0.01){av='hours';as2='extremely fragile';ac='#A32D2D';}
+    else if(sv<0.05){av='days';as2='volatile session gone';ac='#E24B4A';}
+    else if(sv<0.15){av='weeks';as2='dangerous tighten risk';ac='#EF9F27';}
+    else if(sv<0.5){av='months';as2='manageable stay sharp';ac='#EF9F27';}
+    else if(sv<1.5){av='~1 year';as2='solid respect the plan';ac='#1D9E75';}
+    else if(sv<5){av='years';as2='disciplined trader energy';ac='#1D9E75';}
+    else if(sv<12){av='a decade';as2='institutional grade';ac='#185FA5';}
+    else{av='generational';as2='almost unliquidatable';ac='#185FA5';}
+  }
   const tooltip=rr.length?rr.join(' · '):t('verdict_solid');
   // Use global IS_WIPED for error state in indicator cards
   const _wiped=IS_WIPED;
@@ -2130,7 +2189,9 @@ function render(){
       <div class="wipe-banner-fix">${lbl_w?'Perbaiki: kurangi notional atau tambah modal hingga liq% ≥ 40%':'Fix: reduce notional or increase capital until liq% ≥ 40%'}</div>
     </div>
   </div>`:'';
-  const noteText=`${t('note_setup')}: acct ${fmt(s.P)} · notional t1 ${fmt(s.NOT)} (${(s.NOT/s.P).toFixed(2)}× acct) · ${t('note_margin')} ${fmt(s.NOT/s.LEV)} ${t('note_at')} ${s.LEV}× lev · liq t1 = ${liqT1.toFixed(1)}% (${t('note_liq',liqT1.toFixed(0))}) · ${actTr}/10 ${t('trades')} ${t('active')} · kpi scale ${s.KPI.toFixed(2)}× · ${t('note_wd')}`;
+  const noteText=s.SPOT
+    ?`◈ spot mode · acct ${fmt(s.P)} · position = full capital · no leverage · no liquidation · fee: ${s.FEE.method} ${s.FEE.method==='maker'?s.FEE.maker:s.FEE.taker}% × 2 per trade · ${actTr}/10 ${t('trades')} ${t('active')} · kpi scale ${s.KPI.toFixed(2)}×`
+    :`${t('note_setup')}: acct ${fmt(s.P)} · notional t1 ${fmt(s.NOT)} (${(s.NOT/s.P).toFixed(2)}× acct) · ${t('note_margin')} ${fmt(s.NOT/s.LEV)} ${t('note_at')} ${s.LEV}× lev · liq t1 = ${liqT1.toFixed(1)}% (${t('note_liq',liqT1.toFixed(0))}) · ${actTr}/10 ${t('trades')} ${t('active')} · kpi scale ${s.KPI.toFixed(2)}× · ${t('note_wd')}`;
 
   let IDR_LIVE=typeof IDR!=='undefined'?IDR:16700;
   let IDR_TIME=typeof IDR_LAST_UPDATE!=='undefined'?IDR_LAST_UPDATE:'';
@@ -2261,7 +2322,7 @@ function renderTbl(months){
   if(VIEW==='sum'){
     h=`<thead><tr>
       <th>month</th>
-      <th>start<br><span style="font-weight:400;color:var(--tx3);text-transform:none;letter-spacing:0;font-size:8px">notional t1</span></th>
+      <th>start<br><span style="font-weight:400;color:var(--tx3);text-transform:none;letter-spacing:0;font-size:8px">${s.SPOT?'position t1':'notional t1'}</span></th>
       <th>end<br><span style="font-weight:400;color:var(--tx3);text-transform:none;letter-spacing:0;font-size:8px">acct balance</span></th>
       <th>monthly%</th><th>net gain</th>
       <th>withdrawal ✏️</th>
@@ -2319,7 +2380,7 @@ function renderTbl(months){
       <th style="width:8%">combine<br><span style="font-weight:400;font-size:7px;text-transform:none;color:var(--tx3)">pnl pre-fee</span></th>
       <th style="width:7%;color:#E24B4A">fee paid</th>
       <th style="width:9%;color:var(--acc2)">net pnl<br><span style="font-weight:400;font-size:7px;text-transform:none;color:var(--acc2);opacity:.8">post-fee</span></th>
-      <th style="width:8%;color:var(--tx2)">acct bal<br><span style="font-weight:400;font-size:7px;text-transform:none">pre-fee</span></th>
+      <th style="width:8%;color:var(--tx2)">acct bal<br><span style="font-weight:400;font-size:7px;text-transform:none">${s.SPOT?'gross':'pre-fee'}</span></th>
       <th style="width:9%;color:var(--acc2)">acct bal<br><span style="font-weight:400;font-size:7px;text-transform:none">post-fee</span></th>
     </tr></thead><tbody>`;
     months.forEach(mo=>{
@@ -2354,7 +2415,7 @@ function renderTbl(months){
           <b>${fmt(mo.sA)}</b>
         </td>
         <td style="font-size:9px;padding:4px 5px">
-          <div style="font-size:7px;color:var(--mhs);opacity:.7;margin-bottom:1px">push×</div>
+          <div style="font-size:7px;color:var(--mhs);opacity:.7;margin-bottom:1px">${s.SPOT?'size×':'push×'}</div>
           <div style="display:flex;align-items:center;gap:3px">
             <input type="number" class="mp-inp${(s.MP[mo.m]||1)>1?' active':''}" id="mp-inp-d-${mo.m}" value="${s.MP[mo.m]>1?s.MP[mo.m]:''}" min="1" max="10" step="0.1" placeholder="1" oninput="onMP(${mo.m},this.value)" style="width:34px;padding:1px 3px;font-size:9px;border:0.5px solid var(--mhs);border-radius:3px;background:transparent;color:var(--mhc);font-weight:700">
             ${mo.mp>1?'<span style="font-size:7px;background:#EAF3DE;color:#3B6D11;padding:0 3px;border-radius:2px;font-weight:700">⚡'+mo.mp.toFixed(1)+'×</span>':''}
@@ -2362,8 +2423,8 @@ function renderTbl(months){
         </td>
         <td></td>
         <td style="font-size:9px;padding:4px 5px">
-          <div style="font-size:7px;color:var(--mhs);opacity:.7;margin-bottom:1px">liq t1 → last</div>
-          <b>${l1.toFixed(0)}%→${ll.toFixed(0)}%</b>
+          <div style="font-size:7px;color:var(--mhs);opacity:.7;margin-bottom:1px">${s.SPOT?'◈ no liq%':'liq t1 → last'}</div>
+          <b>${s.SPOT?'<span style="color:#5DC96A;font-size:8px">spot mode</span>':l1.toFixed(0)+'%→'+ll.toFixed(0)+'%'}</b>
         </td>
         <td colspan="2"></td>
         <td style="font-size:9px;padding:4px 5px">
