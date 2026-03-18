@@ -36,11 +36,16 @@ function _spotlightGuideTab(){
     const vt=document.getElementById('vt');
     const btn=vt?vt.querySelector('.tb'):null;
     if(!btn){setTimeout(attempt,150);return;}
+
+    // account for CSS zoom on html element
+    const zoom=parseFloat(getComputedStyle(document.documentElement).zoom)||1;
+
     const r=btn.getBoundingClientRect();
     const pad=10;
-    const cx=r.left-pad, cy=r.top-pad;
-    const cw=r.width+pad*2, ch=r.height+pad*2;
-    const W=window.innerWidth, H=window.innerHeight;
+    // divide by zoom to get unscaled CSS pixel positions
+    const cx=(r.left/zoom)-pad, cy=(r.top/zoom)-pad;
+    const cw=(r.width/zoom)+pad*2, ch=(r.height/zoom)+pad*2;
+    const W=window.innerWidth/zoom, H=window.innerHeight/zoom;
 
     // Position the 4 blur panels around the cutout
     const top=document.getElementById('bl-top');
@@ -65,22 +70,19 @@ function _spotlightGuideTab(){
       requestAnimationFrame(()=>sl.classList.add('visible'));
     }
 
-    // Draw SVG arrow from popup bottom-left toward the guide tab
+    // Draw SVG arrow from popup bottom toward the guide tab
     requestAnimationFrame(()=>{
       const popup=document.querySelector('.popup-box');
       if(!popup) return;
       const pr=popup.getBoundingClientRect();
-      // start: bottom-left of popup
-      const sx=pr.left+32, sy=pr.bottom-2;
-      // end: right side of guide tab cutout
+      // divide by zoom for correct unscaled positions
+      const sx=(pr.left/zoom)+32, sy=(pr.bottom/zoom)-2;
       const ex=cx+cw*0.6, ey=cy+ch/2;
       const svg=document.getElementById('popup-arrow-svg');
       if(!svg) return;
       svg.style.display='block';
-      // curved path
       const mx=(sx+ex)/2, my=sy+30;
       svg.querySelector('path').setAttribute('d',`M${sx},${sy} Q${mx},${my} ${ex},${ey}`);
-      // arrowhead
       const ang=Math.atan2(ey-my,ex-mx);
       const al=12;
       const ax1=ex-al*Math.cos(ang-0.45), ay1=ey-al*Math.sin(ang-0.45);
