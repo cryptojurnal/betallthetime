@@ -1827,7 +1827,9 @@ function setSpotMode(isSpot){
   if(feeLbl)feeLbl.textContent=isSpot?'spot fees':'fees & funding';
   // liq-desc
   const ld=document.getElementById('liq-desc');
-  if(ld)ld.textContent=isSpot?'◈ spot mode — no leverage, no liquidation':'liq% = account ÷ notional · higher = safer';
+  if(ld)ld.textContent=isSpot
+    ?(LANG==='id'?'◈ mode spot — tanpa leverage, tanpa likuidasi':'◈ spot mode — no leverage, no liquidation')
+    :(LANG==='id'?'liq% = akun ÷ notional · lebih tinggi = lebih aman':'liq% = account ÷ notional · higher = safer');
   // auto-fill fee preset for current exchange
   const ex=document.getElementById('fee-exchange');
   const exVal=ex?ex.value:'binance';
