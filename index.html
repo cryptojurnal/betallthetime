@@ -136,9 +136,15 @@ body.t-lavender{--bg:#f0eef8;--panel:#fff;--bd:#d8d4f0;--bd2:#e4e0f4;--sf:#f8f6f
 .pl-head p{font-size:9px;color:var(--tx2)}
 
 /* mode tabs */
-.mode-tabs{display:flex;border-bottom:0.5px solid var(--bd2)}
-.mt{flex:1;padding:7px 4px;font-size:10px;font-weight:700;text-align:center;cursor:pointer;border:none;background:transparent;color:var(--tx2);letter-spacing:.03em;text-transform:uppercase;transition:all .2s}
+.mode-tabs{display:flex;border-bottom:0.5px solid var(--bd2);flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+.mode-tabs::-webkit-scrollbar{display:none}
+.mt{flex-shrink:0;padding:6px 8px;font-size:9px;font-weight:700;text-align:center;cursor:pointer;border:none;background:transparent;color:var(--tx2);letter-spacing:.03em;text-transform:uppercase;transition:all .2s;display:flex;align-items:center;gap:4px;white-space:nowrap}
 .mt.on{color:var(--tabact);border-bottom:2px solid var(--tabact);background:var(--sf2)}
+.mt-close{font-size:10px;opacity:.4;border:none;background:none;color:inherit;cursor:pointer;padding:0 1px;border-radius:2px;line-height:1;transition:opacity .15s}
+.mt-close:hover{opacity:1;color:#E24B4A}
+.mt-add{flex-shrink:0;padding:6px 9px;font-size:13px;font-weight:400;cursor:pointer;border:none;background:transparent;color:var(--tx3);transition:color .2s;line-height:1}
+.mt-add:hover{color:var(--acc2)}
+.mt-name-inp{border:none;background:transparent;color:inherit;font:inherit;width:56px;outline:none;cursor:text;text-transform:uppercase;letter-spacing:.03em;font-size:9px;font-weight:700}
 
 /* theme picker */
 .theme-row{display:flex;gap:4px;padding:6px 10px;border-bottom:0.5px solid var(--bd2);align-items:center;flex-wrap:wrap}
@@ -175,6 +181,13 @@ input[type=number]:focus{outline:none;border-color:var(--acc)}
 /* save button */
 .save-btn:hover{background:var(--btno);color:var(--btonc);border-color:var(--acc)}
 .save-ok{color:var(--acc2)!important}
+/* ── COLLAPSIBLE SECTIONS ── */
+.sec-head{display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:5px 10px;margin:0;user-select:none;border-bottom:0.5px solid var(--bd2)}
+.sec-head:hover{background:var(--sf2)}
+.sec-head .seclbl{margin-bottom:0;font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--tx3)}
+.sec-toggle{font-size:10px;color:var(--tx3);transition:transform .25s;display:inline-block;line-height:1}
+.sec-body{overflow:hidden;transition:max-height .3s ease,opacity .2s ease;max-height:600px;opacity:1}
+.sec-body.collapsed{max-height:0!important;opacity:0;pointer-events:none}
 
 /* trade grid */
 .tg-header{display:grid;grid-template-columns:20px 1fr 1fr;gap:2px;margin-bottom:2px}
@@ -382,7 +395,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 <!-- LAYER 1 - philosophy -->
 <div id="layer1" onclick="goLayer2()">
   <div class="intro-quote">
-    <blockquote>"a trading philosophy is something that cannot just be transferred from one person to another; it\'s something that you have to acquire yourself through time and effort."</blockquote>
+    <blockquote>"a trading philosophy is something that cannot just be transferred from one person to another; it's something that you have to acquire yourself through time and effort."</blockquote>
     <cite>— Richard Driehaus, legendary money manager</cite>
   </div>
   <div class="intro-hint">
@@ -441,9 +454,8 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
     <p style="color:var(--tx3);font-size:9px;margin-top:1px" id="liq-desc">liq% = account ÷ notional · higher = safer</p>
   </div>
 
-  <div class="mode-tabs">
-    <button class="mt on" id="tab-36" onclick="setTab('36')">36-month</button>
-    <button class="mt" id="tab-q" onclick="setTab('q')">quarter</button>
+  <div class="mode-tabs" id="mode-tabs-bar">
+    <!-- rendered by renderTabBar() -->
   </div>
 
   <div class="theme-row">
@@ -457,8 +469,12 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
   </div>
 
   <!-- capital -->
-  <div class="sec">
+  <div class="sec-head" data-sec="sec-cap" onclick="toggleSec('sec-cap')">
     <div class="seclbl">starting capital</div>
+    <span class="sec-toggle">▾</span>
+  </div>
+  <div class="sec-body" id="sec-cap">
+  <div class="sec">
     <div id="cap-prs" style="display:grid;grid-template-columns:repeat(5,1fr);gap:2px;margin-bottom:3px">
       <button class="pr on" onclick="setP(100,this)">$100</button>
       <button class="pr" onclick="setP(1000,this)">$1k</button>
@@ -482,12 +498,17 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
     <div style="display:flex;justify-content:space-between;align-items:center;margin:3px 0 4px"><span style="font-size:9px;color:var(--tx3)">current</span><span style="font-size:12px;font-weight:700;color:var(--acc2);background:var(--sf2);padding:2px 6px;border-radius:4px;border:0.5px solid var(--bd2)" id="cap-vl">$1,000</span></div>
   </div>
   <button class="save-btn" id="save-cap" onclick="saveSection('cap')">💾 save capital</button>
+  </div><!-- /sec-cap -->
 
   <div class="divider"></div>
 
   <!-- leverage -->
-  <div class="sec">
+  <div class="sec-head" data-sec="sec-lev" onclick="toggleSec('sec-lev')">
     <div class="seclbl">leverage</div>
+    <span class="sec-toggle">▾</span>
+  </div>
+  <div class="sec-body" id="sec-lev">
+  <div class="sec">
     <div class="prs" id="lv-prs">
       <button class="pr on" onclick="setLev(5,this)">5×</button>
       <button onclick="setLev(10,this)" class="pr">10×</button>
@@ -503,17 +524,21 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span style="font-size:9px;color:var(--tx3)">current</span><span style="font-size:12px;font-weight:700;color:var(--acc2);background:var(--sf2);padding:2px 6px;border-radius:4px;border:0.5px solid var(--bd2)" id="lv-vl">5×</span></div>
   </div>
 
+  </div><!-- /sec-lev -->
+
   <div class="divider"></div>
 
   <!-- notional -->
-  <div class="sec">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+  <div class="sec-head" data-sec="sec-not" onclick="toggleSec('sec-not')">
+    <div style="display:flex;align-items:center;gap:6px">
       <div class="seclbl" style="margin-bottom:0">notional (trade 1)</div>
-      <div style="display:flex;align-items:center;gap:4px">
-        <span style="font-size:8px;color:var(--tx3)">link to capital</span>
-        <button id="not-link-btn" onclick="toggleNotLink()" title="when ON: notional scales with capital. OFF = notional stays fixed (safer default)" style="font-size:9px;padding:1px 5px;border-radius:10px;border:0.5px solid var(--bd2);background:var(--btn);color:var(--tx3);cursor:pointer;font-weight:700">off</button>
-      </div>
+      <span style="font-size:8px;color:var(--tx3)">link</span>
+      <button id="not-link-btn" onclick="event.stopPropagation();toggleNotLink()" title="link notional to capital" style="font-size:9px;padding:1px 5px;border-radius:10px;border:0.5px solid var(--bd2);background:var(--btn);color:var(--tx3);cursor:pointer;font-weight:700">off</button>
     </div>
+    <span class="sec-toggle">▾</span>
+  </div>
+  <div class="sec-body" id="sec-not">
+  <div class="sec">
     <div class="prs" id="not-prs">
       <button class="pr" onclick="setNot(100,this)">$100</button>
       <button class="pr" onclick="setNot(1000,this)">$1k</button>
@@ -544,11 +569,17 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
     </div>
   </div>
   <button class="save-btn" id="save-pos" onclick="saveSection('pos')">💾 save position</button>
+  </div><!-- /sec-not -->
+
   <div class="divider"></div>
 
   <!-- fee settings -->
-  <div class="sec">
+  <div class="sec-head" data-sec="sec-fee" onclick="toggleSec('sec-fee')">
     <div class="seclbl">fees & funding</div>
+    <span class="sec-toggle">▾</span>
+  </div>
+  <div class="sec-body" id="sec-fee">
+  <div class="sec">
     <div class="fee-row">
       <span class="fee-lbl">maker %</span>
       <input type="number" class="fee-inp" id="fee-maker" value="0.02" min="0" max="1" step="0.001" onchange="FEE.maker=parseFloat(this.value)||0;softUpdate()">
@@ -585,13 +616,17 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
       <span id="fee-live-status" style="font-size:8px;color:var(--tx3)">tap ↻ for live rate</span>
     </div>
   </div>
-
+  </div><!-- /sec-fee -->
 
   <div class="divider"></div>
 
   <!-- kpi -->
-  <div class="sec">
+  <div class="sec-head" data-sec="sec-kpi" onclick="toggleSec('sec-kpi')">
     <div class="seclbl">kpi scale (global)</div>
+    <span class="sec-toggle">▾</span>
+  </div>
+  <div class="sec-body" id="sec-kpi">
+  <div class="sec">
     <div style="display:flex;justify-content:space-between;align-items:center;margin:2px 0 1px">
       <span style="font-size:10px;color:var(--tx2)">slide</span>
       <span style="font-size:11px;font-weight:700;color:var(--tx)" id="kpi-vl">1.00×</span>
@@ -599,11 +634,17 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
     <input type="range" id="kpi-sl" min="0.2" max="3" step="0.05" value="1" oninput="onKpiSl(this.value)" style="width:100%;margin:2px 0 4px">
   </div>
 
+  </div><!-- /sec-kpi -->
+
   <div class="divider"></div>
 
   <!-- trade targets -->
-  <div class="sec">
+  <div class="sec-head" data-sec="sec-trd" onclick="toggleSec('sec-trd')">
     <div class="seclbl">trade slots</div>
+    <span class="sec-toggle">▾</span>
+  </div>
+  <div class="sec-body" id="sec-trd">
+  <div class="sec">
     <div style="font-size:9px;color:var(--tx3);margin-bottom:4px">target% or freq = 0 → skip</div>
     <div class="tg-header">
       <div class="tg-hl">#</div>
@@ -619,6 +660,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
     <span style="font-size:9px;color:var(--tx3)">off = per-month</span>
   </div>
 
+  </div><!-- /sec-trd -->
   <button class="save-btn" id="save-trades" onclick="saveSection('trades')" style="margin-bottom:2px">💾 save trades</button>
 
 </div><!-- pl-body -->
@@ -1111,16 +1153,94 @@ const DEF_FR=[1,1,0,1,1,0,1,1,0,1];
 
 let TAB='36', THEME='t-light', VIEW='sum', ch=null, GLOBAL_MODE=true, TOP_PANEL_COLLAPSED=false, IS_WIPED=false, lbl_w=false;
 // ── FEE STATE ──
-let FEE={maker:0.02, taker:0.05, funding:0.01, interval:8, holds:1}; // % values
+let FEE={maker:0.02, taker:0.05, funding:0.01, interval:8, holds:1};
 let FEE_LIVE={rate:null, exchange:'binance', symbol:'BTCUSDT', loading:false};
 
-// each tab has its own full state
+// ── MULTI-TAB STATE ──
+// TABS is an ordered array of tab descriptors
+// built-in tabs: id='36' name='36-month', id='q' name='quarter'
+// custom tabs: id='c1','c2',... name=user-defined, max 5 custom per panel (built-in + custom ≤ 7 total)
+function mkState(){return{P:1000,LEV:5,NOT:2500,KPI:1.0,BT:[...DEF_BT],FR:[...DEF_FR],WD:{},ML:{},TL:{},MT:{},ZM:new Set([]),MP:{}};}
 const S={
-  '36':{P:1000,LEV:5,NOT:2500,KPI:1.0,BT:[...DEF_BT],FR:[...DEF_FR],WD:{},ML:{},TL:{},MT:{},ZM:new Set([]),MP:{}},
-  'q': {P:1000,LEV:5,NOT:2500,KPI:1.0,BT:[...DEF_BT],FR:[...DEF_FR],WD:{},ML:{},TL:{},MT:{},ZM:new Set([]),MP:{}}
+  '36': mkState(),
+  'q':  mkState(),
 };
+// Custom tab registry
+let CUSTOM_TABS=[]; // [{id:'c1',name:'my plan'}]
+let _nextTabId=1;
 
 function gs(){return S[TAB];}
+
+// ── TAB BAR ──
+function renderTabBar(){
+  const bar=document.getElementById('mode-tabs-bar');
+  if(!bar)return;
+  const built=[{id:'36',name:'36-month'},{id:'q',name:'quarter'}];
+  const all=[...built,...CUSTOM_TABS];
+  let h='';
+  all.forEach(tab=>{
+    const active=TAB===tab.id;
+    const isCustom=tab.id.startsWith('c');
+    h+=`<button class="mt${active?' on':''}" onclick="setTab('${tab.id}')" id="tab-${tab.id}">`;
+    if(isCustom){
+      h+=`<input class="mt-name-inp" value="${tab.name}" onclick="event.stopPropagation()" onchange="renameTab('${tab.id}',this.value)" style="width:${Math.max(40,tab.name.length*7)}px">`;
+    } else {
+      h+=tab.name;
+    }
+    if(isCustom) h+=`<span class="mt-close" onclick="event.stopPropagation();removeTab('${tab.id}')" title="close tab">✕</span>`;
+    h+='</button>';
+  });
+  // + button (max 5 custom)
+  if(CUSTOM_TABS.length < 5){
+    h+=`<button class="mt-add" onclick="addTab()" title="new tab">+</button>`;
+  }
+  bar.innerHTML=h;
+}
+
+function addTab(){
+  const id='c'+(_nextTabId++);
+  const name='tab '+_nextTabId;
+  CUSTOM_TABS.push({id,name});
+  S[id]=mkState();
+  saveTabRegistry();
+  setTab(id);
+}
+
+function removeTab(id){
+  if(!id.startsWith('c'))return; // can't remove built-ins
+  CUSTOM_TABS=CUSTOM_TABS.filter(t=>t.id!==id);
+  delete S[id];
+  saveTabRegistry();
+  // switch to 36 if we removed the active tab
+  if(TAB===id) setTab('36');
+  else renderTabBar();
+}
+
+function renameTab(id,name){
+  const tab=CUSTOM_TABS.find(t=>t.id===id);
+  if(tab){tab.name=name.trim()||'tab';saveTabRegistry();}
+  renderTabBar();
+}
+
+function saveTabRegistry(){
+  try{localStorage.setItem('wz_custom_tabs',JSON.stringify(CUSTOM_TABS.map(t=>({id:t.id,name:t.name}))));}catch(e){}
+  try{localStorage.setItem('wz_next_tab_id',String(_nextTabId));}catch(e){}
+}
+
+function loadTabRegistry(){
+  try{
+    const raw=localStorage.getItem('wz_custom_tabs');
+    if(raw){
+      const arr=JSON.parse(raw);
+      arr.forEach(t=>{
+        CUSTOM_TABS.push(t);
+        if(!S[t.id])S[t.id]=mkState();
+      });
+    }
+    const nid=localStorage.getItem('wz_next_tab_id');
+    if(nid)_nextTabId=parseInt(nid)||1;
+  }catch(e){}
+}
 
 // ── SAVE / LOAD ──
 function saveSection(sec){
@@ -1143,7 +1263,10 @@ function flashSave(id){
   setTimeout(()=>{el.classList.remove('save-ok');el.textContent='💾 save '+id.replace('save-','');},1500);
 }
 function loadAll(){
-  ['36','q'].forEach(tab=>{
+  // load all known tabs (built-in + custom)
+  const allTabIds=['36','q',...CUSTOM_TABS.map(t=>t.id)];
+  allTabIds.forEach(tab=>{
+    if(!S[tab])S[tab]=mkState();
     ['cap','pos','trades','wd','labels','zero'].forEach(sec=>{
       const key='wz_'+tab+'_'+sec;
       try{
@@ -1158,9 +1281,8 @@ function loadAll(){
         if(sec==='zero'&&d.ZM)S[tab].ZM=new Set(d.ZM);
       }catch(e){}
     });
-    // load theme
-    try{const t=localStorage.getItem('wz_theme');if(t)THEME=t;}catch(e){}
   });
+  try{const t=localStorage.getItem('wz_theme');if(t)THEME=t;}catch(e){}
 }
 
 function syncControls(){
@@ -1455,6 +1577,13 @@ function _applyTopPanel(){
   if(lbl)lbl.textContent=TOP_PANEL_COLLAPSED?'show overview':'hide overview';
 }
 // ── PANEL COLLAPSE ──
+function toggleSec(id){
+  const body=document.getElementById(id);
+  const arrow=document.querySelector('[data-sec="'+id+'"] .sec-toggle');
+  if(!body)return;
+  const collapsed=body.classList.toggle('collapsed');
+  if(arrow)arrow.style.transform=collapsed?'rotate(-90deg)':'rotate(0deg)';
+}
 function togglePanel(){
   const panel=document.getElementById('left-panel');
   const btn=document.getElementById('collapse-btn');
@@ -1985,12 +2114,12 @@ function renderTbl(months){
       <th style="width:6%">liq%</th>
       <th style="width:7%">target%</th>
       <th style="width:5%">freq</th>
-      <th style="width:8%">gross profit</th>
-      <th style="width:8%">combine<br><span style="font-weight:400;font-size:7px;text-transform:none;color:var(--tx3)">pre-fee</span></th>
+      <th style="width:8%">gross profit<br><span style="font-weight:400;font-size:7px;text-transform:none;color:var(--tx3)">single trade</span></th>
+      <th style="width:8%">combine<br><span style="font-weight:400;font-size:7px;text-transform:none;color:var(--tx3)">pnl pre-fee</span></th>
       <th style="width:7%;color:#E24B4A">fee paid</th>
-      <th style="width:9%;color:var(--acc2)">net<br><span style="font-weight:400;font-size:7px;text-transform:none">post-fee</span></th>
-      <th style="width:8%;color:var(--tx2)">acct<br><span style="font-weight:400;font-size:7px;text-transform:none">pre-fee</span></th>
-      <th style="width:9%;color:var(--acc2)">acct<br><span style="font-weight:400;font-size:7px;text-transform:none">post-fee</span></th>
+      <th style="width:9%;color:var(--acc2)">net pnl<br><span style="font-weight:400;font-size:7px;text-transform:none;color:var(--acc2);opacity:.8">post-fee</span></th>
+      <th style="width:8%;color:var(--tx2)">acct bal<br><span style="font-weight:400;font-size:7px;text-transform:none">pre-fee</span></th>
+      <th style="width:9%;color:var(--acc2)">acct bal<br><span style="font-weight:400;font-size:7px;text-transform:none">post-fee</span></th>
     </tr></thead><tbody>`;
     months.forEach(mo=>{
       if(mo.isZ){
@@ -2110,8 +2239,8 @@ function renderTbl(months){
 // ── TAB / THEME ──
 function setTab(t){
   TAB=t;
-  document.getElementById('tab-36').classList.toggle('on',t==='36');
-  document.getElementById('tab-q').classList.toggle('on',t==='q');
+  if(!S[TAB])S[TAB]=mkState(); // safety: ensure state exists
+  renderTabBar();
   ch=null;
   initGrid();
   syncControls();
@@ -2294,9 +2423,11 @@ function closeChartZoom(){
 function onZoomEsc(e){if(e.key==='Escape')closeChartZoom();}
 
 // ── INIT ──
+loadTabRegistry();
 loadAll();
 initGrid();
 syncControls();
+renderTabBar();
 try{
   const t=localStorage.getItem('wz_theme');
   if(t){THEME=t;document.body.className=t;document.querySelectorAll('.th-btn').forEach(b=>b.classList.toggle('on',b.dataset.t===t));}
