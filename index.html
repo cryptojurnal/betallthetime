@@ -204,15 +204,17 @@ input[type=number]:focus{outline:none;border-color:var(--acc)}
 .lgd{display:flex;gap:10px;margin-bottom:6px;font-size:10px;color:var(--tx2);flex-wrap:wrap;align-items:center}
 .ld{width:10px;height:3px;border-radius:2px;display:inline-block;margin-right:2px;vertical-align:middle}
 .ft{font-size:9px;color:var(--tx3);margin-top:8px;line-height:1.7}
-/* ── WIPE ALERT ── */
-.wipe-alert{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:40px 24px;text-align:center;min-height:260px}
-.wipe-icon{font-size:48px;line-height:1;animation:wipePulse 1.4s ease-in-out infinite}
-@keyframes wipePulse{0%,100%{opacity:.6;transform:scale(1)}50%{opacity:1;transform:scale(1.08)}}
-.wipe-title{font-size:20px;font-weight:900;color:#E24B4A;letter-spacing:-.01em}
-.wipe-body{font-size:12px;color:var(--tx2);line-height:1.8;max-width:480px}
-.wipe-body b{color:#E24B4A}
-.wipe-detail{background:#FCEBEB;border:1px solid #E24B4A;border-radius:8px;padding:10px 16px;font-size:11px;color:#A32D2D;line-height:1.7;max-width:420px;width:100%}
-body.t-dark .wipe-detail{background:#2a0a0a;color:#ff7070;border-color:#7a0000}
+/* ── WIPE ERROR STATE ── */
+.wipe-banner{display:flex;align-items:center;gap:10px;padding:8px 12px;background:#FCEBEB;border:1.5px solid #E24B4A;border-radius:0;margin-bottom:6px}
+body.t-dark .wipe-banner{background:#2a0a0a;border-color:#7a0000}
+.wipe-banner-icon{font-size:18px;flex-shrink:0}
+.wipe-banner-msg{font-size:10px;color:#A32D2D;line-height:1.6;font-weight:600}
+body.t-dark .wipe-banner-msg{color:#ff7070}
+.wipe-banner-fix{font-size:9px;color:#A32D2D;opacity:.8;margin-top:2px;font-weight:400}
+.wipe-val{color:#E24B4A!important;font-size:11px!important;font-weight:700!important}
+.wipe-val::before{content:'⚠ '}
+tr.wipe-row>td{background:#FCEBEB!important;color:#A32D2D!important;font-style:italic;text-align:center}
+body.t-dark tr.wipe-row>td{background:#2a0a0a!important;color:#ff7070!important}
 /* top panel collapse */
 .top-panel{position:relative;margin-bottom:0}
 .top-panel-body{overflow:hidden;max-height:2000px;transition:max-height .4s ease,opacity .3s ease}
@@ -998,7 +1000,7 @@ const DEF_ML={}; // month labels {m: 'custom label'}
 const DEF_TL={}; // trade labels {t: 'asset name'} t=1..10
 const DEF_FR=[1,1,0,1,1,0,1,1,0,1];
 
-let TAB='36', THEME='t-light', VIEW='sum', ch=null, GLOBAL_MODE=true, TOP_PANEL_COLLAPSED=false;
+let TAB='36', THEME='t-light', VIEW='sum', ch=null, GLOBAL_MODE=true, TOP_PANEL_COLLAPSED=false, IS_WIPED=false, lbl_w=false;
 
 // each tab has its own full state
 const S={
@@ -1424,6 +1426,18 @@ function buildAssessment(months, s){
     ageVal='generational'; ageSub='almost unliquidatable'; ageColor='#185FA5';
   }
 
+  // Wipe state for quarter flat bar
+  const _wipedQ=IS_WIPED;
+  if(_wipedQ){
+    const _lbl=LANG==='id';
+    return `<div class="assess-bar" style="background:#FCEBEB">
+      <div class="as-item" style="grid-column:1/-1;justify-content:center;color:#A32D2D;font-weight:700;font-size:12px;gap:6px">
+        <span style="font-size:20px">💸</span>
+        <span>${_lbl?'Setup tidak valid — liq% < 1%. Tidak ada nilai yang bisa dihitung.':'Invalid setup — liq% < 1%. No values can be calculated.'}</span>
+        <div style="font-size:10px;font-weight:400;color:#A32D2D;opacity:.8">${_lbl?'Kurangi notional atau tambah modal.':'Reduce notional or increase capital.'}</div>
+      </div>
+    </div>`;
+  }
   return `<div class="assess-bar">
     <div class="as-item">
       <div class="as-lbl">risk score</div>
@@ -1510,8 +1524,10 @@ function buildAssessmentCards(months, s){
   else if(sv<12){av='a decade';as2='institutional grade';ac='#185FA5';}
   else{av='generational';as2='almost unliquidatable';ac='#185FA5';}
   const tooltip=rr.length?rr.join(' · '):t('verdict_solid');
-  const bk=(pct,col)=>`<div style="width:100%;height:3px;background:var(--bd2);overflow:hidden;margin-top:3px"><div style="width:${Math.min(pct,100)}%;height:100%;background:${col}"></div></div>`;
-  const c=(lbl,valH,sub,ex='')=>`<div class="sc-item"><div class="sc-lbl">${lbl}</div>${valH}<div class="sc-sub">${sub}</div>${ex}</div>`;
+  // Use global IS_WIPED for error state in indicator cards
+  const _wiped=IS_WIPED;
+  const bk=(pct,col)=>_wiped?'':`<div style="width:100%;height:3px;background:var(--bd2);overflow:hidden;margin-top:3px"><div style="width:${Math.min(pct,100)}%;height:100%;background:${col}"></div></div>`;
+  const c=(lbl,valH,sub,ex='')=>_wiped?`<div class="sc-item"><div class="sc-lbl">${lbl}</div><div class="sc-val wipe-val">wiped</div><div class="sc-sub" style="color:#E24B4A">— invalid —</div></div>`:`<div class="sc-item"><div class="sc-lbl">${lbl}</div>${valH}<div class="sc-sub">${sub}</div>${ex}</div>`;
   const tAge=t('age_'+av);
   const tAgeSub=t('age_sub_'+av);
   return `<div class="sc-grid" style="grid-template-columns:repeat(4,1fr);height:100%">
@@ -1545,27 +1561,9 @@ function render(){
   const liqT1=s.P/s.NOT*100;
   const rc=document.getElementById('right-content');
 
-  // ── WIPE GUARD: liq% ≤ 0 means account wiped — show alert, skip all calculation ──
-  if(liqT1<=0||!isFinite(liqT1)){
-    const lbl=LANG==='id';
-    rc.innerHTML=`<div class="wipe-alert">
-      <div class="wipe-icon">💸</div>
-      <div class="wipe-title">${lbl?'AKUN TERHAPUS':'ACCOUNT WIPED'}</div>
-      <div class="wipe-body">
-        ${lbl
-          ?'Liq% mencapai <b>0% atau di bawahnya</b> — setup ini secara matematis tidak layak. Notional kamu melebihi atau sama dengan saldo akun, artinya tidak ada buffer sama sekali. Setiap pergerakan pasar akan melikuidasi posisi seketika.'
-          :'Liq% has hit <b>0% or below</b> — this setup is mathematically inviable. Your notional equals or exceeds your account balance, meaning there is <b>zero buffer</b>. Any market movement liquidates your position instantly.'}
-      </div>
-      <div class="wipe-detail">
-        ${lbl?'cara memperbaikinya:':'how to fix this:'}<br>
-        · ${lbl?'kurangi notional (trade 1) di bawah saldo akun':'reduce notional (trade 1) below your account balance'}<br>
-        · ${lbl?'atau tambah starting capital':'or increase your starting capital'}<br>
-        · ${lbl?'target liq% minimal 40% (floor)':'aim for liq% ≥ 40% minimum (floor)'}<br>
-        · ${lbl?'liq% = akun ÷ notional × 100':'liq% = account ÷ notional × 100'}
-      </div>
-    </div>`;
-    return; // stop — render nothing else
-  }
+  // ── WIPE GUARD: liq% < 1 means setup is catastrophically broken ──
+  // Keep full layout visible but replace every value with wipe error state
+  IS_WIPED = liqT1 < 1 || !isFinite(liqT1);
 
   const months=sim();
   const last=months[months.length-1];
@@ -1576,13 +1574,15 @@ function render(){
   const tr=(last.nw/s.P-1)*100;
   const m1M=!isQ?months.find(r=>r.nw>=1000000):null;
 
-  // metrics
+  // metrics — show error state when wiped
+  const wv=(val,color='')=>IS_WIPED?`<div class="mvv wipe-val">wiped</div>`:`<div class="mvv"${color?` style="color:${color}"`:''} >${val}</div>`;
+  const ws=(sub)=>IS_WIPED?`<div class="ms" style="color:#E24B4A;font-size:8px">— invalid —</div>`:`<div class="ms">${sub}</div>`;
   let mh='<div class="metrics">';
   if(isQ){
     mh+=`
-      <div class="mc"><div class="mll">${t('q_end_lbl')}</div><div class="mvv" style="color:var(--acc2)">${fmt(last.eA)}</div><div class="ms">${fIDR(last.eA)}</div></div>
-      <div class="mc"><div class="mll">${t('total_gain_lbl')}</div><div class="mvv" style="color:var(--acc2)">+${tr.toFixed(1)}%</div><div class="ms">${fmt(last.eA-s.P)}</div></div>
-      <div class="mc"><div class="mll">${t('nw_lbl')}</div><div class="mvv" style="color:var(--acc)">${fmt(last.nw)}</div><div class="ms">${fIDR(last.nw)}</div></div>
+      <div class="mc"><div class="mll">${t('q_end_lbl')}</div>${wv(fmt(last.eA),'var(--acc2)')}${ws(fIDR(last.eA))}</div>
+      <div class="mc"><div class="mll">${t('total_gain_lbl')}</div>${wv('+'+tr.toFixed(1)+'%','var(--acc2)')}${ws(fmt(last.eA-s.P))}</div>
+      <div class="mc"><div class="mll">${t('nw_lbl')}</div>${wv(fmt(last.nw),'var(--acc)')}${ws(fIDR(last.nw))}</div>
       <div class="mc"><div class="mll">${t('banked_lbl')}</div><div class="mvv">${fmt(last.banked)}</div><div class="ms">3 ${t('months')}</div></div>
       <div class="mc"><div class="mll">${t('avg_lbl')}</div><div class="mvv">${avgPct.toFixed(1)}%</div><div class="ms">${t('per_active_month')}</div></div>
       <div class="mc"><div class="mll">${t('seq_net_lbl')}</div><div class="mvv" style="color:${mp>=0?'#1D9E75':'#E24B4A'}">${mp>0?'+':''}${mp.toFixed(1)}%</div><div class="ms">${wins}W / ${losses}L · ${actTr} ${t('active_trades')}</div></div>
@@ -1603,6 +1603,15 @@ function render(){
   }
   mh+='</div>';
 
+  // Wipe banner shown instead of note bar when IS_WIPED
+  lbl_w=LANG==='id';
+  const wipeBanner=IS_WIPED?`<div class="wipe-banner">
+    <span class="wipe-banner-icon">💸</span>
+    <div>
+      <div class="wipe-banner-msg">${lbl_w?'SETUP GAGAL TOTAL — liq% < 1%: notional melebihi akun, tidak ada buffer. Setiap pergerakan market melikuidasi seketika.':'SETUP CRITICALLY FAILED — liq% < 1%: notional exceeds account, zero buffer. Any market move causes instant liquidation.'}</div>
+      <div class="wipe-banner-fix">${lbl_w?'Perbaiki: kurangi notional atau tambah modal hingga liq% ≥ 40%':'Fix: reduce notional or increase capital until liq% ≥ 40%'}</div>
+    </div>
+  </div>`:'';
   const noteText=`${t('note_setup')}: acct ${fmt(s.P)} · notional t1 ${fmt(s.NOT)} (${(s.NOT/s.P).toFixed(2)}× acct) · ${t('note_margin')} ${fmt(s.NOT/s.LEV)} ${t('note_at')} ${s.LEV}× lev · liq t1 = ${liqT1.toFixed(1)}% (${t('note_liq',liqT1.toFixed(0))}) · ${actTr}/10 ${t('trades')} ${t('active')} · kpi scale ${s.KPI.toFixed(2)}× · ${t('note_wd')}`;
 
   let IDR_LIVE=typeof IDR!=='undefined'?IDR:16700;
@@ -1656,7 +1665,7 @@ function render(){
   </div>`;
 
   if(ch){ch.destroy();ch=null;}
-  const topBody=mh+`<div class="note">${noteText}</div>`+chartH+(isQ?assessH:'');
+  const topBody=mh+wipeBanner+`<div class="note" style="${IS_WIPED?'border-color:#E24B4A;background:#FCEBEB':''}">${IS_WIPED?'':noteText}</div>`+chartH+(isQ?assessH:'');
   rc.innerHTML=`<div class="top-panel" id="top-panel">
     <button class="top-panel-toggle" onclick="toggleTopPanel()"><span class="tp-dots"><span class="tp-dot"></span><span class="tp-dot"></span><span class="tp-dot"></span></span><span class="tp-arrow">▾</span> <span id="tp-lbl">hide overview</span> <span class="tp-arrow" style="transform:none">▾</span><span class="tp-dots"><span class="tp-dot"></span><span class="tp-dot"></span><span class="tp-dot"></span></span></button>
     <div class="top-panel-body" id="top-panel-body" style="max-height:2000px;opacity:1"><div class="top-panel-body-inner">${topBody}</div></div>
@@ -1750,6 +1759,14 @@ function renderTbl(months){
       const l1=mo.liqT1||0;
       const ll=actTr.length?actTr[actTr.length-1].liq:0;
       const wdVal=s.WD[mo.m]||0;
+      // Wipe state: show error row instead of calculated values
+      if(IS_WIPED){
+        h+=`<tr class="wipe-row">
+          <td>${getML(mo.m)}</td>
+          <td colspan="10" style="font-size:10px;letter-spacing:.02em">💸 ${lbl_w?'setup tidak valid — liq% < 1%, tidak ada nilai yang bisa dihitung':'invalid setup — liq% < 1%, no values can be calculated'}</td>
+        </tr>`;
+        return;
+      }
       h+=`<tr>
         <td style="white-space:nowrap"><input class="lbl-sum" value="${getML(mo.m)}" placeholder="${mo.lb}" onchange="onMonthLabel(${mo.m},this.value)" onclick="this.select()" style="width:72px"> <span onclick="toggleZeroMonth(${mo.m})" title="set as zero month" style="cursor:pointer;font-size:9px;color:var(--tx3);padding:1px 4px;border:0.5px solid var(--bd2);border-radius:3px;user-select:none" onmouseover="this.style.color='var(--acc)'" onmouseout="this.style.color='var(--tx3)'">⊘</span>${mo.mp>1?`<span style="background:#EAF3DE;color:#3B6D11;font-size:9px;padding:1px 4px;border-radius:3px;font-weight:700;margin-left:2px">⚡${mo.mp.toFixed(1)}×</span>`:''}</td>
         <td>${fmt(mo.sA)}</td>
@@ -1785,6 +1802,10 @@ function renderTbl(months){
       const ll=actTr.length?actTr[actTr.length-1].liq:0;
       const wdVal=s.WD[mo.m]||0;
       const postInfo='';
+      if(IS_WIPED){
+        h+=`<tr class="wipe-row"><td>${getML(mo.m)}</td><td colspan="10">💸 ${lbl_w?'setup tidak valid — liq% < 1%':'invalid setup — liq% < 1%'}</td></tr>`;
+        return;
+      }
       const mLabel=getML(mo.m);
       const balanceInfo=mo.wd>0
         ?`<span style="color:var(--mhs)">gross: ${fmt(mo.gA)}</span> <span style="color:#E24B4A;font-size:10px">−${fmt(mo.wd)} wd</span> <span style="color:var(--mhc);font-weight:700">→ ${fmt(mo.eA)}</span>`
