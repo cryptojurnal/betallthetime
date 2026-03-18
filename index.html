@@ -575,10 +575,12 @@ async function fetchIDR(force){
       IDR=d.rates.IDR;
       const now=new Date();
       IDR_LAST_UPDATE=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+      // update rate display
       const el=document.getElementById('idr-rate-val');if(el)el.textContent='Rp'+Math.round(IDR).toLocaleString();
       const el2=document.getElementById('idr-rate-time');if(el2)el2.textContent='upd '+IDR_LAST_UPDATE;
       if(btn)btn.style.opacity='1';
-      if(force)render();
+      // soft update: patch only metric cards that show IDR values — no chart rebuild
+      if(force) softUpdate();
     }
   }catch(e){const btn=document.getElementById('idr-refresh');if(btn)btn.style.opacity='1';}
 }
@@ -1236,12 +1238,72 @@ function onMP(m,v){
   if(el) el.classList.toggle('active',val>1);
   render();
 }
+// ── SOFT UPDATE: re-sim + patch metrics + table without rebuilding chart ──
+function softUpdate(){
+  if(IS_WIPED){render();return;} // full render if wiped state needs to change
+  const s=gs();
+  const isQ=TAB==='q';
+  const months=sim();
+  const last=months[months.length-1];
+  const act=months.filter(r=>!r.isZ);
+  const avgPct=act.length?act.reduce((a,r)=>a+r.pct,0)/act.length:0;
+  const {actTr,wins,losses,net:mp}=seqStats(s);
+  const liqT1=s.P/s.NOT*100;
+  const tr=(last.nw/s.P-1)*100;
+
+  // patch metric cards by re-rendering only .metrics div
+  const metricsEl=document.querySelector('.metrics');
+  if(metricsEl){
+    const cagr=isQ?null:(Math.pow(Math.max(last.nw,s.P)/s.P,1/3)-1)*100;
+    const m1M=!isQ?months.find(r=>r.nw>=1000000):null;
+    let mh='';
+    if(isQ){
+      mh=`
+        <div class="mc"><div class="mll">${t('q_end_lbl')}</div><div class="mvv" style="color:var(--acc2)">${fmt(last.eA)}</div><div class="ms">${fIDR(last.eA)}</div></div>
+        <div class="mc"><div class="mll">${t('total_gain_lbl')}</div><div class="mvv" style="color:var(--acc2)">+${tr.toFixed(1)}%</div><div class="ms">${fmt(last.eA-s.P)}</div></div>
+        <div class="mc"><div class="mll">${t('nw_lbl')}</div><div class="mvv" style="color:var(--acc)">${fmt(last.nw)}</div><div class="ms">${fIDR(last.nw)}</div></div>
+        <div class="mc"><div class="mll">${t('banked_lbl')}</div><div class="mvv">${fmt(last.banked)}</div><div class="ms">3 ${t('months')}</div></div>
+        <div class="mc"><div class="mll">${t('avg_lbl')}</div><div class="mvv">${avgPct.toFixed(1)}%</div><div class="ms">${t('per_active_month')}</div></div>
+        <div class="mc"><div class="mll">${t('seq_net_lbl')}</div><div class="mvv" style="color:${mp>=0?'#1D9E75':'#E24B4A'}">${mp>0?'+':''}${mp.toFixed(1)}%</div><div class="ms">${wins}W / ${losses}L · ${actTr} ${t('active_trades')}</div></div>`;
+    } else {
+      mh=`
+        <div class="mc"><div class="mll">${t('cagr_lbl')}</div><div class="mvv" style="color:var(--acc2)">${cagr.toFixed(1)}%</div><div class="ms">${t('cagr_sub')}</div></div>
+        <div class="mc"><div class="mll">${t('total_ret_lbl')}</div><div class="mvv">${tr>9999?(tr/1000).toFixed(0)+'k%':tr.toFixed(0)+'%'}</div><div class="ms">${t('total_ret_sub',fmt(s.P))}</div></div>
+        <div class="mc"><div class="mll">${t('end_acct_lbl')}</div><div class="mvv" style="color:var(--acc2)">${fmt(last.eA)}</div><div class="ms">${fIDR(last.eA)}</div></div>
+        <div class="mc"><div class="mll">${t('banked_lbl')}</div><div class="mvv" style="color:var(--acc)">${fmt(last.banked)}</div><div class="ms">${t('banked_sub')}</div></div>
+        <div class="mc"><div class="mll">${t('nw_lbl')}</div><div class="mvv">${fmt(last.nw)}</div><div class="ms">${t('nw_sub')} · ${fIDR(last.nw)}</div></div>
+        <div class="mc"><div class="mll">${t('milestone_lbl')}</div><div class="mvv" style="color:${m1M?'var(--acc2)':'#E24B4A'}">${m1M?getMLabel(m1M.m):t('beyond36')}</div><div class="ms">${m1M?t('milestone_hit')+getMLabel(m1M.m):t('milestone_miss')}</div></div>
+        <div class="mc"><div class="mll">${t('avg_lbl')}</div><div class="mvv">${avgPct.toFixed(1)}%</div><div class="ms">${t('avg_sub')} · ${(36-s.ZM.size)} ${t('active')}</div></div>
+        <div class="mc"><div class="mll">${t('seq_net_lbl')}</div><div class="mvv" style="color:${mp>=0?'#1D9E75':'#E24B4A'}">${mp>0?'+':''}${mp.toFixed(1)}%</div><div class="ms">${wins}W / ${losses}L · ${actTr}/10</div></div>
+        <div class="mc"><div class="mll">${t('liq_mc_lbl')}</div><div class="mvv" style="color:${lc(liqT1)}">${liqT1.toFixed(1)}%</div><div class="ms">${t('liq_mc_sub',liqT1.toFixed(0))}</div></div>
+        <div class="mc" style="opacity:.35;pointer-events:none"><div class="mll" style="color:var(--tx3)">— —</div><div class="mvv" style="color:var(--tx3)">—</div><div class="ms" style="color:var(--tx3)">your slot</div></div>`;
+    }
+    metricsEl.innerHTML=mh;
+  }
+
+  // patch assess-side cards (36-month) or quarter assess bar
+  if(!isQ){
+    const aside=document.getElementById('assess-side');
+    if(aside) aside.innerHTML=buildAssessmentCards(months,s);
+  } else {
+    const assessEl=document.querySelector('.assess-bar')?.parentElement;
+    // re-render assess bar in place
+    const ab=document.querySelector('.assess-bar');
+    if(ab) ab.outerHTML=buildAssessment(months,s);
+  }
+
+  // patch table only
+  renderTbl(months);
+}
+
 function onWdInline(m,v){
   const val=parseFloat(v)||0;
   gs().WD[m]=val;
+  // autosave WD immediately
+  try{localStorage.setItem('wz_'+TAB+'_wd',JSON.stringify({WD:{...gs().WD}}));}catch(e){}
   const el=document.getElementById('wd-inp-'+m);
   if(el)el.classList.toggle('active',val>0);
-  render();
+  softUpdate();
 }
 
 function setLang(lang){
@@ -1738,7 +1800,9 @@ function renderTbl(months){
   let h='';
   if(VIEW==='sum'){
     h=`<thead><tr>
-      <th>month</th><th>start</th><th>end</th>
+      <th>month</th>
+      <th>start<br><span style="font-weight:400;color:var(--tx3);text-transform:none;letter-spacing:0;font-size:8px">notional t1</span></th>
+      <th>end<br><span style="font-weight:400;color:var(--tx3);text-transform:none;letter-spacing:0;font-size:8px">acct balance</span></th>
       <th>monthly%</th><th>net gain</th>
       <th>withdrawal ✏️</th>
       <th>banked</th><th>NW</th>
@@ -1773,7 +1837,7 @@ function renderTbl(months){
         <td style="color:var(--acc2);font-weight:700">${mo.wd>0?`<span style='color:var(--tx2);font-size:10px'>${fmt(mo.gA)}</span> <span style='color:#E24B4A;font-size:9px'>−${fmt(mo.wd)}</span><br><span style='font-weight:700'>${fmt(mo.eA)}</span>`:fmt(mo.eA)}</td>
         <td>${mo.pct.toFixed(1)}%</td>
         <td>+${fmt(gain)}</td>
-        <td><div class="wd-cell"><input type="number" class="wd-inp${wdVal>0?' active':''}" id="wd-inp-${mo.m}" value="${wdVal||''}" min="0" step="1" placeholder="0" oninput="onWdInline(${mo.m},this.value)"></div></td>
+        <td><div class="wd-cell"><input type="number" class="wd-inp${wdVal>0?' active':''}" id="wd-inp-${mo.m}" value="${wdVal||''}" min="0" step="1" placeholder="0" onchange="onWdInline(${mo.m},this.value)" onblur="onWdInline(${mo.m},this.value)"></div></td>
         <td style="color:var(--acc)">${fmt(mo.banked)}</td>
         <td style="font-weight:700">${fmt(mo.nw)}</td>
         <td style="color:${lc(l1)};font-weight:700">${l1.toFixed(0)}%</td>
@@ -1823,7 +1887,7 @@ function renderTbl(months){
         </td>
         <td style="color:var(--mhs)">+${mo.pct.toFixed(1)}%</td>
         <td>end: ${balanceInfo}</td>
-        <td><div class="wd-cell"><input type="number" class="wd-inp${wdVal>0?' active':''}" id="wd-inp-d-${mo.m}" value="${wdVal||''}" min="0" step="1" placeholder="0" oninput="onWdInline(${mo.m},this.value)"></div></td>
+        <td><div class="wd-cell"><input type="number" class="wd-inp${wdVal>0?' active':''}" id="wd-inp-d-${mo.m}" value="${wdVal||''}" min="0" step="1" placeholder="0" onchange="onWdInline(${mo.m},this.value)" onblur="onWdInline(${mo.m},this.value)"></div></td>
       </tr>`;
       mo.trades.forEach(t=>{
         if(t.skip){
