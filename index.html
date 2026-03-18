@@ -204,9 +204,19 @@ input[type=number]:focus{outline:none;border-color:var(--acc)}
 .lgd{display:flex;gap:10px;margin-bottom:6px;font-size:10px;color:var(--tx2);flex-wrap:wrap;align-items:center}
 .ld{width:10px;height:3px;border-radius:2px;display:inline-block;margin-right:2px;vertical-align:middle}
 .ft{font-size:9px;color:var(--tx3);margin-top:8px;line-height:1.7}
+/* ── WIPE ALERT ── */
+.wipe-alert{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:40px 24px;text-align:center;min-height:260px}
+.wipe-icon{font-size:48px;line-height:1;animation:wipePulse 1.4s ease-in-out infinite}
+@keyframes wipePulse{0%,100%{opacity:.6;transform:scale(1)}50%{opacity:1;transform:scale(1.08)}}
+.wipe-title{font-size:20px;font-weight:900;color:#E24B4A;letter-spacing:-.01em}
+.wipe-body{font-size:12px;color:var(--tx2);line-height:1.8;max-width:480px}
+.wipe-body b{color:#E24B4A}
+.wipe-detail{background:#FCEBEB;border:1px solid #E24B4A;border-radius:8px;padding:10px 16px;font-size:11px;color:#A32D2D;line-height:1.7;max-width:420px;width:100%}
+body.t-dark .wipe-detail{background:#2a0a0a;color:#ff7070;border-color:#7a0000}
 /* top panel collapse */
 .top-panel{position:relative;margin-bottom:0}
-.top-panel-body{overflow:hidden;transition:max-height .4s ease,opacity .3s ease}
+.top-panel-body{overflow:hidden;max-height:2000px;transition:max-height .4s ease,opacity .3s ease}
+.top-panel-body-inner{overflow-x:auto;overflow-y:visible;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y}
 .top-panel.collapsed .top-panel-body{max-height:0!important;opacity:0;pointer-events:none}
 .top-panel-toggle{display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;width:100%;padding:5px 10px;margin-bottom:6px;user-select:none;border:none;border-top:2px solid var(--acc2);border-bottom:2px solid var(--acc2);background:var(--sf2);color:var(--acc2);font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;transition:background .2s,opacity .2s}
 .top-panel-toggle:hover{background:var(--btno);opacity:.9}
@@ -992,7 +1002,7 @@ let TAB='36', THEME='t-light', VIEW='sum', ch=null, GLOBAL_MODE=true, TOP_PANEL_
 
 // each tab has its own full state
 const S={
-  '36':{P:1000,LEV:5,NOT:2500,KPI:1.0,BT:[...DEF_BT],FR:[...DEF_FR],WD:{},ML:{},TL:{},MT:{},ZM:new Set([...ZERO_36_DEF]),MP:{}},
+  '36':{P:1000,LEV:5,NOT:2500,KPI:1.0,BT:[...DEF_BT],FR:[...DEF_FR],WD:{},ML:{},TL:{},MT:{},ZM:new Set([]),MP:{}},
   'q': {P:1000,LEV:5,NOT:2500,KPI:1.0,BT:[...DEF_BT],FR:[...DEF_FR],WD:{},ML:{},TL:{},MT:{},ZM:new Set([]),MP:{}}
 };
 
@@ -1532,17 +1542,39 @@ function render(){
   updComp();
   const s=gs();
   const isQ=TAB==='q';
+  const liqT1=s.P/s.NOT*100;
+  const rc=document.getElementById('right-content');
+
+  // ── WIPE GUARD: liq% ≤ 0 means account wiped — show alert, skip all calculation ──
+  if(liqT1<=0||!isFinite(liqT1)){
+    const lbl=LANG==='id';
+    rc.innerHTML=`<div class="wipe-alert">
+      <div class="wipe-icon">💸</div>
+      <div class="wipe-title">${lbl?'AKUN TERHAPUS':'ACCOUNT WIPED'}</div>
+      <div class="wipe-body">
+        ${lbl
+          ?'Liq% mencapai <b>0% atau di bawahnya</b> — setup ini secara matematis tidak layak. Notional kamu melebihi atau sama dengan saldo akun, artinya tidak ada buffer sama sekali. Setiap pergerakan pasar akan melikuidasi posisi seketika.'
+          :'Liq% has hit <b>0% or below</b> — this setup is mathematically inviable. Your notional equals or exceeds your account balance, meaning there is <b>zero buffer</b>. Any market movement liquidates your position instantly.'}
+      </div>
+      <div class="wipe-detail">
+        ${lbl?'cara memperbaikinya:':'how to fix this:'}<br>
+        · ${lbl?'kurangi notional (trade 1) di bawah saldo akun':'reduce notional (trade 1) below your account balance'}<br>
+        · ${lbl?'atau tambah starting capital':'or increase your starting capital'}<br>
+        · ${lbl?'target liq% minimal 40% (floor)':'aim for liq% ≥ 40% minimum (floor)'}<br>
+        · ${lbl?'liq% = akun ÷ notional × 100':'liq% = account ÷ notional × 100'}
+      </div>
+    </div>`;
+    return; // stop — render nothing else
+  }
+
   const months=sim();
   const last=months[months.length-1];
   const act=months.filter(r=>!r.isZ);
   const avgPct=act.length?act.reduce((a,r)=>a+r.pct,0)/act.length:0;
   const {actTr,wins,losses,net:mp,upside:mpUp,downside:mpDown}=seqStats(s);
-  const liqT1=s.P/s.NOT*100;
   const cagr=isQ?null:(Math.pow(Math.max(last.nw,s.P)/s.P,1/3)-1)*100;
   const tr=(last.nw/s.P-1)*100;
   const m1M=!isQ?months.find(r=>r.nw>=1000000):null;
-
-  const rc=document.getElementById('right-content');
 
   // metrics
   let mh='<div class="metrics">';
@@ -1627,8 +1659,8 @@ function render(){
   const topBody=mh+`<div class="note">${noteText}</div>`+chartH+(isQ?assessH:'');
   rc.innerHTML=`<div class="top-panel" id="top-panel">
     <button class="top-panel-toggle" onclick="toggleTopPanel()"><span class="tp-dots"><span class="tp-dot"></span><span class="tp-dot"></span><span class="tp-dot"></span></span><span class="tp-arrow">▾</span> <span id="tp-lbl">hide overview</span> <span class="tp-arrow" style="transform:none">▾</span><span class="tp-dots"><span class="tp-dot"></span><span class="tp-dot"></span><span class="tp-dot"></span></span></button>
-    <div class="top-panel-body" id="top-panel-body" style="max-height:2000px;opacity:1">${topBody}</div>
-  </div>`+togH+`<div class="tw"><table id="tbl"></table></div><p class="ft">liq% = account ÷ notional × 100 · higher = safer · 0 target or freq = trade skipped</p>`;
+    <div class="top-panel-body" id="top-panel-body" style="max-height:2000px;opacity:1"><div class="top-panel-body-inner">${topBody}</div></div>
+  </div>`+togH+`<div class="tw"><table id="tbl"></table></div><div id="guide-content" style="display:none"></div><p class="ft">liq% = account ÷ notional × 100 · higher = safer · 0 target or freq = trade skipped</p>`;
   _applyTopPanel();
 
   if(!isQ){
@@ -1678,6 +1710,16 @@ function render(){
     ch=null;
   }
   renderTbl(months);
+  // sync guide/table visibility after render rebuilds DOM
+  const _gc=document.getElementById('guide-content');
+  const _tbl=document.getElementById('tbl');
+  if(VIEW==='guide'){
+    if(_tbl) _tbl.style.display='none';
+    if(_gc){_gc.style.display='';renderGuide();}
+  } else {
+    if(_gc) _gc.style.display='none';
+    if(_tbl) _tbl.style.display='';
+  }
 }
 
 function renderTbl(months){
@@ -1833,17 +1875,26 @@ function setView(v,btn){
   VIEW=v;
   document.getElementById('vt')?.querySelectorAll('.tb').forEach(b=>b.classList.remove('on'));
   if(btn)btn.classList.add('on');
-  if(v==='guide'){renderGuide();return;}
-  // if table was replaced by guide content, do full render to restore it
-  if(!document.getElementById('tbl')){render();return;}
+  const tbl=document.getElementById('tbl');
+  const gc=document.getElementById('guide-content');
+  if(v==='guide'){
+    if(tbl) tbl.style.display='none';
+    if(gc){gc.style.display='';renderGuide();}
+    return;
+  }
+  // switching back from guide — just show table, hide guide
+  if(gc) gc.style.display='none';
+  if(tbl) tbl.style.display='';
+  // if tbl was never built yet, do a full render
+  if(!tbl){render();return;}
   renderTbl(sim());
 }
 
 function renderGuide(){
-  const tw=document.querySelector('.tw');
-  if(!tw)return;
+  const gc=document.getElementById('guide-content');
+  if(!gc)return;
   const html=LANG==='id'?GUIDE_HTML_ID:GUIDE_HTML;
-  tw.innerHTML=`<div class="guide-wrap">${html}</div>`;
+  gc.innerHTML=`<div class="guide-wrap">${html}</div>`;
 }
 
 // ── CONTROLS ──
