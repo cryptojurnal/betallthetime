@@ -151,9 +151,10 @@ body.t-lavender{--bg:#f0eef8;--panel:#fff;--bd:#d8d4f0;--bd2:#e4e0f4;--sf:#f8f6f
 
 
 /* ── SPOT MODE ── */
-.spot-badge{display:inline-flex;align-items:center;gap:3px;font-size:8px;font-weight:700;padding:2px 6px;border-radius:10px;letter-spacing:.04em;text-transform:uppercase;transition:all .3s}
+.spot-badge{display:inline-flex;flex-direction:column;align-items:center;gap:1px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:10px;letter-spacing:.04em;text-transform:uppercase;transition:all .3s;line-height:1.3;flex-shrink:0}
+.spot-badge-sub{font-size:7px;font-weight:400;opacity:.75;letter-spacing:.03em;text-transform:none}
 .spot-badge.lev{background:#1D3A5F;color:#5BB0FF;border:0.5px solid #2A5080}
-.spot-badge.spot{background:#2A4A2A;color:#5DC96A;border:0.5px solid #3A6A3A}
+.spot-badge.spot{background:#1A3A1A;color:#5DC96A;border:0.5px solid #3A6A3A}
 .mode-switcher{display:flex;align-items:center;gap:0;border:0.5px solid var(--bd2);border-radius:6px;overflow:hidden;margin:4px 0}
 .msw-btn{flex:1;padding:4px 6px;font-size:9px;font-weight:700;border:none;cursor:pointer;background:transparent;color:var(--tx3);letter-spacing:.04em;text-transform:uppercase;transition:all .2s}
 .msw-btn.on{background:var(--acc2);color:#fff}
@@ -463,10 +464,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
   <div class="collapsed-label" onclick="togglePanel()">bet all the time · controls</div>
   <div class="pl-body">
   <div class="pl-head">
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:4px">
-      <h1 style="font-size:18px;font-weight:900;line-height:1.2;letter-spacing:-.02em;color:var(--tx)">bet all the time<br><span style="font-size:18px;font-weight:900">bet with style</span></h1>
-      <span id="spot-badge" class="spot-badge lev" style="margin-top:2px;flex-shrink:0">⚡ leverage</span>
-    </div>
+    <h1 style="font-size:18px;font-weight:900;line-height:1.2;letter-spacing:-.02em;color:var(--tx)">bet all the time<br><span style="font-size:18px;font-weight:900">bet with style</span></h1>
     <p style="margin-top:2px"><a href="https://t.me/CryptoJurnal" target="_blank" style="color:var(--acc2);font-weight:700;text-decoration:none;font-size:10px">by @cryptojurnal ↗</a></p>
     <p style="color:var(--tx3);font-size:9px;margin-top:1px" id="liq-desc">liq% = account ÷ notional · higher = safer</p>
   </div>
@@ -1736,7 +1734,10 @@ function setSpotMode(isSpot){
   s.SPOT=isSpot;
   // update badge
   const badge=document.getElementById('spot-badge');
-  if(badge){badge.className='spot-badge '+(isSpot?'spot':'lev');badge.textContent=isSpot?'◈ spot':'⚡ leverage';}
+  if(badge){
+    badge.className='spot-badge '+(isSpot?'spot':'lev');
+    badge.innerHTML=(isSpot?'◈ spot dashboard':'⚡ leverage dashboard')+'<span class="spot-badge-sub">current mode</span>';
+  }
   // switcher buttons
   const bl=document.getElementById('msw-lev'),bs=document.getElementById('msw-spot');
   if(bl)bl.classList.toggle('on',!isSpot);
@@ -2246,7 +2247,10 @@ function render(){
   if(ch){ch.destroy();ch=null;}
   const topBody=mh+wipeBanner+`<div class="note" style="${IS_WIPED?'border-color:#E24B4A;background:#FCEBEB':''}">${IS_WIPED?'':noteText}</div>`+chartH+(isQ?assessH:'');
   rc.innerHTML=`<div class="top-panel" id="top-panel">
-    <button class="top-panel-toggle" onclick="toggleTopPanel()"><span class="tp-dots"><span class="tp-dot"></span><span class="tp-dot"></span><span class="tp-dot"></span></span><span class="tp-arrow">▾</span> <span id="tp-lbl">hide overview</span> <span class="tp-arrow" style="transform:none">▾</span><span class="tp-dots"><span class="tp-dot"></span><span class="tp-dot"></span><span class="tp-dot"></span></span></button>
+    <div style="display:flex;align-items:center;gap:0;width:100%">
+      <button class="top-panel-toggle" onclick="toggleTopPanel()" style="flex:1"><span class="tp-dots"><span class="tp-dot"></span><span class="tp-dot"></span><span class="tp-dot"></span></span><span class="tp-arrow">▾</span> <span id="tp-lbl">hide overview</span> <span class="tp-arrow" style="transform:none">▾</span><span class="tp-dots"><span class="tp-dot"></span><span class="tp-dot"></span><span class="tp-dot"></span></span></button>
+      <span id="spot-badge" class="spot-badge lev" style="margin:4px 8px 4px 0;border-left:none">⚡ leverage dashboard<span class="spot-badge-sub">current mode</span></span>
+    </div>
     <div class="top-panel-body" id="top-panel-body" style="max-height:2000px;opacity:1"><div class="top-panel-body-inner">${topBody}</div></div>
   </div>`+togH+`<div class="tw"><table id="tbl"></table></div><div id="guide-content" style="display:none"></div><p class="ft">liq% = account ÷ notional × 100 · higher = safer · 0 target or freq = trade skipped</p>`;
   _applyTopPanel();
