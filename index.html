@@ -70,23 +70,27 @@ function _spotlightGuideTab(){
       requestAnimationFrame(()=>sl.classList.add('visible'));
     }
 
-    // Draw SVG arrow from popup bottom toward the guide tab
+    // Draw SVG arrow: start from popup bottom-center, curve down-left to guide tab left edge
     requestAnimationFrame(()=>{
       const popup=document.querySelector('.popup-box');
       if(!popup) return;
       const pr=popup.getBoundingClientRect();
-      // divide by zoom for correct unscaled positions
-      const sx=(pr.left/zoom)+32, sy=(pr.bottom/zoom)-2;
-      const ex=cx+cw*0.6, ey=cy+ch/2;
+      // start: bottom-center of popup
+      const sx=(pr.left/zoom)+(pr.width/zoom)/2, sy=(pr.bottom/zoom)+2;
+      // end: left edge of guide tab, vertically centered — so full "guide book" text stays visible
+      const ex=cx+8, ey=cy+ch/2;
       const svg=document.getElementById('popup-arrow-svg');
       if(!svg) return;
       svg.style.display='block';
-      const mx=(sx+ex)/2, my=sy+30;
-      svg.querySelector('path').setAttribute('d',`M${sx},${sy} Q${mx},${my} ${ex},${ey}`);
-      const ang=Math.atan2(ey-my,ex-mx);
-      const al=12;
-      const ax1=ex-al*Math.cos(ang-0.45), ay1=ey-al*Math.sin(ang-0.45);
-      const ax2=ex-al*Math.cos(ang+0.45), ay2=ey-al*Math.sin(ang+0.45);
+      // smooth cubic bezier: drop down then sweep left
+      const c1x=sx, c1y=sy+60;        // first control: straight down from start
+      const c2x=ex+40, c2y=ey-10;     // second control: approach from right
+      svg.querySelector('path').setAttribute('d',`M${sx},${sy} C${c1x},${c1y} ${c2x},${c2y} ${ex},${ey}`);
+      // arrowhead pointing left toward the tab
+      const ang=Math.atan2(ey-c2y, ex-c2x);
+      const al=13;
+      const ax1=ex-al*Math.cos(ang-0.4), ay1=ey-al*Math.sin(ang-0.4);
+      const ax2=ex-al*Math.cos(ang+0.4), ay2=ey-al*Math.sin(ang+0.4);
       svg.querySelector('polygon').setAttribute('points',`${ex},${ey} ${ax1},${ay1} ${ax2},${ay2}`);
       requestAnimationFrame(()=>svg.classList.add('visible'));
     });
@@ -506,7 +510,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 <div id="guide-popup">
   <div class="popup-box">
     <div class="popup-title">📖 start with the guide book</div>
-    <div class="popup-body">everything you need to know before using this dashboard — concepts, controls, risk rules, and how to read every number.</div>
+    <div class="popup-body">the guide book walks you through how everything works — liq%, fees, trade slots, risk scores, and more. a good read before diving in.<br><br>and if you ever have questions along the way, <b>Kira</b> 🤖 is always there — your built-in assistant who knows this dashboard inside out.</div>
     <div class="popup-hint">↙ the guide book tab is highlighted below</div>
     <button class="popup-ok" onclick="dismissPopup()">okay, let me explore</button>
   </div>
@@ -1790,7 +1794,9 @@ function setLang(lang){
   const pt=document.querySelector('.popup-title');
   if(pt) pt.textContent=id?'📖 mulai dengan panduan':'📖 start with the guide book';
   const pb=document.querySelector('.popup-body');
-  if(pb) pb.textContent=id?'semua yang perlu kamu ketahui sebelum menggunakan dashboard ini — konsep, kontrol, aturan risiko, dan cara membaca setiap angka.':'everything you need to know before using this dashboard — concepts, controls, risk rules, and how to read every number.';
+  if(pb) pb.innerHTML=id
+    ?'panduan menjelaskan cara kerja semuanya — liq%, biaya, slot trade, skor risiko, dan lainnya. bacaan yang bagus sebelum mulai.<br><br>dan kalau ada pertanyaan di tengah jalan, <b>Kira</b> 🤖 selalu siap membantu — asisten built-in yang tahu dashboard ini luar dalam.'
+    :'the guide book walks you through how everything works — liq%, fees, trade slots, risk scores, and more. a good read before diving in.<br><br>and if you ever have questions along the way, <b>Kira</b> 🤖 is always there — your built-in assistant who knows this dashboard inside out.';
   const ph=document.querySelector('.popup-hint');
   if(ph) ph.textContent=id?'↙ tab panduan disorot di bawah':'↙ the guide book tab is highlighted below';
   const pok=document.querySelector('.popup-ok');
