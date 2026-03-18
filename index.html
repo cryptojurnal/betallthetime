@@ -1680,9 +1680,7 @@ function setLang(lang){
   ['lang-en','lang-en-btn'].forEach(id2=>{const b=document.getElementById(id2);if(b){b.style.background=lang==='en'?'var(--acc)':'transparent';b.style.color=lang==='en'?'#fff':'var(--tx2)';b.style.borderColor=lang==='en'?'var(--acc)':'var(--bd2)';}});
   ['lang-id','lang-id-btn'].forEach(id2=>{const b=document.getElementById(id2);if(b){b.style.background=lang==='id'?'var(--acc)':'transparent';b.style.color=lang==='id'?'#fff':'var(--tx2)';b.style.borderColor=lang==='id'?'var(--acc)':'var(--bd2)';}});
 
-  // liq-desc under title
-  const ld=document.getElementById('liq-desc');
-  if(ld) ld.textContent=id?'liq% = akun ÷ notional · lebih tinggi = lebih aman':'liq% = account ÷ notional · higher = safer';
+  // liq-desc is owned by setSpotMode — updated after render() via syncControls
 
   // layer 2 intro disclaimer
   const l2credit=document.querySelector('.l2-credit');
@@ -2254,7 +2252,9 @@ function render(){
     </div>
   </div>`:'';
   const noteText=s.SPOT
-    ?`◈ spot mode · acct ${fmt(s.P)} · position = full capital · no leverage · no liquidation · fee: ${s.FEE.method} ${s.FEE.method==='maker'?s.FEE.maker:s.FEE.taker}% × 2 per trade · ${actTr}/10 ${t('trades')} ${t('active')} · kpi scale ${s.KPI.toFixed(2)}×`
+    ?(LANG==='id'
+      ?`◈ mode spot · akun ${fmt(s.P)} · posisi = modal penuh · tanpa leverage · tanpa likuidasi · biaya: ${s.FEE.method} ${s.FEE.method==='maker'?s.FEE.maker:s.FEE.taker}% × 2 per trade · ${actTr}/10 trade ${t('active')} · kpi scale ${s.KPI.toFixed(2)}×`
+      :`◈ spot mode · acct ${fmt(s.P)} · position = full capital · no leverage · no liquidation · fee: ${s.FEE.method} ${s.FEE.method==='maker'?s.FEE.maker:s.FEE.taker}% × 2 per trade · ${actTr}/10 ${t('trades')} ${t('active')} · kpi scale ${s.KPI.toFixed(2)}×`)
     :`${t('note_setup')}: acct ${fmt(s.P)} · notional t1 ${fmt(s.NOT)} (${(s.NOT/s.P).toFixed(2)}× acct) · ${t('note_margin')} ${fmt(s.NOT/s.LEV)} ${t('note_at')} ${s.LEV}× lev · liq t1 = ${liqT1.toFixed(1)}% (${t('note_liq',liqT1.toFixed(0))}) · ${actTr}/10 ${t('trades')} ${t('active')} · kpi scale ${s.KPI.toFixed(2)}× · ${t('note_wd')}`;
 
   let IDR_LIVE=typeof IDR!=='undefined'?IDR:16700;
@@ -2315,7 +2315,7 @@ function render(){
       <span id="spot-badge" class="spot-badge ${s.SPOT?'spot':'lev'}" style="margin:0;margin-right:8px;border-left:none;align-self:stretch;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:0 6px 6px 0">${s.SPOT?'◈ spot dashboard':'⚡ leverage dashboard'}<span class="spot-badge-sub">current mode</span></span>
     </div>
     <div class="top-panel-body" id="top-panel-body" style="max-height:2000px;opacity:1"><div class="top-panel-body-inner">${topBody}</div></div>
-  </div>`+togH+`<div class="tw"><table id="tbl"></table></div><div id="guide-content" style="display:none"></div><p class="ft">liq% = account ÷ notional × 100 · higher = safer · 0 target or freq = trade skipped</p>`;
+  </div>`+togH+`<div class="tw"><table id="tbl"></table></div><div id="guide-content" style="display:none"></div><p class="ft">${LANG==='id'?'liq% = akun ÷ notional × 100 · lebih tinggi = lebih aman · target atau freq = 0 → trade dilewati':'liq% = account ÷ notional × 100 · higher = safer · 0 target or freq = trade skipped'}</p>`;
   _applyTopPanel();
 
   if(!isQ){
