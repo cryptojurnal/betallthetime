@@ -215,7 +215,7 @@ body.t-lavender{--bg:#f0eef8;--panel:#fff;--bd:#d8d4f0;--bd2:#e4e0f4;--sf:#f8f6f
 
 
 /* ── AI ASSISTANT ── */
-#ai-fab{position:fixed;bottom:22px;right:22px;z-index:9000;width:50px;height:50px;border-radius:50%;background:var(--acc2);border:none;cursor:grab;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 4px 18px rgba(0,0,0,.35);transition:box-shadow .2s;user-select:none;touch-action:none}
+#ai-fab{position:fixed;bottom:22px;right:22px;z-index:9000;width:50px;height:50px;border-radius:50%;background:var(--acc2);border:none;cursor:grab;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 4px 18px rgba(0,0,0,.35);transition:box-shadow .2s;user-select:none;touch-action:none;opacity:0;pointer-events:none}
 #ai-fab:hover{box-shadow:0 6px 28px rgba(0,0,0,.45)}
 #ai-fab.dragging{cursor:grabbing;box-shadow:0 8px 32px rgba(0,0,0,.5);transform:scale(1.06)}
 #ai-notif{position:absolute;top:2px;right:2px;width:11px;height:11px;background:#E24B4A;border-radius:50%;border:2px solid #fff;display:none}
@@ -2931,6 +2931,8 @@ function launchApp(){
   const l2=document.getElementById('layer2');if(!l2)return;
   const app=document.querySelector('.app');
   if(app) app.style.opacity='1';
+  const fab=document.getElementById('ai-fab');
+  if(fab){fab.style.opacity='1';fab.style.pointerEvents='';}
   l2.classList.add('out');
   setTimeout(()=>{l2.classList.add('hidden');showGuidePopup();},900);
 }
@@ -3127,7 +3129,7 @@ window.addEventListener('resize',function(){
   if(AI_OPEN) aiPositionPanel();
 });
 (function(){
-  var fab, dx, dy, dragging=false, hasMoved=false;
+  var fab, dx, dy, startX, startY, dragging=false, DRAG_THRESHOLD=6;
   function onDown(e){
     fab=document.getElementById('ai-fab');
     var pt=e.touches?e.touches[0]:e;
@@ -3135,7 +3137,9 @@ window.addEventListener('resize',function(){
     var r=fab.getBoundingClientRect();
     dx=pt.clientX/zoom-r.left/zoom;
     dy=pt.clientY/zoom-r.top/zoom;
-    dragging=true; hasMoved=false;
+    startX=pt.clientX/zoom;
+    startY=pt.clientY/zoom;
+    dragging=true;
     fab.classList.add('dragging');
     e.preventDefault();
   }
@@ -3143,6 +3147,9 @@ window.addEventListener('resize',function(){
     if(!dragging)return;
     var pt=e.touches?e.touches[0]:e;
     var zoom=parseFloat(getComputedStyle(document.documentElement).zoom)||1;
+    // only start moving if past threshold
+    var distX=pt.clientX/zoom-startX, distY=pt.clientY/zoom-startY;
+    if(Math.sqrt(distX*distX+distY*distY)<DRAG_THRESHOLD)return;
     var W=window.innerWidth/zoom, H=window.innerHeight/zoom;
     var x=pt.clientX/zoom-dx;
     var y=pt.clientY/zoom-dy;
@@ -3150,25 +3157,48 @@ window.addEventListener('resize',function(){
     y=Math.max(8,Math.min(y,H-58));
     fab.style.left=x+'px'; fab.style.top=y+'px';
     fab.style.right='auto'; fab.style.bottom='auto';
-    hasMoved=true;
     if(AI_OPEN) aiPositionPanel();
     try{localStorage.setItem('wz_ai_pos',JSON.stringify({x:x,y:y}));}catch(ex){}
     e.preventDefault();
   }
   function onUp(e){
     if(!dragging)return;
+    var pt=e.touches?e.changedTouches[0]:e;
+    var zoom=parseFloat(getComputedStyle(document.documentElement).zoom)||1;
+    var distX=pt.clientX/zoom-startX, distY=pt.clientY/zoom-startY;
+    var moved=Math.sqrt(distX*distX+distY*distY)>=DRAG_THRESHOLD;
     dragging=false;
     if(fab)fab.classList.remove('dragging');
-    // if barely moved, treat as click = toggle
-    if(!hasMoved) aiToggle();
+    // only toggle if it was a tap/click, not a drag
+    if(!moved) aiToggle();
   }
   window.addEventListener('DOMContentLoaded',function(){
     var f=document.getElementById('ai-fab');
     if(!f)return;
-    // restore saved position
+    // restore saved position or default under the badge (top-right area)
     try{
       var saved=JSON.parse(localStorage.getItem('wz_ai_pos'));
-      if(saved){f.style.left=saved.x+'px';f.style.top=saved.y+'px';f.style.right='auto';f.style.bottom='auto';}
+      if(saved){
+        f.style.left=saved.x+'px';
+        f.style.top=saved.y+'px';
+        f.style.right='auto';
+        f.style.bottom='auto';
+      } else {
+        // default: top-right, under the badge bar — position dynamically after render
+        setTimeout(function(){
+          var zoom=parseFloat(getComputedStyle(document.documentElement).zoom)||1;
+          var badge=document.getElementById('spot-badge');
+          if(badge){
+            var br=badge.getBoundingClientRect();
+            var x=(br.right/zoom)-54;
+            var y=(br.bottom/zoom)+12;
+            f.style.left=x+'px';
+            f.style.top=y+'px';
+            f.style.right='auto';
+            f.style.bottom='auto';
+          }
+        },800);
+      }
     }catch(ex){}
     f.addEventListener('mousedown',onDown);
     f.addEventListener('touchstart',onDown,{passive:false});
