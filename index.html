@@ -532,41 +532,6 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
     </div>
   </div>
   <button class="save-btn" id="save-pos" onclick="saveSection('pos')">💾 save position</button>
-
-  <div class="divider"></div>
-
-  <!-- kpi -->
-  <div class="sec">
-    <div class="seclbl">kpi scale (global)</div>
-    <div style="display:flex;justify-content:space-between;align-items:center;margin:2px 0 1px">
-      <span style="font-size:10px;color:var(--tx2)">slide</span>
-      <span style="font-size:11px;font-weight:700;color:var(--tx)" id="kpi-vl">1.00×</span>
-    </div>
-    <input type="range" id="kpi-sl" min="0.2" max="3" step="0.05" value="1" oninput="onKpiSl(this.value)" style="width:100%;margin:2px 0 4px">
-  </div>
-
-  <div class="divider"></div>
-
-  <!-- trade targets -->
-  <div class="sec">
-    <div class="seclbl">trade slots</div>
-    <div style="font-size:9px;color:var(--tx3);margin-bottom:4px">target% or freq = 0 → skip</div>
-    <div class="tg-header">
-      <div class="tg-hl">#</div>
-      <div class="tg-hl">tgt%</div>
-      <div class="tg-hl">freq</div>
-    </div>
-    <div id="tg"></div>
-    <div class="act-count" id="act-count"><span>10</span> active</div>
-  </div>
-  <div style="display:flex;align-items:center;gap:6px;padding:3px 10px 0">
-    <span style="font-size:9px;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;font-weight:700">global mode</span>
-    <button id="global-toggle" onclick="toggleGlobal()" style="font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;border:0.5px solid var(--acc2);background:var(--btno);color:var(--acc2);cursor:pointer">● on</button>
-    <span style="font-size:9px;color:var(--tx3)">off = per-month</span>
-  </div>
-
-  <button class="save-btn" id="save-trades" onclick="saveSection('trades')" style="margin-bottom:2px">💾 save trades</button>
-
   <div class="divider"></div>
 
   <!-- fee settings -->
@@ -608,6 +573,41 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
       <span id="fee-live-status" style="font-size:8px;color:var(--tx3)">tap ↻ for live rate</span>
     </div>
   </div>
+
+
+  <div class="divider"></div>
+
+  <!-- kpi -->
+  <div class="sec">
+    <div class="seclbl">kpi scale (global)</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin:2px 0 1px">
+      <span style="font-size:10px;color:var(--tx2)">slide</span>
+      <span style="font-size:11px;font-weight:700;color:var(--tx)" id="kpi-vl">1.00×</span>
+    </div>
+    <input type="range" id="kpi-sl" min="0.2" max="3" step="0.05" value="1" oninput="onKpiSl(this.value)" style="width:100%;margin:2px 0 4px">
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- trade targets -->
+  <div class="sec">
+    <div class="seclbl">trade slots</div>
+    <div style="font-size:9px;color:var(--tx3);margin-bottom:4px">target% or freq = 0 → skip</div>
+    <div class="tg-header">
+      <div class="tg-hl">#</div>
+      <div class="tg-hl">tgt%</div>
+      <div class="tg-hl">freq</div>
+    </div>
+    <div id="tg"></div>
+    <div class="act-count" id="act-count"><span>10</span> active</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:6px;padding:3px 10px 0">
+    <span style="font-size:9px;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;font-weight:700">global mode</span>
+    <button id="global-toggle" onclick="toggleGlobal()" style="font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;border:0.5px solid var(--acc2);background:var(--btno);color:var(--acc2);cursor:pointer">● on</button>
+    <span style="font-size:9px;color:var(--tx3)">off = per-month</span>
+  </div>
+
+  <button class="save-btn" id="save-trades" onclick="saveSection('trades')" style="margin-bottom:2px">💾 save trades</button>
 
 </div><!-- pl-body -->
 </div><!-- panel-left -->
@@ -1217,18 +1217,27 @@ function getMLabel(m){return 'm'+String(m).padStart(2,'0');}
 
 function runSeq(startAcc,lev,initNot,bt,fr,kpi){
   let acc=startAcc,not=initNot;
+  let accF=startAcc; // post-fee running balance (for display only — notional carry uses gross)
   const trades=[];
   for(let i=0;i<10;i++){
     const skip=bt[i]===0||fr[i]===0;
     const am=not/lev,fm=am/acc*100,liq=acc/not*100;
-    if(skip){trades.push({no:i+1,skip:true,not,am,fm,liq,tgt:0,freq:0,sp:0,cp:0,accB:acc,accA:acc});continue;}
+    if(skip){trades.push({no:i+1,skip:true,not,am,fm,liq,tgt:0,freq:0,sp:0,cp:0,accB:acc,accA:acc,feePaid:0,accAF:accF});continue;}
     const tgt=bt[i]*kpi/100;
     const sp=not*tgt,cp=sp*fr[i];
-    trades.push({no:i+1,skip:false,not,am,fm,liq,tgt:bt[i]*kpi,freq:fr[i],sp,cp,accB:acc,accA:acc+cp});
-    acc+=cp;not+=sp;
+    // fee: (maker+taker) per execution × freq, + funding × holds × freq
+    // fee always paid regardless of win/loss — it's the cost of entering and holding
+    const tradeFee=((FEE.maker+FEE.taker)/100)*not*fr[i];
+    const fundFee=(FEE.funding/100)*not*FEE.holds*fr[i];
+    const feePaid=tradeFee+fundFee;
+    const accAfter=acc+cp;        // pre-fee (used for notional carry-forward)
+    const accAfterF=accF+cp-feePaid; // post-fee (real money)
+    trades.push({no:i+1,skip:false,not,am,fm,liq,tgt:bt[i]*kpi,freq:fr[i],sp,cp,accB:acc,accA:accAfter,feePaid,accAF:accAfterF});
+    acc=accAfter;
+    accF=accAfterF;
+    not+=sp;
   }
-  // lastNotional = notional that would be used for next trade (carry-forward)
-  return{trades,endAcc:acc,lastNotional:not};
+  return{trades,endAcc:acc,endAccF:accF,lastNotional:not};
 }
 
 function sim(){
@@ -1255,7 +1264,8 @@ function sim(){
     const initNot=prevLastNotional*mp;
     const liqT1=acc/initNot*100;
     const{bt:mBT,fr:mFR}=getMonthTrades(m);
-    const{trades,endAcc:gA}=runSeq(acc,s.LEV,initNot,mBT,mFR,s.KPI);
+    const{trades,endAcc:gA,endAccF:gAF,lastNotional:ln}=runSeq(acc,s.LEV,initNot,mBT,mFR,s.KPI);
+    const monthFeePaid=trades.reduce((a,t)=>a+t.feePaid,0);
     const wdAmt=parseFloat(s.WD[m])||0;
     const wd=Math.min(wdAmt,gA*0.99);
     const fA=gA-wd;
@@ -1264,8 +1274,9 @@ function sim(){
     const pct=(gA-acc)/acc*100;
     // last active trade's notional becomes next month's base
     const lastActiveTrade=trades.filter(t=>!t.skip).slice(-1)[0];
-    prevLastNotional=lastActiveTrade?lastActiveTrade.not+lastActiveTrade.sp:initNot;
-    months.push({m,lb,isZ:false,sA:acc,eA:fA,gA,wd,banked,nw:fA+banked,trades,pct,postLiq,initNot,liqT1,mp});
+    const prevLN=lastActiveTrade?lastActiveTrade.not+lastActiveTrade.sp:initNot;
+    prevLastNotional=prevLN;
+    months.push({m,lb,isZ:false,sA:acc,eA:fA,gA,gAF,wd,banked,nw:fA+banked,trades,pct,postLiq,initNot,liqT1,mp,feePaid:monthFeePaid});
     acc=fA;
   }
   return months;
@@ -1362,7 +1373,8 @@ function softUpdate(){
         <div class="mc"><div class="mll">${t('nw_lbl')}</div><div class="mvv" style="color:var(--acc)">${fmt(last.nw)}</div><div class="ms">${fIDR(last.nw)}</div></div>
         <div class="mc"><div class="mll">${t('banked_lbl')}</div><div class="mvv">${fmt(last.banked)}</div><div class="ms">3 ${t('months')}</div></div>
         <div class="mc"><div class="mll">${t('avg_lbl')}</div><div class="mvv">${avgPct.toFixed(1)}%</div><div class="ms">${t('per_active_month')}</div></div>
-        <div class="mc"><div class="mll">${t('seq_net_lbl')}</div><div class="mvv" style="color:${mp>=0?'#1D9E75':'#E24B4A'}">${mp>0?'+':''}${mp.toFixed(1)}%</div><div class="ms">${wins}W / ${losses}L · ${actTr} ${t('active_trades')}</div></div>`;
+        <div class="mc"><div class="mll">${t('seq_net_lbl')}</div><div class="mvv" style="color:${mp>=0?'#1D9E75':'#E24B4A'}">${mp>0?'+':''}${mp.toFixed(1)}%</div><div class="ms">${wins}W / ${losses}L · ${actTr} ${t('active_trades')}</div></div>
+        <div class="mc"><div class="mll">total fees paid</div><div class="mvv" style="color:#E24B4A">−${fmt(months.filter(r=>!r.isZ).reduce((a,r)=>a+(r.feePaid||0),0))}</div><div class="ms">trade + funding · 3mo</div></div>`;
     } else {
       mh=`
         <div class="mc"><div class="mll">${t('cagr_lbl')}</div><div class="mvv" style="color:var(--acc2)">${cagr.toFixed(1)}%</div><div class="ms">${t('cagr_sub')}</div></div>
@@ -1374,7 +1386,7 @@ function softUpdate(){
         <div class="mc"><div class="mll">${t('avg_lbl')}</div><div class="mvv">${avgPct.toFixed(1)}%</div><div class="ms">${t('avg_sub')} · ${(36-s.ZM.size)} ${t('active')}</div></div>
         <div class="mc"><div class="mll">${t('seq_net_lbl')}</div><div class="mvv" style="color:${mp>=0?'#1D9E75':'#E24B4A'}">${mp>0?'+':''}${mp.toFixed(1)}%</div><div class="ms">${wins}W / ${losses}L · ${actTr}/10</div></div>
         <div class="mc"><div class="mll">${t('liq_mc_lbl')}</div><div class="mvv" style="color:${lc(liqT1)}">${liqT1.toFixed(1)}%</div><div class="ms">${t('liq_mc_sub',liqT1.toFixed(0))}</div></div>
-        <div class="mc" style="opacity:.35;pointer-events:none"><div class="mll" style="color:var(--tx3)">— —</div><div class="mvv" style="color:var(--tx3)">—</div><div class="ms" style="color:var(--tx3)">your slot</div></div>`;
+        <div class="mc"><div class="mll">total fees paid</div><div class="mvv" style="color:#E24B4A">−${fmt(months.filter(r=>!r.isZ).reduce((a,r)=>a+(r.feePaid||0),0))}</div><div class="ms">trade + funding · all months</div></div>`;
     }
     metricsEl.innerHTML=mh;
   }
@@ -1598,6 +1610,7 @@ function buildAssessment(months, s){
       </div>
     </div>`;
   }
+  const totalFeeQ=act.reduce((a,r)=>a+(r.feePaid||0),0);
   return `<div class="assess-bar">
     <div class="as-item">
       <div class="as-lbl">risk score</div>
@@ -1639,6 +1652,11 @@ function buildAssessment(months, s){
       <div class="as-lbl">account lifespan</div>
       <div class="as-val" style="color:${ageColor};font-size:17px">${ageVal}</div>
       <div class="as-sub">${ageSub}</div>
+    </div>
+    <div class="as-item">
+      <div class="as-lbl">total fees paid</div>
+      <div class="as-val" style="color:#E24B4A;font-size:13px">−${fmt(totalFeeQ)}</div>
+      <div class="as-sub">trade + funding · ${isQ?'3mo':'all months'}</div>
     </div>
   </div>`;
 }
@@ -1733,8 +1751,7 @@ function render(){
   const cagr=isQ?null:(Math.pow(Math.max(last.nw,s.P)/s.P,1/3)-1)*100;
   const tr=(last.nw/s.P-1)*100;
   const m1M=!isQ?months.find(r=>r.nw>=1000000):null;
-
-  // metrics — show error state when wiped
+  const totalFeesPaid=months.filter(r=>!r.isZ).reduce((a,r)=>a+(r.feePaid||0),0);
   const wv=(val,color='')=>IS_WIPED?`<div class="mvv wipe-val">wiped</div>`:`<div class="mvv"${color?` style="color:${color}"`:''} >${val}</div>`;
   const ws=(sub)=>IS_WIPED?`<div class="ms" style="color:#E24B4A;font-size:8px">— invalid —</div>`:`<div class="ms">${sub}</div>`;
   let mh='<div class="metrics">';
@@ -1746,6 +1763,7 @@ function render(){
       <div class="mc"><div class="mll">${t('banked_lbl')}</div><div class="mvv">${fmt(last.banked)}</div><div class="ms">3 ${t('months')}</div></div>
       <div class="mc"><div class="mll">${t('avg_lbl')}</div><div class="mvv">${avgPct.toFixed(1)}%</div><div class="ms">${t('per_active_month')}</div></div>
       <div class="mc"><div class="mll">${t('seq_net_lbl')}</div><div class="mvv" style="color:${mp>=0?'#1D9E75':'#E24B4A'}">${mp>0?'+':''}${mp.toFixed(1)}%</div><div class="ms">${wins}W / ${losses}L · ${actTr} ${t('active_trades')}</div></div>
+      <div class="mc"><div class="mll">total fees paid</div><div class="mvv" style="color:#E24B4A">−${fmt(totalFeesPaid)}</div><div class="ms">trade + funding · 3mo</div></div>
     `;
   } else {
     mh+=`
@@ -1758,7 +1776,7 @@ function render(){
       <div class="mc"><div class="mll">${t('avg_lbl')}</div><div class="mvv">${avgPct.toFixed(1)}%</div><div class="ms">${t('avg_sub')} · ${(36-s.ZM.size)} ${t('active')}</div></div>
       <div class="mc"><div class="mll">${t('seq_net_lbl')}</div><div class="mvv" style="color:${mp>=0?'#1D9E75':'#E24B4A'}">${mp>0?'+':''}${mp.toFixed(1)}%</div><div class="ms">${wins}W / ${losses}L · ${actTr}/10</div></div>
       <div class="mc"><div class="mll">${t('liq_mc_lbl')}</div><div class="mvv" style="color:${lc(liqT1)}">${liqT1.toFixed(1)}%</div><div class="ms">${t('liq_mc_sub',liqT1.toFixed(0))}</div></div>
-      <div class="mc" style="opacity:.35;pointer-events:none"><div class="mll" style="color:var(--tx3)">— —</div><div class="mvv" style="color:var(--tx3)">—</div><div class="ms" style="color:var(--tx3)">your slot</div></div>
+      <div class="mc"><div class="mll">total fees paid</div><div class="mvv" style="color:#E24B4A">−${fmt(totalFeesPaid)}</div><div class="ms">trade + funding · all months</div></div>
     `;
   }
   mh+='</div>';
@@ -1949,11 +1967,12 @@ function renderTbl(months){
       <th>month / trade</th>
       <th>notional</th><th>margin</th><th>fm%</th><th>liq%</th>
       <th>target%</th><th>freq</th>
-      <th>single profit</th><th>combine profit</th>
-      <th style="color:#E24B4A">maker+taker</th>
-      <th style="color:#E24B4A">funding</th>
-      <th style="color:var(--acc2)">net profit</th>
-      <th>account</th><th>withdrawal ✏️</th>
+      <th>gross profit</th><th>combine (pre-fee)</th>
+      <th style="color:#E24B4A">fee paid</th>
+      <th style="color:var(--acc2)">net (post-fee)</th>
+      <th>acct (pre-fee)</th>
+      <th style="color:var(--acc2)">acct (post-fee)</th>
+      <th>withdrawal ✏️</th>
     </tr></thead><tbody>`;
     months.forEach(mo=>{
       if(mo.isZ){
@@ -1980,7 +1999,7 @@ function renderTbl(months){
         <td style="color:var(--mhs)">start: ${fmt(mo.sA)}</td>
         <td colspan="2"></td>
         <td style="color:var(--mhs)">${l1.toFixed(0)}%→${ll.toFixed(0)}%</td>
-        <td colspan="5"></td>
+        <td colspan="8"></td>
         <td style="white-space:nowrap">
           <input type="number" class="mp-inp${(s.MP[mo.m]||1)>1?' active':''}" id="mp-inp-d-${mo.m}" value="${s.MP[mo.m]>1?s.MP[mo.m]:''}" min="1" max="10" step="0.1" placeholder="1×" title="margin push up multiplier for this month" oninput="onMP(${mo.m},this.value)" style="width:46px">
           <span style="font-size:8px;color:var(--tx3)">× push</span>
@@ -2029,18 +2048,15 @@ function renderTbl(months){
           <td>+${fmt(t.sp)}</td>
           <td style="color:var(--acc2);font-weight:600">+${fmt(t.cp)}</td>
           ${(()=>{
-            const makerFee=(FEE.maker/100)*t.not;
-            const takerFee=(FEE.taker/100)*t.not;
-            const tradeFee=(makerFee+takerFee)*t.freq;
-            const fundFee=(FEE.funding/100)*t.not*FEE.holds*t.freq;
-            const totalFee=tradeFee+fundFee;
-            const netCp=t.cp-totalFee;
-            const liqAfterFee=((t.accA-totalFee)/t.not*100);
-            return `<td class="fee-neg" title="maker+taker per freq">−${fmt(tradeFee)}</td>
-              <td class="fee-neg" title="funding fee (${FEE.funding}% × ${FEE.holds} holds × ${t.freq}freq)">−${fmt(fundFee)}</td>
-              <td class="${netCp>=0?'fee-net':'fee-neg'}">${netCp>=0?'+':''}${fmt(netCp)}<div style="font-size:8px;color:${liqAfterFee<40?'#E24B4A':'var(--tx3)'}">liq ${liqAfterFee.toFixed(0)}%</div></td>`;
+            const netCp=t.cp-t.feePaid;
+            const feeColor=t.feePaid>0?'#E24B4A':'var(--tx3)';
+            const netColor=netCp>=0?'var(--acc2)':'#E24B4A';
+            const liqAfterFee=t.accAF/t.not*100;
+            return `<td style="color:${feeColor};font-size:10px" title="maker+taker+funding">−${fmt(t.feePaid)}</td>
+              <td style="color:${netColor};font-weight:600">${netCp>=0?'+':''}${fmt(netCp)}</td>
+              <td style="font-weight:600;color:var(--tx2)">${fmt(t.accA)}</td>
+              <td style="font-weight:700;color:var(--acc2)">${fmt(t.accAF)}<div style="font-size:8px;color:${liqAfterFee<40?'#E24B4A':'var(--tx3)'}">liq ${liqAfterFee.toFixed(0)}%</div></td>`;
           })()}
-          <td style="font-weight:700">${fmt(t.accA)}</td>
           <td></td>
         </tr>`;
       });
