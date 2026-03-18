@@ -1676,14 +1676,72 @@ function onWdInline(m,v){
 
 function setLang(lang){
   LANG=lang;
-  ['lang-en','lang-en-btn'].forEach(id=>{const b=document.getElementById(id);if(b){b.style.background=lang==='en'?'var(--acc)':'transparent';b.style.color=lang==='en'?'#fff':'var(--tx2)';b.style.borderColor=lang==='en'?'var(--acc)':'var(--bd2)';}});
-  ['lang-id','lang-id-btn'].forEach(id=>{const b=document.getElementById(id);if(b){b.style.background=lang==='id'?'var(--acc)':'transparent';b.style.color=lang==='id'?'#fff':'var(--tx2)';b.style.borderColor=lang==='id'?'var(--acc)':'var(--bd2)';}});
-  const ld=document.getElementById('liq-desc');if(ld) ld.textContent=LANG==='id'?'liq% = akun ÷ notional · lebih tinggi = lebih aman':'liq% = account ÷ notional · higher = safer';
-  // soft render: preserve chart, just update text
+  const id=lang==='id';
+  ['lang-en','lang-en-btn'].forEach(id2=>{const b=document.getElementById(id2);if(b){b.style.background=lang==='en'?'var(--acc)':'transparent';b.style.color=lang==='en'?'#fff':'var(--tx2)';b.style.borderColor=lang==='en'?'var(--acc)':'var(--bd2)';}});
+  ['lang-id','lang-id-btn'].forEach(id2=>{const b=document.getElementById(id2);if(b){b.style.background=lang==='id'?'var(--acc)':'transparent';b.style.color=lang==='id'?'#fff':'var(--tx2)';b.style.borderColor=lang==='id'?'var(--acc)':'var(--bd2)';}});
+
+  // liq-desc under title
+  const ld=document.getElementById('liq-desc');
+  if(ld) ld.textContent=id?'liq% = akun ÷ notional · lebih tinggi = lebih aman':'liq% = account ÷ notional · higher = safer';
+
+  // layer 2 intro disclaimer
+  const l2credit=document.querySelector('.l2-credit');
+  if(l2credit) l2credit.innerHTML=id
+    ?'dibuat oleh <a href="https://t.me/CryptoJurnal" target="_blank">@cryptojurnal ↗</a>'
+    :'created by <a href="https://t.me/CryptoJurnal" target="_blank">@cryptojurnal ↗</a>';
+  const l2disc=document.querySelector('.l2-disclaimer');
+  if(l2disc) l2disc.innerHTML=id
+    ?'<strong>sebelum kamu launch —</strong><br><br>dashboard ini adalah <span class="warn">alat proyeksi, bukan jaminan</span>. semua angka adalah estimasi pra-eksekusi. hasil nyata bergantung pada timing, disiplin, dan kondisi pasar.<br><br>alat ini <strong>tidak memperhitungkan</strong> biaya trading, biaya funding, slippage, atau biaya exchange.<br><br><span class="warn">hanya untuk cross margin mode.</span> liq% dirancang untuk cross margin. isolated margin akan menghasilkan hasil yang berbeda.<br><br><strong>hasilnya adalah tanggung jawabmu.</strong> kami membantu kamu mempersiapkan. taruhannya ada padamu 🎯'
+    :'<strong>before you launch —</strong><br><br>this dashboard is a <span class="warn">projection tool, not a guarantee</span>. all numbers are pre-execution estimates. real results depend on your timing, discipline, and the market.<br><br>this tool does <strong>not account for</strong> trading fees, funding fees, slippage, or exchange costs.<br><br><span class="warn">cross margin mode only.</span> liq% is designed for cross margin. isolated margin will produce different results.<br><br><strong>the outcome is yours.</strong> we help you prepare. the bet is on you 🎯';
+  const launchBtn=document.querySelector('.launch-btn');
+  if(launchBtn) launchBtn.textContent=id?'mulai app':'launch the app';
+
+  // guide popup
+  const pt=document.querySelector('.popup-title');
+  if(pt) pt.textContent=id?'📖 mulai dengan panduan':'📖 start with the guide book';
+  const pb=document.querySelector('.popup-body');
+  if(pb) pb.textContent=id?'semua yang perlu kamu ketahui sebelum menggunakan dashboard ini — konsep, kontrol, aturan risiko, dan cara membaca setiap angka.':'everything you need to know before using this dashboard — concepts, controls, risk rules, and how to read every number.';
+  const ph=document.querySelector('.popup-hint');
+  if(ph) ph.textContent=id?'↙ tab panduan disorot di bawah':'↙ the guide book tab is highlighted below';
+  const pok=document.querySelector('.popup-ok');
+  if(pok) pok.textContent=id?'oke, aku mau eksplorasi':'okay, let me explore';
+
+  // spot notes in left panel
+  const snl=document.getElementById('spot-note-lev');
+  if(snl) snl.innerHTML=id?'◈ mode spot — tanpa leverage, tanpa likuidasi.<br>ukuran posisi = modalmu.':'◈ spot mode — no leverage, no liquidation.<br>position size = your capital.';
+  const snn=document.getElementById('spot-note-not');
+  if(snn) snn.innerHTML=id?'◈ mode spot — notional = modal.<br>tanpa leverage, tanpa margin, tanpa liq%.':'◈ spot mode — notional = capital.<br>no leverage, no margin, no liq%.';
+  const sfn=document.getElementById('spot-fee-note');
+  if(sfn) sfn.textContent=id?'◈ spot — tidak ada biaya funding. hanya maker + taker per trade.':'◈ spot — no funding fee. only maker + taker per trade.';
+
+  // fee tier note
+  const ftn=document.getElementById('fee-tier-note');
+  if(ftn) ftn.innerHTML=id
+    ?'<b style="color:var(--tx2)">tarif tier standar</b> — diisi otomatis dari exchange yang dipilih.<br>jika kamu di tier VIP lebih tinggi atau memegang token exchange (BNB/OKB), kamu bisa mengetik tarif aktualmu di bawah. <span style="color:var(--acc2)">perubahan tersimpan otomatis.</span>'
+    :'<b style="color:var(--tx2)">standard tier rates</b> — pre-filled from your selected exchange.<br>if you are on a higher VIP tier or hold the exchange token (BNB/OKB), you can type your actual rates below. <span style="color:var(--acc2)">changes auto-save.</span>';
+
+  // fee sec label
+  const feeLbl=document.getElementById('fee-sec-lbl');
+  if(feeLbl){
+    const s=gs();
+    feeLbl.textContent=s.SPOT?(id?'biaya spot':'spot fees'):(id?'biaya & funding':'fees & funding');
+  }
+
+  // top panel show/hide label
+  const tpl=document.getElementById('tp-lbl');
+  if(tpl) tpl.textContent=TOP_PANEL_COLLAPSED?(id?'tampilkan ikhtisar':'show overview'):(id?'sembunyikan ikhtisar':'hide overview');
+
+  // act-count in trade slots
+  const ac=document.getElementById('act-count');
+  if(ac){
+    const s=gs();
+    const cnt=s.BT.filter((b,i)=>b!==0&&s.FR[i]>0).length;
+    ac.innerHTML=`<span>${cnt}</span> ${id?'aktif':'active'}`;
+  }
+
+  // soft render to update all t() keys
   const _prevCh=ch;
   render();
-  // restore chart ref if destroyed unnecessarily  
-  if(_prevCh&&!ch) ch=_prevCh;
 }
 // ── TOP PANEL COLLAPSE ──
 function toggleTopPanel(){
