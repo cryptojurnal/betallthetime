@@ -2249,7 +2249,7 @@ function render(){
   rc.innerHTML=`<div class="top-panel" id="top-panel">
     <div style="display:flex;align-items:center;gap:0;width:100%">
       <button class="top-panel-toggle" onclick="toggleTopPanel()" style="flex:1"><span class="tp-dots"><span class="tp-dot"></span><span class="tp-dot"></span><span class="tp-dot"></span></span><span class="tp-arrow">▾</span> <span id="tp-lbl">hide overview</span> <span class="tp-arrow" style="transform:none">▾</span><span class="tp-dots"><span class="tp-dot"></span><span class="tp-dot"></span><span class="tp-dot"></span></span></button>
-      <span id="spot-badge" class="spot-badge lev" style="margin:4px 8px 4px 0;border-left:none">⚡ leverage dashboard<span class="spot-badge-sub">current mode</span></span>
+      <span id="spot-badge" class="spot-badge ${s.SPOT?'spot':'lev'}" style="margin:4px 8px 4px 0;border-left:none">${s.SPOT?'◈ spot dashboard':'⚡ leverage dashboard'}<span class="spot-badge-sub">current mode</span></span>
     </div>
     <div class="top-panel-body" id="top-panel-body" style="max-height:2000px;opacity:1"><div class="top-panel-body-inner">${topBody}</div></div>
   </div>`+togH+`<div class="tw"><table id="tbl"></table></div><div id="guide-content" style="display:none"></div><p class="ft">liq% = account ÷ notional × 100 · higher = safer · 0 target or freq = trade skipped</p>`;
