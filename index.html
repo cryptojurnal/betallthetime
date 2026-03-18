@@ -149,6 +149,17 @@ body.t-lavender{--bg:#f0eef8;--panel:#fff;--bd:#d8d4f0;--bd2:#e4e0f4;--sf:#f8f6f
 .mt-add:hover{color:var(--acc2)}
 .mt-name-inp{border:none;background:transparent;color:inherit;font:inherit;width:52px;outline:none;cursor:text;text-transform:uppercase;letter-spacing:.03em;font-size:9px;font-weight:700}
 
+
+/* ── SPOT MODE ── */
+.spot-badge{display:inline-flex;align-items:center;gap:3px;font-size:8px;font-weight:700;padding:2px 6px;border-radius:10px;letter-spacing:.04em;text-transform:uppercase;transition:all .3s}
+.spot-badge.lev{background:#1D3A5F;color:#5BB0FF;border:0.5px solid #2A5080}
+.spot-badge.spot{background:#2A4A2A;color:#5DC96A;border:0.5px solid #3A6A3A}
+.mode-switcher{display:flex;align-items:center;gap:0;border:0.5px solid var(--bd2);border-radius:6px;overflow:hidden;margin:4px 0}
+.msw-btn{flex:1;padding:4px 6px;font-size:9px;font-weight:700;border:none;cursor:pointer;background:transparent;color:var(--tx3);letter-spacing:.04em;text-transform:uppercase;transition:all .2s}
+.msw-btn.on{background:var(--acc2);color:#fff}
+.disabled-overlay{opacity:.35;pointer-events:none;user-select:none}
+.spot-note{font-size:8px;color:var(--tx3);padding:3px 1px;line-height:1.6;font-style:italic}
+
 /* theme picker */
 .theme-row{display:flex;gap:4px;padding:6px 10px;border-bottom:0.5px solid var(--bd2);align-items:center;flex-wrap:wrap}
 .theme-lbl{font-size:9px;color:var(--tx3);font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin-right:2px;white-space:nowrap}
@@ -452,7 +463,10 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
   <div class="collapsed-label" onclick="togglePanel()">bet all the time · controls</div>
   <div class="pl-body">
   <div class="pl-head">
-    <h1 style="font-size:18px;font-weight:900;line-height:1.2;letter-spacing:-.02em;color:var(--tx)">bet all the time<br><span style="font-size:18px;font-weight:900">bet with style</span></h1>
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:4px">
+      <h1 style="font-size:18px;font-weight:900;line-height:1.2;letter-spacing:-.02em;color:var(--tx)">bet all the time<br><span style="font-size:18px;font-weight:900">bet with style</span></h1>
+      <span id="spot-badge" class="spot-badge lev" style="margin-top:2px;flex-shrink:0">⚡ leverage</span>
+    </div>
     <p style="margin-top:2px"><a href="https://t.me/CryptoJurnal" target="_blank" style="color:var(--acc2);font-weight:700;text-decoration:none;font-size:10px">by @cryptojurnal ↗</a></p>
     <p style="color:var(--tx3);font-size:9px;margin-top:1px" id="liq-desc">liq% = account ÷ notional · higher = safer</p>
   </div>
@@ -507,24 +521,31 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 
   <!-- leverage -->
   <div class="sec-head" data-sec="sec-lev" onclick="toggleSec('sec-lev')">
-    <div class="seclbl">leverage</div>
+    <div class="seclbl">leverage · spot mode</div>
     <span class="sec-toggle">▾</span>
   </div>
   <div class="sec-body" id="sec-lev">
   <div class="sec">
-    <div class="prs" id="lv-prs">
-      <button class="pr on" onclick="setLev(5,this)">5×</button>
-      <button onclick="setLev(10,this)" class="pr">10×</button>
-      <button class="pr" onclick="setLev(20,this)">20×</button>
-      <button class="pr" onclick="setLev(50,this)">50×</button>
-      <button class="pr" onclick="setLev(100,this)">100×</button>
+    <div class="mode-switcher">
+      <button class="msw-btn on" id="msw-lev" onclick="setSpotMode(false)">⚡ leverage</button>
+      <button class="msw-btn" id="msw-spot" onclick="setSpotMode(true)">◈ spot</button>
     </div>
-    <div class="row">
-      <span class="lbl">type (×)</span>
-      <input type="number" id="lv-in" value="5" min="1" max="100" oninput="onLevIn(this.value)">
+    <div id="lev-controls">
+      <div class="prs" id="lv-prs">
+        <button class="pr on" onclick="setLev(5,this)">5×</button>
+        <button onclick="setLev(10,this)" class="pr">10×</button>
+        <button class="pr" onclick="setLev(20,this)">20×</button>
+        <button class="pr" onclick="setLev(50,this)">50×</button>
+        <button class="pr" onclick="setLev(100,this)">100×</button>
+      </div>
+      <div class="row">
+        <span class="lbl">type (×)</span>
+        <input type="number" id="lv-in" value="5" min="1" max="100" oninput="onLevIn(this.value)">
+      </div>
+      <input type="range" id="lv-sl" min="1" max="100" step="1" value="5" oninput="onLevSl(this.value)" style="width:100%;margin:2px 0 3px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span style="font-size:9px;color:var(--tx3)">current</span><span style="font-size:12px;font-weight:700;color:var(--acc2);background:var(--sf2);padding:2px 6px;border-radius:4px;border:0.5px solid var(--bd2)" id="lv-vl">5×</span></div>
     </div>
-    <input type="range" id="lv-sl" min="1" max="100" step="1" value="5" oninput="onLevSl(this.value)" style="width:100%;margin:2px 0 3px">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span style="font-size:9px;color:var(--tx3)">current</span><span style="font-size:12px;font-weight:700;color:var(--acc2);background:var(--sf2);padding:2px 6px;border-radius:4px;border:0.5px solid var(--bd2)" id="lv-vl">5×</span></div>
+    <div id="spot-note-lev" style="display:none" class="spot-note">◈ spot mode — no leverage, no liquidation.<br>position size = your capital.</div>
   </div>
 
   </div><!-- /sec-lev -->
@@ -542,6 +563,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
   </div>
   <div class="sec-body" id="sec-not">
   <div class="sec">
+    <div id="not-controls">
     <div class="prs" id="not-prs">
       <button class="pr" onclick="setNot(100,this)">$100</button>
       <button class="pr" onclick="setNot(1000,this)">$1k</button>
@@ -559,17 +581,19 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
       <input type="range" id="not-sl" min="1" max="100000000000" step="1000" value="2500" oninput="onNotSl(this.value)">
     </div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin:3px 0 4px"><span style="font-size:9px;color:var(--tx3)">current</span><span style="font-size:12px;font-weight:700;color:var(--acc2);background:var(--sf2);padding:2px 6px;border-radius:4px;border:0.5px solid var(--bd2)" id="not-vl">$2,500</span></div>
-    <div class="comp-row">
+    <div class="comp-row" id="lev-comp-row">
       <div class="ci"><div class="cl">actual margin</div><div class="cv" id="c-am">$500</div><div style="font-size:7px;color:var(--tx3)">notional ÷ lev</div></div>
       <div class="ci"><div class="cl">fm% of acct</div><div class="cv" id="c-fm">50.0%</div><div style="font-size:7px;color:var(--tx3)">capital at risk</div></div>
       <div class="ci"><div class="cl">liq% t1 m01</div><div class="cv" id="c-lq" style="color:#EF9F27">40.0%</div><div style="font-size:7px;color:var(--tx3)">spot drop → wipe</div></div>
     </div>
-    <div style="font-size:8px;color:var(--tx3);padding:3px 1px;line-height:1.6;margin-top:3px">
+    <div id="lev-ratio-row" style="font-size:8px;color:var(--tx3);padding:3px 1px;line-height:1.6;margin-top:3px">
       <span style="color:var(--tx2)">acct</span> <span id="c-acct" style="color:var(--tx);font-weight:600">$1,000</span>
       × <span id="c-ratio" style="color:var(--acc2);font-weight:600">2.50</span>
       = <span id="c-not2" style="font-weight:600">$2,500</span>
       → margin <span id="c-am2" style="color:var(--acc);font-weight:600">$500</span>
     </div>
+    </div><!-- /not-controls -->
+    <div id="spot-note-not" style="display:none" class="spot-note">◈ spot mode — notional = capital.<br>no leverage, no margin, no liq%.</div>
   </div>
   <button class="save-btn" id="save-pos" onclick="saveSection('pos')">💾 save position</button>
   </div><!-- /sec-not -->
@@ -578,33 +602,45 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 
   <!-- fee settings -->
   <div class="sec-head" data-sec="sec-fee" onclick="toggleSec('sec-fee')">
-    <div class="seclbl">fees & funding</div>
+    <div class="seclbl" id="fee-sec-lbl">fees & funding</div>
     <span class="sec-toggle">▾</span>
   </div>
   <div class="sec-body" id="sec-fee">
   <div class="sec">
+    <div style="font-size:8px;color:var(--tx3);margin-bottom:4px;line-height:1.5">each trade = <b>2 executions</b> (open + close)<br>fee charged both ways — win or lose</div>
+    <div style="margin-bottom:6px">
+      <div style="font-size:8px;color:var(--tx3);margin-bottom:3px;font-weight:700;text-transform:uppercase;letter-spacing:.04em">execution method</div>
+      <div class="mode-switcher" style="border-radius:5px">
+        <button class="msw-btn" id="fee-msw-maker" onclick="setFeeMethod('maker')">limit · maker</button>
+        <button class="msw-btn on" id="fee-msw-taker" onclick="setFeeMethod('taker')">market · taker</button>
+      </div>
+      <div id="fee-method-note" style="font-size:8px;color:var(--tx3);margin-top:3px;font-style:italic">using taker rate × 2 per trade</div>
+    </div>
     <div class="fee-row">
       <span class="fee-lbl">maker %</span>
-      <input type="number" class="fee-inp" id="fee-maker" value="0.02" min="0" max="1" step="0.001" onchange="FEE.maker=parseFloat(this.value)||0;softUpdate()">
+      <input type="number" class="fee-inp" id="fee-maker" value="0.02" min="0" max="1" step="0.001" onchange="gs().FEE.maker=parseFloat(this.value)||0;if(gs().FEE.method==='maker')softUpdate();">
       <span class="fee-unit">%</span>
     </div>
     <div class="fee-row">
       <span class="fee-lbl">taker %</span>
-      <input type="number" class="fee-inp" id="fee-taker" value="0.05" min="0" max="1" step="0.001" onchange="FEE.taker=parseFloat(this.value)||0;softUpdate()">
+      <input type="number" class="fee-inp" id="fee-taker" value="0.05" min="0" max="1" step="0.001" onchange="gs().FEE.taker=parseFloat(this.value)||0;if(gs().FEE.method==='taker')softUpdate();">
       <span class="fee-unit">%</span>
     </div>
-    <div class="fee-row">
-      <span class="fee-lbl">funding %</span>
-      <input type="number" class="fee-inp" id="fee-funding" value="0.01" min="0" max="1" step="0.0001" onchange="FEE.funding=parseFloat(this.value)||0;softUpdate()">
-      <span class="fee-unit">% / 8h</span>
+    <div id="funding-row-wrap">
+      <div class="fee-row">
+        <span class="fee-lbl">funding %</span>
+        <input type="number" class="fee-inp" id="fee-funding" value="0.01" min="0" max="1" step="0.0001" onchange="gs().FEE.funding=parseFloat(this.value)||0;softUpdate()">
+        <span class="fee-unit">% / 8h</span>
+      </div>
+      <div class="fee-row">
+        <span class="fee-lbl">holds (8h)</span>
+        <input type="number" class="fee-inp" id="fee-holds" value="1" min="0" max="100" step="1" onchange="gs().FEE.holds=parseFloat(this.value)||0;softUpdate()">
+        <span class="fee-unit">× per trade</span>
+      </div>
     </div>
-    <div class="fee-row">
-      <span class="fee-lbl">holds (8h)</span>
-      <input type="number" class="fee-inp" id="fee-holds" value="1" min="0" max="100" step="1" onchange="FEE.holds=parseFloat(this.value)||0;softUpdate()">
-      <span class="fee-unit">× per trade</span>
-    </div>
+    <div id="spot-fee-note" style="display:none" class="spot-note">◈ spot — no funding fee. only maker + taker per trade.</div>
     <div class="fee-live-row">
-      <select class="fee-sel" id="fee-exchange" onchange="FEE_LIVE.exchange=this.value;document.getElementById('fee-sym-wrap').dataset.ex=this.value">
+      <select class="fee-sel" id="fee-exchange" onchange="onFeeExchangeChange(this.value)">
         <option value="binance">Binance</option>
         <option value="bybit">Bybit</option>
         <option value="okx">OKX</option>
@@ -615,10 +651,11 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
         <option value="SOLUSDT">SOL</option>
         <option value="BNBUSDT">BNB</option>
       </select>
-      <button id="fee-live-btn" onclick="fetchLiveFundingRate()">↻</button>
+      <button id="fee-live-btn" onclick="fetchLiveFundingRate()" title="fetch live funding rate">↻</button>
       <span id="fee-live-status" style="font-size:8px;color:var(--tx3)">tap ↻ for live rate</span>
     </div>
   </div>
+  <button class="save-btn" id="save-fee" onclick="saveSection('fee')">💾 save fees</button>
   </div><!-- /sec-fee -->
 
   <div class="divider"></div>
@@ -724,9 +761,9 @@ async function fetchLiveFundingRate(){
     }
     if(rate!==null){
       FEE_LIVE.rate=rate;
-      FEE.funding=Math.round(rate*10000)/10000;
+      gs().FEE.funding=Math.round(rate*10000)/10000;
       const inp=document.getElementById('fee-funding');
-      if(inp){inp.value=FEE.funding;inp.classList.add('active');setTimeout(()=>inp.classList.remove('active'),1200);}
+      if(inp){inp.value=gs().FEE.funding;inp.classList.add('active');setTimeout(()=>inp.classList.remove('active'),1200);}
       if(statusEl) statusEl.textContent=`live · ${ex}`;
       softUpdate();
     } else {
@@ -1156,14 +1193,14 @@ const DEF_FR=[1,1,0,1,1,0,1,1,0,1];
 
 let TAB='36', THEME='t-light', VIEW='sum', ch=null, GLOBAL_MODE=true, TOP_PANEL_COLLAPSED=false, IS_WIPED=false, lbl_w=false;
 // ── FEE STATE ──
-let FEE={maker:0.02, taker:0.05, funding:0.01, interval:8, holds:1};
+// FEE is now per-tab inside S[TAB].FEE
 let FEE_LIVE={rate:null, exchange:'binance', symbol:'BTCUSDT', loading:false};
 
 // ── MULTI-TAB STATE ──
 // TABS is an ordered array of tab descriptors
 // built-in tabs: id='36' name='36-month', id='q' name='quarter'
 // custom tabs: id='c1','c2',... name=user-defined, max 5 custom per panel (built-in + custom ≤ 7 total)
-function mkState(){return{P:1000,LEV:5,NOT:2500,KPI:1.0,BT:[...DEF_BT],FR:[...DEF_FR],WD:{},ML:{},TL:{},MT:{},ZM:new Set([]),MP:{}};}
+function mkState(){return{P:1000,LEV:5,NOT:2500,KPI:1.0,BT:[...DEF_BT],FR:[...DEF_FR],WD:{},ML:{},TL:{},MT:{},ZM:new Set([]),MP:{},SPOT:false,FEE:{maker:0.02,taker:0.05,funding:0.01,interval:8,holds:1,method:'taker'}};}
 const S={
   '36': mkState(),
   'q':  mkState(),
@@ -1270,6 +1307,7 @@ function saveSection(sec){
   if(sec==='wd') data={WD:{...s.WD}};
   if(sec==='labels') data={ML:{...s.ML},TL:{...s.TL}};
   if(sec==='zero') data={ZM:[...s.ZM]};
+  if(sec==='fee') data={FEE:{...s.FEE},SPOT:s.SPOT};
   try{localStorage.setItem(key,JSON.stringify(data));flashSave('save-'+sec);}catch(e){}
 }
 function flashSave(id){
@@ -1284,7 +1322,7 @@ function loadAll(){
   const allTabIds=['36','q',...CUSTOM_TABS.map(t=>t.id)];
   allTabIds.forEach(tab=>{
     if(!S[tab])S[tab]=mkState();
-    ['cap','pos','trades','wd','labels','zero'].forEach(sec=>{
+    ['cap','pos','trades','wd','labels','zero','fee'].forEach(sec=>{
       const key='wz_'+tab+'_'+sec;
       try{
         const raw=localStorage.getItem(key);
@@ -1296,6 +1334,7 @@ function loadAll(){
         if(sec==='wd'&&d.WD)S[tab].WD={...d.WD};
         if(sec==='labels'){if(d.ML)S[tab].ML={...d.ML};if(d.TL)S[tab].TL={...d.TL};}
         if(sec==='zero'&&d.ZM)S[tab].ZM=new Set(d.ZM);
+        if(sec==='fee'){if(d.FEE)S[tab].FEE={...S[tab].FEE,...d.FEE};if(d.SPOT!==undefined)S[tab].SPOT=d.SPOT;}
       }catch(e){}
     });
   });
@@ -1333,6 +1372,20 @@ function syncControls(){
   });
   document.querySelectorAll('#lv-prs .pr').forEach(b=>b.classList.toggle('on',parseInt(b.textContent)===s.LEV));
   updGrid();updComp();
+  // sync fee inputs from this tab's FEE state
+  const f=s.FEE;
+  const mk=document.getElementById('fee-maker'); if(mk)mk.value=f.maker;
+  const tk=document.getElementById('fee-taker'); if(tk)tk.value=f.taker;
+  const fd=document.getElementById('fee-funding'); if(fd)fd.value=f.funding;
+  const hd=document.getElementById('fee-holds'); if(hd)hd.value=f.holds;
+  // sync method switcher
+  const bm=document.getElementById('fee-msw-maker'); if(bm)bm.classList.toggle('on',f.method==='maker');
+  const bt=document.getElementById('fee-msw-taker'); if(bt)bt.classList.toggle('on',f.method==='taker');
+  const note=document.getElementById('fee-method-note');
+  const rate=f.method==='maker'?f.maker:f.taker;
+  if(note)note.textContent='using '+f.method+' rate ('+rate+'%) × 2 per trade';
+  // restore spot/lev UI state for this tab
+  setSpotMode(s.SPOT||false);
 }
 
 // ── GRID ──
@@ -1366,27 +1419,31 @@ function onKpiSl(v){gs().KPI=parseFloat(v);document.getElementById('kpi-vl').tex
 // ── SIMULATION ──
 function getMLabel(m){return 'm'+String(m).padStart(2,'0');}
 
-function runSeq(startAcc,lev,initNot,bt,fr,kpi){
-  let acc=startAcc,not=initNot;
-  let accF=startAcc; // post-fee running balance (for display only — notional carry uses gross)
+function runSeq(startAcc,lev,initNot,bt,fr,kpi,isSpot){
+  let acc=startAcc,not=isSpot?startAcc:initNot;
+  let accF=startAcc;
   const trades=[];
   for(let i=0;i<10;i++){
     const skip=bt[i]===0||fr[i]===0;
-    const am=not/lev,fm=am/acc*100,liq=acc/not*100;
-    if(skip){trades.push({no:i+1,skip:true,not,am,fm,liq,tgt:0,freq:0,sp:0,cp:0,accB:acc,accA:acc,feePaid:0,accAF:accF});continue;}
+    // spot: no leverage so am=not, fm=100%, liq=N/A(999)
+    const am=isSpot?not:not/lev;
+    const fm=isSpot?100:am/acc*100;
+    const liq=isSpot?999:acc/not*100;
+    if(skip){trades.push({no:i+1,skip:true,not,am,fm,liq,tgt:0,freq:0,sp:0,cp:0,accB:acc,accA:acc,feePaid:0,accAF:accF,isSpot});continue;}
     const tgt=bt[i]*kpi/100;
     const sp=not*tgt,cp=sp*fr[i];
-    // fee: (maker+taker) per execution × freq, + funding × holds × freq
-    // fee always paid regardless of win/loss — it\'s the cost of entering and holding
-    const tradeFee=((FEE.maker+FEE.taker)/100)*not*fr[i];
-    const fundFee=(FEE.funding/100)*not*FEE.holds*fr[i];
+    // fee: 2 executions per trade (open + close), using chosen method rate only
+    // win or lose, both entries are paid — method = 'maker' (limit) or 'taker' (market)
+    const chosenRate=(gs().FEE.method==='maker'?gs().FEE.maker:gs().FEE.taker)/100;
+    const tradeFee=2*chosenRate*not*fr[i];
+    const fundFee=isSpot?0:(gs().FEE.funding/100)*not*gs().FEE.holds*fr[i];
     const feePaid=tradeFee+fundFee;
-    const accAfter=acc+cp;        // pre-fee (used for notional carry-forward)
-    const accAfterF=accF+cp-feePaid; // post-fee (real money)
-    trades.push({no:i+1,skip:false,not,am,fm,liq,tgt:bt[i]*kpi,freq:fr[i],sp,cp,accB:acc,accA:accAfter,feePaid,accAF:accAfterF});
+    const accAfter=acc+cp;
+    const accAfterF=accF+cp-feePaid;
+    trades.push({no:i+1,skip:false,not,am,fm,liq,tgt:bt[i]*kpi,freq:fr[i],sp,cp,accB:acc,accA:accAfter,feePaid,accAF:accAfterF,isSpot});
     acc=accAfter;
     accF=accAfterF;
-    not+=sp;
+    not=isSpot?acc:not+sp; // spot: position = full account; futures: notional grows
   }
   return{trades,endAcc:acc,endAccF:accF,lastNotional:not};
 }
@@ -1415,7 +1472,7 @@ function sim(){
     const initNot=prevLastNotional*mp;
     const liqT1=acc/initNot*100;
     const{bt:mBT,fr:mFR}=getMonthTrades(m);
-    const{trades,endAcc:gA,endAccF:gAF,lastNotional:ln}=runSeq(acc,s.LEV,initNot,mBT,mFR,s.KPI);
+    const{trades,endAcc:gA,endAccF:gAF,lastNotional:ln}=runSeq(acc,s.LEV,initNot,mBT,mFR,s.KPI,s.SPOT);
     const monthFeePaid=trades.reduce((a,t)=>a+t.feePaid,0);
     const wdAmt=parseFloat(s.WD[m])||0;
     const wd=Math.min(wdAmt,gA*0.99);
@@ -1472,16 +1529,24 @@ function toggleNotLink(){
 
 function updComp(){
   const s=gs();
-  const am=s.NOT/s.LEV,fm=am/s.P*100,liq=s.P/s.NOT*100;
-  const ratio=s.NOT/s.P;
-  document.getElementById('c-am').textContent=fmt(am);
-  document.getElementById('c-fm').textContent=fm.toFixed(1)+'%';
+  const isSpot=s.SPOT||false;
+  const am=isSpot?s.P:s.NOT/s.LEV;
+  const fm=isSpot?100:am/s.P*100;
+  const liq=isSpot?999:s.P/s.NOT*100;
+  const ratio=isSpot?1:s.NOT/s.P;
+  document.getElementById('c-am').textContent=isSpot?'n/a':fmt(am);
+  document.getElementById('c-fm').textContent=isSpot?'100%':fm.toFixed(1)+'%';
   const el=document.getElementById('c-lq');
-  el.textContent=liq.toFixed(1)+'%';el.style.color=lc(liq);
-  const ca=document.getElementById('c-acct'); if(ca) ca.textContent=fmt(s.P);
-  const cr=document.getElementById('c-ratio'); if(cr) cr.textContent=ratio.toFixed(2);
-  const cn=document.getElementById('c-not2'); if(cn) cn.textContent=fmt(s.NOT);
-  const ca2=document.getElementById('c-am2'); if(ca2) ca2.textContent=fmt(am);
+  el.textContent=isSpot?'n/a':liq.toFixed(1)+'%';
+  if(!isSpot)el.style.color=lc(liq);else el.style.color='var(--tx3)';
+  const ca=document.getElementById('c-acct'); if(ca)ca.textContent=fmt(s.P);
+  const cr=document.getElementById('c-ratio'); if(cr)cr.textContent=isSpot?'1.00':ratio.toFixed(2);
+  const cn=document.getElementById('c-not2'); if(cn)cn.textContent=isSpot?fmt(s.P):fmt(s.NOT);
+  const ca2=document.getElementById('c-am2'); if(ca2)ca2.textContent=isSpot?'n/a':fmt(am);
+  // show/hide lev-specific rows
+  const lr=document.getElementById('lev-comp-row'),rr=document.getElementById('lev-ratio-row');
+  if(lr)lr.style.opacity=isSpot?'.35':'1';
+  if(rr)rr.style.opacity=isSpot?'.35':'1';
 }
 
 // inline WD handler - called from table
@@ -1525,7 +1590,7 @@ function softUpdate(){
         <div class="mc"><div class="mll">${t('banked_lbl')}</div><div class="mvv">${fmt(last.banked)}</div><div class="ms">3 ${t('months')}</div></div>
         <div class="mc"><div class="mll">${t('avg_lbl')}</div><div class="mvv">${avgPct.toFixed(1)}%</div><div class="ms">${t('per_active_month')}</div></div>
         <div class="mc"><div class="mll">${t('seq_net_lbl')}</div><div class="mvv" style="color:${mp>=0?'#1D9E75':'#E24B4A'}">${mp>0?'+':''}${mp.toFixed(1)}%</div><div class="ms">${wins}W / ${losses}L · ${actTr} ${t('active_trades')}</div></div>
-        <div class="mc"><div class="mll">total fees paid</div><div class="mvv" style="color:#E24B4A">−${fmt(months.filter(r=>!r.isZ).reduce((a,r)=>a+(r.feePaid||0),0))}</div><div class="ms">trade + funding · 3mo</div></div>`;
+        <div class="mc"><div class="mll">total fees paid</div><div class="mvv" style="color:#E24B4A">−${fmt(months.filter(r=>!r.isZ).reduce((a,r)=>a+(r.feePaid||0),0))}</div><div class="ms">${s.SPOT?'trade only · spot':'trade + funding · 3mo'}</div></div>`;
     } else {
       mh=`
         <div class="mc"><div class="mll">${t('cagr_lbl')}</div><div class="mvv" style="color:var(--acc2)">${cagr.toFixed(1)}%</div><div class="ms">${t('cagr_sub')}</div></div>
@@ -1536,8 +1601,8 @@ function softUpdate(){
         <div class="mc"><div class="mll">${t('milestone_lbl')}</div><div class="mvv" style="color:${m1M?'var(--acc2)':'#E24B4A'}">${m1M?getMLabel(m1M.m):t('beyond36')}</div><div class="ms">${m1M?t('milestone_hit')+getMLabel(m1M.m):t('milestone_miss')}</div></div>
         <div class="mc"><div class="mll">${t('avg_lbl')}</div><div class="mvv">${avgPct.toFixed(1)}%</div><div class="ms">${t('avg_sub')} · ${(36-s.ZM.size)} ${t('active')}</div></div>
         <div class="mc"><div class="mll">${t('seq_net_lbl')}</div><div class="mvv" style="color:${mp>=0?'#1D9E75':'#E24B4A'}">${mp>0?'+':''}${mp.toFixed(1)}%</div><div class="ms">${wins}W / ${losses}L · ${actTr}/10</div></div>
-        <div class="mc"><div class="mll">${t('liq_mc_lbl')}</div><div class="mvv" style="color:${lc(liqT1)}">${liqT1.toFixed(1)}%</div><div class="ms">${t('liq_mc_sub',liqT1.toFixed(0))}</div></div>
-        <div class="mc"><div class="mll">total fees paid</div><div class="mvv" style="color:#E24B4A">−${fmt(months.filter(r=>!r.isZ).reduce((a,r)=>a+(r.feePaid||0),0))}</div><div class="ms">trade + funding · all months</div></div>`;
+        ${s.SPOT?'<div class="mc"><div class="mll">no liq%</div><div class="mvv" style="color:#5DC96A">◈ spot</div><div class="ms">no liquidation risk</div></div>':('<div class="mc"><div class="mll">'+t('liq_mc_lbl')+'</div><div class="mvv" style="color:'+lc(liqT1)+'">'+liqT1.toFixed(1)+'%</div><div class="ms">'+t('liq_mc_sub',liqT1.toFixed(0))+'</div></div>')}
+        <div class="mc"><div class="mll">total fees paid</div><div class="mvv" style="color:#E24B4A">−${fmt(months.filter(r=>!r.isZ).reduce((a,r)=>a+(r.feePaid||0),0))}</div><div class="ms">${s.SPOT?'trade only · spot':'trade + funding · all months'}</div></div>`;
     }
     metricsEl.innerHTML=mh;
   }
@@ -1594,6 +1659,81 @@ function _applyTopPanel(){
   if(lbl)lbl.textContent=TOP_PANEL_COLLAPSED?'show overview':'hide overview';
 }
 // ── PANEL COLLAPSE ──
+// ── SPOT/LEVERAGE FEE PRESETS ──
+const FEE_PRESETS={
+  futures:{binance:{maker:0.02,taker:0.05},bybit:{maker:0.02,taker:0.055},okx:{maker:0.02,taker:0.05}},
+  spot:   {binance:{maker:0.1, taker:0.1 },bybit:{maker:0.1, taker:0.1  },okx:{maker:0.08,taker:0.1 }}
+};
+
+function setFeeMethod(method){
+  gs().FEE.method=method;
+  const bm=document.getElementById('fee-msw-maker');
+  const bt=document.getElementById('fee-msw-taker');
+  if(bm)bm.classList.toggle('on',method==='maker');
+  if(bt)bt.classList.toggle('on',method==='taker');
+  const note=document.getElementById('fee-method-note');
+  const rate=method==='maker'?gs().FEE.maker:gs().FEE.taker;
+  if(note)note.textContent='using '+method+' rate ('+rate+'%) × 2 per trade';
+  softUpdate();
+}
+
+function onFeeExchangeChange(ex){
+  FEE_LIVE.exchange=ex;
+  const s=gs();
+  const preset=FEE_PRESETS[s.SPOT?'spot':'futures'][ex];
+  if(preset){
+    s.FEE.maker=preset.maker; s.FEE.taker=preset.taker;
+    const mk=document.getElementById('fee-maker'); if(mk)mk.value=preset.maker;
+    const tk=document.getElementById('fee-taker'); if(tk)tk.value=preset.taker;
+    setFeeMethod(s.FEE.method);
+  }
+}
+
+function setSpotMode(isSpot){
+  const s=gs();
+  s.SPOT=isSpot;
+  // update badge
+  const badge=document.getElementById('spot-badge');
+  if(badge){badge.className='spot-badge '+(isSpot?'spot':'lev');badge.textContent=isSpot?'◈ spot':'⚡ leverage';}
+  // switcher buttons
+  const bl=document.getElementById('msw-lev'),bs=document.getElementById('msw-spot');
+  if(bl)bl.classList.toggle('on',!isSpot);
+  if(bs)bs.classList.toggle('on',isSpot);
+  // leverage controls
+  const lc=document.getElementById('lev-controls'),sn=document.getElementById('spot-note-lev');
+  if(lc)lc.classList.toggle('disabled-overlay',isSpot);
+  if(sn)sn.style.display=isSpot?'block':'none';
+  // notional controls
+  const nc=document.getElementById('not-controls'),snn=document.getElementById('spot-note-not');
+  if(nc)nc.classList.toggle('disabled-overlay',isSpot);
+  if(snn)snn.style.display=isSpot?'block':'none';
+  // fee section
+  const fw=document.getElementById('funding-row-wrap'),sfn=document.getElementById('spot-fee-note');
+  const feeLbl=document.getElementById('fee-sec-lbl');
+  if(fw)fw.style.display=isSpot?'none':'block';
+  if(sfn)sfn.style.display=isSpot?'block':'none';
+  if(feeLbl)feeLbl.textContent=isSpot?'spot fees':'fees & funding';
+  // liq-desc
+  const ld=document.getElementById('liq-desc');
+  if(ld)ld.textContent=isSpot?'◈ spot mode — no leverage, no liquidation':'liq% = account ÷ notional · higher = safer';
+  // auto-fill fee preset for current exchange
+  const ex=document.getElementById('fee-exchange');
+  const exVal=ex?ex.value:'binance';
+  const preset=FEE_PRESETS[isSpot?'spot':'futures'][exVal];
+  if(preset){
+    gs().FEE.maker=preset.maker; gs().FEE.taker=preset.taker;
+    const mk=document.getElementById('fee-maker'); if(mk)mk.value=preset.maker;
+    const tk=document.getElementById('fee-taker'); if(tk)tk.value=preset.taker;
+  }
+  // funding: force 0 in spot
+  if(isSpot){gs().FEE.funding=0; gs().FEE.holds=0;}
+  // live fetch button: hide in spot (no funding)
+  const flb=document.getElementById('fee-live-btn'),fls=document.getElementById('fee-live-status');
+  if(flb)flb.style.display=isSpot?'none':'';
+  if(fls)fls.style.display=isSpot?'none':'';
+  render();
+}
+
 function toggleSec(id){
   const body=document.getElementById(id);
   const arrow=document.querySelector('[data-sec="'+id+'"] .sec-toggle');
@@ -1901,7 +2041,7 @@ function render(){
 
   // ── WIPE GUARD: liq% < 1 means setup is catastrophically broken ──
   // Keep full layout visible but replace every value with wipe error state
-  IS_WIPED = liqT1 < 1 || !isFinite(liqT1);
+  IS_WIPED = (!s.SPOT) && (liqT1 < 1 || !isFinite(liqT1));
 
   const months=sim();
   const last=months[months.length-1];
@@ -1935,8 +2075,8 @@ function render(){
       <div class="mc"><div class="mll">${t('milestone_lbl')}</div><div class="mvv" style="color:${m1M?'var(--acc2)':'#E24B4A'}">${m1M?getMLabel(m1M.m):t('beyond36')}</div><div class="ms">${m1M?t('milestone_hit')+getMLabel(m1M.m):t('milestone_miss')}</div></div>
       <div class="mc"><div class="mll">${t('avg_lbl')}</div><div class="mvv">${avgPct.toFixed(1)}%</div><div class="ms">${t('avg_sub')} · ${(36-s.ZM.size)} ${t('active')}</div></div>
       <div class="mc"><div class="mll">${t('seq_net_lbl')}</div><div class="mvv" style="color:${mp>=0?'#1D9E75':'#E24B4A'}">${mp>0?'+':''}${mp.toFixed(1)}%</div><div class="ms">${wins}W / ${losses}L · ${actTr}/10</div></div>
-      <div class="mc"><div class="mll">${t('liq_mc_lbl')}</div><div class="mvv" style="color:${lc(liqT1)}">${liqT1.toFixed(1)}%</div><div class="ms">${t('liq_mc_sub',liqT1.toFixed(0))}</div></div>
-      <div class="mc"><div class="mll">total fees paid</div><div class="mvv" style="color:#E24B4A">−${fmt(totalFeesPaid)}</div><div class="ms">trade + funding · all months</div></div>
+      ${s.SPOT?'<div class="mc"><div class="mll">no liq%</div><div class="mvv" style="color:#5DC96A">◈ spot</div><div class="ms">no liquidation risk</div></div>':('<div class="mc"><div class="mll">'+t('liq_mc_lbl')+'</div><div class="mvv" style="color:'+lc(liqT1)+'">'+liqT1.toFixed(1)+'%</div><div class="ms">'+t('liq_mc_sub',liqT1.toFixed(0))+'</div></div>')}
+      <div class="mc"><div class="mll">total fees paid</div><div class="mvv" style="color:#E24B4A">−${fmt(totalFeesPaid)}</div><div class="ms">${s.SPOT?'trade only · spot':'trade + funding · all months'}</div></div>
     `;
   }
   mh+='</div>';
@@ -2191,6 +2331,7 @@ function renderTbl(months){
         <td style="font-size:9px;padding:4px 5px">
           <div style="font-size:7px;color:var(--mhs);opacity:.7;margin-bottom:1px">month fees</div>
           <b style="color:#ff8888">−${fmt(monthFeeTotal)}</b>
+          <div style="font-size:7px;color:var(--mhs);opacity:.5">2×${FEE.method}</div>
         </td>
         <td style="font-size:9px;padding:4px 5px">
           <div style="font-size:7px;color:var(--mhs);opacity:.7;margin-bottom:1px">end · acc balance</div>
@@ -2225,15 +2366,15 @@ function renderTbl(months){
         const isT1Push=t.no===1&&mo.mp>1;
         const feePaid=t.feePaid||0;
         const netCp=t.cp-feePaid;
-        const liqAF=t.accAF/t.not*100;
+        const liqAF=s.SPOT?999:t.accAF/t.not*100;
         const netCol=netCp>=0?'var(--acc2)':'#E24B4A';
         const liqAFc=liqAF<20?'#A32D2D':liqAF<40?'#E24B4A':'var(--tx3)';
         h+=`<tr${isT1Push?' style="background:rgba(96,192,48,0.06)"':''}>
           <td style="padding-left:8px;text-align:left"><input class="lbl-in lbl-trade" value="${tLabel}" placeholder="trade ${t.no}..." onchange="onTradeLabel(${t.no},this.value)" onclick="this.select()"></td>
           <td style="font-weight:600;${isT1Push?'color:var(--acc2)':''}">${fmt(t.not)}${isT1Push?' <span style="font-size:7px;background:#EAF3DE;color:#3B6D11;padding:0 3px;border-radius:2px;font-weight:700">⚡</span>':''}</td>
-          <td style="color:var(--acc)">${fmt(t.am)}</td>
-          <td>${t.fm.toFixed(1)}%</td>
-          <td style="color:${lc(t.liq)};font-weight:700">${t.liq.toFixed(1)}%</td>
+          <td style="color:var(--acc)">${s.SPOT?'<span style="color:var(--tx3);font-size:9px">n/a</span>':fmt(t.am)}</td>
+          <td>${s.SPOT?'<span style="color:var(--tx3);font-size:9px">n/a</span>':t.fm.toFixed(1)+'%'}</td>
+          <td style="color:${lc(t.liq)};font-weight:700">${s.SPOT?'<span style="color:#5DC96A;font-size:9px">◈</span>':t.liq.toFixed(1)+'%'}</td>
           <td>${!GLOBAL_MODE
             ?'<input type="number" value="'+((gs().MT[mo.m]?.bt[t.no-1]??t.tgt/s.KPI)).toFixed(1)+'" min="0" max="500" step="0.1" style="width:40px;padding:2px 3px;font-size:9px;text-align:center;border:0.5px solid var(--bd2);border-radius:3px;background:var(--inp);color:var(--acc);font-weight:700" oninput="onManualBT('+mo.m+','+(t.no-1)+',this.value)">'
             :t.tgt.toFixed(2)+'%'}</td>
@@ -2242,10 +2383,10 @@ function renderTbl(months){
             :'<span style="color:var(--tx2)">'+t.freq+'×</span>'}</td>
           <td>+${fmt(t.sp)}</td>
           <td style="color:var(--acc2);font-weight:600">+${fmt(t.cp)}</td>
-          <td style="color:${feePaid>0?'#E24B4A':'var(--tx3)'}">−${fmt(feePaid)}</td>
+          <td style="color:${feePaid>0?'#E24B4A':'var(--tx3)'}">−${fmt(feePaid)}<div style="font-size:7px;color:var(--tx3);opacity:.7">2×${FEE.method}</div></td>
           <td style="color:${netCol};font-weight:700">${netCp>=0?'+':''}${fmt(netCp)}</td>
-          <td style="color:var(--tx3);font-size:10px">${fmt(t.accA)}</td>
-          <td style="color:var(--acc2);font-weight:700">${fmt(t.accAF)}<div style="font-size:7px;color:${liqAFc}">liq ${liqAF.toFixed(0)}%</div></td>
+          <td style="color:var(--tx3);font-size:10px">${s.SPOT?'<span style="color:var(--tx3);font-size:9px">n/a</span>':fmt(t.accA)}</td>
+          <td style="color:var(--acc2);font-weight:700">${fmt(t.accAF)}${s.SPOT?'':'<div style="font-size:7px;color:'+liqAFc+'">liq '+liqAF.toFixed(0)+'%</div>'}</td>
         </tr>`;
       });
     });
