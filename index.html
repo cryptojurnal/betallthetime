@@ -77,23 +77,23 @@ function _spotlightGuideTab(){
       const pr=popup.getBoundingClientRect();
       // start: bottom-center of popup
       const sx=(pr.left/zoom)+(pr.width/zoom)/2, sy=(pr.bottom/zoom)+2;
-      // end: just to the LEFT of the guide tab box (outside, not on it)
-      const ex=cx-18, ey=cy+ch/2;
+      // end: just outside the top-left corner of the guide tab box
+      const ex=cx-6, ey=cy+6;
       const svg=document.getElementById('popup-arrow-svg');
       if(!svg) return;
       svg.style.display='block';
-      // cubic bezier: drop straight down, then sweep left
-      const c1x=sx, c1y=sy+70;
-      const c2x=ex+60, c2y=ey-8;
+      // cubic bezier: drop straight down, then sweep left-up to corner
+      const c1x=sx, c1y=sy+80;
+      const c2x=ex+80, c2y=ey+20;
       svg.querySelector('path').setAttribute('d',`M${sx},${sy} C${c1x},${c1y} ${c2x},${c2y} ${ex},${ey}`);
-      // arrowhead pointing right toward the tab
+      // arrowhead pointing toward the top-left corner
       const ang=Math.atan2(ey-c2y, ex-c2x);
       const al=13;
       const ax1=ex-al*Math.cos(ang-0.4), ay1=ey-al*Math.sin(ang-0.4);
       const ax2=ex-al*Math.cos(ang+0.4), ay2=ey-al*Math.sin(ang+0.4);
       svg.querySelector('polygon').setAttribute('points',`${ex},${ey} ${ax1},${ay1} ${ax2},${ay2}`);
       requestAnimationFrame(()=>svg.classList.add('visible'));
-      // position and show "find me here" label above the arrow end point
+      // position "find me here" label ABOVE the guide tab, centered on it
       const lbl=document.getElementById('find-me-label');
       const txt=document.getElementById('find-me-txt');
       const isId=typeof LANG!=='undefined'&&LANG==='id';
@@ -102,8 +102,9 @@ function _spotlightGuideTab(){
         lbl.style.display='flex';
         lbl.style.alignItems='center';
         lbl.style.gap='0';
-        lbl.style.left=(ex-40)+'px';
-        lbl.style.top=(ey-28)+'px';
+        // center above the guide tab
+        lbl.style.left=(cx + cw/2 - 60)+'px';
+        lbl.style.top=(cy - 28)+'px';
         requestAnimationFrame(()=>lbl.style.opacity='1');
       }
     });
@@ -452,7 +453,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 .popup-hint{font-size:10px;color:var(--acc2);font-weight:600;margin-bottom:16px;padding:6px 10px;background:var(--sf2);border-radius:6px;border:1px solid var(--acc2)}
 .popup-ok{background:var(--acc2);color:#fff;border:none;border-radius:8px;padding:10px 32px;font-size:13px;font-weight:700;cursor:pointer;width:100%;transition:opacity .2s;letter-spacing:.03em}
 .popup-ok:hover{opacity:.85}
-.fmh-dot{display:inline-block;width:5px;height:5px;border-radius:50%;background:#00c47a;margin-left:3px;vertical-align:middle;animation:fmhBubble 1.2s ease-in-out infinite}
+.fmh-dot{display:inline-block;width:5px;height:5px;border-radius:50%;background:#fff;box-shadow:0 0 6px #00c47a;margin-left:3px;vertical-align:middle;animation:fmhBubble 1.2s ease-in-out infinite}
 .fmh-dot:nth-child(2){animation-delay:.2s}
 .fmh-dot:nth-child(3){animation-delay:.4s}
 .fmh-dot:nth-child(4){animation-delay:.6s}
@@ -528,7 +529,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 </svg>
 <!-- FIND ME HERE label -->
 <div id="find-me-label" style="position:fixed;z-index:8890;display:none;opacity:0;transition:opacity .4s .5s;pointer-events:none">
-  <span id="find-me-txt" style="font-size:11px;font-weight:700;color:#00c47a;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap">find me here</span>
+  <span id="find-me-txt" style="font-size:11px;font-weight:800;color:#fff;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;text-shadow:0 0 8px #00c47a,0 0 16px #00c47a">find me here</span>
   <span class="fmh-dot"></span><span class="fmh-dot"></span><span class="fmh-dot"></span>
 </div>
 <!-- GUIDE POPUP (centered) -->
