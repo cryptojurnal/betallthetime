@@ -275,13 +275,25 @@ body.t-dark tr.wipe-row>td{background:#2a0a0a!important;color:#ff7070!important}
 
 /* table */
 .tw{overflow-x:auto}
-table{border-collapse:collapse;font-size:11px;width:100%;min-width:640px;background:var(--panel);border-radius:0;overflow:hidden;border:0.5px solid var(--bd2);transition:background .25s}
-th{padding:6px 7px;background:var(--sf2);border-bottom:0.5px solid var(--bd2);font-weight:700;font-size:9px;color:var(--tx2);text-align:right;white-space:nowrap;letter-spacing:.04em;text-transform:uppercase}
+table{border-collapse:collapse;font-size:10px;width:100%;min-width:860px;background:var(--panel);border-radius:0;overflow:hidden;border:0.5px solid var(--bd2);transition:background .25s}
+th{padding:5px 5px;background:var(--sf2);border-bottom:0.5px solid var(--bd2);font-weight:700;font-size:8px;color:var(--tx2);text-align:right;white-space:normal;letter-spacing:.03em;text-transform:uppercase;line-height:1.3}
 th:first-child{text-align:left}
-td{padding:5px 7px;border-bottom:0.5px solid var(--bd2);text-align:right;white-space:nowrap;color:var(--tx)}
+td{padding:4px 5px;border-bottom:0.5px solid var(--bd2);text-align:right;white-space:nowrap;color:var(--tx);font-size:10px}
 td:first-child{text-align:left}
+/* detail table fixed col widths — 9 cols */
+table.det-tbl col:nth-child(1){width:90px}
+table.det-tbl col:nth-child(2){width:9%}
+table.det-tbl col:nth-child(3){width:8%}
+table.det-tbl col:nth-child(4){width:8%}
+table.det-tbl col:nth-child(5){width:11%}
+table.det-tbl col:nth-child(6){width:8%}
+table.det-tbl col:nth-child(7){width:11%}
+table.det-tbl col:nth-child(8){width:9%}
+table.det-tbl col:nth-child(9){width:11%}
+.td2{font-size:8px;color:var(--tx3);margin-top:1px;line-height:1.2}
+
 tr:nth-child(even) td{background:var(--sf)}
-tr.mh>td{background:var(--mh)!important;color:var(--mhc)!important;font-weight:700;font-size:11px;padding:7px 7px}
+tr.mh>td{background:var(--mh)!important;color:var(--mhc)!important;font-weight:700;font-size:11px;padding:4px 5px}
 tr.mh-z>td{background:var(--sf2)!important;color:var(--tx2)!important;font-size:10px;padding:5px 7px}
 tr.skip-row>td{color:var(--tx3);font-style:italic}
 tr.zero-row>td{color:var(--tx3);font-style:italic}
@@ -370,7 +382,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 <!-- LAYER 1 - philosophy -->
 <div id="layer1" onclick="goLayer2()">
   <div class="intro-quote">
-    <blockquote>"a trading philosophy is something that cannot just be transferred from one person to another; it's something that you have to acquire yourself through time and effort."</blockquote>
+    <blockquote>"a trading philosophy is something that cannot just be transferred from one person to another; it\'s something that you have to acquire yourself through time and effort."</blockquote>
     <cite>— Richard Driehaus, legendary money manager</cite>
   </div>
   <div class="intro-hint">
@@ -799,15 +811,15 @@ body.t-ocean .g-warn,.body.t-forest .g-warn,.body.t-sunset .g-warn,.body.t-laven
   <div class="g-term"><span class="g-term-name">liq%</span><span class="g-term-def">liquidation percentage. <b>how far the spot price must drop (or rise against you) before your position gets wiped.</b> this is the most important number in the whole dashboard. higher = safer. if liq% = 40%, the market needs to move 40% against your entry to liquidate trade 1.</span></div>
   <div class="g-term"><span class="g-term-name">notional</span><span class="g-term-def">the <b>total position size after leverage is applied.</b> if you put $100 actual margin at 10× leverage, notional = $1,000. this is what the exchange is actually trading for you.</span></div>
   <div class="g-term"><span class="g-term-name">actual margin</span><span class="g-term-def">the <b>real capital from your account used as collateral</b> for trade 1. formula: notional ÷ leverage. this is what you actually risk per trade entry.</span></div>
-  <div class="g-term"><span class="g-term-name">fm% (frac margin)</span><span class="g-term-def"><b>fractional margin</b> — actual margin as a % of your total account. if fm% = 16%, you're deploying 16% of your account as margin for trade 1. lower = safer.</span></div>
+  <div class="g-term"><span class="g-term-name">fm% (frac margin)</span><span class="g-term-def"><b>fractional margin</b> — actual margin as a % of your total account. if fm% = 16%, you\'re deploying 16% of your account as margin for trade 1. lower = safer.</span></div>
   <div class="g-term"><span class="g-term-name">carry-forward</span><span class="g-term-def">each trade's notional <b>grows by adding the previous trade's profit.</b> so if trade 1 notional = $250 and profit = $20, trade 2 notional = $270. this compounds within the sequence naturally.</span></div>
-  <div class="g-tip"><b>the relationship:</b> liq% = account ÷ notional × 100. so if account = $1,000 and notional = $2,500, liq% = 40%. if you withdraw $500, account drops to $500, liq% drops to 20% — you're now twice as close to liquidation. this is why withdrawal directly impacts your safety buffer.</div>
+  <div class="g-tip"><b>the relationship:</b> liq% = account ÷ notional × 100. so if account = $1,000 and notional = $2,500, liq% = 40%. if you withdraw $500, account drops to $500, liq% drops to 20% — you\'re now twice as close to liquidation. this is why withdrawal directly impacts your safety buffer.</div>
 </div>
 
 <div class="g-sec">
   <div class="g-sec-title">📊 dashboard metrics explained</div>
   <div class="g-term"><span class="g-term-name">account</span><span class="g-term-def">your <b>live trading account balance</b> at the end of each month after all trades and withdrawals.</span></div>
-  <div class="g-term"><span class="g-term-name">banked</span><span class="g-term-def">profits you have <b>physically withdrawn</b> from the account. this money is safe — it doesn't compound anymore but it also can't be liquidated.</span></div>
+  <div class="g-term"><span class="g-term-name">banked</span><span class="g-term-def">profits you have <b>physically withdrawn</b> from the account. this money is safe — it doesn\'t compound anymore but it also can\'t be liquidated.</span></div>
   <div class="g-term"><span class="g-term-name">combined NW</span><span class="g-term-def"><b>net worth = account + banked.</b> this is your real financial position. always assess your success by this number, not just the account balance.</span></div>
   <div class="g-term"><span class="g-term-name">seq potential</span><span class="g-term-def">maximum <b>total % gain in one full sequence</b> (all 10 trades combined). this is the ceiling for one month if every active trade hits target.</span></div>
   <div class="g-term"><span class="g-term-name">single profit</span><span class="g-term-def">profit from <b>one execution</b> of that trade (notional × target%). one trade, one time.</span></div>
@@ -816,21 +828,21 @@ body.t-ocean .g-warn,.body.t-forest .g-warn,.body.t-sunset .g-warn,.body.t-laven
   <div class="g-term"><span class="g-term-name">3yr CAGR</span><span class="g-term-def"><b>compound annual growth rate over 36 months.</b> normalizes total return into a yearly figure. benchmark: S&amp;P 500 ~10% · Warren Buffett ~20% · Druckenmiller ~30%. anything above 50% in crypto with controlled risk is elite.</span></div>
   <div class="g-term"><span class="g-term-name">$1M milestone</span><span class="g-term-def">the month when your <b>combined NW (account + banked) first crosses $1,000,000.</b> not just account — total wealth. this is the real target.</span></div>
   <div class="g-term"><span class="g-term-name">account lifespan</span><span class="g-term-def">estimated survival time based on risk structure. <b>from minutes (extreme) to generational (almost unliquidatable).</b> formula: (liq%)² ÷ leverage factor ÷ margin factor. not a guarantee — a calibrated signal.</span></div>
-  <div class="g-term"><span class="g-term-name">liq t1 vs liq last</span><span class="g-term-def">liq t1 = buffer at the start of the month (trade 1). liq last = buffer at the end of the sequence (last active trade). <b>liq grows through the sequence</b> because account grows while notional also grows but slower. watch liq t1 — it's your tightest point.</span></div>
+  <div class="g-term"><span class="g-term-name">liq t1 vs liq last</span><span class="g-term-def">liq t1 = buffer at the start of the month (trade 1). liq last = buffer at the end of the sequence (last active trade). <b>liq grows through the sequence</b> because account grows while notional also grows but slower. watch liq t1 — it\'s your tightest point.</span></div>
   <div class="g-term"><span class="g-term-name">margin push ⚡</span><span class="g-term-def">per-month multiplier on trade 1 notional. if push = 1.4×, trade 1 starts 40% larger than carry-forward. <b>this deliberately reduces liq% on that month</b> (more risk, more potential). use on high-conviction months only.</span></div>
-  <div class="g-term"><span class="g-term-name">zero month ⊘</span><span class="g-term-def">a month where you don't trade. <b>no profit, no loss, no compounding.</b> the carry-forward notional pauses and resumes next active month. use for unclear market conditions, personal events, or planned rest.</span></div>
+  <div class="g-term"><span class="g-term-name">zero month ⊘</span><span class="g-term-def">a month where you don\'t trade. <b>no profit, no loss, no compounding.</b> the carry-forward notional pauses and resumes next active month. use for unclear market conditions, personal events, or planned rest.</span></div>
   <div class="g-term"><span class="g-term-name">global vs manual</span><span class="g-term-def">global mode applies one trade setup to all months. manual mode lets you <b>set different targets and freqs per month</b> in the full detail view — useful when market conditions change mid-plan.</span></div>
 </div>
 
 <div class="g-sec">
   <div class="g-sec-title">🔘 toggle switches — tiny but essential</div>
-  <div style="font-size:11px;color:var(--tx2);margin-bottom:10px;line-height:1.7">this dashboard has several toggle switches that control important behaviors. here's exactly what each one does:</div>
+  <div style="font-size:11px;color:var(--tx2);margin-bottom:10px;line-height:1.7">this dashboard has several toggle switches that control important behaviors. here\'s exactly what each one does:</div>
 
   <div class="g-term">
     <span class="g-term-name">link to capital<br><span style="font-weight:400;font-size:9px;color:var(--tx3)">(notional panel)</span></span>
     <span class="g-term-def">
       <div class="g-toggle-demo"><span class="g-tog-off">off</span><span style="color:var(--tx3);font-size:10px">↔</span><span class="g-tog-on">on</span></div><br>
-      <b>off (default — recommended):</b> notional stays fixed when you change capital. safer behavior — your position size doesn't jump around automatically.<br>
+      <b>off (default — recommended):</b> notional stays fixed when you change capital. safer behavior — your position size doesn\'t jump around automatically.<br>
       <b>on:</b> notional scales proportionally with capital to maintain the same liq% ratio. useful when you want the risk profile to stay consistent as capital grows. <b>watch out</b> — turning this on and bumping capital will automatically increase notional and may surprise you.
     </span>
   </div>
@@ -839,7 +851,7 @@ body.t-ocean .g-warn,.body.t-forest .g-warn,.body.t-sunset .g-warn,.body.t-laven
     <span class="g-term-name">global mode<br><span style="font-weight:400;font-size:9px;color:var(--tx3)">(trade slots panel)</span></span>
     <span class="g-term-def">
       <div class="g-toggle-demo"><span class="g-tog-on">● on</span><span style="color:var(--tx3);font-size:10px">↔</span><span class="g-tog-off">○ off</span></div><br>
-      <b>on (default):</b> all 36 months use the same 10 trade slots you've configured in the left panel. simple and clean — one formula, applied everywhere.<br>
+      <b>on (default):</b> all 36 months use the same 10 trade slots you\'ve configured in the left panel. simple and clean — one formula, applied everywhere.<br>
       <b>off (per-month mode):</b> unlocks manual target/freq inputs in the full trade detail view for every individual month. lets you adapt to different market conditions month by month — bull month gets aggressive targets, choppy month gets conservative. the trade slot panel in the left dims when in manual mode (you edit directly in the table instead).
     </span>
   </div>
@@ -849,7 +861,7 @@ body.t-ocean .g-warn,.body.t-forest .g-warn,.body.t-sunset .g-warn,.body.t-laven
 
 <div class="g-sec">
   <div class="g-sec-title">🎨 customization — everything is editable</div>
-  <div style="font-size:11px;color:var(--tx2);margin-bottom:10px;line-height:1.7">almost every label and value in this dashboard can be customized. here's what you can change freely:</div>
+  <div style="font-size:11px;color:var(--tx2);margin-bottom:10px;line-height:1.7">almost every label and value in this dashboard can be customized. here\'s what you can change freely:</div>
   <div class="g-term"><span class="g-term-name">month labels</span><span class="g-term-def">click any month name in the summary or detail table and type your own label — e.g. <b>"april 2026"</b>, <b>"halving month"</b>, or anything that gives it meaning. labels survive saves.</span></div>
   <div class="g-term"><span class="g-term-name">trade labels</span><span class="g-term-def">in the full trade detail view, click any trade row label to rename it — e.g. <b>"BTC/USDT long"</b>, <b>"MOODENG pump"</b>, or your own shorthand. useful for tracking which asset each slot targets.</span></div>
   <div class="g-term"><span class="g-term-name">withdrawal column</span><span class="g-term-def">click any cell in the withdrawal column (monthly summary or detail view) to type a withdrawal amount for that month. the field highlights in accent color when active. it deducts from gross end balance and lowers liq% for the next month.</span></div>
@@ -861,15 +873,15 @@ body.t-ocean .g-warn,.body.t-forest .g-warn,.body.t-sunset .g-warn,.body.t-laven
 
 <div class="g-sec">
   <div class="g-sec-title">⚙️ controls — how to use them</div>
-  <div class="g-step"><div class="g-step-num">1</div><div class="g-step-body"><b>set starting capital</b> — your actual account size. use the preset buttons ($100 · $1k · $10k · $100k · $1M · $10M · $100M · $1B · $10B) or type/slide manually. capital doesn't affect liq% directly — the ratio to notional is what matters.</div></div>
+  <div class="g-step"><div class="g-step-num">1</div><div class="g-step-body"><b>set starting capital</b> — your actual account size. use the preset buttons ($100 · $1k · $10k · $100k · $1M · $10M · $100M · $1B · $10B) or type/slide manually. capital doesn\'t affect liq% directly — the ratio to notional is what matters.</div></div>
   <div class="g-step"><div class="g-step-num">2</div><div class="g-step-body"><b>set leverage</b> — higher leverage means smaller actual margin per trade but also shrinks your liq% buffer. watch the liq% in the notional panel update live.</div></div>
-  <div class="g-step"><div class="g-step-num">3</div><div class="g-step-body"><b>set notional (trade 1)</b> — your first trade's position size. use the preset buttons ($100 · $1k · $10k · $1M · $10M · $1B) or type/slide freely. the comp panel shows actual margin, fm%, and liq% in real time. <b>keep liq% at or above 40% — that's your floor, not your target.</b> aim for 100%+ liq for a genuinely healthy setup. "link to capital" toggle controls whether notional auto-scales when you change capital.</div></div>
+  <div class="g-step"><div class="g-step-num">3</div><div class="g-step-body"><b>set notional (trade 1)</b> — your first trade's position size. use the preset buttons ($100 · $1k · $10k · $1M · $10M · $1B) or type/slide freely. the comp panel shows actual margin, fm%, and liq% in real time. <b>keep liq% at or above 40% — that\'s your floor, not your target.</b> aim for 100%+ liq for a genuinely healthy setup. "link to capital" toggle controls whether notional auto-scales when you change capital.</div></div>
   <div class="g-step"><div class="g-step-num">4</div><div class="g-step-body"><b>set trade slots</b> — 10 slots, each with target% and freq. set either to 0 to skip that trade. the sequence runs top to bottom, notional compounding with each trade's profit.</div></div>
   <div class="g-step"><div class="g-step-num">5</div><div class="g-step-body"><b>global mode vs manual</b> — when global is ON, all months use the same trade targets. turn it OFF to set different targets per month in the full trade detail view.</div></div>
-  <div class="g-step"><div class="g-step-num">6</div><div class="g-step-body"><b>zero months</b> — months where you don't trade. click the ⊘ button on any month to mark it as zero. click again to activate.</div></div>
+  <div class="g-step"><div class="g-step-num">6</div><div class="g-step-body"><b>zero months</b> — months where you don\'t trade. click the ⊘ button on any month to mark it as zero. click again to activate.</div></div>
   <div class="g-step"><div class="g-step-num">7</div><div class="g-step-body"><b>withdrawal</b> — type any amount in the withdrawal column. <b>important: withdrawing reduces your account which lowers liq% for the next month.</b> always check liq t1 after setting a withdrawal.</div></div>
   <div class="g-step"><div class="g-step-num">8</div><div class="g-step-body"><b>margin push up (⚡)</b> — in full trade detail, type a multiplier (e.g. 1.4) in the push field. only trade 1 of that month gets multiplied. trades 2–10 compound naturally from that higher base.</div></div>
-  <div class="g-warn">⚠ key rule: when you withdraw, your liq% drops for the next month. the projection shows this — watch the liq t1 column. if it drops below 20%, you're in the danger zone. always check liq% after setting a withdrawal amount.</div>
+  <div class="g-warn">⚠ key rule: when you withdraw, your liq% drops for the next month. the projection shows this — watch the liq t1 column. if it drops below 20%, you\'re in the danger zone. always check liq% after setting a withdrawal amount.</div>
 </div>
 
 <div class="g-sec">
@@ -892,7 +904,7 @@ body.t-ocean .g-warn,.body.t-forest .g-warn,.body.t-sunset .g-warn,.body.t-laven
       <div style="font-size:10px;color:#A32D2D;line-height:1.8">liq% t1 &lt; 20%<br>leverage ≥ 25×<br>fm% &gt; 40%<br>account lifespan: hours → days<br>risk score &gt; 60<br>withdrawal without checking liq%<br>margin push every month</div>
     </div>
   </div>
-  <div class="g-tip"><b>the discipline rule:</b> never enter a trade without checking liq% first. if liq% is below 30%, reduce notional or increase capital before opening. the market doesn't care about your plan — your risk structure is the only thing you control.</div>
+  <div class="g-tip"><b>the discipline rule:</b> never enter a trade without checking liq% first. if liq% is below 30%, reduce notional or increase capital before opening. the market doesn\'t care about your plan — your risk structure is the only thing you control.</div>
 </div>
 
 <div class="g-sec">
@@ -915,7 +927,7 @@ body.t-ocean .g-warn,.body.t-forest .g-warn,.body.t-sunset .g-warn,.body.t-laven
     · exchange-specific liquidation mechanics<br>
     · partial fills or execution delays<br><br>
     the final outcome depends entirely on <b>your own execution</b>. this tool helps you prepare and assess your setup before entering — the bet itself, and the results, are yours alone. any gains or losses are the direct result of your personal trading decisions and experience.<br><br>
-    <b style="color:#A32D2D">🔒 cross margin mode only.</b> the liq% formula (account ÷ notional × 100) is designed specifically for cross margin. if you are using isolated margin, the liquidation mechanics are different and this dashboard's liq% will not apply accurately. always confirm your margin mode before relying on these projections.
+    <b style="color:#A32D2D">🔒 cross margin mode only.</b> the liq% formula (account ÷ notional × 100) is designed specifically for cross margin. if you are using isolated margin, the liquidation mechanics are different and this dashboard\'s liq% will not apply accurately. always confirm your margin mode before relying on these projections.
   </div>
 </div>
 `;
@@ -1226,7 +1238,7 @@ function runSeq(startAcc,lev,initNot,bt,fr,kpi){
     const tgt=bt[i]*kpi/100;
     const sp=not*tgt,cp=sp*fr[i];
     // fee: (maker+taker) per execution × freq, + funding × holds × freq
-    // fee always paid regardless of win/loss — it's the cost of entering and holding
+    // fee always paid regardless of win/loss — it\'s the cost of entering and holding
     const tradeFee=((FEE.maker+FEE.taker)/100)*not*fr[i];
     const fundFee=(FEE.funding/100)*not*FEE.holds*fr[i];
     const feePaid=tradeFee+fundFee;
@@ -1708,17 +1720,19 @@ function buildAssessmentCards(months, s){
   const c=(lbl,valH,sub,ex='')=>_wiped?`<div class="sc-item"><div class="sc-lbl">${lbl}</div><div class="sc-val wipe-val">wiped</div><div class="sc-sub" style="color:#E24B4A">— invalid —</div></div>`:`<div class="sc-item"><div class="sc-lbl">${lbl}</div>${valH}<div class="sc-sub">${sub}</div>${ex}</div>`;
   const tAge=t('age_'+av);
   const tAgeSub=t('age_sub_'+av);
-  return `<div class="sc-grid" style="grid-template-columns:repeat(4,1fr);height:100%">
-    ${c(t('sc_risk'),`<div class="sc-val"><span class="risk-pill ${rc2}">${re} ${rl}</span></div>`,rs+'/100',bk(rs,riskC))}
-    ${c(t('sc_liq'),`<div class="sc-val" style="color:${liqC}">${liqT1.toFixed(1)}%</div>`,t('sc_liq_sub'),bk(Math.min(liqT1,100),liqC))}
-    ${c(t('sc_lev'),`<div class="sc-val" style="color:${s.LEV>=20?'#E24B4A':s.LEV>=15?'#EF9F27':'#1D9E75'}">${s.LEV}×</div>`,`fm ${fm.toFixed(1)}% ${t('sc_of_acct')}`)}
-    ${c(t('sc_avg'),`<div class="sc-val">${avgPct.toFixed(1)}%</div>`,t('sc_avg_sub'))}
-    ${c(t('sc_cagr'),`<div class="sc-val" style="color:#BA7517">${cagr.toFixed(1)}%</div>`,t('sc_cagr_sub'))}
-    ${c(t('sc_life'),`<div class="sc-val" style="color:${ac}">${tAge!==('age_'+av)?tAge:av}</div>`,tAgeSub!==('age_sub_'+av)?tAgeSub:as2)}
-    ${c(t('sc_seq'),`<div class="sc-val" style="color:${mp>=0?'#1D9E75':'#E24B4A'}">${mp>0?'+':''}${mp.toFixed(1)}%</div>`,`${wins}W/${losses}L · ${actTr}/10`)}
-    ${c(t('sc_verdict'),`<div class="sc-val" style="font-size:10px;color:var(--tx2);line-height:1.3;white-space:normal;font-weight:600">${tooltip}</div>`,'')}
-  </div>`;
+  const cards=[
+    c(t('sc_risk'),'<div class="sc-val"><span class="risk-pill '+rc2+'">'+re+' '+rl+'</span></div>',rs+'/100',bk(rs,riskC)),
+    c(t('sc_liq'),'<div class="sc-val" style="color:'+liqC+'">'+liqT1.toFixed(1)+'%</div>',t('sc_liq_sub'),bk(Math.min(liqT1,100),liqC)),
+    c(t('sc_lev'),'<div class="sc-val" style="color:'+(s.LEV>=20?'#E24B4A':s.LEV>=15?'#EF9F27':'#1D9E75')+'">'+s.LEV+'×</div>','fm '+fm.toFixed(1)+'% '+t('sc_of_acct')),
+    c(t('sc_avg'),'<div class="sc-val">'+avgPct.toFixed(1)+'%</div>',t('sc_avg_sub')),
+    c(t('sc_cagr'),'<div class="sc-val" style="color:#BA7517">'+cagr.toFixed(1)+'%</div>',t('sc_cagr_sub')),
+    c(t('sc_life'),'<div class="sc-val" style="color:'+ac+'">'+(tAge!==('age_'+av)?tAge:av)+'</div>',(tAgeSub!==('age_sub_'+av)?tAgeSub:as2)),
+    c(t('sc_seq'),'<div class="sc-val" style="color:'+(mp>=0?'#1D9E75':'#E24B4A')+'">'+(mp>0?'+':'')+mp.toFixed(1)+'%</div>',wins+'W/'+losses+'L · '+actTr+'/10'),
+    c(t('sc_verdict'),'<div class="sc-val" style="font-size:10px;color:var(--tx2);line-height:1.3;white-space:normal;font-weight:600">'+tooltip+'</div>',''),
+  ];
+  return '<div class="sc-grid" style="grid-template-columns:repeat(4,1fr);height:100%">'+cards.join('')+'</div>';
 }
+
 
 // ── SEQ STATS (net result inc. losses) ──
 function seqStats(s){
@@ -1752,8 +1766,8 @@ function render(){
   const tr=(last.nw/s.P-1)*100;
   const m1M=!isQ?months.find(r=>r.nw>=1000000):null;
   const totalFeesPaid=months.filter(r=>!r.isZ).reduce((a,r)=>a+(r.feePaid||0),0);
-  const wv=(val,color='')=>IS_WIPED?`<div class="mvv wipe-val">wiped</div>`:`<div class="mvv"${color?` style="color:${color}"`:''} >${val}</div>`;
-  const ws=(sub)=>IS_WIPED?`<div class="ms" style="color:#E24B4A;font-size:8px">— invalid —</div>`:`<div class="ms">${sub}</div>`;
+  const wv=(val,color='')=>IS_WIPED?'<div class="mvv wipe-val">wiped</div>':'<div class="mvv"'+(color?' style="color:'+color+'"':'')+' >'+val+'</div>';
+  const ws=(sub)=>IS_WIPED?'<div class="ms" style="color:#E24B4A;font-size:8px">— invalid —</div>':'<div class="ms">'+sub+'</div>';
   let mh='<div class="metrics">';
   if(isQ){
     mh+=`
@@ -1948,9 +1962,9 @@ function renderTbl(months){
         return;
       }
       h+=`<tr>
-        <td style="white-space:nowrap"><input class="lbl-sum" value="${getML(mo.m)}" placeholder="${mo.lb}" onchange="onMonthLabel(${mo.m},this.value)" onclick="this.select()" style="width:72px"> <span onclick="toggleZeroMonth(${mo.m})" title="set as zero month" style="cursor:pointer;font-size:9px;color:var(--tx3);padding:1px 4px;border:0.5px solid var(--bd2);border-radius:3px;user-select:none" onmouseover="this.style.color='var(--acc)'" onmouseout="this.style.color='var(--tx3)'">⊘</span>${mo.mp>1?`<span style="background:#EAF3DE;color:#3B6D11;font-size:9px;padding:1px 4px;border-radius:3px;font-weight:700;margin-left:2px">⚡${mo.mp.toFixed(1)}×</span>`:''}</td>
+        <td style="white-space:nowrap"><input class="lbl-sum" value="${getML(mo.m)}" placeholder="${mo.lb}" onchange="onMonthLabel(${mo.m},this.value)" onclick="this.select()" style="width:72px"> <span onclick="toggleZeroMonth(${mo.m})" title="set as zero month" style="cursor:pointer;font-size:9px;color:var(--tx3);padding:1px 4px;border:0.5px solid var(--bd2);border-radius:3px;user-select:none" onmouseover="this.style.color='var(--acc)'" onmouseout="this.style.color='var(--tx3)'">⊘</span>${mo.mp>1?'<span style="background:#EAF3DE;color:#3B6D11;font-size:9px;padding:1px 4px;border-radius:3px;font-weight:700;margin-left:2px">⚡'+mo.mp.toFixed(1)+'×</span>':''}</td>
         <td>${fmt(mo.sA)}</td>
-        <td style="color:var(--acc2);font-weight:700">${mo.wd>0?`<span style='color:var(--tx2);font-size:10px'>${fmt(mo.gA)}</span> <span style='color:#E24B4A;font-size:9px'>−${fmt(mo.wd)}</span><br><span style='font-weight:700'>${fmt(mo.eA)}</span>`:fmt(mo.eA)}</td>
+        <td style="color:var(--acc2);font-weight:700">${mo.wd>0?'<span style="color:var(--tx2);font-size:10px">'+fmt(mo.gA)+'</span> <span style="color:#E24B4A;font-size:9px">−'+fmt(mo.wd)+'</span><br><span style="font-weight:700">'+fmt(mo.eA)+'</span>':fmt(mo.eA)}</td>
         <td>${mo.pct.toFixed(1)}%</td>
         <td>+${fmt(gain)}</td>
         <td><div class="wd-cell"><input type="number" class="wd-inp${wdVal>0?' active':''}" id="wd-inp-${mo.m}" value="${wdVal||''}" min="0" step="1" placeholder="0" onchange="onWdInline(${mo.m},this.value)" onblur="onWdInline(${mo.m},this.value)"></div></td>
@@ -1964,20 +1978,24 @@ function renderTbl(months){
     });
   } else {
     h=`<thead><tr>
-      <th>month / trade</th>
-      <th>notional</th><th>margin</th><th>fm%</th><th>liq%</th>
-      <th>target%</th><th>freq</th>
-      <th>gross profit</th><th>combine (pre-fee)</th>
-      <th style="color:#E24B4A">fee paid</th>
-      <th style="color:var(--acc2)">net (post-fee)</th>
-      <th>acct (pre-fee)</th>
-      <th style="color:var(--acc2)">acct (post-fee)</th>
-      <th>withdrawal ✏️</th>
+      <th style="text-align:left;width:10%">trade</th>
+      <th style="width:8%">notional</th>
+      <th style="width:7%">margin</th>
+      <th style="width:6%">fm%</th>
+      <th style="width:6%">liq%</th>
+      <th style="width:7%">target%</th>
+      <th style="width:5%">freq</th>
+      <th style="width:8%">gross profit</th>
+      <th style="width:8%">combine<br><span style="font-weight:400;font-size:7px;text-transform:none;color:var(--tx3)">pre-fee</span></th>
+      <th style="width:7%;color:#E24B4A">fee paid</th>
+      <th style="width:9%;color:var(--acc2)">net<br><span style="font-weight:400;font-size:7px;text-transform:none">post-fee</span></th>
+      <th style="width:8%;color:var(--tx2)">acct<br><span style="font-weight:400;font-size:7px;text-transform:none">pre-fee</span></th>
+      <th style="width:9%;color:var(--acc2)">acct<br><span style="font-weight:400;font-size:7px;text-transform:none">post-fee</span></th>
     </tr></thead><tbody>`;
     months.forEach(mo=>{
       if(mo.isZ){
         h+=`<tr class="mh-z" style="cursor:pointer" onclick="toggleZeroMonth(${mo.m})" title="click to remove zero month">
-          <td colspan="14">${getML(mo.m)} · ⊘ zero month · account: ${fmt(mo.sA)} · <span style="color:var(--acc);font-size:9px">click to activate</span></td>
+          <td colspan="13" style="text-align:left">${getML(mo.m)} · ⊘ zero month · account: ${fmt(mo.sA)} · <span style="color:var(--acc);font-size:9px">click to activate</span></td>
         </tr>`;
         return;
       }
@@ -1985,79 +2003,103 @@ function renderTbl(months){
       const l1=mo.liqT1||0;
       const ll=actTr.length?actTr[actTr.length-1].liq:0;
       const wdVal=s.WD[mo.m]||0;
-      const postInfo='';
       if(IS_WIPED){
-        h+=`<tr class="wipe-row"><td>${getML(mo.m)}</td><td colspan="13">💸 ${lbl_w?'setup tidak valid — liq% < 1%':'invalid setup — liq% < 1%'}</td></tr>`;
+        h+=`<tr class="wipe-row"><td style="text-align:left">${getML(mo.m)}</td><td colspan="12">💸 ${lbl_w?'setup tidak valid — liq% < 1%':'invalid setup — liq% < 1%'}</td></tr>`;
         return;
       }
       const mLabel=getML(mo.m);
-      const balanceInfo=mo.wd>0
-        ?`<span style="color:var(--mhs)">gross: ${fmt(mo.gA)}</span> <span style="color:#E24B4A;font-size:10px">−${fmt(mo.wd)} wd</span> <span style="color:var(--mhc);font-weight:700">→ ${fmt(mo.eA)}</span>`
-        :`<span style="color:var(--mhc);font-weight:700">${fmt(mo.eA)}</span>`;
+      const monthFeeTotal=mo.trades.filter(t=>!t.skip).reduce((a,t)=>a+(t.feePaid||0),0);
+      const endDisp=mo.wd>0?'<span style="opacity:.75;font-size:9px">'+fmt(mo.gA)+'</span><span style="color:#ff8888;font-size:9px"> −'+fmt(mo.wd)+'</span> → <b>'+fmt(mo.eA)+'</b>':'<b>'+fmt(mo.eA)+'</b>';
+      // month header — values aligned under exact column headers (13 cols)
+      // col1:label+⊘ | col2:start | col3:push(under margin) | col4:empty | col5:liq-range | col6-7:empty | col8:gain | col9:empty | col10:fees | col11:end(under net) | col12:empty | col13:wd
       h+=`<tr class="mh">
-        <td style="white-space:nowrap"><input class="lbl-in" value="${mLabel}" placeholder="label..." onchange="onMonthLabel(${mo.m},this.value)" onclick="this.select()" style="width:72px"> <span onclick="toggleZeroMonth(${mo.m})" title="set as zero month" style="cursor:pointer;font-size:9px;color:var(--tx3);padding:1px 4px;border:0.5px solid var(--bd2);border-radius:3px;user-select:none" onmouseover="this.style.color='var(--acc)'" onmouseout="this.style.color='var(--tx3)'">⊘</span></td>
-        <td style="color:var(--mhs)">start: ${fmt(mo.sA)}</td>
-        <td colspan="2"></td>
-        <td style="color:var(--mhs)">${l1.toFixed(0)}%→${ll.toFixed(0)}%</td>
-        <td colspan="8"></td>
-        <td style="white-space:nowrap">
-          <input type="number" class="mp-inp${(s.MP[mo.m]||1)>1?' active':''}" id="mp-inp-d-${mo.m}" value="${s.MP[mo.m]>1?s.MP[mo.m]:''}" min="1" max="10" step="0.1" placeholder="1×" title="margin push up multiplier for this month" oninput="onMP(${mo.m},this.value)" style="width:46px">
-          <span style="font-size:8px;color:var(--tx3)">× push</span>
-          ${mo.mp>1?`<span style="background:#EAF3DE;color:#3B6D11;font-size:9px;padding:1px 5px;border-radius:3px;font-weight:700;margin-left:2px">⚡${mo.mp.toFixed(2)}×</span>`:''}
+        <td style="text-align:left;padding:4px 4px 4px 6px">
+          <div style="display:flex;align-items:center;gap:3px">
+            <input class="lbl-in" value="${mLabel}" placeholder="label..." onchange="onMonthLabel(${mo.m},this.value)" onclick="this.select()" style="width:56px">
+            <span onclick="toggleZeroMonth(${mo.m})" title="zero month" style="cursor:pointer;font-size:8px;color:var(--mhs);opacity:.6;padding:0 3px;border:0.5px solid var(--mhs);border-radius:2px;user-select:none">⊘</span>
+          </div>
         </td>
-        <td colspan="2" style="color:var(--mhs)">+${mo.pct.toFixed(1)}%</td>
-        <td colspan="2">end: ${balanceInfo}</td>
-        <td><div class="wd-cell"><input type="number" class="wd-inp${wdVal>0?' active':''}" id="wd-inp-d-${mo.m}" value="${wdVal||''}" min="0" step="1" placeholder="0" onchange="onWdInline(${mo.m},this.value)" onblur="onWdInline(${mo.m},this.value)"></div></td>
+        <td style="font-size:9px;padding:4px 5px">
+          <div style="font-size:7px;color:var(--mhs);opacity:.7;margin-bottom:1px">start · acc balance</div>
+          <b>${fmt(mo.sA)}</b>
+        </td>
+        <td style="font-size:9px;padding:4px 5px">
+          <div style="font-size:7px;color:var(--mhs);opacity:.7;margin-bottom:1px">push×</div>
+          <div style="display:flex;align-items:center;gap:3px">
+            <input type="number" class="mp-inp${(s.MP[mo.m]||1)>1?' active':''}" id="mp-inp-d-${mo.m}" value="${s.MP[mo.m]>1?s.MP[mo.m]:''}" min="1" max="10" step="0.1" placeholder="1" oninput="onMP(${mo.m},this.value)" style="width:34px;padding:1px 3px;font-size:9px;border:0.5px solid var(--mhs);border-radius:3px;background:transparent;color:var(--mhc);font-weight:700">
+            ${mo.mp>1?'<span style="font-size:7px;background:#EAF3DE;color:#3B6D11;padding:0 3px;border-radius:2px;font-weight:700">⚡'+mo.mp.toFixed(1)+'×</span>':''}
+          </div>
+        </td>
+        <td></td>
+        <td style="font-size:9px;padding:4px 5px">
+          <div style="font-size:7px;color:var(--mhs);opacity:.7;margin-bottom:1px">liq t1 → last</div>
+          <b>${l1.toFixed(0)}%→${ll.toFixed(0)}%</b>
+        </td>
+        <td colspan="2"></td>
+        <td style="font-size:9px;padding:4px 5px">
+          <div style="font-size:7px;color:var(--mhs);opacity:.7;margin-bottom:1px">monthly gross</div>
+          <b>+${mo.pct.toFixed(1)}%</b>
+          <div style="font-size:7px;color:var(--mhs);opacity:.5">pre-fee</div>
+        </td>
+        <td></td>
+        <td style="font-size:9px;padding:4px 5px">
+          <div style="font-size:7px;color:var(--mhs);opacity:.7;margin-bottom:1px">month fees</div>
+          <b style="color:#ff8888">−${fmt(monthFeeTotal)}</b>
+        </td>
+        <td style="font-size:9px;padding:4px 5px">
+          <div style="font-size:7px;color:var(--mhs);opacity:.7;margin-bottom:1px">end · acc balance</div>
+          <b>${fmt(mo.eA)}</b>
+          ${mo.wd>0?'<div style="font-size:8px;color:#ff8888;margin-top:1px">wd −'+fmt(mo.wd)+'</div>':''}
+        </td>
+        <td></td>
+        <td style="font-size:9px;text-align:right;padding:4px 5px">
+          <div style="font-size:7px;color:var(--mhs);opacity:.7;margin-bottom:2px">withdraw ✏️</div>
+          <input type="number" class="wd-inp${wdVal>0?' active':''}" id="wd-inp-d-${mo.m}" value="${wdVal||''}" min="0" step="1" placeholder="0" onchange="onWdInline(${mo.m},this.value)" onblur="onWdInline(${mo.m},this.value)" style="width:60px;padding:2px 4px;font-size:10px">
+        </td>
       </tr>`;
       mo.trades.forEach(t=>{
+        const tLabel=getTL(t.no);
         if(t.skip){
           if(!GLOBAL_MODE){
-            // manual mode: show editable inputs even when skipped so user can type back
             const mt=gs().MT[mo.m];
             const btVal=mt?mt.bt[t.no-1]:0;
             const frVal=mt?mt.fr[t.no-1]:0;
-            const tLabel=getTL(t.no);
             h+=`<tr class="skip-row">
-              <td style="padding-left:6px"><input class="lbl-in lbl-trade" value="${tLabel}" placeholder="trade ${t.no}..." onchange="onTradeLabel(${t.no},this.value)" onclick="this.select()"></td>
-              <td colspan="3" style="color:var(--tx3);font-size:9px;font-style:italic">skipped — type to reactivate ↓</td>
-              <td></td>
-              <td><input type="number" value="${btVal}" min="0" max="500" step="0.1" placeholder="tgt%" style="width:44px;padding:2px 3px;font-size:10px;text-align:center;border:0.5px solid var(--bd2);border-radius:3px;background:var(--inp);color:var(--acc);font-weight:700" oninput="onManualBT(${mo.m},${t.no-1},this.value)"></td>
-              <td><input type="number" value="${frVal}" min="0" max="20" step="1" placeholder="freq" style="width:36px;padding:2px 3px;font-size:10px;text-align:center;border:0.5px solid var(--acc2);border-radius:3px;background:var(--inp);color:var(--acc2);font-weight:700" oninput="onManualFR(${mo.m},${t.no-1},this.value)"></td>
-              <td colspan="7" style="color:var(--tx3);font-size:9px;text-align:center">set both > 0 to activate</td>
-              <td></td>
+              <td style="padding-left:8px;text-align:left"><input class="lbl-in lbl-trade" value="${tLabel}" placeholder="trade ${t.no}..." onchange="onTradeLabel(${t.no},this.value)" onclick="this.select()"></td>
+              <td colspan="4" style="color:var(--tx3);font-size:9px;font-style:italic">skipped — type target & freq to reactivate</td>
+              <td><input type="number" value="${btVal}" min="0" max="500" step="0.1" placeholder="tgt%" style="width:42px;padding:2px 3px;font-size:9px;text-align:center;border:0.5px solid var(--bd2);border-radius:3px;background:var(--inp);color:var(--acc);font-weight:700" oninput="onManualBT(${mo.m},${t.no-1},this.value)"></td>
+              <td><input type="number" value="${frVal}" min="0" max="20" step="1" placeholder="freq" style="width:32px;padding:2px 3px;font-size:9px;text-align:center;border:0.5px solid var(--acc2);border-radius:3px;background:var(--inp);color:var(--acc2);font-weight:700" oninput="onManualFR(${mo.m},${t.no-1},this.value)"></td>
+              <td colspan="7" style="color:var(--tx3);font-size:9px;text-align:center;font-style:italic">set both > 0 to activate</td>
             </tr>`;
           } else {
-            h+=`<tr class="skip-row"><td style="padding-left:16px;font-size:10px">trade ${t.no}</td><td colspan="13" style="text-align:center"><span class="sk">skipped · 0 target or freq</span></td></tr>`;
+            h+=`<tr class="skip-row"><td style="padding-left:10px;text-align:left;color:var(--tx3);font-size:9px">${tLabel}</td><td colspan="12" style="text-align:center"><span class="sk">skipped · 0 target or freq</span></td></tr>`;
           }
           return;
         }
-        const tLabel=getTL(t.no);
         const isT1Push=t.no===1&&mo.mp>1;
-        h+=`<tr${isT1Push?' style="background:rgba(96,192,48,0.07)"':''}>
-          <td style="padding-left:6px"><input class="lbl-in lbl-trade" value="${tLabel}" placeholder="trade ${t.no}..." onchange="onTradeLabel(${t.no},this.value)" onclick="this.select()"></td>
-          <td style="font-weight:${isT1Push?'700':'600'};${isT1Push?'color:var(--acc2);':''}">${fmt(t.not)}${isT1Push?` <span style="font-size:8px;background:#EAF3DE;color:#3B6D11;padding:1px 4px;border-radius:3px;font-weight:700;vertical-align:middle">⚡push</span>`:''}</td>
+        const feePaid=t.feePaid||0;
+        const netCp=t.cp-feePaid;
+        const liqAF=t.accAF/t.not*100;
+        const netCol=netCp>=0?'var(--acc2)':'#E24B4A';
+        const liqAFc=liqAF<20?'#A32D2D':liqAF<40?'#E24B4A':'var(--tx3)';
+        h+=`<tr${isT1Push?' style="background:rgba(96,192,48,0.06)"':''}>
+          <td style="padding-left:8px;text-align:left"><input class="lbl-in lbl-trade" value="${tLabel}" placeholder="trade ${t.no}..." onchange="onTradeLabel(${t.no},this.value)" onclick="this.select()"></td>
+          <td style="font-weight:600;${isT1Push?'color:var(--acc2)':''}">${fmt(t.not)}${isT1Push?' <span style="font-size:7px;background:#EAF3DE;color:#3B6D11;padding:0 3px;border-radius:2px;font-weight:700">⚡</span>':''}</td>
           <td style="color:var(--acc)">${fmt(t.am)}</td>
           <td>${t.fm.toFixed(1)}%</td>
           <td style="color:${lc(t.liq)};font-weight:700">${t.liq.toFixed(1)}%</td>
           <td>${!GLOBAL_MODE
-            ?`<input type="number" value="${((gs().MT[mo.m]?.bt[t.no-1]??t.tgt/s.KPI)).toFixed(1)}" min="0" max="500" step="0.1" style="width:44px;padding:2px 3px;font-size:10px;text-align:center;border:0.5px solid var(--bd2);border-radius:3px;background:var(--inp);color:var(--acc);font-weight:700" oninput="onManualBT(${mo.m},${t.no-1},this.value)">`
-            :`${t.tgt.toFixed(2)}%`}</td>
+            ?'<input type="number" value="'+((gs().MT[mo.m]?.bt[t.no-1]??t.tgt/s.KPI)).toFixed(1)+'" min="0" max="500" step="0.1" style="width:40px;padding:2px 3px;font-size:9px;text-align:center;border:0.5px solid var(--bd2);border-radius:3px;background:var(--inp);color:var(--acc);font-weight:700" oninput="onManualBT('+mo.m+','+(t.no-1)+',this.value)">'
+            :t.tgt.toFixed(2)+'%'}</td>
           <td>${!GLOBAL_MODE
-            ?`<input type="number" value="${gs().MT[mo.m]?.fr[t.no-1]??t.freq}" min="0" max="20" step="1" style="width:36px;padding:2px 3px;font-size:10px;text-align:center;border:0.5px solid var(--acc2);border-radius:3px;background:var(--inp);color:var(--acc2);font-weight:700" oninput="onManualFR(${mo.m},${t.no-1},this.value)">`
-            :`<span style="color:var(--tx2)">${t.freq}×</span>`}</td>
+            ?'<input type="number" value="'+(gs().MT[mo.m]?.fr[t.no-1]??t.freq)+'" min="0" max="20" step="1" style="width:30px;padding:2px 3px;font-size:9px;text-align:center;border:0.5px solid var(--acc2);border-radius:3px;background:var(--inp);color:var(--acc2);font-weight:700" oninput="onManualFR('+mo.m+','+(t.no-1)+',this.value)">'
+            :'<span style="color:var(--tx2)">'+t.freq+'×</span>'}</td>
           <td>+${fmt(t.sp)}</td>
           <td style="color:var(--acc2);font-weight:600">+${fmt(t.cp)}</td>
-          ${(()=>{
-            const netCp=t.cp-t.feePaid;
-            const feeColor=t.feePaid>0?'#E24B4A':'var(--tx3)';
-            const netColor=netCp>=0?'var(--acc2)':'#E24B4A';
-            const liqAfterFee=t.accAF/t.not*100;
-            return `<td style="color:${feeColor};font-size:10px" title="maker+taker+funding">−${fmt(t.feePaid)}</td>
-              <td style="color:${netColor};font-weight:600">${netCp>=0?'+':''}${fmt(netCp)}</td>
-              <td style="font-weight:600;color:var(--tx2)">${fmt(t.accA)}</td>
-              <td style="font-weight:700;color:var(--acc2)">${fmt(t.accAF)}<div style="font-size:8px;color:${liqAfterFee<40?'#E24B4A':'var(--tx3)'}">liq ${liqAfterFee.toFixed(0)}%</div></td>`;
-          })()}
-          <td></td>
+          <td style="color:${feePaid>0?'#E24B4A':'var(--tx3)'}">−${fmt(feePaid)}</td>
+          <td style="color:${netCol};font-weight:700">${netCp>=0?'+':''}${fmt(netCp)}</td>
+          <td style="color:var(--tx3);font-size:10px">${fmt(t.accA)}</td>
+          <td style="color:var(--acc2);font-weight:700">${fmt(t.accAF)}<div style="font-size:7px;color:${liqAFc}">liq ${liqAF.toFixed(0)}%</div></td>
         </tr>`;
       });
     });
