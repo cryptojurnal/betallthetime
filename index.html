@@ -16,6 +16,9 @@ function goLayer2(){
 }
 function launchApp(){
   const l2=document.getElementById('layer2');if(!l2)return;
+  // snap dashboard visible immediately
+  const app=document.querySelector('.app');
+  if(app) app.style.opacity='1';
   l2.classList.add('out');
   setTimeout(()=>{l2.classList.add('hidden');showGuidePopup();},900);
 }
@@ -131,8 +134,8 @@ function dismissPopup(){
 </script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{box-sizing:border-box;scroll-behavior:smooth;zoom:1.1}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13px;line-height:1.4;min-height:100vh;transition:background .25s,color .25s}
+html{box-sizing:border-box;scroll-behavior:smooth;zoom:1.1;background:#000}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13px;line-height:1.4;min-height:100vh;transition:background .25s,color .25s;background:#000}
 
 /* ── THEMES ── */
 body.t-light{--bg:#f4f4f1;--panel:#fff;--bd:#e8e8e5;--bd2:#eeeeea;--sf:#f9f9f7;--sf2:#f5f5f3;--tx:#1a1a1a;--tx2:#888;--tx3:#bbb;--acc:#185fa5;--acc2:#1D9E75;--mh:#1a1a1a;--mhc:#fff;--mhs:#a7f3d0;--inp:#f9f9f7;--btn:#f5f5f3;--btno:#e6f1fb;--btonc:#185fa5;--tog:#fff;--togon:#1a1a1a;--togonc:#fff;--tabact:#1a1a1a;--tabactc:#fff;--wd-on:#e6f1fb;--wd-onc:#185fa5}
@@ -142,7 +145,7 @@ body.t-forest{--bg:#0a0f08;--panel:#0e1409;--bd:#1a2410;--bd2:#18200e;--sf:#1118
 body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e1008;--sf2:#180e06;--tx:#f0c090;--tx2:#906030;--tx3:#503020;--acc:#f08030;--acc2:#e06020;--mh:#601808;--mhc:#f0c090;--mhs:#300c04;--inp:#1e1008;--btn:#1e1008;--btno:#301808;--btonc:#f08030;--tog:#1e1008;--togon:#f08030;--togonc:#fff;--tabact:#f08030;--tabactc:#fff;--wd-on:#301808;--wd-onc:#f08030}
 body.t-lavender{--bg:#f0eef8;--panel:#fff;--bd:#d8d4f0;--bd2:#e4e0f4;--sf:#f8f6ff;--sf2:#f0eef8;--tx:#2a1a4a;--tx2:#8070b0;--tx3:#c0b0e0;--acc:#7050c0;--acc2:#5060e0;--mh:#4030a0;--mhc:#fff;--mhs:#c0b8f0;--inp:#f8f6ff;--btn:#f0eef8;--btno:#e0d8f8;--btonc:#7050c0;--tog:#fff;--togon:#4030a0;--togonc:#fff;--tabact:#4030a0;--tabactc:#fff;--wd-on:#e0d8f8;--wd-onc:#7050c0}
 
-.app{display:flex;height:100vh;overflow:hidden;background:var(--bg);color:var(--tx)}
+.app{display:flex;height:100vh;overflow:hidden;background:#000;color:var(--tx);opacity:0}
 .panel-left.collapsed{width:36px!important;min-width:36px!important;overflow:hidden}
 .panel-left.collapsed .pl-body{display:none}
 .collapse-btn{position:absolute;top:50%;transform:translateY(-50%);right:-16px;width:16px;height:48px;border-radius:0 6px 6px 0;background:var(--acc);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;z-index:10;transition:all .2s;box-shadow:2px 0 8px rgba(0,0,0,.2);writing-mode:horizontal-tb}
@@ -2902,6 +2905,8 @@ function goLayer2(){
 }
 function launchApp(){
   const l2=document.getElementById('layer2');if(!l2)return;
+  const app=document.querySelector('.app');
+  if(app) app.style.opacity='1';
   l2.classList.add('out');
   setTimeout(()=>{l2.classList.add('hidden');showGuidePopup();},900);
 }
