@@ -70,29 +70,42 @@ function _spotlightGuideTab(){
       requestAnimationFrame(()=>sl.classList.add('visible'));
     }
 
-    // Draw SVG arrow: start from popup bottom-center, curve down-left to guide tab left edge
+    // Draw SVG arrow: start from popup bottom-center, curve down-left to OUTSIDE the guide tab
     requestAnimationFrame(()=>{
       const popup=document.querySelector('.popup-box');
       if(!popup) return;
       const pr=popup.getBoundingClientRect();
       // start: bottom-center of popup
       const sx=(pr.left/zoom)+(pr.width/zoom)/2, sy=(pr.bottom/zoom)+2;
-      // end: left edge of guide tab, vertically centered — so full "guide book" text stays visible
-      const ex=cx+8, ey=cy+ch/2;
+      // end: just to the LEFT of the guide tab box (outside, not on it)
+      const ex=cx-18, ey=cy+ch/2;
       const svg=document.getElementById('popup-arrow-svg');
       if(!svg) return;
       svg.style.display='block';
-      // smooth cubic bezier: drop down then sweep left
-      const c1x=sx, c1y=sy+60;        // first control: straight down from start
-      const c2x=ex+40, c2y=ey-10;     // second control: approach from right
+      // cubic bezier: drop straight down, then sweep left
+      const c1x=sx, c1y=sy+70;
+      const c2x=ex+60, c2y=ey-8;
       svg.querySelector('path').setAttribute('d',`M${sx},${sy} C${c1x},${c1y} ${c2x},${c2y} ${ex},${ey}`);
-      // arrowhead pointing left toward the tab
+      // arrowhead pointing right toward the tab
       const ang=Math.atan2(ey-c2y, ex-c2x);
       const al=13;
       const ax1=ex-al*Math.cos(ang-0.4), ay1=ey-al*Math.sin(ang-0.4);
       const ax2=ex-al*Math.cos(ang+0.4), ay2=ey-al*Math.sin(ang+0.4);
       svg.querySelector('polygon').setAttribute('points',`${ex},${ey} ${ax1},${ay1} ${ax2},${ay2}`);
       requestAnimationFrame(()=>svg.classList.add('visible'));
+      // position and show "find me here" label above the arrow end point
+      const lbl=document.getElementById('find-me-label');
+      const txt=document.getElementById('find-me-txt');
+      const isId=typeof LANG!=='undefined'&&LANG==='id';
+      if(txt) txt.textContent=isId?'temukan aku di sini':'find me here';
+      if(lbl){
+        lbl.style.display='flex';
+        lbl.style.alignItems='center';
+        lbl.style.gap='0';
+        lbl.style.left=(ex-40)+'px';
+        lbl.style.top=(ey-28)+'px';
+        requestAnimationFrame(()=>lbl.style.opacity='1');
+      }
     });
   };
   attempt();
@@ -102,9 +115,11 @@ function dismissPopup(){
   const p=document.getElementById('guide-popup');
   const sl=document.getElementById('guide-spotlight');
   const svg=document.getElementById('popup-arrow-svg');
+  const lbl=document.getElementById('find-me-label');
   if(p){p.classList.remove('visible');setTimeout(()=>p.style.display='none',400);}
   if(sl){sl.classList.remove('visible');setTimeout(()=>{sl.style.display='none';},500);}
   if(svg){svg.classList.remove('visible');setTimeout(()=>{svg.style.display='none';},500);}
+  if(lbl){lbl.style.opacity='0';setTimeout(()=>{lbl.style.display='none';},500);}
   ['bl-top','bl-bot','bl-lft','bl-rgt'].forEach(id=>{
     const el=document.getElementById(id);
     if(el){el.classList.remove('visible');setTimeout(()=>{el.style.display='none';},500);}
@@ -437,6 +452,11 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 .popup-hint{font-size:10px;color:var(--acc2);font-weight:600;margin-bottom:16px;padding:6px 10px;background:var(--sf2);border-radius:6px;border:1px solid var(--acc2)}
 .popup-ok{background:var(--acc2);color:#fff;border:none;border-radius:8px;padding:10px 32px;font-size:13px;font-weight:700;cursor:pointer;width:100%;transition:opacity .2s;letter-spacing:.03em}
 .popup-ok:hover{opacity:.85}
+.fmh-dot{display:inline-block;width:5px;height:5px;border-radius:50%;background:#00c47a;margin-left:3px;vertical-align:middle;animation:fmhBubble 1.2s ease-in-out infinite}
+.fmh-dot:nth-child(2){animation-delay:.2s}
+.fmh-dot:nth-child(3){animation-delay:.4s}
+.fmh-dot:nth-child(4){animation-delay:.6s}
+@keyframes fmhBubble{0%,80%,100%{transform:scale(.5);opacity:.3}40%{transform:scale(1.1);opacity:1}}
 /* noticeable left panel collapse — full-height edge strip */
 .panel-left-edge{position:absolute;top:0;right:0;width:4px;height:100%;background:var(--acc);opacity:.35;transition:opacity .2s;cursor:pointer}
 .panel-left:not(.collapsed):hover .panel-left-edge{opacity:.7}
@@ -506,6 +526,11 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
   <path d=""/>
   <polygon points=""/>
 </svg>
+<!-- FIND ME HERE label -->
+<div id="find-me-label" style="position:fixed;z-index:8890;display:none;opacity:0;transition:opacity .4s .5s;pointer-events:none">
+  <span id="find-me-txt" style="font-size:11px;font-weight:700;color:#00c47a;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap">find me here</span>
+  <span class="fmh-dot"></span><span class="fmh-dot"></span><span class="fmh-dot"></span>
+</div>
 <!-- GUIDE POPUP (centered) -->
 <div id="guide-popup">
   <div class="popup-box">
