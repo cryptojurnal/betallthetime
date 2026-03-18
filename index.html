@@ -164,6 +164,35 @@ body.t-lavender{--bg:#f0eef8;--panel:#fff;--bd:#d8d4f0;--bd2:#e4e0f4;--sf:#f8f6f
 .disabled-overlay{opacity:.35;pointer-events:none;user-select:none}
 .spot-note{font-size:8px;color:var(--tx3);padding:3px 1px;line-height:1.6;font-style:italic}
 
+
+/* ── AI ASSISTANT ── */
+#ai-fab{position:fixed;bottom:22px;right:22px;z-index:9000;width:50px;height:50px;border-radius:50%;background:var(--acc2);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 4px 18px rgba(0,0,0,.35);transition:transform .2s,box-shadow .2s}
+#ai-fab:hover{transform:scale(1.08);box-shadow:0 6px 28px rgba(0,0,0,.45)}
+#ai-notif{position:absolute;top:2px;right:2px;width:11px;height:11px;background:#E24B4A;border-radius:50%;border:2px solid #fff;display:none}
+#ai-panel{position:fixed;bottom:84px;right:22px;z-index:8999;width:340px;max-height:520px;display:flex;flex-direction:column;background:var(--bg);border:1px solid var(--bd2);border-radius:14px;box-shadow:0 8px 40px rgba(0,0,0,.4);opacity:0;pointer-events:none;transform:translateY(14px) scale(.97);transition:opacity .22s,transform .22s}
+#ai-panel.open{opacity:1;pointer-events:all;transform:translateY(0) scale(1)}
+#ai-head{display:flex;align-items:center;justify-content:space-between;padding:11px 14px 9px;border-bottom:0.5px solid var(--bd2);flex-shrink:0}
+.ai-htitle{font-size:12px;font-weight:700;color:var(--tx);display:flex;align-items:center;gap:6px}
+.ai-hbtn{background:none;border:none;cursor:pointer;color:var(--tx3);padding:0;line-height:1;font-size:11px}
+.ai-hbtn:hover{color:var(--tx)}
+.ai-hclose{font-size:17px}
+#ai-msgs{flex:1;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:8px;min-height:0}
+#ai-msgs::-webkit-scrollbar{width:3px}
+#ai-msgs::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:3px}
+.ai-m{max-width:88%;font-size:11px;line-height:1.65;padding:7px 10px;border-radius:10px;word-break:break-word}
+.ai-m.u{align-self:flex-end;background:var(--acc2);color:#fff;border-radius:10px 10px 2px 10px}
+.ai-m.b{align-self:flex-start;background:var(--sf2);color:var(--tx);border-radius:10px 10px 10px 2px;border:0.5px solid var(--bd2)}
+.ai-m.typing{opacity:.55;font-style:italic}
+#ai-chips{display:flex;flex-wrap:wrap;gap:4px;padding:5px 12px 2px;flex-shrink:0}
+.ai-chip{font-size:9px;padding:3px 8px;border-radius:10px;border:0.5px solid var(--acc2);color:var(--acc2);background:transparent;cursor:pointer;transition:all .15s;white-space:nowrap}
+.ai-chip:hover{background:var(--acc2);color:#fff}
+#ai-irow{display:flex;gap:6px;padding:9px 12px 11px;border-top:0.5px solid var(--bd2);flex-shrink:0}
+#ai-inp{flex:1;border:0.5px solid var(--bd2);border-radius:8px;background:var(--inp);color:var(--tx);font-size:11px;padding:7px 10px;resize:none;outline:none;font-family:inherit;line-height:1.4;max-height:80px}
+#ai-inp:focus{border-color:var(--acc2)}
+#ai-sbtn{background:var(--acc2);color:#fff;border:none;border-radius:8px;padding:7px 13px;cursor:pointer;font-size:14px;flex-shrink:0;transition:opacity .2s;line-height:1}
+#ai-sbtn:hover{opacity:.85}
+#ai-sbtn:disabled{opacity:.35;cursor:default}
+
 /* theme picker */
 .theme-row{display:flex;gap:4px;padding:6px 10px;border-bottom:0.5px solid var(--bd2);align-items:center;flex-wrap:wrap}
 .theme-lbl{font-size:9px;color:var(--tx3);font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin-right:2px;white-space:nowrap}
@@ -2779,6 +2808,164 @@ function launchApp(){
   l2.classList.add('out');
   setTimeout(()=>{l2.classList.add('hidden');showGuidePopup();},900);
 }
-
-
 </script>
+<script>
+// ── AI ASSISTANT ──
+var AI_OPEN=false;
+var AI_HIST=[];
+var AI_LANG=typeof LANG!=='undefined'?LANG:'en';
+
+var AI_SYS_EN="You are a helpful assistant built into the 'bet all the time, bet with style' trading dashboard by @cryptojurnal. Help users understand and use this dashboard. Be concise, clear, and practical. Do not answer questions unrelated to this dashboard.\n\nKEY CONCEPTS:\n- liq%: account divided by notional times 100. Higher is safer. liq%=40 means price must move 40% against you to liquidate trade 1. Cross margin only.\n- notional: total position size (capital times leverage)\n- margin/fm%: notional divided by leverage. fm% = margin divided by account times 100\n- leverage: multiplier. 5x means $500 capital controls $2500 notional\n- KPI scale: global target multiplier. 1.0=as set, 0.5=half targets, 2=double\n- push* or size*: per-month notional multiplier for that month only\n- zero month: no trading, account stays flat, notional does not compound\n- withdrawal: takes profit out, reduces account, lowers liq% next month - always check liq% after\n- global mode ON: all months use same 10 trade slots. OFF: each month independent\n\nTWO MODES:\n- Leverage mode: futures trading with leverage, margin, liquidation risk, and funding fees. tradeFee = 2 x rate x notional x freq. fundFee = funding% x notional x holds x freq.\n- Spot mode: buy and hold without leverage. No liquidation, no funding fee. Higher trade fees (0.1% standard). Fee still 2x per trade (open plus close).\n\nFEES: Every trade pays fee twice, open and close, win or lose. Choose maker (limit order, lower rate) or taker (market order, higher rate). Standard rates auto-fill by exchange. Futures standard: Binance 0.02% maker / 0.05% taker. Spot standard: 0.1% most exchanges.\n\nTRADE SLOTS: 10 per sequence. target% = gain/loss per trade. Negative = loss trade. freq = executions per month. Either set to 0 = trade skipped.\n\nTABS: 36M row (top) and 3M quarter row (bottom). Each has permanent tab plus up to 5 custom tabs. All tabs have fully independent state including mode, fees, capital, trades.\n\nCOLLAPSIBLE SECTIONS: Starting capital and Leverage/Spot mode open by default. Notional, Fees, KPI Scale, Trade Slots collapsed by default. Click header to toggle.\n\nSAVE: Capital, position, trades = manual save buttons. Fees = auto-save on change. Labels and zero months = auto-save on edit. Withdrawals = auto-save.\n\nRISK SCORE (0-100, lower=safer): Leverage uses liq buffer + leverage level + margin deployment + trade count. Spot uses fee drag + concentration + target aggression + win/loss ratio.\n\nASSESSMENT CARDS (36m side panel): Risk score, liq buffer or spot indicator, leverage or fee method, avg monthly, 3yr CAGR, lifespan, net seq result, verdict.\n\nSUMMARY TABLE: month | start | end acct balance | monthly% | net gain | withdrawal | banked | NW | liq t1 | liq last | risk\n\nDETAIL TABLE (13 cols): trade | notional | margin | fm% | liq% | target% | freq | gross profit | combine pnl pre-fee | fee paid | net pnl post-fee | acct bal pre-fee | acct bal post-fee";
+
+var AI_SYS_ID="Kamu adalah asisten yang dibangun di dalam dashboard trading 'bet all the time, bet with style' karya @cryptojurnal. Bantu pengguna memahami dan menggunakan dashboard ini. Jawab singkat, jelas, dan praktis dalam Bahasa Indonesia. Jangan jawab pertanyaan yang tidak berkaitan dengan dashboard ini.\n\nKONSEP UTAMA:\n- liq%: akun dibagi notional dikali 100. Lebih tinggi lebih aman. liq%=40 artinya harga harus bergerak 40% melawan posisi untuk likuidasi trade 1. Hanya untuk cross margin.\n- notional: total ukuran posisi (modal dikali leverage)\n- margin/fm%: notional dibagi leverage. fm% = margin dibagi akun dikali 100\n- leverage: pengali. 5x artinya modal $500 mengontrol notional $2500\n- KPI scale: pengali target global\n- push*/size*: pengali notional per bulan untuk bulan itu saja\n- zero month: tidak ada trading, akun tetap, notional tidak compounding\n- withdrawal: ambil profit, kurangi akun, turunkan liq% bulan berikutnya\n- global mode ON: semua bulan pakai 10 slot trade yang sama. OFF: setiap bulan independen\n\nDUA MODE:\n- Mode Leverage: trading futures dengan leverage, margin, risiko likuidasi, dan biaya funding\n- Mode Spot: beli dan tahan tanpa leverage. Tanpa likuidasi, tanpa biaya funding. Biaya trade lebih tinggi (0.1% standar). Tetap bayar 2x per trade.\n\nBIAYA: Setiap trade bayar dua kali, buka dan tutup, menang atau kalah. Pilih maker (limit order) atau taker (market order). Tarif standar terisi otomatis berdasarkan exchange.\n\nSLOT TRADE: 10 per sekuens. target% = keuntungan/kerugian per trade. Negatif = trade loss. freq = eksekusi per bulan. Salah satu = 0 berarti trade dilewati.\n\nTAB: Baris 36M (atas) dan kuartal 3M (bawah). Masing-masing punya tab permanen ditambah hingga 5 tab kustom. Semua tab punya state independen penuh.\n\nSIMPAN: Modal, posisi, trade = tombol simpan manual. Biaya = simpan otomatis saat berubah. Label dan zero month = simpan otomatis saat diedit.";
+
+var AI_CHIPS_EN=["what is liq%?","how do fees work?","spot vs leverage?","how to use tabs?","what is push\u00d7?","explain trade slots","what is KPI scale?","how to withdraw?"];
+var AI_CHIPS_ID=["apa itu liq%?","cara kerja biaya?","spot vs leverage?","cara pakai tab?","apa itu push\u00d7?","jelaskan slot trade","apa itu KPI scale?","cara withdrawal?"];
+
+function aiToggle(){
+  AI_OPEN=!AI_OPEN;
+  document.getElementById('ai-panel').classList.toggle('open',AI_OPEN);
+  document.getElementById('ai-notif').style.display='none';
+  if(AI_OPEN){
+    if(AI_HIST.length===0) aiWelcome();
+    aiUpdateChips();
+    setTimeout(function(){var el=document.getElementById('ai-inp');if(el)el.focus();},200);
+  }
+}
+
+function aiWelcome(){
+  var isId=AI_LANG==='id';
+  var s=typeof gs==='function'?gs():{SPOT:false};
+  var mode=s.SPOT?(isId?'mode spot':'spot mode'):(isId?'mode leverage':'leverage mode');
+  var msg=isId
+    ?('Halo! \ud83d\udc4b Aku asisten dashboard ini. Kamu sedang di **'+mode+'**. Tanya apa saja tentang cara pakai dashboard — liq%, biaya, tab, setup trade, dan lainnya.')
+    :('Hey! \ud83d\udc4b I\'m your dashboard assistant. You\'re in **'+mode+'** right now. Ask me anything about using this dashboard.');
+  aiAppend('b',msg);
+}
+
+function aiUpdateChips(){
+  var el=document.getElementById('ai-chips');
+  if(!el)return;
+  var isId=AI_LANG==='id';
+  var list=isId?AI_CHIPS_ID:AI_CHIPS_EN;
+  el.innerHTML=list.map(function(q){
+    return '<button class="ai-chip" onclick="aiChip(this.textContent)">'+q+'</button>';
+  }).join('');
+  el.style.display='flex';
+}
+
+function aiChip(q){
+  var el=document.getElementById('ai-inp');
+  if(el){el.value=q;aiSend();}
+}
+
+function aiAppend(role,text){
+  var el=document.getElementById('ai-msgs');
+  if(!el)return null;
+  var d=document.createElement('div');
+  d.className='ai-m '+(role==='u'?'u':'b');
+  d.innerHTML=text.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\n/g,'<br>');
+  el.appendChild(d);
+  el.scrollTop=el.scrollHeight;
+  return d;
+}
+
+function aiKey(e){
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();aiSend();}
+}
+
+async function aiSend(){
+  var inp=document.getElementById('ai-inp');
+  var btn=document.getElementById('ai-sbtn');
+  var q=(inp.value||'').trim();
+  if(!q||btn.disabled)return;
+  inp.value='';
+
+  var chips=document.getElementById('ai-chips');
+  if(chips)chips.style.display='none';
+
+  aiAppend('u',q);
+  AI_HIST.push({role:'user',content:q});
+  btn.disabled=true;
+
+  var typing=aiAppend('b','...');
+  if(typing)typing.classList.add('typing');
+
+  var isId=AI_LANG==='id';
+  var s=typeof gs==='function'?gs():{SPOT:false,P:1000,LEV:5,NOT:2500,KPI:1};
+  var liqPct=s.SPOT?'n/a':(s.P/s.NOT*100).toFixed(1)+'%';
+  var ctx=isId
+    ?('\n\nKonteks saat ini: mode='+(s.SPOT?'spot':'leverage')+', modal=$'+s.P+', leverage='+(s.SPOT?'n/a':s.LEV+'x')+', notional=$'+s.NOT+', liq%='+liqPct+', KPI='+s.KPI.toFixed(2)+'x')
+    :('\n\nCurrent state: mode='+(s.SPOT?'spot':'leverage')+', capital=$'+s.P+', leverage='+(s.SPOT?'n/a':s.LEV+'x')+', notional=$'+s.NOT+', liq%='+liqPct+', KPI='+s.KPI.toFixed(2)+'x');
+
+  var sys=(isId?AI_SYS_ID:AI_SYS_EN)+ctx;
+
+  try{
+    var res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:600,
+        system:sys,
+        messages:AI_HIST
+      })
+    });
+    var data=await res.json();
+    var reply=(data.content&&data.content[0]&&data.content[0].text)||
+      (isId?'Maaf, terjadi kesalahan.':'Sorry, something went wrong.');
+    if(typing)typing.remove();
+    aiAppend('b',reply);
+    AI_HIST.push({role:'assistant',content:reply});
+    if(AI_HIST.length>40)AI_HIST=AI_HIST.slice(-30);
+  }catch(err){
+    if(typing)typing.remove();
+    aiAppend('b',isId?'Gagal terhubung. Periksa koneksi.':'Connection failed. Check your internet.');
+    AI_HIST.pop();
+  }
+  btn.disabled=false;
+  var msgs=document.getElementById('ai-msgs');
+  if(msgs)msgs.scrollTop=msgs.scrollHeight;
+}
+
+function aiClear(){
+  AI_HIST=[];
+  var el=document.getElementById('ai-msgs');
+  if(el)el.innerHTML='';
+  aiUpdateChips();
+  aiWelcome();
+}
+function aiSetLang(lang){
+  AI_LANG=lang;
+  var en=document.getElementById('ai-lb-en');
+  var id=document.getElementById('ai-lb-id');
+  if(en){en.style.background=lang==='en'?'var(--acc)':'transparent';en.style.color=lang==='en'?'#fff':'var(--tx3)';}
+  if(id){id.style.background=lang==='id'?'var(--acc)':'transparent';id.style.color=lang==='id'?'#fff':'var(--tx3)';}
+  var ttl=document.getElementById('ai-ttl');
+  if(ttl)ttl.textContent=lang==='id'?'asisten dashboard':'dashboard assistant';
+  var inp=document.getElementById('ai-inp');
+  if(inp)inp.placeholder=lang==='id'?'tanya apa saja...':'ask anything...';
+  aiUpdateChips();
+}
+</script>
+<!-- ── AI ASSISTANT FLOAT ── -->
+<button id="ai-fab" onclick="aiToggle()" title="Ask the dashboard assistant">🤖<span id="ai-notif"></span></button>
+<div id="ai-panel">
+  <div id="ai-head">
+    <div class="ai-htitle">🤖 <span id="ai-ttl">dashboard assistant</span></div>
+    <div style="display:flex;gap:6px;align-items:center">
+      <div style="display:flex;border:0.5px solid var(--bd2);border-radius:6px;overflow:hidden">
+        <button id="ai-lb-en" onclick="aiSetLang('en')" style="font-size:9px;font-weight:700;padding:2px 6px;border:none;cursor:pointer;background:var(--acc);color:#fff;transition:all .15s">EN</button>
+        <button id="ai-lb-id" onclick="aiSetLang('id')" style="font-size:9px;font-weight:700;padding:2px 6px;border:none;cursor:pointer;background:transparent;color:var(--tx3);transition:all .15s">ID</button>
+      </div>
+      <button class="ai-hbtn" onclick="aiClear()">clear</button>
+      <button class="ai-hbtn ai-hclose" onclick="aiToggle()">✕</button>
+    </div>
+  </div>
+  <div id="ai-msgs"></div>
+  <div id="ai-chips"></div>
+  <div id="ai-irow">
+    <textarea id="ai-inp" rows="1" placeholder="ask anything..." onkeydown="aiKey(event)"></textarea>
+    <button id="ai-sbtn" onclick="aiSend()">↑</button>
+  </div>
+</div>
