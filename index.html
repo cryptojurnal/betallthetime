@@ -192,6 +192,18 @@ body.t-lavender{--bg:#f0eef8;--panel:#fff;--bd:#d8d4f0;--bd2:#e4e0f4;--sf:#f8f6f
 #ai-sbtn{background:var(--acc2);color:#fff;border:none;border-radius:8px;padding:7px 13px;cursor:pointer;font-size:14px;flex-shrink:0;transition:opacity .2s;line-height:1}
 #ai-sbtn:hover{opacity:.85}
 #ai-sbtn:disabled{opacity:.35;cursor:default}
+#ai-key-screen{padding:16px;display:flex;flex-direction:column;gap:10px}
+.ai-key-title{font-size:12px;font-weight:700;color:var(--tx)}
+.ai-key-note{font-size:10px;color:var(--tx3);line-height:1.6}
+.ai-key-note a{color:var(--acc2);text-decoration:none}
+.ai-key-note a:hover{text-decoration:underline}
+#ai-key-inp{width:100%;border:0.5px solid var(--bd2);border-radius:8px;background:var(--inp);color:var(--tx);font-size:11px;padding:8px 10px;outline:none;font-family:monospace;box-sizing:border-box}
+#ai-key-inp:focus{border-color:var(--acc2)}
+#ai-key-save{background:var(--acc2);color:#fff;border:none;border-radius:8px;padding:9px;font-size:12px;font-weight:700;cursor:pointer;width:100%;transition:opacity .2s}
+#ai-key-save:hover{opacity:.85}
+.ai-key-hint{font-size:9px;color:var(--tx3);text-align:center}
+#ai-key-change{font-size:9px;color:var(--tx3);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline}
+#ai-key-change:hover{color:var(--acc2)}
 
 /* theme picker */
 .theme-row{display:flex;gap:4px;padding:6px 10px;border-bottom:0.5px solid var(--bd2);align-items:center;flex-wrap:wrap}
@@ -2814,6 +2826,8 @@ function launchApp(){
 var AI_OPEN=false;
 var AI_HIST=[];
 var AI_LANG=typeof LANG!=='undefined'?LANG:'en';
+var AI_KEY='';
+try{AI_KEY=localStorage.getItem('wz_ai_key')||'';}catch(e){}
 
 var AI_SYS_EN="You are a helpful assistant built into the 'bet all the time, bet with style' trading dashboard by @cryptojurnal. Help users understand and use this dashboard. Be concise, clear, and practical. Do not answer questions unrelated to this dashboard.\n\nKEY CONCEPTS:\n- liq%: account divided by notional times 100. Higher is safer. liq%=40 means price must move 40% against you to liquidate trade 1. Cross margin only.\n- notional: total position size (capital times leverage)\n- margin/fm%: notional divided by leverage. fm% = margin divided by account times 100\n- leverage: multiplier. 5x means $500 capital controls $2500 notional\n- KPI scale: global target multiplier. 1.0=as set, 0.5=half targets, 2=double\n- push* or size*: per-month notional multiplier for that month only\n- zero month: no trading, account stays flat, notional does not compound\n- withdrawal: takes profit out, reduces account, lowers liq% next month - always check liq% after\n- global mode ON: all months use same 10 trade slots. OFF: each month independent\n\nTWO MODES:\n- Leverage mode: futures trading with leverage, margin, liquidation risk, and funding fees. tradeFee = 2 x rate x notional x freq. fundFee = funding% x notional x holds x freq.\n- Spot mode: buy and hold without leverage. No liquidation, no funding fee. Higher trade fees (0.1% standard). Fee still 2x per trade (open plus close).\n\nFEES: Every trade pays fee twice, open and close, win or lose. Choose maker (limit order, lower rate) or taker (market order, higher rate). Standard rates auto-fill by exchange. Futures standard: Binance 0.02% maker / 0.05% taker. Spot standard: 0.1% most exchanges.\n\nTRADE SLOTS: 10 per sequence. target% = gain/loss per trade. Negative = loss trade. freq = executions per month. Either set to 0 = trade skipped.\n\nTABS: 36M row (top) and 3M quarter row (bottom). Each has permanent tab plus up to 5 custom tabs. All tabs have fully independent state including mode, fees, capital, trades.\n\nCOLLAPSIBLE SECTIONS: Starting capital and Leverage/Spot mode open by default. Notional, Fees, KPI Scale, Trade Slots collapsed by default. Click header to toggle.\n\nSAVE: Capital, position, trades = manual save buttons. Fees = auto-save on change. Labels and zero months = auto-save on edit. Withdrawals = auto-save.\n\nRISK SCORE (0-100, lower=safer): Leverage uses liq buffer + leverage level + margin deployment + trade count. Spot uses fee drag + concentration + target aggression + win/loss ratio.\n\nASSESSMENT CARDS (36m side panel): Risk score, liq buffer or spot indicator, leverage or fee method, avg monthly, 3yr CAGR, lifespan, net seq result, verdict.\n\nSUMMARY TABLE: month | start | end acct balance | monthly% | net gain | withdrawal | banked | NW | liq t1 | liq last | risk\n\nDETAIL TABLE (13 cols): trade | notional | margin | fm% | liq% | target% | freq | gross profit | combine pnl pre-fee | fee paid | net pnl post-fee | acct bal pre-fee | acct bal post-fee";
 
@@ -2827,10 +2841,73 @@ function aiToggle(){
   document.getElementById('ai-panel').classList.toggle('open',AI_OPEN);
   document.getElementById('ai-notif').style.display='none';
   if(AI_OPEN){
-    if(AI_HIST.length===0) aiWelcome();
-    aiUpdateChips();
-    setTimeout(function(){var el=document.getElementById('ai-inp');if(el)el.focus();},200);
+    if(!AI_KEY){
+      aiShowKeyScreen();
+    } else {
+      aiHideKeyScreen();
+      if(AI_HIST.length===0) aiWelcome();
+      aiUpdateChips();
+    }
+    setTimeout(function(){
+      var el=AI_KEY?document.getElementById('ai-inp'):document.getElementById('ai-key-inp');
+      if(el)el.focus();
+    },200);
   }
+}
+
+function aiShowKeyScreen(){
+  var ks=document.getElementById('ai-key-screen');
+  var msgs=document.getElementById('ai-msgs');
+  var chips=document.getElementById('ai-chips');
+  var irow=document.getElementById('ai-irow');
+  if(ks)ks.style.display='flex';
+  if(msgs)msgs.style.display='none';
+  if(chips)chips.style.display='none';
+  if(irow)irow.style.display='none';
+  aiUpdateKeyScreenLang();
+  var inp=document.getElementById('ai-key-inp');
+  if(inp&&AI_KEY)inp.value=AI_KEY;
+  setTimeout(function(){if(inp)inp.focus();},200);
+}
+
+function aiHideKeyScreen(){
+  var ks=document.getElementById('ai-key-screen');
+  var msgs=document.getElementById('ai-msgs');
+  var irow=document.getElementById('ai-irow');
+  if(ks)ks.style.display='none';
+  if(msgs)msgs.style.display='flex';
+  if(irow)irow.style.display='flex';
+}
+
+function aiUpdateKeyScreenLang(){
+  var isId=AI_LANG==='id';
+  var ttl=document.getElementById('ai-key-ttl');
+  var note=document.getElementById('ai-key-note');
+  var save=document.getElementById('ai-key-save');
+  var hint=document.getElementById('ai-key-hint');
+  var inp=document.getElementById('ai-key-inp');
+  if(ttl)ttl.textContent=isId?'🔑 masukkan api key anthropic kamu':'🔑 enter your anthropic api key';
+  if(note)note.innerHTML=isId
+    ?'Asisten ini menggunakan <a href="https://console.anthropic.com" target="_blank">Anthropic API</a>.<br>Key kamu disimpan <b>hanya di browsermu</b> (localStorage) dan tidak dikirim ke mana pun selain langsung ke Anthropic.<br><br>Dapatkan key gratis di <a href="https://console.anthropic.com/keys" target="_blank">console.anthropic.com/keys</a>'
+    :'This assistant uses the <a href="https://console.anthropic.com" target="_blank">Anthropic API</a>.<br>Your key is stored <b>only in your browser</b> (localStorage) and never sent anywhere except directly to Anthropic.<br><br>Get a free key at <a href="https://console.anthropic.com/keys" target="_blank">console.anthropic.com/keys</a>';
+  if(save)save.textContent=isId?'simpan & mulai chat':'save & start chatting';
+  if(hint)hint.textContent=isId?'key dimulai dengan sk-ant- · tersimpan lokal, tidak dibagikan':'key starts with sk-ant- · stored locally, never shared';
+  if(inp)inp.placeholder='sk-ant-...';
+}
+
+function aiSaveKey(){
+  var inp=document.getElementById('ai-key-inp');
+  var key=(inp?inp.value:'').trim();
+  if(!key||!key.startsWith('sk-')){
+    inp.style.borderColor='#E24B4A';
+    setTimeout(function(){if(inp)inp.style.borderColor='';},1500);
+    return;
+  }
+  AI_KEY=key;
+  try{localStorage.setItem('wz_ai_key',key);}catch(e){}
+  aiHideKeyScreen();
+  if(AI_HIST.length===0){aiWelcome();aiUpdateChips();}
+  setTimeout(function(){var el=document.getElementById('ai-inp');if(el)el.focus();},200);
 }
 
 function aiWelcome(){
@@ -2903,7 +2980,7 @@ async function aiSend(){
   try{
     var res=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
-      headers:{'Content-Type':'application/json'},
+      headers:{'Content-Type':'application/json','x-api-key':AI_KEY,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
       body:JSON.stringify({
         model:'claude-sonnet-4-20250514',
         max_tokens:600,
@@ -2912,15 +2989,25 @@ async function aiSend(){
       })
     });
     var data=await res.json();
-    var reply=(data.content&&data.content[0]&&data.content[0].text)||
-      (isId?'Maaf, terjadi kesalahan.':'Sorry, something went wrong.');
+    if(data.error){
+      if(typing)typing.remove();
+      var apiErr=data.error.message||'error';
+      if(data.error.type==='authentication_error')aiShowKeyScreen();
+      aiAppend('b',isId?'Error API: '+apiErr:'API error: '+apiErr);
+      AI_HIST.pop();
+      btn.disabled=false;
+      return;
+    }
+    var reply=(data.content&&data.content[0]&&data.content[0].text)||(isId?'Maaf, terjadi kesalahan.':'Sorry, something went wrong.');
     if(typing)typing.remove();
     aiAppend('b',reply);
     AI_HIST.push({role:'assistant',content:reply});
     if(AI_HIST.length>40)AI_HIST=AI_HIST.slice(-30);
   }catch(err){
     if(typing)typing.remove();
-    aiAppend('b',isId?'Gagal terhubung. Periksa koneksi.':'Connection failed. Check your internet.');
+    var errMsg=isId?'Gagal terhubung. Periksa koneksi atau cek API key kamu (🔑).':'Connection failed. Check your internet or verify your API key (🔑).';
+    if(err&&err.toString().includes('401'))errMsg=isId?'API key tidak valid. Klik 🔑 untuk mengubahnya.':'Invalid API key. Click 🔑 to change it.';
+    aiAppend('b',errMsg);
     AI_HIST.pop();
   }
   btn.disabled=false;
@@ -2946,6 +3033,7 @@ function aiSetLang(lang){
   var inp=document.getElementById('ai-inp');
   if(inp)inp.placeholder=lang==='id'?'tanya apa saja...':'ask anything...';
   aiUpdateChips();
+  aiUpdateKeyScreenLang();
 }
 </script>
 <!-- ── AI ASSISTANT FLOAT ── -->
@@ -2958,9 +3046,22 @@ function aiSetLang(lang){
         <button id="ai-lb-en" onclick="aiSetLang('en')" style="font-size:9px;font-weight:700;padding:2px 6px;border:none;cursor:pointer;background:var(--acc);color:#fff;transition:all .15s">EN</button>
         <button id="ai-lb-id" onclick="aiSetLang('id')" style="font-size:9px;font-weight:700;padding:2px 6px;border:none;cursor:pointer;background:transparent;color:var(--tx3);transition:all .15s">ID</button>
       </div>
+      <button id="ai-key-change" onclick="aiShowKeyScreen()" title="change API key">🔑</button>
       <button class="ai-hbtn" onclick="aiClear()">clear</button>
       <button class="ai-hbtn ai-hclose" onclick="aiToggle()">✕</button>
     </div>
+  </div>
+  <!-- API key setup screen (shown when no key saved) -->
+  <div id="ai-key-screen" style="display:none">
+    <div class="ai-key-title" id="ai-key-ttl">🔑 enter your anthropic api key</div>
+    <div class="ai-key-note" id="ai-key-note">
+      this assistant uses the <a href="https://console.anthropic.com" target="_blank">Anthropic API</a>.<br>
+      your key is stored <b>only in your browser</b> (localStorage) and never sent anywhere except directly to Anthropic.<br><br>
+      get a free key at <a href="https://console.anthropic.com/keys" target="_blank">console.anthropic.com/keys</a>
+    </div>
+    <input id="ai-key-inp" type="password" placeholder="sk-ant-..." autocomplete="off">
+    <button id="ai-key-save" onclick="aiSaveKey()">save & start chatting</button>
+    <div class="ai-key-hint" id="ai-key-hint">key starts with sk-ant- · stored locally, never shared</div>
   </div>
   <div id="ai-msgs"></div>
   <div id="ai-chips"></div>
