@@ -107,6 +107,7 @@ function dismissPopup(){
 </script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{box-sizing:border-box;scroll-behavior:smooth;zoom:1.1}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13px;line-height:1.4;min-height:100vh;transition:background .25s,color .25s}
 
 /* ── THEMES ── */
@@ -263,7 +264,7 @@ body.t-dark tr.wipe-row>td{background:#2a0a0a!important;color:#ff7070!important}
 .top-panel-body{overflow:hidden;max-height:2000px;transition:max-height .4s ease,opacity .3s ease}
 .top-panel-body-inner{overflow-x:auto;overflow-y:visible;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y}
 .top-panel.collapsed .top-panel-body{max-height:0!important;opacity:0;pointer-events:none}
-.top-panel-toggle{display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;width:100%;padding:5px 10px;margin-bottom:6px;user-select:none;border:none;border-top:2px solid var(--acc2);border-bottom:2px solid var(--acc2);background:var(--sf2);color:var(--acc2);font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;transition:background .2s,opacity .2s}
+.top-panel-toggle{display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;width:100%;padding:5px 10px;margin-bottom:0;user-select:none;border:none;border-top:2px solid var(--acc2);border-bottom:2px solid var(--acc2);background:var(--sf2);color:var(--acc2);font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;transition:background .2s,opacity .2s}
 .top-panel-toggle:hover{background:var(--btno);opacity:.9}
 .tp-arrow{font-size:13px;transition:transform .35s;display:inline-block;line-height:1}
 .top-panel.collapsed .tp-arrow{transform:rotate(-90deg)}
@@ -1860,6 +1861,7 @@ function buildAssessment(months, s){
   const isQ=isQTab(TAB);
   const isSpot=s.SPOT||false;
   const liqT1=isSpot?100:s.P/s.NOT*100;
+  const fm=isSpot?100:s.NOT/s.LEV/s.P*100;
   const act=months.filter(r=>!r.isZ);
   const avgPct=act.length?act.reduce((a,r)=>a+r.pct,0)/act.length:0;
   const last=months[months.length-1];
@@ -1896,7 +1898,6 @@ function buildAssessment(months, s){
     if(s.LEV>=25){riskScore+=25;riskReasons.push(_id?'leverage sangat tinggi (≥25×)':'very high leverage (≥25×)');}
     else if(s.LEV>=20){riskScore+=15;riskReasons.push(_id?'leverage tinggi (≥20×)':'high leverage (≥20×)');}
     else if(s.LEV>=15){riskScore+=8;}
-    const fm=s.NOT/s.LEV/s.P*100;
     if(fm>40){riskScore+=20;riskReasons.push(_id?'margin >40% dari akun':'margin >40% of account');}
     else if(fm>25){riskScore+=10;}
     else if(fm>15){riskScore+=4;}
@@ -2247,9 +2248,9 @@ function render(){
   if(ch){ch.destroy();ch=null;}
   const topBody=mh+wipeBanner+`<div class="note" style="${IS_WIPED?'border-color:#E24B4A;background:#FCEBEB':''}">${IS_WIPED?'':noteText}</div>`+chartH+(isQ?assessH:'');
   rc.innerHTML=`<div class="top-panel" id="top-panel">
-    <div style="display:flex;align-items:center;gap:0;width:100%">
-      <button class="top-panel-toggle" onclick="toggleTopPanel()" style="flex:1"><span class="tp-dots"><span class="tp-dot"></span><span class="tp-dot"></span><span class="tp-dot"></span></span><span class="tp-arrow">▾</span> <span id="tp-lbl">hide overview</span> <span class="tp-arrow" style="transform:none">▾</span><span class="tp-dots"><span class="tp-dot"></span><span class="tp-dot"></span><span class="tp-dot"></span></span></button>
-      <span id="spot-badge" class="spot-badge ${s.SPOT?'spot':'lev'}" style="margin:4px 8px 4px 0;border-left:none">${s.SPOT?'◈ spot dashboard':'⚡ leverage dashboard'}<span class="spot-badge-sub">current mode</span></span>
+    <div style="display:flex;align-items:stretch;gap:0;width:100%;margin-bottom:6px">
+      <button class="top-panel-toggle" onclick="toggleTopPanel()" style="flex:1;margin-bottom:0"><span class="tp-dots"><span class="tp-dot"></span><span class="tp-dot"></span><span class="tp-dot"></span></span><span class="tp-arrow">▾</span> <span id="tp-lbl">hide overview</span> <span class="tp-arrow" style="transform:none">▾</span><span class="tp-dots"><span class="tp-dot"></span><span class="tp-dot"></span><span class="tp-dot"></span></span></button>
+      <span id="spot-badge" class="spot-badge ${s.SPOT?'spot':'lev'}" style="margin:0;margin-right:8px;border-left:none;align-self:stretch;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:0 6px 6px 0">${s.SPOT?'◈ spot dashboard':'⚡ leverage dashboard'}<span class="spot-badge-sub">current mode</span></span>
     </div>
     <div class="top-panel-body" id="top-panel-body" style="max-height:2000px;opacity:1"><div class="top-panel-body-inner">${topBody}</div></div>
   </div>`+togH+`<div class="tw"><table id="tbl"></table></div><div id="guide-content" style="display:none"></div><p class="ft">liq% = account ÷ notional × 100 · higher = safer · 0 target or freq = trade skipped</p>`;
