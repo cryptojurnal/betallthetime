@@ -28,9 +28,13 @@ function showGuidePopup(){
   if(!p) return;
   // freeze scroll while popup is showing
   document.body.style.overflow='hidden';
+  const pr=document.querySelector('.panel-right');
+  if(pr) pr.style.overflow='hidden';
   setTimeout(()=>{
     p.classList.add('visible');
     _spotlightGuideTab();
+    // recalculate on window resize
+    window.addEventListener('resize',_onPopupResize);
   },400);
 }
 
@@ -79,8 +83,9 @@ function _spotlightGuideTab(){
       if(!popup) return;
       const pr=popup.getBoundingClientRect();
       // start: bottom-center of popup
-      const sx=(pr.left/zoom)+(pr.width/zoom)/2, sy=(pr.bottom/zoom)+2;
-      // end: just outside the bottom-right corner of the guide tab box
+      // start: bottom-LEFT of popup (avoids the okay button which is center/right)
+      const sx=(pr.left/zoom)+24, sy=(pr.bottom/zoom)-2;
+      // end: just outside bottom-right corner of guide tab
       const ex=cx+cw+6, ey=cy+ch-6;
       const svg=document.getElementById('popup-arrow-svg');
       if(!svg) return;
@@ -122,6 +127,10 @@ function dismissPopup(){
   const lbl=document.getElementById('find-me-label');
   // restore scroll
   document.body.style.overflow='';
+  const pr=document.querySelector('.panel-right');
+  if(pr) pr.style.overflow='';
+  // remove resize listener
+  window.removeEventListener('resize',_onPopupResize);
   if(p){p.classList.remove('visible');setTimeout(()=>p.style.display='none',400);}
   if(sl){sl.classList.remove('visible');setTimeout(()=>{sl.style.display='none';},500);}
   if(svg){svg.classList.remove('visible');setTimeout(()=>{svg.style.display='none';},500);}
@@ -130,6 +139,21 @@ function dismissPopup(){
     const el=document.getElementById(id);
     if(el){el.classList.remove('visible');setTimeout(()=>{el.style.display='none';},500);}
   });
+}
+
+function _onPopupResize(){
+  // recalculate blur panels + spotlight + arrow on resize
+  ['bl-top','bl-bot','bl-lft','bl-rgt'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.style.cssText='position:fixed;z-index:8880;background:rgba(0,0,0,0.52);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);display:block';}
+  });
+  const sl=document.getElementById('guide-spotlight');
+  if(sl){sl.style.cssText='display:none';sl.classList.remove('visible');}
+  const svg=document.getElementById('popup-arrow-svg');
+  if(svg){svg.style.display='none';svg.classList.remove('visible');}
+  const lbl=document.getElementById('find-me-label');
+  if(lbl){lbl.style.opacity='0';}
+  _spotlightGuideTab();
 }
 </script>
 <style>
@@ -3098,6 +3122,10 @@ function aiClear(){
 }
 
 // ── DRAG TO REPOSITION ──
+// reposition AI panel on window resize if open
+window.addEventListener('resize',function(){
+  if(AI_OPEN) aiPositionPanel();
+});
 (function(){
   var fab, dx, dy, dragging=false, hasMoved=false;
   function onDown(e){
