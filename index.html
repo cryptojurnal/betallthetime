@@ -136,15 +136,18 @@ body.t-lavender{--bg:#f0eef8;--panel:#fff;--bd:#d8d4f0;--bd2:#e4e0f4;--sf:#f8f6f
 .pl-head p{font-size:9px;color:var(--tx2)}
 
 /* mode tabs */
-.mode-tabs{display:flex;border-bottom:0.5px solid var(--bd2);flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
-.mode-tabs::-webkit-scrollbar{display:none}
-.mt{flex-shrink:0;padding:6px 8px;font-size:9px;font-weight:700;text-align:center;cursor:pointer;border:none;background:transparent;color:var(--tx2);letter-spacing:.03em;text-transform:uppercase;transition:all .2s;display:flex;align-items:center;gap:4px;white-space:nowrap}
+.mode-tabs{display:flex;flex-direction:column;border-bottom:0.5px solid var(--bd2)}
+.tab-row{display:flex;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;border-bottom:0.5px solid var(--bd2)}
+.tab-row:last-child{border-bottom:none}
+.tab-row::-webkit-scrollbar{display:none}
+.tab-row-lbl{font-size:7px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--tx3);padding:0 6px;display:flex;align-items:center;opacity:.5;flex-shrink:0;border-right:0.5px solid var(--bd2)}
+.mt{flex-shrink:0;padding:5px 8px;font-size:9px;font-weight:700;text-align:center;cursor:pointer;border:none;background:transparent;color:var(--tx2);letter-spacing:.03em;text-transform:uppercase;transition:all .2s;display:flex;align-items:center;gap:4px;white-space:nowrap}
 .mt.on{color:var(--tabact);border-bottom:2px solid var(--tabact);background:var(--sf2)}
-.mt-close{font-size:10px;opacity:.4;border:none;background:none;color:inherit;cursor:pointer;padding:0 1px;border-radius:2px;line-height:1;transition:opacity .15s}
+.mt-close{font-size:9px;opacity:.35;border:none;background:none;color:inherit;cursor:pointer;padding:0 1px;border-radius:2px;line-height:1;transition:opacity .15s}
 .mt-close:hover{opacity:1;color:#E24B4A}
-.mt-add{flex-shrink:0;padding:6px 9px;font-size:13px;font-weight:400;cursor:pointer;border:none;background:transparent;color:var(--tx3);transition:color .2s;line-height:1}
+.mt-add{flex-shrink:0;padding:5px 9px;font-size:14px;font-weight:300;cursor:pointer;border:none;background:transparent;color:var(--tx3);transition:color .2s;line-height:1}
 .mt-add:hover{color:var(--acc2)}
-.mt-name-inp{border:none;background:transparent;color:inherit;font:inherit;width:56px;outline:none;cursor:text;text-transform:uppercase;letter-spacing:.03em;font-size:9px;font-weight:700}
+.mt-name-inp{border:none;background:transparent;color:inherit;font:inherit;width:52px;outline:none;cursor:text;text-transform:uppercase;letter-spacing:.03em;font-size:9px;font-weight:700}
 
 /* theme picker */
 .theme-row{display:flex;gap:4px;padding:6px 10px;border-bottom:0.5px solid var(--bd2);align-items:center;flex-wrap:wrap}
@@ -1166,40 +1169,54 @@ const S={
   'q':  mkState(),
 };
 // Custom tab registry
-let CUSTOM_TABS=[]; // [{id:'c1',name:'my plan'}]
-let _nextTabId=1;
+let CUSTOM_TABS=[]; // [{id:'36_c1',name:'my plan'},{id:'q_c1',name:'q plan'}]
+let _nextTabId={36:1,q:1};
 
 function gs(){return S[TAB];}
+function isQTab(id){return id==='q'||id.startsWith('q_c');}
 
-// ── TAB BAR ──
+// ── TAB BAR — two rows ──
 function renderTabBar(){
   const bar=document.getElementById('mode-tabs-bar');
   if(!bar)return;
-  const built=[{id:'36',name:'36-month'},{id:'q',name:'quarter'}];
-  const all=[...built,...CUSTOM_TABS];
-  let h='';
-  all.forEach(tab=>{
+  const c36=CUSTOM_TABS.filter(t=>t.id.startsWith('36_c'));
+  const cq =CUSTOM_TABS.filter(t=>t.id.startsWith('q_c'));
+
+  function makeTab(tab){
     const active=TAB===tab.id;
-    const isCustom=tab.id.startsWith('c');
-    h+=`<button class="mt${active?' on':''}" onclick="setTab('${tab.id}')" id="tab-${tab.id}">`;
+    const isCustom=tab.id.includes('_c');
+    let h=`<button class="mt${active?' on':''}" onclick="setTab('${tab.id}')" id="tab-${tab.id}">`;
     if(isCustom){
-      h+=`<input class="mt-name-inp" value="${tab.name}" onclick="event.stopPropagation()" onchange="renameTab('${tab.id}',this.value)" style="width:${Math.max(40,tab.name.length*7)}px">`;
+      h+=`<input class="mt-name-inp" value="${tab.name}" onclick="event.stopPropagation()" onchange="renameTab('${tab.id}',this.value)" style="width:${Math.max(44,tab.name.length*7)}px">`;
+      h+=`<span class="mt-close" onclick="event.stopPropagation();removeTab('${tab.id}')" title="close">✕</span>`;
     } else {
       h+=tab.name;
     }
-    if(isCustom) h+=`<span class="mt-close" onclick="event.stopPropagation();removeTab('${tab.id}')" title="close tab">✕</span>`;
     h+='</button>';
-  });
-  // + button (max 5 custom)
-  if(CUSTOM_TABS.length < 5){
-    h+=`<button class="mt-add" onclick="addTab()" title="new tab">+</button>`;
+    return h;
   }
-  bar.innerHTML=h;
+
+  // Row 1: 36-month family
+  let r1=`<div class="tab-row"><span class="tab-row-lbl">36m</span>`;
+  r1+=makeTab({id:'36',name:'36-month'});
+  c36.forEach(t=>r1+=makeTab(t));
+  if(c36.length<5) r1+=`<button class="mt-add" onclick="addTab('36')" title="new 36-month tab">+</button>`;
+  r1+='</div>';
+
+  // Row 2: quarter family
+  let r2=`<div class="tab-row"><span class="tab-row-lbl">3m</span>`;
+  r2+=makeTab({id:'q',name:'quarter'});
+  cq.forEach(t=>r2+=makeTab(t));
+  if(cq.length<5) r2+=`<button class="mt-add" onclick="addTab('q')" title="new quarter tab">+</button>`;
+  r2+='</div>';
+
+  bar.innerHTML=r1+r2;
 }
 
-function addTab(){
-  const id='c'+(_nextTabId++);
-  const name='tab '+_nextTabId;
+function addTab(row){
+  const n=_nextTabId[row]++;
+  const id=row+'_c'+n;
+  const name=(row==='36'?'36m':'3m')+' '+n;
   CUSTOM_TABS.push({id,name});
   S[id]=mkState();
   saveTabRegistry();
@@ -1207,12 +1224,12 @@ function addTab(){
 }
 
 function removeTab(id){
-  if(!id.startsWith('c'))return; // can't remove built-ins
+  if(!id.includes('_c'))return;
   CUSTOM_TABS=CUSTOM_TABS.filter(t=>t.id!==id);
   delete S[id];
   saveTabRegistry();
-  // switch to 36 if we removed the active tab
-  if(TAB===id) setTab('36');
+  // fallback to the parent permanent tab
+  if(TAB===id) setTab(id.startsWith('q_c')?'q':'36');
   else renderTabBar();
 }
 
@@ -1224,7 +1241,7 @@ function renameTab(id,name){
 
 function saveTabRegistry(){
   try{localStorage.setItem('wz_custom_tabs',JSON.stringify(CUSTOM_TABS.map(t=>({id:t.id,name:t.name}))));}catch(e){}
-  try{localStorage.setItem('wz_next_tab_id',String(_nextTabId));}catch(e){}
+  try{localStorage.setItem('wz_next_tab_id',JSON.stringify(_nextTabId));}catch(e){}
 }
 
 function loadTabRegistry(){
@@ -1238,7 +1255,7 @@ function loadTabRegistry(){
       });
     }
     const nid=localStorage.getItem('wz_next_tab_id');
-    if(nid)_nextTabId=parseInt(nid)||1;
+    if(nid){const p=JSON.parse(nid);if(p&&typeof p==='object')_nextTabId=p;}
   }catch(e){}
 }
 
@@ -1376,7 +1393,7 @@ function runSeq(startAcc,lev,initNot,bt,fr,kpi){
 
 function sim(){
   const s=gs();
-  const isQ=TAB==='q';
+  const isQ=isQTab(TAB);
   const zeroSet=s.ZM;
   const total=isQ?3:TOTAL;
   const months=[];
@@ -1485,7 +1502,7 @@ function onMP(m,v){
 function softUpdate(){
   if(IS_WIPED){render();return;} // full render if wiped state needs to change
   const s=gs();
-  const isQ=TAB==='q';
+  const isQ=isQTab(TAB);
   const months=sim();
   const last=months[months.length-1];
   const act=months.filter(r=>!r.isZ);
@@ -1649,7 +1666,7 @@ function getTL(t){return gs().TL[t]||('trade '+t);}
 
 // ── RISK ASSESSMENT ──
 function buildAssessment(months, s){
-  const isQ=TAB==='q';
+  const isQ=isQTab(TAB);
   const liqT1=s.P/s.NOT*100;
   const act=months.filter(r=>!r.isZ);
   const avgPct=act.length?act.reduce((a,r)=>a+r.pct,0)/act.length:0;
@@ -1878,7 +1895,7 @@ function seqStats(s){
 function render(){
   updComp();
   const s=gs();
-  const isQ=TAB==='q';
+  const isQ=isQTab(TAB);
   const liqT1=s.P/s.NOT*100;
   const rc=document.getElementById('right-content');
 
