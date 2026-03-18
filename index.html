@@ -456,16 +456,16 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 <div id="layer2" class="hidden" style="opacity:0;transition:opacity .9s ease">
   <div class="layer2-content">
 
-    <!-- disclaimer box with credit title ON the border line -->
     <div style="position:relative;opacity:0;animation:fadeUp .8s ease .4s forwards;width:100%">
-      <!-- credit sits centered on the top border line -->
-      <div class="l2-credit" style="position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:#000;padding:0 16px;white-space:nowrap;font-size:13px;letter-spacing:.08em">created by <a href="https://t.me/CryptoJurnal" target="_blank">@cryptojurnal ↗</a></div>
+      <!-- credit sits ON the top border line -->
+      <div class="l2-credit" style="position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:#000;padding:0 14px;white-space:nowrap;font-size:11px;letter-spacing:.07em;z-index:1">created by <a href="https://t.me/CryptoJurnal" target="_blank">@cryptojurnal ↗</a></div>
       <div class="l2-disclaimer" style="padding:28px 24px 20px">
         <div style="font-size:11px;font-weight:700;color:#EF9F27;letter-spacing:.06em;text-transform:uppercase;margin-bottom:14px">⚠ risk disclosure</div>
 
         <div style="margin-bottom:12px;padding-bottom:12px;border-bottom:0.5px solid #1e1e1e">
           <span style="color:#888;font-weight:600">this is a projection tool, not financial advice.</span>
           <span style="color:#555"> all numbers are estimates based on your inputs. real trading results will differ — markets are unpredictable, execution is imperfect, and discipline varies.</span>
+          <span style="color:#444;font-size:11px"> works in both <span style="color:#5BB0FF;font-weight:600">leverage</span> and <span style="color:#5DC96A;font-weight:600">spot</span> mode — but neither predicts what will actually happen.</span>
         </div>
 
         <div style="margin-bottom:12px;padding-bottom:12px;border-bottom:0.5px solid #1e1e1e;display:grid;grid-template-columns:1fr 1fr;gap:8px">
@@ -486,8 +486,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
       </div>
     </div>
 
-    <!-- launch button flush with bottom of the box -->
-    <button class="launch-btn" onclick="launchApp()" style="margin-top:-8px">launch the app</button>
+    <button class="launch-btn" onclick="launchApp()" style="margin-top:-4px">launch the app</button>
 
   </div>
 </div>
@@ -1748,6 +1747,7 @@ function setLang(lang){
     <div style="margin-bottom:12px;padding-bottom:12px;border-bottom:0.5px solid #1e1e1e">
       <span style="color:#888;font-weight:600">ini adalah alat proyeksi, bukan saran keuangan.</span>
       <span style="color:#555"> semua angka adalah estimasi berdasarkan inputmu. hasil trading nyata akan berbeda — pasar tidak bisa diprediksi, eksekusi tidak sempurna, dan disiplin tiap orang berbeda.</span>
+      <span style="color:#444;font-size:11px"> tersedia dalam mode <span style="color:#5BB0FF;font-weight:600">leverage</span> dan <span style="color:#5DC96A;font-weight:600">spot</span> — tapi keduanya tidak memprediksi apa yang benar-benar akan terjadi.</span>
     </div>
     <div style="margin-bottom:12px;padding-bottom:12px;border-bottom:0.5px solid #1e1e1e;display:grid;grid-template-columns:1fr 1fr;gap:8px">
       <div>
@@ -1767,6 +1767,7 @@ function setLang(lang){
     <div style="margin-bottom:12px;padding-bottom:12px;border-bottom:0.5px solid #1e1e1e">
       <span style="color:#888;font-weight:600">this is a projection tool, not financial advice.</span>
       <span style="color:#555"> all numbers are estimates based on your inputs. real trading results will differ — markets are unpredictable, execution is imperfect, and discipline varies.</span>
+      <span style="color:#444;font-size:11px"> works in both <span style="color:#5BB0FF;font-weight:600">leverage</span> and <span style="color:#5DC96A;font-weight:600">spot</span> mode — but neither predicts what will actually happen.</span>
     </div>
     <div style="margin-bottom:12px;padding-bottom:12px;border-bottom:0.5px solid #1e1e1e;display:grid;grid-template-columns:1fr 1fr;gap:8px">
       <div>
