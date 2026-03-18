@@ -77,14 +77,14 @@ function _spotlightGuideTab(){
       const pr=popup.getBoundingClientRect();
       // start: bottom-center of popup
       const sx=(pr.left/zoom)+(pr.width/zoom)/2, sy=(pr.bottom/zoom)+2;
-      // end: just outside the top-left corner of the guide tab box
-      const ex=cx-6, ey=cy+6;
+      // end: just outside the bottom-right corner of the guide tab box
+      const ex=cx+cw+6, ey=cy+ch-6;
       const svg=document.getElementById('popup-arrow-svg');
       if(!svg) return;
       svg.style.display='block';
-      // cubic bezier: drop straight down, then sweep left-up to corner
+      // cubic bezier: drop straight down, then sweep left-down to bottom-right corner
       const c1x=sx, c1y=sy+80;
-      const c2x=ex+80, c2y=ey+20;
+      const c2x=ex+60, c2y=ey-40;
       svg.querySelector('path').setAttribute('d',`M${sx},${sy} C${c1x},${c1y} ${c2x},${c2y} ${ex},${ey}`);
       // arrowhead pointing toward the top-left corner
       const ang=Math.atan2(ey-c2y, ex-c2x);
