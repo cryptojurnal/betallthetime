@@ -126,7 +126,7 @@ function dismissPopup(){
   const svg=document.getElementById('popup-arrow-svg');
   const lbl=document.getElementById('find-me-label');
   // restore scroll
-  document.body.style.overflow='';
+  document.body.style.overflow='auto';
   const pr=document.querySelector('.panel-right');
   if(pr) pr.style.overflow='';
   // remove resize listener
@@ -158,7 +158,7 @@ function _onPopupResize(){
 </script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{box-sizing:border-box;scroll-behavior:smooth;zoom:1.1;background:#000;overflow:hidden}
+html{box-sizing:border-box;scroll-behavior:smooth;zoom:1.1;background:#000}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13px;line-height:1.4;min-height:100vh;transition:background .25s,color .25s;background:#000;overflow:hidden}
 
 /* ── THEMES ── */
@@ -179,7 +179,7 @@ body.t-lavender{--bg:#f0eef8;--panel:#fff;--bd:#d8d4f0;--bd2:#e4e0f4;--sf:#f8f6f
 .collapsed-label{display:none;writing-mode:vertical-rl;text-orientation:mixed;font-size:9px;font-weight:700;color:var(--tx3);letter-spacing:.08em;text-transform:uppercase;padding:12px 0;cursor:pointer;user-select:none;width:32px;align-items:center;justify-content:center;height:100%}
 .panel-left.collapsed .collapsed-label{display:flex}
 .panel-left.collapsed{overflow:hidden}
-.panel-left{width:224px;min-width:224px;background:var(--panel);border-right:0.5px solid var(--bd);overflow-y:auto;overflow-x:hidden;flex-shrink:0;transition:background .25s,border-color .25s,width .25s,min-width .25s}
+.panel-left{width:224px;min-width:224px;background:var(--panel);border-right:0.5px solid var(--bd);overflow-y:auto;overflow-x:hidden;flex-shrink:0;transition:background .25s,border-color .25s,width .25s,min-width .25s;scrollbar-width:thin}
 .panel-right{flex:1;overflow-y:auto;background:var(--bg);padding:14px;transition:background .25s;min-width:0;scrollbar-width:none}
 .panel-right::-webkit-scrollbar{display:none}
 
@@ -2934,8 +2934,8 @@ function launchApp(){
   const fab=document.getElementById('ai-fab');
   if(fab){fab.style.opacity='1';fab.style.pointerEvents='all';}
   if(window._attachAiFabDrag) window._attachAiFabDrag();
-  document.documentElement.style.overflow='';
-  document.body.style.overflow='';
+  document.documentElement.style.overflow='auto';
+  document.body.style.overflow='auto';
   l2.classList.add('out');
   setTimeout(()=>{l2.classList.add('hidden');showGuidePopup();},900);
 }
