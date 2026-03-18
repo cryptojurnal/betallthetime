@@ -2714,6 +2714,24 @@ function renderTbl(months){
           <td style="color:var(--acc2);font-weight:700">${fmt(t.accAF)}${s.SPOT?'':'<div style="font-size:7px;color:'+liqAFc+'">liq '+liqAF.toFixed(0)+'%</div>'}</td>
         </tr>`;
       });
+      // month end separator — colored bar + spacer before next month
+      if(!mo.isZ&&!IS_WIPED){
+        const gain=mo.gAF!==undefined?(mo.gAF-mo.sA):0;
+        const netPct=mo.gAF!==undefined?((mo.gAF-mo.sA)/mo.sA*100):mo.pct;
+        h+=`<tr class="mo-sep">
+          <td colspan="13" style="padding:0;border:none">
+            <div style="display:flex;align-items:center;height:24px;background:#1a1a2e;border-top:1.5px solid #2a2a4a;border-bottom:1.5px solid #2a2a4a;padding:0 8px;gap:12px">
+              <span style="font-size:8px;font-weight:700;color:#4a4a8a;letter-spacing:.1em;text-transform:uppercase">end of ${getML(mo.m)}</span>
+              <span style="font-size:8px;color:#3a3a7a">·</span>
+              <span style="font-size:9px;color:#5a5aaa;font-weight:600">net: ${netPct>=0?'+':''}${netPct.toFixed(1)}%</span>
+              <span style="font-size:8px;color:#3a3a7a">·</span>
+              <span style="font-size:9px;color:#5a5aaa">acct → ${fmt(mo.eA)}</span>
+              ${mo.wd>0?'<span style="font-size:8px;color:#3a3a7a">·</span><span style="font-size:9px;color:#7a4a7a">wd −'+fmt(mo.wd)+'</span>':''}
+            </div>
+          </td>
+        </tr>
+        <tr class="mo-gap"><td colspan="13" style="height:8px;background:var(--bg);border:none;padding:0"></td></tr>`;
+      }
     });
   }
   if(VIEW!=='guide') tbl.innerHTML=h+'</tbody>';
