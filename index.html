@@ -590,8 +590,9 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 .auth-google:hover{background:#f5f5f5;border-color:#555}
 .auth-guest:hover{color:#555}
 .auth-divider{height:0.5px;background:#1a1a1a;margin:16px 0}
-.auth-user-bar{display:flex;align-items:center;gap:8px;padding:4px 10px;background:#0a2a1a;border:0.5px solid #004d30;border-radius:20px;font-size:10px;color:#00c47a;font-weight:700;cursor:pointer;position:fixed;top:10px;right:80px;z-index:9998;transition:all .2s}
+.auth-user-bar{display:flex;align-items:center;gap:8px;padding:4px 10px;background:#0a2a1a;border:0.5px solid #004d30;border-radius:20px;font-size:10px;color:#00c47a;font-weight:700;cursor:grab;position:fixed;top:10px;right:80px;z-index:9998;transition:background .2s,box-shadow .2s;user-select:none;touch-action:none}
 .auth-user-bar:hover{background:#0d3a22}
+.auth-user-bar.dragging{cursor:grabbing;box-shadow:0 4px 16px rgba(0,0,0,.4)}
 .auth-user-bar.hidden{display:none}
 .auth-sync-btn{background:none;border:none;color:#00c47a;font-size:11px;cursor:pointer;padding:0;font-weight:700;opacity:.7;transition:opacity .2s}
 .auth-sync-btn:hover{opacity:1}
@@ -761,10 +762,11 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
     <div style="font-size:9px;color:#222;text-align:center;margin-top:10px">your data syncs across devices when logged in</div>
   </div>
 </div>
-<!-- user bar shown after login -->
-<div class="auth-user-bar hidden" id="auth-user-bar" onclick="memberOpen()">
-  <span id="auth-username-lbl">@user</span>
+<!-- user bar shown after login (draggable) -->
+<div class="auth-user-bar hidden" id="auth-user-bar">
+  <span id="auth-username-lbl" style="cursor:pointer" onclick="event.stopPropagation();if(!window._ubWasDragged)memberOpen();">@user</span>
   <button class="auth-sync-btn" onclick="event.stopPropagation();authSave()" title="sync to cloud">↑ sync</button>
+  <button class="auth-sync-btn" onclick="event.stopPropagation();backToMemberArea()" title="member area" style="color:#00c47a">☰</button>
   <button class="auth-sync-btn" onclick="event.stopPropagation();authLogout()" title="logout" style="color:#E24B4A">✕</button>
 </div>
 
@@ -3634,6 +3636,7 @@ function authOnSuccess(d){
   AUTH_TOKEN = d.token;
   AUTH_USER  = d.user;
   localStorage.setItem('batt_token', d.token);
+  if(d.user) localStorage.setItem('wz_user', JSON.stringify(d.user));
   // load cloud data if exists and merge
   if(d.data){
     try{
@@ -3714,7 +3717,8 @@ async function sendGoogleToWorker(google_id,email,name){
     const data=await res.json();
     if(data.ok&&data.token){
       AUTH_TOKEN=data.token;
-      localStorage.setItem('wz_auth',data.token);
+      AUTH_USER=data.user;  // <-- THIS WAS MISSING!
+      localStorage.setItem('batt_token',data.token);
       if(data.user){
         localStorage.setItem('wz_user',JSON.stringify(data.user));
       }
@@ -3789,6 +3793,7 @@ async function authLogout(){
 function authForceLogout(){
   AUTH_TOKEN=null; AUTH_USER=null;
   localStorage.removeItem('batt_token');
+  localStorage.removeItem('wz_user');
   // hide user bar
   const ub=document.getElementById('auth-user-bar');
   if(ub) ub.classList.add('hidden');
@@ -3804,6 +3809,8 @@ function authForceLogout(){
   // hide AI fab
   const aiFab=document.getElementById('ai-fab');
   if(aiFab){aiFab.style.opacity='0';aiFab.style.pointerEvents='none';}
+  // reset Google button
+  resetGoogleBtn();
   // show auth layer again
   const al=document.getElementById('auth-layer');
   al.classList.remove('hidden','out');
@@ -3812,16 +3819,21 @@ function authForceLogout(){
 
 // ── LAYER 3: MEMBER AREA NAVIGATION ──
 function goLayer3(){
-  // update layer3 user info
-  if(AUTH_USER){
+  // update layer3 user info - use AUTH_USER or fallback to localStorage
+  let user = AUTH_USER;
+  if(!user){
+    try{ user = JSON.parse(localStorage.getItem('wz_user')); }catch(e){}
+  }
+  if(user){
     const avatar=document.getElementById('l3-avatar');
     const username=document.getElementById('l3-username');
     const email=document.getElementById('l3-email');
     const welcomeName=document.getElementById('l3-welcome-name');
-    if(avatar) avatar.textContent=(AUTH_USER.username||AUTH_USER.email||'U')[0].toUpperCase();
-    if(username) username.textContent='@'+(AUTH_USER.username||'user');
-    if(email) email.textContent=AUTH_USER.email||'';
-    if(welcomeName) welcomeName.textContent=AUTH_USER.username||'trader';
+    const displayName = user.username || (user.email ? user.email.split('@')[0] : 'user');
+    if(avatar) avatar.textContent = displayName[0].toUpperCase();
+    if(username) username.textContent = '@' + displayName;
+    if(email) email.textContent = user.email || '';
+    if(welcomeName) welcomeName.textContent = displayName;
   }
   // hide layer2 if visible
   const l2=document.getElementById('layer2');
@@ -3866,6 +3878,7 @@ async function authRestoreSession(){
     const d=await r.json();
     if(d.ok){
       AUTH_USER=d.user;
+      if(d.user) localStorage.setItem('wz_user', JSON.stringify(d.user));
       const ub=document.getElementById('auth-user-bar');
       const ul=document.getElementById('auth-username-lbl');
       if(ub) ub.classList.remove('hidden');
@@ -4182,6 +4195,93 @@ window.addEventListener('resize',function(){
     // no-op now — drag is handled via window listeners above
   };
 })();
+
+// ── USER BAR DRAG TO REPOSITION ──
+(function(){
+  var ub, dx, dy, startX, startY, dragging=false, hasDragged=false;
+  var _rafId=null, _lastX=0, _lastY=0;
+  window._ubWasDragged=false;
+  
+  function onDown(e){
+    ub=document.getElementById('auth-user-bar');
+    if(!ub)return;
+    var pt=e.touches?e.touches[0]:e;
+    var zoom=parseFloat(getComputedStyle(document.documentElement).zoom)||1;
+    var r=ub.getBoundingClientRect();
+    dx=pt.clientX/zoom-r.left/zoom;
+    dy=pt.clientY/zoom-r.top/zoom;
+    startX=pt.clientX/zoom;
+    startY=pt.clientY/zoom;
+    dragging=true;
+    hasDragged=false;
+    ub.classList.add('dragging');
+  }
+  
+  function onMove(e){
+    if(!dragging)return;
+    var pt=e.touches?e.touches[0]:e;
+    var zoom=parseFloat(getComputedStyle(document.documentElement).zoom)||1;
+    var distX=pt.clientX/zoom-startX, distY=pt.clientY/zoom-startY;
+    if(Math.sqrt(distX*distX+distY*distY)<10)return;
+    hasDragged=true;
+    var W=window.innerWidth/zoom, H=window.innerHeight/zoom;
+    var ubW=ub.offsetWidth/zoom, ubH=ub.offsetHeight/zoom;
+    _lastX=Math.max(8,Math.min(pt.clientX/zoom-dx, W-ubW-8));
+    _lastY=Math.max(8,Math.min(pt.clientY/zoom-dy, H-ubH-8));
+    if(!_rafId) _rafId=requestAnimationFrame(function(){
+      if(ub){
+        ub.style.left=_lastX+'px';
+        ub.style.top=_lastY+'px';
+        ub.style.right='auto';
+      }
+      _rafId=null;
+    });
+    e.preventDefault();
+  }
+  
+  function onUp(e){
+    if(!dragging)return;
+    dragging=false;
+    if(ub)ub.classList.remove('dragging');
+    if(hasDragged){
+      window._ubWasDragged=true;
+      setTimeout(function(){window._ubWasDragged=false;},100);
+      try{localStorage.setItem('wz_ub_pos',JSON.stringify({x:_lastX,y:_lastY}));}catch(ex){}
+    }
+    hasDragged=false;
+  }
+  
+  window.addEventListener('DOMContentLoaded',function(){
+    var u=document.getElementById('auth-user-bar');
+    if(!u)return;
+    // restore saved position
+    try{
+      var saved=JSON.parse(localStorage.getItem('wz_ub_pos'));
+      if(saved){u.style.left=saved.x+'px';u.style.top=saved.y+'px';u.style.right='auto';}
+    }catch(ex){}
+    // attach drag listeners
+    window.addEventListener('mousemove',onMove);
+    window.addEventListener('touchmove',onMove,{passive:false});
+    window.addEventListener('mouseup',onUp);
+    window.addEventListener('touchend',onUp);
+    window.addEventListener('mousedown',function(e){
+      var u2=document.getElementById('auth-user-bar');
+      if(u2&&(e.target===u2||u2.contains(e.target))){
+        // don't start drag if clicking on buttons
+        if(e.target.tagName==='BUTTON')return;
+        onDown(e);
+      }
+    });
+    window.addEventListener('touchstart',function(e){
+      var u2=document.getElementById('auth-user-bar');
+      if(u2&&(e.target===u2||u2.contains(e.target))){
+        if(e.target.tagName==='BUTTON')return;
+        onDown(e);
+      }
+    },{passive:false});
+  });
+})();
+
 function aiSetLang(lang){
   AI_LANG=lang;
   var en=document.getElementById('ai-lb-en');
