@@ -1,0 +1,21 @@
+{
+  "name": "Bet All The Time, Bet With Style",
+  "short_name": "BATT",
+  "description": "Trading projection dashboard for crypto traders",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#00c47a",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect fill='%23000' width='512' height='512' rx='100'/><text y='340' x='256' text-anchor='middle' font-size='280' fill='%2300c47a'>📊</text></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["finance", "productivity"],
+  "screenshots": [],
+  "prefer_related_applications": false
+}
