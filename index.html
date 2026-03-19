@@ -4591,27 +4591,38 @@ function render(){
     mh+=errMsgs.map(([lbl,val,sub])=>`<div class="mc"><div class="mll">${lbl}</div><div class="mvv" style="color:#E24B4A;font-size:11px">${val}</div><div class="ms" style="color:#E24B4A;opacity:.7">${sub}</div></div>`).join('');
     mh+='</div>';
   } else if(isQ){
+    const btcPrice = window.LIVE_BTC_PRICE || 85000;
+    const endBalanceBTC = last.eA / btcPrice;
     mh+=`
       <div class="mc"><div class="mll">${t('q_end_lbl')}</div>${wv(fmt(last.eA),'var(--acc2)')}${ws(fIDR(last.eA))}</div>
       <div class="mc"><div class="mll">${t('total_gain_lbl')}</div>${wv('+'+tr.toFixed(1)+'%','var(--acc2)')}${ws(fmt(last.eA-s.P))}</div>
       <div class="mc"><div class="mll">${t('nw_lbl')}</div>${wv(fmt(last.nw),'var(--acc)')}${ws(fIDR(last.nw))}</div>
       <div class="mc"><div class="mll">${t('banked_lbl')}</div><div class="mvv">${fmt(last.banked)}</div><div class="ms">3 ${t('months')}</div></div>
       <div class="mc"><div class="mll">${t('avg_lbl')}</div><div class="mvv">${avgPct.toFixed(1)}%</div><div class="ms">${t('per_active_month')}</div></div>
+      <div class="mc"><div class="mll">₿ equivalent</div><div class="mvv" style="color:#f7931a">${endBalanceBTC.toFixed(4)}</div><div class="ms">@ $${btcPrice.toLocaleString()}</div></div>
       <div class="mc"><div class="mll">${t('seq_net_lbl')}</div><div class="mvv" style="color:${mp>=0?'#1D9E75':'#E24B4A'}">${mp>0?'+':''}${mp.toFixed(1)}%</div><div class="ms">${wins}W / ${losses}L · ${actTr} ${t('active_trades')}</div></div>
       <div class="mc"><div class="mll">total fees paid</div><div class="mvv" style="color:#E24B4A">−${fmt(totalFeesPaid)}</div><div class="ms">trade + funding · 3mo</div></div>
+      <div class="mc placeholder"></div>
+      <div class="mc placeholder"></div>
+      <div class="mc placeholder"></div>
+      <div class="mc placeholder"></div>
     `;
   } else {
+    const btcPrice = window.LIVE_BTC_PRICE || 85000;
+    const endBalanceBTC = last.eA / btcPrice;
     mh+=`
       <div class="mc"><div class="mll">${t('cagr_lbl')}</div><div class="mvv" style="color:var(--acc2)">${cagr.toFixed(1)}%</div><div class="ms">${t('cagr_sub')}</div></div>
       <div class="mc"><div class="mll">${t('total_ret_lbl')}</div><div class="mvv">${tr>9999?(tr/1000).toFixed(0)+'k%':tr.toFixed(0)+'%'}</div><div class="ms">${t('total_ret_sub',fmt(s.P))}</div></div>
       <div class="mc"><div class="mll">${t('end_acct_lbl')}</div><div class="mvv" style="color:var(--acc2)">${fmt(last.eA)}</div><div class="ms">${fIDR(last.eA)}</div></div>
       <div class="mc"><div class="mll">${t('banked_lbl')}</div><div class="mvv" style="color:var(--acc)">${fmt(last.banked)}</div><div class="ms">${t('banked_sub')}</div></div>
       <div class="mc"><div class="mll">${t('nw_lbl')}</div><div class="mvv">${fmt(last.nw)}</div><div class="ms">${t('nw_sub')} · ${fIDR(last.nw)}</div></div>
+      <div class="mc"><div class="mll">₿ equivalent</div><div class="mvv" style="color:#f7931a">${endBalanceBTC.toFixed(4)}</div><div class="ms">@ $${btcPrice.toLocaleString()}</div></div>
       <div class="mc"><div class="mll">${t('milestone_lbl')}</div><div class="mvv" style="color:${m1M?'var(--acc2)':'#E24B4A'}">${m1M?getMLabel(m1M.m):t('beyond36')}</div><div class="ms">${m1M?t('milestone_hit')+getMLabel(m1M.m):t('milestone_miss')}</div></div>
       <div class="mc"><div class="mll">${t('avg_lbl')}</div><div class="mvv">${avgPct.toFixed(1)}%</div><div class="ms">${t('avg_sub')} · ${(36-s.ZM.size)} ${t('active')}</div></div>
       <div class="mc"><div class="mll">${t('seq_net_lbl')}</div><div class="mvv" style="color:${mp>=0?'#1D9E75':'#E24B4A'}">${mp>0?'+':''}${mp.toFixed(1)}%</div><div class="ms">${wins}W / ${losses}L · ${actTr}/10</div></div>
       ${s.SPOT?'<div class="mc"><div class="mll">no liq%</div><div class="mvv" style="color:#5DC96A">◈ spot</div><div class="ms">no liquidation risk</div></div>':('<div class="mc"><div class="mll">'+t('liq_mc_lbl')+'</div><div class="mvv" style="color:'+lc(liqT1)+'">'+liqT1.toFixed(1)+'%</div><div class="ms">'+t('liq_mc_sub',liqT1.toFixed(0))+'</div></div>')}
       <div class="mc"><div class="mll">total fees paid</div><div class="mvv" style="color:#E24B4A">−${fmt(totalFeesPaid)}</div><div class="ms">${s.SPOT?'trade only · spot':'trade + funding · all months'}</div></div>
+      <div class="mc placeholder"></div>
     `;
   }
   if(!errMsgs) mh+='</div>';
