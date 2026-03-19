@@ -6470,6 +6470,8 @@ async function sharePreset(id,name){
     });
     const d=await r.json();
     
+    console.log('Share response:', d);
+    
     if(d.ok&&d.share_code){
       const shareUrl='https://betallthetime.fun/?p='+d.share_code;
       if(linkInput) linkInput.value=shareUrl;
@@ -6493,10 +6495,14 @@ async function sharePreset(id,name){
       checkBadges();
       if(typeof logActivity==='function') logActivity('preset_share',{name});
     }else{
-      if(linkInput) linkInput.value='Failed to generate link';
+      const errorMsg = d.error || 'Failed to generate link';
+      if(linkInput) linkInput.value = errorMsg;
+      showToast(errorMsg, 'error');
     }
   }catch(e){
+    console.error('Share preset error:', e);
     if(linkInput) linkInput.value='Connection failed';
+    showToast('Connection failed: ' + e.message, 'error');
   }
 }
 
