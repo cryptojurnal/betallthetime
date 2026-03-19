@@ -1064,10 +1064,13 @@ input[type=number]:focus{outline:none;border-color:var(--acc)}
 .act-count span{font-weight:700;color:var(--acc2)}
 
 /* right panel */
-.metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:0;margin-bottom:8px;border:0.5px solid var(--bd2);overflow:hidden}
+.metrics{display:grid;grid-template-columns:repeat(6,1fr);gap:0;margin-bottom:8px;border:0.5px solid var(--bd2);overflow:hidden}
 .mc{background:var(--panel);border-radius:0;padding:5px 7px;border-right:0.5px solid var(--bd2);border-bottom:0.5px solid var(--bd2);transition:background .25s}
-.mc:nth-child(5n){border-right:none}
-.mc:nth-last-child(-n+5){border-bottom:none}
+.mc:nth-child(6n){border-right:none}
+.mc:nth-last-child(-n+6){border-bottom:none}
+.mc.placeholder{opacity:0.3;cursor:default}
+.mc.placeholder .mll{color:var(--tx3)}
+.mc.placeholder .mvv{color:var(--tx3)}
 .mll{font-size:8px;color:var(--tx2);margin-bottom:1px;text-transform:uppercase;letter-spacing:.04em}
 .mvv{font-size:12px;font-weight:700}
 .ms{font-size:8px;color:var(--tx2);margin-top:1px}
@@ -3813,6 +3816,8 @@ function softUpdate(){
   if(metricsEl){
     const cagr=isQ?null:(Math.pow(Math.max(last.nw,s.P)/s.P,1/3)-1)*100;
     const m1M=!isQ?months.find(r=>r.nw>=1000000):null;
+    const btcPrice = window.LIVE_BTC_PRICE || 85000; // fallback price
+    const endBalanceBTC = last.eA / btcPrice;
     let mh='';
     if(isQ){
       mh=`
@@ -3821,8 +3826,13 @@ function softUpdate(){
         <div class="mc"><div class="mll">${t('nw_lbl')}</div><div class="mvv" style="color:var(--acc)">${fmt(last.nw)}</div><div class="ms">${fIDR(last.nw)}</div></div>
         <div class="mc"><div class="mll">${t('banked_lbl')}</div><div class="mvv">${fmt(last.banked)}</div><div class="ms">3 ${t('months')}</div></div>
         <div class="mc"><div class="mll">${t('avg_lbl')}</div><div class="mvv">${avgPct.toFixed(1)}%</div><div class="ms">${t('per_active_month')}</div></div>
+        <div class="mc"><div class="mll">₿ equivalent</div><div class="mvv" style="color:#f7931a">${endBalanceBTC.toFixed(4)}</div><div class="ms">@ $${btcPrice.toLocaleString()}</div></div>
         <div class="mc"><div class="mll">${t('seq_net_lbl')}</div><div class="mvv" style="color:${mp>=0?'#1D9E75':'#E24B4A'}">${mp>0?'+':''}${mp.toFixed(1)}%</div><div class="ms">${wins}W / ${losses}L · ${actTr} ${t('active_trades')}</div></div>
-        <div class="mc"><div class="mll">total fees paid</div><div class="mvv" style="color:#E24B4A">−${fmt(months.filter(r=>!r.isZ).reduce((a,r)=>a+(r.feePaid||0),0))}</div><div class="ms">${s.SPOT?'trade only · spot':'trade + funding · 3mo'}</div></div>`;
+        <div class="mc"><div class="mll">total fees paid</div><div class="mvv" style="color:#E24B4A">−${fmt(months.filter(r=>!r.isZ).reduce((a,r)=>a+(r.feePaid||0),0))}</div><div class="ms">${s.SPOT?'trade only · spot':'trade + funding · 3mo'}</div></div>
+        <div class="mc placeholder"><div class="mll">coming soon</div><div class="mvv">—</div><div class="ms">future feature</div></div>
+        <div class="mc placeholder"><div class="mll">coming soon</div><div class="mvv">—</div><div class="ms">future feature</div></div>
+        <div class="mc placeholder"><div class="mll">coming soon</div><div class="mvv">—</div><div class="ms">future feature</div></div>
+        <div class="mc placeholder"><div class="mll">coming soon</div><div class="mvv">—</div><div class="ms">future feature</div></div>`;
     } else {
       mh=`
         <div class="mc"><div class="mll">${t('cagr_lbl')}</div><div class="mvv" style="color:var(--acc2)">${cagr.toFixed(1)}%</div><div class="ms">${t('cagr_sub')}</div></div>
@@ -3830,11 +3840,13 @@ function softUpdate(){
         <div class="mc"><div class="mll">${t('end_acct_lbl')}</div><div class="mvv" style="color:var(--acc2)">${fmt(last.eA)}</div><div class="ms">${fIDR(last.eA)}</div></div>
         <div class="mc"><div class="mll">${t('banked_lbl')}</div><div class="mvv" style="color:var(--acc)">${fmt(last.banked)}</div><div class="ms">${t('banked_sub')}</div></div>
         <div class="mc"><div class="mll">${t('nw_lbl')}</div><div class="mvv">${fmt(last.nw)}</div><div class="ms">${t('nw_sub')} · ${fIDR(last.nw)}</div></div>
+        <div class="mc"><div class="mll">₿ equivalent</div><div class="mvv" style="color:#f7931a">${endBalanceBTC.toFixed(4)}</div><div class="ms">@ $${btcPrice.toLocaleString()}</div></div>
         <div class="mc"><div class="mll">${t('milestone_lbl')}</div><div class="mvv" style="color:${m1M?'var(--acc2)':'#E24B4A'}">${m1M?getMLabel(m1M.m):t('beyond36')}</div><div class="ms">${m1M?t('milestone_hit')+getMLabel(m1M.m):t('milestone_miss')}</div></div>
         <div class="mc"><div class="mll">${t('avg_lbl')}</div><div class="mvv">${avgPct.toFixed(1)}%</div><div class="ms">${t('avg_sub')} · ${(36-s.ZM.size)} ${t('active')}</div></div>
         <div class="mc"><div class="mll">${t('seq_net_lbl')}</div><div class="mvv" style="color:${mp>=0?'#1D9E75':'#E24B4A'}">${mp>0?'+':''}${mp.toFixed(1)}%</div><div class="ms">${wins}W / ${losses}L · ${actTr}/10</div></div>
         ${s.SPOT?'<div class="mc"><div class="mll">no liq%</div><div class="mvv" style="color:#5DC96A">◈ spot</div><div class="ms">no liquidation risk</div></div>':('<div class="mc"><div class="mll">'+t('liq_mc_lbl')+'</div><div class="mvv" style="color:'+lc(liqT1)+'">'+liqT1.toFixed(1)+'%</div><div class="ms">'+t('liq_mc_sub',liqT1.toFixed(0))+'</div></div>')}
-        <div class="mc"><div class="mll">total fees paid</div><div class="mvv" style="color:#E24B4A">−${fmt(months.filter(r=>!r.isZ).reduce((a,r)=>a+(r.feePaid||0),0))}</div><div class="ms">${s.SPOT?'trade only · spot':'trade + funding · all months'}</div></div>`;
+        <div class="mc"><div class="mll">total fees paid</div><div class="mvv" style="color:#E24B4A">−${fmt(months.filter(r=>!r.isZ).reduce((a,r)=>a+(r.feePaid||0),0))}</div><div class="ms">${s.SPOT?'trade only · spot':'trade + funding · all months'}</div></div>
+        <div class="mc placeholder"><div class="mll">coming soon</div><div class="mvv">—</div><div class="ms">future feature</div></div>`;
     }
     metricsEl.innerHTML=mh;
   }
@@ -9284,6 +9296,12 @@ async function fetchLivePrices(){
       const r = await fetchWithTimeout(`https://api.binance.com/api/v3/ticker/24hr?symbol=${c.pair}`);
       return r.json();
     }));
+    
+    // Store BTC price globally for cockpit indicators
+    const btcResult = results[0];
+    if (btcResult.status === 'fulfilled' && btcResult.value?.lastPrice) {
+      window.LIVE_BTC_PRICE = parseFloat(btcResult.value.lastPrice);
+    }
     
     container.classList.remove('prices-loading');
     container.innerHTML=coins.map((c,i)=>{
