@@ -7081,16 +7081,28 @@ function tpCalculate() {
 
 // Place order
 function tpPlaceOrder() {
-  const size = parseFloat(document.getElementById('tp-size')?.value) || 0;
+  const sizeInput = document.getElementById('tp-size');
+  const size = parseFloat(sizeInput?.value) || 0;
   const tp = parseFloat(document.getElementById('tp-tp')?.value) || 10;
   const sl = parseFloat(document.getElementById('tp-sl')?.value) || 5;
-  const priceData = TP_STATE.prices[TP_STATE.pair] || { price: 69000 };
-  const price = priceData.price;
+  const priceData = TP_STATE.prices[TP_STATE.pair];
   const isSpot = TP_STATE.marketType === 'spot';
   const isSell = TP_STATE.side === 'short';
   
+  // Validate price data
+  if (!priceData || !priceData.price) {
+    showToast('Loading prices... please wait', 'info');
+    tpFetchPrices().then(() => {
+      showToast('Prices loaded. Try again.', 'success');
+    });
+    return;
+  }
+  
+  const price = priceData.price;
+  
   if (size <= 0) {
     showToast('Enter a valid size', 'error');
+    sizeInput?.focus();
     return;
   }
   
@@ -7153,9 +7165,9 @@ function tpPlaceOrder() {
     return;
   }
   
-  // Handle Buy (Spot or Perpetual Long/Short)
+  // Handle Buy (Spot) or Open Position (Perpetual Long/Short)
   if (size > TP_STATE.balance) {
-    showToast('Insufficient balance', 'error');
+    showToast(`Insufficient balance. You have $${TP_STATE.balance.toFixed(2)}`, 'error');
     return;
   }
   if (TP_STATE.positions.length >= 10) {
@@ -7183,8 +7195,17 @@ function tpPlaceOrder() {
   tpUpdateUI();
   tpRenderPositions();
   
-  const action = isSpot ? 'Bought' : `Opened ${position.side.toUpperCase()}`;
-  showToast(`${action} ${position.pair.replace('USDT','')} @ $${price.toLocaleString()}`, 'success');
+  // Clear size input
+  if (sizeInput) sizeInput.value = '';
+  tpCalculate();
+  
+  const pairShort = position.pair.replace('USDT', '');
+  if (isSpot) {
+    showToast(`Bought ${pairShort} @ $${price.toLocaleString()}`, 'success');
+  } else {
+    const leverageStr = position.leverage > 1 ? ` (${position.leverage}x)` : '';
+    showToast(`Opened ${position.side.toUpperCase()} ${pairShort}${leverageStr} @ $${price.toLocaleString()}`, 'success');
+  }
 }
 
 // Close position
@@ -7855,10 +7876,42 @@ openTradingPage = function() {
     tpFetchOrderBook(); // Fetch real order book
     
     // Apply market type settings
-    tpSetMarketType(TP_STATE.marketType);
+    const isSpot = TP_STATE.marketType === 'spot';
     document.querySelectorAll('.tp-market-type button').forEach(b => {
-      b.classList.toggle('active', b.textContent.toLowerCase() === TP_STATE.marketType);
+      const btnType = b.textContent.toLowerCase();
+      b.classList.toggle('active', btnType === TP_STATE.marketType);
     });
+    
+    // Update side button labels
+    const longBtn = document.getElementById('tp-side-long');
+    const shortBtn = document.getElementById('tp-side-short');
+    if (longBtn) longBtn.textContent = isSpot ? 'Buy' : 'Long';
+    if (shortBtn) shortBtn.textContent = isSpot ? 'Sell' : 'Short';
+    
+    // Set active side button
+    document.getElementById('tp-side-long').classList.toggle('active', TP_STATE.side === 'long');
+    document.getElementById('tp-side-short').classList.toggle('active', TP_STATE.side === 'short');
+    
+    // Show/hide perpetual-only elements
+    const leverageRow = document.getElementById('tp-leverage-row');
+    const tpslRow = document.getElementById('tp-tpsl-row');
+    const marginRow = document.getElementById('tp-sum-margin-row');
+    const liqRow = document.getElementById('tp-sum-liq-row');
+    const tpRow = document.getElementById('tp-sum-tp-row');
+    const slRow = document.getElementById('tp-sum-sl-row');
+    
+    if (leverageRow) leverageRow.style.display = isSpot ? 'none' : 'flex';
+    if (tpslRow) tpslRow.style.display = isSpot ? 'none' : 'flex';
+    if (marginRow) marginRow.style.display = isSpot ? 'none' : 'flex';
+    if (liqRow) liqRow.style.display = isSpot ? 'none' : 'flex';
+    if (tpRow) tpRow.style.display = isSpot ? 'none' : 'flex';
+    if (slRow) slRow.style.display = isSpot ? 'none' : 'flex';
+    
+    // Update submit button
+    tpUpdateSubmitButton();
+    
+    // Update exchange label
+    document.getElementById('tp-pair-exchange').textContent = `${isSpot ? 'spot' : 'perpetual'} · ${TP_STATE.exchange}`;
     
     // Start price updates
     if (!window._tpPriceInterval) {
