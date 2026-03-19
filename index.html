@@ -3834,6 +3834,10 @@ function softUpdate(){
         <div class="mc placeholder"></div>
         <div class="mc placeholder"></div>`;
     } else {
+      // 1-year metrics (month 12)
+      const m12 = months[11]; // index 11 = month 12
+      const y1Nw = m12 ? m12.nw : s.P;
+      const y1Ret = ((y1Nw / s.P) - 1) * 100;
       mh=`
         <div class="mc"><div class="mll">${t('cagr_lbl')}</div><div class="mvv" style="color:var(--acc2)">${cagr.toFixed(1)}%</div><div class="ms">${t('cagr_sub')}</div></div>
         <div class="mc"><div class="mll">${t('total_ret_lbl')}</div><div class="mvv">${tr>9999?(tr/1000).toFixed(0)+'k%':tr.toFixed(0)+'%'}</div><div class="ms">${t('total_ret_sub',fmt(s.P))}</div></div>
@@ -3846,7 +3850,7 @@ function softUpdate(){
         <div class="mc"><div class="mll">${t('seq_net_lbl')}</div><div class="mvv" style="color:${mp>=0?'#1D9E75':'#E24B4A'}">${mp>0?'+':''}${mp.toFixed(1)}%</div><div class="ms">${wins}W / ${losses}L · ${actTr}/10</div></div>
         ${s.SPOT?'<div class="mc"><div class="mll">no liq%</div><div class="mvv" style="color:#5DC96A">◈ spot</div><div class="ms">no liquidation risk</div></div>':('<div class="mc"><div class="mll">'+t('liq_mc_lbl')+'</div><div class="mvv" style="color:'+lc(liqT1)+'">'+liqT1.toFixed(1)+'%</div><div class="ms">'+t('liq_mc_sub',liqT1.toFixed(0))+'</div></div>')}
         <div class="mc"><div class="mll">total fees paid</div><div class="mvv" style="color:#E24B4A">−${fmt(months.filter(r=>!r.isZ).reduce((a,r)=>a+(r.feePaid||0),0))}</div><div class="ms">${s.SPOT?'trade only · spot':'trade + funding · all months'}</div></div>
-        <div class="mc placeholder"></div>`;
+        <div class="mc"><div class="mll">1yr return</div><div class="mvv" style="color:#5b7fff">${y1Ret>999?(y1Ret/1000).toFixed(1)+'k%':y1Ret.toFixed(0)+'%'}</div><div class="ms">M12 NW: ${fmt(y1Nw)}</div></div>`;
     }
     metricsEl.innerHTML=mh;
   }
@@ -4610,6 +4614,10 @@ function render(){
   } else {
     const btcPrice = window.LIVE_BTC_PRICE || 85000;
     const endBalanceBTC = last.eA / btcPrice;
+    // 1-year metrics (month 12)
+    const m12 = months[11]; // index 11 = month 12
+    const y1Nw = m12 ? m12.nw : s.P;
+    const y1Ret = ((y1Nw / s.P) - 1) * 100;
     mh+=`
       <div class="mc"><div class="mll">${t('cagr_lbl')}</div><div class="mvv" style="color:var(--acc2)">${cagr.toFixed(1)}%</div><div class="ms">${t('cagr_sub')}</div></div>
       <div class="mc"><div class="mll">${t('total_ret_lbl')}</div><div class="mvv">${tr>9999?(tr/1000).toFixed(0)+'k%':tr.toFixed(0)+'%'}</div><div class="ms">${t('total_ret_sub',fmt(s.P))}</div></div>
@@ -4622,7 +4630,7 @@ function render(){
       <div class="mc"><div class="mll">${t('seq_net_lbl')}</div><div class="mvv" style="color:${mp>=0?'#1D9E75':'#E24B4A'}">${mp>0?'+':''}${mp.toFixed(1)}%</div><div class="ms">${wins}W / ${losses}L · ${actTr}/10</div></div>
       ${s.SPOT?'<div class="mc"><div class="mll">no liq%</div><div class="mvv" style="color:#5DC96A">◈ spot</div><div class="ms">no liquidation risk</div></div>':('<div class="mc"><div class="mll">'+t('liq_mc_lbl')+'</div><div class="mvv" style="color:'+lc(liqT1)+'">'+liqT1.toFixed(1)+'%</div><div class="ms">'+t('liq_mc_sub',liqT1.toFixed(0))+'</div></div>')}
       <div class="mc"><div class="mll">total fees paid</div><div class="mvv" style="color:#E24B4A">−${fmt(totalFeesPaid)}</div><div class="ms">${s.SPOT?'trade only · spot':'trade + funding · all months'}</div></div>
-      <div class="mc placeholder"></div>
+      <div class="mc"><div class="mll">1yr return</div><div class="mvv" style="color:#5b7fff">${y1Ret>999?(y1Ret/1000).toFixed(1)+'k%':y1Ret.toFixed(0)+'%'}</div><div class="ms">M12 NW: ${fmt(y1Nw)}</div></div>
     `;
   }
   if(!errMsgs) mh+='</div>';
