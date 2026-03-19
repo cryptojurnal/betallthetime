@@ -462,7 +462,10 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
 .tp-ob-mid-change.down{color:#E24B4A}
 
 /* Market Type Toggle */
-.tp-market-type{display:flex;gap:4px;padding:8px 10px;background:#000;border-bottom:1px solid #1a1a1a}
+.tp-controls-row{display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:#000;border-bottom:1px solid #1a1a1a}
+.tp-back-btn{background:none;border:1px solid #333;border-radius:6px;color:#888;font-size:10px;font-weight:600;padding:6px 12px;cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:4px}
+.tp-back-btn:hover{border-color:#00c47a;color:#00c47a;background:rgba(0,196,122,0.1)}
+.tp-market-type{display:flex;gap:4px}
 .tp-market-type button{padding:6px 14px;background:#111;border:1px solid #1a1a1a;border-radius:6px;color:#555;font-size:10px;font-weight:700;cursor:pointer;transition:all .15s}
 .tp-market-type button:hover{border-color:#333;color:#888}
 .tp-market-type button.active{background:#00c47a;border-color:#00c47a;color:#000}
@@ -614,16 +617,21 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
 body.t-lavender{--bg:#f0eef8;--panel:#fff;--bd:#d8d4f0;--bd2:#e4e0f4;--sf:#f8f6ff;--sf2:#f0eef8;--tx:#2a1a4a;--tx2:#8070b0;--tx3:#c0b0e0;--acc:#7050c0;--acc2:#5060e0;--mh:#4030a0;--mhc:#fff;--mhs:#c0b8f0;--inp:#f8f6ff;--btn:#f0eef8;--btno:#e0d8f8;--btonc:#7050c0;--tog:#fff;--togon:#4030a0;--togonc:#fff;--tabact:#4030a0;--tabactc:#fff;--wd-on:#e0d8f8;--wd-onc:#7050c0}
 
 .app{display:flex;height:100vh;overflow:hidden;background:#000;color:var(--tx);opacity:0}
-.panel-left.collapsed{width:36px!important;min-width:36px!important;overflow:hidden}
+.panel-left.collapsed{width:0!important;min-width:0!important;overflow:hidden;border:none}
 .panel-left.collapsed .pl-body{display:none}
-.collapse-btn{position:absolute;top:50%;transform:translateY(-50%);right:-16px;width:16px;height:48px;border-radius:0 6px 6px 0;background:var(--acc);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;z-index:10;transition:all .2s;box-shadow:2px 0 8px rgba(0,0,0,.2);writing-mode:horizontal-tb}
-.collapse-btn:hover{width:20px;right:-20px;opacity:.9}
+.panel-left-toggle{position:fixed;left:0;top:50%;transform:translateY(-50%);width:42px;height:90px;background:linear-gradient(135deg,var(--acc),#1D9E75);border:none;border-radius:0 14px 14px 0;cursor:grab;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px;font-size:14px;color:#fff;transition:all .25s cubic-bezier(.4,0,.2,1);z-index:100;box-shadow:4px 0 20px rgba(0,0,0,0.3);opacity:0;pointer-events:none;user-select:none;touch-action:none;overflow:hidden}
+.panel-left-toggle.visible{opacity:1;pointer-events:all;animation:togglePulseLeft 2s ease-in-out infinite}
+.panel-left-toggle:hover{width:52px;box-shadow:6px 0 28px rgba(0,0,0,0.4);animation:none}
+.panel-left-toggle.dragging{cursor:grabbing;box-shadow:8px 0 32px rgba(0,0,0,0.5);transform:translateY(-50%) scale(1.08);animation:none}
+.panel-left-toggle-icon{font-size:22px;animation:bounceIconLeft 1.5s ease-in-out infinite}
+.panel-left-toggle-label{font-size:8px;font-weight:800;letter-spacing:0.5px;text-transform:uppercase;writing-mode:vertical-rl;text-orientation:mixed;margin-top:4px}
+.panel-left-toggle::before{content:'';position:absolute;right:6px;top:50%;transform:translateY(-50%);width:4px;height:28px;background:rgba(255,255,255,0.2);border-radius:2px}
+.panel-left:not(.collapsed) .panel-left-toggle{left:224px;animation:none}
+.panel-left:not(.collapsed) .panel-left-toggle-icon{animation:none}
+@keyframes togglePulseLeft{0%,100%{box-shadow:4px 0 20px rgba(0,0,0,0.3)}50%{box-shadow:4px 0 30px rgba(29,158,117,0.5)}}
+@keyframes bounceIconLeft{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
 .panel-left{position:relative}
-.panel-left.collapsed .collapse-btn{right:-12px}
-.collapsed-label{display:none;writing-mode:vertical-rl;text-orientation:mixed;font-size:9px;font-weight:700;color:var(--tx3);letter-spacing:.08em;text-transform:uppercase;padding:12px 0;cursor:pointer;user-select:none;width:32px;align-items:center;justify-content:center;height:100%}
-.panel-left.collapsed .collapsed-label{display:flex}
-.panel-left.collapsed{overflow:hidden}
-.panel-left{width:224px;min-width:224px;background:var(--panel);border-right:0.5px solid var(--bd);overflow-y:auto;overflow-x:hidden;flex-shrink:0;transition:background .25s,border-color .25s,width .25s,min-width .25s;scrollbar-width:thin}
+.panel-left{width:224px;min-width:224px;background:var(--panel);border-right:0.5px solid var(--bd);overflow-y:auto;overflow-x:hidden;flex-shrink:0;transition:background .25s,border-color .25s,width .3s ease,min-width .3s ease;scrollbar-width:thin}
 .panel-right{flex:1;overflow-y:auto;background:var(--bg);padding:14px;transition:background .25s;min-width:0;scrollbar-width:none}
 .panel-right::-webkit-scrollbar{display:none}
 
@@ -1104,6 +1112,18 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 #layer3.ma-emerald .l3-card:hover{border-color:#00c47a}
 #account-page.ma-emerald .acc-card{background:#002010;border-color:#003a20}
 #account-page.ma-emerald .acc-stat-card{background:#002010;border-color:#003a20}
+/* AI Box Theme Variations */
+#layer3.ma-light .l3-ai-box{background:#f8f8f8;border-color:#ddd}
+#layer3.ma-light .l3-ai-header .l3-ai-title{color:#111}
+#layer3.ma-light .l3-ai-desc{color:#666}
+#layer3.ma-light .l3-ai-chips button{background:#fff;border-color:#ddd;color:#555}
+#layer3.ma-light .l3-ai-chips button:hover{border-color:#00c47a;color:#00c47a;background:#f0fff8}
+#layer3.ma-light .l3-ai-response{background:#fff;border-color:#ddd;color:#333}
+#layer3.ma-light .l3-ai-lang{background:#eee}
+#layer3.ma-midnight .l3-ai-box{background:#0a0a20;border-color:#1a1a3a}
+#layer3.ma-midnight .l3-ai-chips button:hover{border-color:#5b7fff;color:#5b7fff;background:#0a0a30}
+#layer3.ma-midnight .l3-ai-lang button.active{background:#5b7fff}
+#layer3.ma-emerald .l3-ai-box{background:#001a10;border-color:#003a20}
 #layer3.visible{opacity:1;pointer-events:all}
 #layer3.hidden{display:none}
 .l3-container{flex:1;display:flex;flex-direction:column;max-width:960px;width:100%;margin:0 auto;padding:24px 24px 16px;overflow-y:auto;scrollbar-width:none}
@@ -1142,6 +1162,22 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 .l3-card-badge.live{background:#0a2a1a;color:#00c47a;border:0.5px solid #004d30}
 .l3-card-badge.soon{background:#1a1a0a;color:#c4a000;border:0.5px solid #4d4000}
 .l3-card-badge.new{background:#1a0a2a;color:#a000c4;border:0.5px solid #40004d}
+
+/* ── MEMBER AREA AI ASSISTANT ── */
+.l3-ai-box{background:#0a0a0a;border:1px solid #1a1a1a;border-radius:14px;padding:16px;margin-bottom:20px}
+.l3-ai-header{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.l3-ai-icon{font-size:24px}
+.l3-ai-title{font-size:14px;font-weight:700;color:#fff;flex:1}
+.l3-ai-lang{display:flex;gap:2px;background:#111;border-radius:6px;padding:2px}
+.l3-ai-lang button{background:transparent;border:none;color:#555;font-size:9px;font-weight:700;padding:4px 8px;border-radius:4px;cursor:pointer;transition:all .15s}
+.l3-ai-lang button.active{background:#00c47a;color:#000}
+.l3-ai-desc{font-size:11px;color:#888;line-height:1.5;margin-bottom:12px}
+.l3-ai-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.l3-ai-chips button{background:#111;border:1px solid #222;border-radius:20px;color:#aaa;font-size:10px;padding:6px 12px;cursor:pointer;transition:all .15s}
+.l3-ai-chips button:hover{border-color:#00c47a;color:#00c47a;background:#0a1a10}
+.l3-ai-response{font-size:11px;color:#ccc;line-height:1.6;padding:12px;background:#0d0d0d;border-radius:8px;border:0.5px solid #1a1a1a;display:none}
+.l3-ai-response.visible{display:block;animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
 .l3-section-title{font-size:9px;font-weight:700;color:#333;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
 .l3-footer{margin-top:auto;padding-top:12px;border-top:0.5px solid #1a1a1a;text-align:center}
 .l3-footer p{font-size:9px;color:#333;margin:0}
@@ -1695,14 +1731,14 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
       <div class="l3-card" onclick="openDashboard()">
         <span class="l3-card-badge live">live</span>
         <div class="l3-card-icon">📊</div>
-        <h3>Trading Dashboard</h3>
-        <p>Simulate trades, calculate liq%, manage positions across 36 months. Your main trading projection tool.</p>
+        <h3>Risk Calculator</h3>
+        <p>Plan your trades, calculate liquidation levels, and project 36-month portfolio growth. Your preparation tool before trading.</p>
       </div>
       <div class="l3-card" onclick="openTradingPage()">
         <span class="l3-card-badge live">live</span>
         <div class="l3-card-icon">⚡</div>
-        <h3>Paper Trading</h3>
-        <p>Practice trading with virtual funds. Connect Binance, Bybit, or OKX — risk-free simulation.</p>
+        <h3>Practice Arena</h3>
+        <p>Test strategies with real Binance data. Paper trade, track positions, and build confidence — zero risk involved.</p>
       </div>
       <div class="l3-card l3-card-soon" onclick="showToast('Coming soon! Stay tuned.','info')">
         <span class="l3-card-badge soon">soon</span>
@@ -1719,9 +1755,30 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
       <div class="l3-card l3-card-soon" onclick="showToast('Coming soon! Stay tuned.','info')">
         <span class="l3-card-badge soon">soon</span>
         <div class="l3-card-icon">🤝</div>
-        <h3>Bet With Us</h3>
-        <p>Join our trading community — share setups, discuss strategies, and grow together.</p>
+        <h3>Find Your Style</h3>
+        <p>Everyone trades differently. Explore approaches with our community and discover what clicks for you.</p>
       </div>
+    </div>
+
+    <!-- AI ASSISTANT FOR MEMBER AREA -->
+    <div class="l3-section-title">🤖 need help?</div>
+    <div class="l3-ai-box" id="l3-ai-box">
+      <div class="l3-ai-header">
+        <span class="l3-ai-icon">🤖</span>
+        <div class="l3-ai-title">BATT Assistant</div>
+        <div class="l3-ai-lang">
+          <button class="active" onclick="l3AiSetLang('en')">EN</button>
+          <button onclick="l3AiSetLang('id')">ID</button>
+        </div>
+      </div>
+      <div class="l3-ai-desc" id="l3-ai-desc">I know everything about this site — from the Risk Calculator to Practice Arena. Ask me anything!</div>
+      <div class="l3-ai-chips" id="l3-ai-chips">
+        <button onclick="l3AiAsk('what')">What can I do here?</button>
+        <button onclick="l3AiAsk('risk')">How does the Risk Calculator work?</button>
+        <button onclick="l3AiAsk('practice')">Tell me about Practice Arena</button>
+        <button onclick="l3AiAsk('presets')">How do presets work?</button>
+      </div>
+      <div class="l3-ai-response" id="l3-ai-response"></div>
     </div>
 
     <div class="l3-footer">
@@ -1735,7 +1792,6 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
   <!-- Top Bar -->
   <div class="tp-topbar">
     <div class="tp-topbar-left">
-      <button class="tp-back" onclick="closeTradingPage()">✕</button>
       <div class="tp-logo">⚡ BATT <span>PAPER</span></div>
       <div class="tp-pair-selector" onclick="tpShowPairModal()">
         <span class="tp-pair-selector-icon" id="tp-pair-icon">🟠</span>
@@ -1768,10 +1824,13 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
   <div class="tp-main">
     <!-- Chart Section -->
     <div class="tp-chart-section">
-      <!-- Market Type Toggle -->
-      <div class="tp-market-type">
-        <button class="active" onclick="tpSetMarketType('spot')">Spot</button>
-        <button class="perp" onclick="tpSetMarketType('perpetual')">Perpetual</button>
+      <!-- Back Button + Market Type Toggle Row -->
+      <div class="tp-controls-row">
+        <button class="tp-back-btn" onclick="closeTradingPage()">← back to member area</button>
+        <div class="tp-market-type">
+          <button class="active" onclick="tpSetMarketType('spot')">Spot</button>
+          <button class="perp" onclick="tpSetMarketType('perpetual')">Perpetual</button>
+        </div>
       </div>
       
       <!-- Chart + Order Book -->
@@ -2080,10 +2139,11 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 <div class="app">
 
 <!-- LEFT PANEL -->
-<div class="panel-left" id="left-panel">
-  <div class="panel-left-edge" onclick="togglePanel()" title="collapse/expand panel"></div>
-  <button class="collapse-btn" id="collapse-btn" onclick="togglePanel()" title="collapse panel">‹</button>
-  <div class="collapsed-label" onclick="togglePanel()">bet all the time · controls</div>
+<div class="panel-left collapsed" id="left-panel">
+  <button class="panel-left-toggle" id="left-panel-toggle" title="Controls - Drag to move">
+    <span class="panel-left-toggle-icon">⚙️</span>
+    <span class="panel-left-toggle-label">CTRL</span>
+  </button>
   <div class="pl-body">
   <div class="pl-head">
     <h1 style="font-size:18px;font-weight:900;line-height:1.2;letter-spacing:-.02em;color:var(--tx)">bet all the time<br><span style="font-size:18px;font-weight:900">bet with style</span></h1>
@@ -4147,6 +4207,7 @@ function render(){
   const topBody=mh+(wipeBanner||bustBanner)+`<div class="note" style="${IS_WIPED?'border-color:#E24B4A;background:#FCEBEB':''}">${IS_WIPED?'':noteText}</div>`+chartH+(isQ?assessH:'');
   rc.innerHTML=`<div class="top-panel" id="top-panel">
     <div style="display:flex;align-items:stretch;gap:0;width:100%;margin-bottom:6px">
+      <button id="back-to-member" class="spot-badge" onclick="backToMemberArea()" style="margin:0;margin-left:0;border-right:none;align-self:stretch;display:none;flex-direction:column;align-items:center;justify-content:center;border-radius:6px 0 0 6px;cursor:pointer;background:#1a1a1a;color:#888;border:0.5px solid #333;padding:3px 10px;transition:all .2s" onmouseover="this.style.borderColor='#00c47a';this.style.color='#00c47a'" onmouseout="this.style.borderColor='#333';this.style.color='#888'">← back<span class="spot-badge-sub">member area</span></button>
       <button class="top-panel-toggle" onclick="toggleTopPanel()" style="flex:1;margin-bottom:0"><span class="tp-dots"><span class="tp-dot"></span><span class="tp-dot"></span><span class="tp-dot"></span></span><span class="tp-arrow">▾</span> <span id="tp-lbl">hide overview</span> <span class="tp-arrow" style="transform:none">▾</span><span class="tp-dots"><span class="tp-dot"></span><span class="tp-dot"></span><span class="tp-dot"></span></span></button>
       <span id="spot-badge" class="spot-badge ${s.SPOT?'spot':'lev'}" style="margin:0;margin-right:8px;border-left:none;align-self:stretch;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:0 6px 6px 0">${s.SPOT?'◈ spot dashboard':'⚡ leverage dashboard'}<span class="spot-badge-sub">current mode</span></span>
     </div>
@@ -5551,6 +5612,77 @@ function memberClose(){
   if(presetsPanel) presetsPanel.classList.remove('open');
 }
 
+// ── MEMBER AREA AI ASSISTANT ──
+var L3_AI_LANG = 'en';
+
+var L3_AI_RESPONSES = {
+  en: {
+    what: "Welcome to BATT! Here's what you can do:\n\n📊 <b>Risk Calculator</b> — Plan your trades, set position sizes, calculate liquidation levels, and project your portfolio growth over 36 months.\n\n⚡ <b>Practice Arena</b> — Paper trade with real Binance market data. Test strategies, track positions, and build confidence without risking real money.\n\n💾 <b>Presets</b> — Save your calculator configurations and load them anytime. Share presets with friends too!\n\n📈 <b>Trade Journal</b> (coming soon) — Log and analyze your real trades.\n\n🤝 <b>Find Your Style</b> (coming soon) — Discover trading approaches that match your personality.",
+    risk: "The <b>Risk Calculator</b> is your preparation tool before trading.\n\n• Set your starting capital and position size\n• Configure up to 10 trade slots with target % and frequency\n• See liquidation levels for each trade\n• Project your portfolio growth over 36 months\n• Toggle between Leverage and Spot modes\n• Use quarter view for detailed monthly breakdowns\n\nThe calculator uses notional compounding — each trade's profit adds to your next trade's base. It's all about planning before you execute!",
+    practice: "The <b>Practice Arena</b> lets you paper trade with real market data.\n\n• Real-time prices from Binance API\n• Live order book with clickable prices\n• Place market & limit orders (Spot or Perpetual)\n• Track open positions with live P&L\n• Set Take Profit & Stop Loss\n• View your trade history and stats\n• Reset anytime to start fresh\n\nIt's the perfect sandbox to test strategies before using real money.",
+    presets: "Presets let you save your Risk Calculator configurations.\n\n• Click the 💾 button on the right side of the dashboard\n• Name your preset and save it to the cloud\n• Load any preset with one click\n• Share presets with friends via link or QR code\n• Each preset stores: capital, position size, trade slots, theme, and mode\n\nYour presets sync across devices when you're logged in!"
+  },
+  id: {
+    what: "Selamat datang di BATT! Ini yang bisa kamu lakukan:\n\n📊 <b>Risk Calculator</b> — Rencanakan trade, atur position size, hitung level likuidasi, dan proyeksikan pertumbuhan portfolio selama 36 bulan.\n\n⚡ <b>Practice Arena</b> — Paper trading dengan data Binance real-time. Tes strategi, tracking posisi, bangun kepercayaan diri tanpa risiko uang asli.\n\n💾 <b>Presets</b> — Simpan konfigurasi kalkulator dan load kapan saja. Bisa share preset ke teman juga!\n\n📈 <b>Trade Journal</b> (segera hadir) — Catat dan analisis trade aslimu.\n\n🤝 <b>Find Your Style</b> (segera hadir) — Temukan gaya trading yang cocok dengan kepribadianmu.",
+    risk: "<b>Risk Calculator</b> adalah tool persiapan sebelum trading.\n\n• Atur modal awal dan position size\n• Konfigurasi hingga 10 trade slot dengan target % dan frekuensi\n• Lihat level likuidasi untuk setiap trade\n• Proyeksikan pertumbuhan portfolio 36 bulan\n• Toggle antara mode Leverage dan Spot\n• Gunakan quarter view untuk breakdown bulanan detail\n\nKalkulator ini pakai notional compounding — profit setiap trade ditambahkan ke base trade berikutnya. Semua tentang persiapan!",
+    practice: "<b>Practice Arena</b> memungkinkan kamu paper trading dengan data market real.\n\n• Harga real-time dari Binance API\n• Order book live dengan harga yang bisa diklik\n• Buat market & limit order (Spot atau Perpetual)\n• Tracking posisi terbuka dengan P&L live\n• Atur Take Profit & Stop Loss\n• Lihat history trade dan statistik\n• Reset kapan saja untuk mulai fresh\n\nSandbox sempurna untuk tes strategi sebelum pakai uang asli.",
+    presets: "Presets memungkinkan kamu menyimpan konfigurasi Risk Calculator.\n\n• Klik tombol 💾 di sisi kanan dashboard\n• Beri nama preset dan simpan ke cloud\n• Load preset manapun dengan satu klik\n• Share preset ke teman via link atau QR code\n• Setiap preset menyimpan: modal, position size, trade slots, tema, dan mode\n\nPreset-mu sync antar device saat login!"
+  }
+};
+
+var L3_AI_CHIPS = {
+  en: {
+    what: "What can I do here?",
+    risk: "How does the Risk Calculator work?",
+    practice: "Tell me about Practice Arena",
+    presets: "How do presets work?"
+  },
+  id: {
+    what: "Apa yang bisa saya lakukan?",
+    risk: "Bagaimana Risk Calculator bekerja?",
+    practice: "Ceritakan tentang Practice Arena",
+    presets: "Bagaimana cara kerja presets?"
+  }
+};
+
+function l3AiSetLang(lang){
+  L3_AI_LANG = lang;
+  const btns = document.querySelectorAll('.l3-ai-lang button');
+  btns.forEach(b => b.classList.toggle('active', b.textContent.toLowerCase() === lang));
+  
+  const desc = document.getElementById('l3-ai-desc');
+  if(desc){
+    desc.textContent = lang === 'id' 
+      ? 'Saya tahu semua tentang situs ini — dari Risk Calculator sampai Practice Arena. Tanya apa saja!'
+      : "I know everything about this site — from the Risk Calculator to Practice Arena. Ask me anything!";
+  }
+  
+  // Update chips
+  const chipsEl = document.getElementById('l3-ai-chips');
+  if(chipsEl){
+    const chips = L3_AI_CHIPS[lang];
+    chipsEl.innerHTML = Object.keys(chips).map(key => 
+      `<button onclick="l3AiAsk('${key}')">${chips[key]}</button>`
+    ).join('');
+  }
+  
+  // Clear response
+  const resp = document.getElementById('l3-ai-response');
+  if(resp) resp.classList.remove('visible');
+}
+
+function l3AiAsk(topic){
+  const resp = document.getElementById('l3-ai-response');
+  if(!resp) return;
+  
+  const answer = L3_AI_RESPONSES[L3_AI_LANG][topic];
+  if(answer){
+    resp.innerHTML = answer.replace(/\n/g, '<br>');
+    resp.classList.add('visible');
+    resp.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+}
+
 // ── ACCOUNT PAGE FUNCTIONS ──
 function openAccountPage(){
   const page=document.getElementById('account-page');
@@ -5954,9 +6086,12 @@ function openDashboard(){
       if(app) app.style.opacity='1';
       const fab=document.getElementById('ai-fab');
       if(fab){fab.style.opacity='1';fab.style.pointerEvents='all';}
+      // Show left panel toggle
+      const leftToggle=document.getElementById('left-panel-toggle');
+      if(leftToggle) leftToggle.classList.add('visible');
       if(AUTH_TOKEN){
         const backBtn=document.getElementById('back-to-member');
-        if(backBtn) backBtn.classList.add('visible');
+        if(backBtn) backBtn.style.display='flex';
         const kbdHint=document.getElementById('kbd-hint');
         if(kbdHint) setTimeout(()=>{kbdHint.classList.add('visible');},500);
         const presetsBtn=document.getElementById('presets-toggle-btn');
@@ -5975,7 +6110,7 @@ function backToMemberArea(){
   if(app) app.style.opacity='0';
   // hide back button
   const backBtn=document.getElementById('back-to-member');
-  if(backBtn) backBtn.classList.remove('visible');
+  if(backBtn) backBtn.style.display='none';
   // hide keyboard hints
   const kbdHint=document.getElementById('kbd-hint');
   if(kbdHint) kbdHint.classList.remove('visible');
@@ -5984,6 +6119,11 @@ function backToMemberArea(){
   if(presetsBtn) presetsBtn.classList.remove('visible');
   const presetsPanel=document.getElementById('panel-presets');
   if(presetsPanel) presetsPanel.classList.remove('open');
+  // hide left panel toggle and collapse panel
+  const leftToggle=document.getElementById('left-panel-toggle');
+  if(leftToggle) leftToggle.classList.remove('visible');
+  const leftPanel=document.getElementById('left-panel');
+  if(leftPanel) leftPanel.classList.add('collapsed');
   // hide AI fab
   const aiFab=document.getElementById('ai-fab');
   if(aiFab){aiFab.style.opacity='0';aiFab.style.pointerEvents='none';}
@@ -8744,6 +8884,68 @@ window.addEventListener('resize',function(){
   });
   document.addEventListener('touchstart',function(e){
     if(isToggleBtn(e.target))onDown(e);
+  },{passive:false});
+  document.addEventListener('mousemove',onMove);
+  document.addEventListener('touchmove',onMove,{passive:false});
+  document.addEventListener('mouseup',onUp);
+  document.addEventListener('touchend',onUp);
+})();
+
+// ── LEFT PANEL TOGGLE DRAG TO REPOSITION (vertical only) ──
+(function(){
+  var toggle, startY, startTop, dragging=false, hasDragged=false;
+  var _rafId=null, _lastY=0;
+  
+  function isLeftToggleBtn(el){
+    return el && (el.id==='left-panel-toggle' || el.closest('#left-panel-toggle'));
+  }
+  
+  function onDown(e){
+    toggle=document.getElementById('left-panel-toggle');
+    if(!toggle || !toggle.classList.contains('visible'))return;
+    var pt=e.touches?e.touches[0]:e;
+    startY=pt.clientY;
+    var computedTop = toggle.style.top ? parseInt(toggle.style.top) : (window.innerHeight/2 - toggle.offsetHeight/2);
+    startTop = computedTop;
+    dragging=true;
+    hasDragged=false;
+    toggle.classList.add('dragging');
+    e.preventDefault();
+  }
+  
+  function onMove(e){
+    if(!dragging || !toggle)return;
+    var pt=e.touches?e.touches[0]:e;
+    var deltaY=pt.clientY-startY;
+    if(Math.abs(deltaY)<5)return;
+    hasDragged=true;
+    var H=window.innerHeight;
+    var toggleH=toggle.offsetHeight;
+    _lastY=Math.max(20,Math.min(startTop+deltaY, H-toggleH-20));
+    if(!_rafId) _rafId=requestAnimationFrame(function(){
+      if(toggle){
+        toggle.style.top=_lastY+'px';
+        toggle.style.transform='none';
+      }
+      _rafId=null;
+    });
+    e.preventDefault();
+  }
+  
+  function onUp(e){
+    if(!dragging)return;
+    dragging=false;
+    if(toggle)toggle.classList.remove('dragging');
+    if(!hasDragged && toggle){
+      togglePanel();
+    }
+  }
+  
+  document.addEventListener('mousedown',function(e){
+    if(isLeftToggleBtn(e.target))onDown(e);
+  });
+  document.addEventListener('touchstart',function(e){
+    if(isLeftToggleBtn(e.target))onDown(e);
   },{passive:false});
   document.addEventListener('mousemove',onMove);
   document.addEventListener('touchmove',onMove,{passive:false});
