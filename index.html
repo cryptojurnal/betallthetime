@@ -3600,6 +3600,14 @@ function syncControls(){
   });
   document.querySelectorAll('#lv-prs .pr').forEach(b=>b.classList.toggle('on',parseInt(b.textContent)===s.LEV));
   updGrid();updComp();
+  // sync notional link button
+  const nlb=document.getElementById('not-link-btn');
+  if(nlb){
+    nlb.textContent=NOT_LINKED?'on':'off';
+    nlb.style.color=NOT_LINKED?'var(--acc2)':'var(--tx3)';
+    nlb.style.borderColor=NOT_LINKED?'var(--acc2)':'var(--bd2)';
+    nlb.style.background=NOT_LINKED?'var(--btno)':'var(--btn)';
+  }
   // sync fee inputs from this tab's FEE state
   const f=s.FEE;
   const mk=document.getElementById('fee-maker'); if(mk)mk.value=f.maker;
@@ -3745,10 +3753,11 @@ function rtag(l){
 }
 
 // ── NOTIONAL LINK TO CAPITAL ──
-let NOT_LINKED=false; // default: notional stays fixed, safer behavior
+let NOT_LINKED=localStorage.getItem('batt_not_linked')==='true'; // persist link state
 
 function toggleNotLink(){
   NOT_LINKED=!NOT_LINKED;
+  localStorage.setItem('batt_not_linked',NOT_LINKED?'true':'false');
   const btn=document.getElementById('not-link-btn');
   if(btn){
     btn.textContent=NOT_LINKED?'on':'off';
@@ -5118,9 +5127,11 @@ function renderGuide(){
 
 // ── CONTROLS ──
 function setP(v,btn){
-  const s=gs();s.P=v;
+  const s=gs();
+  const ratio=s.NOT/s.P; // preserve current ratio
+  s.P=v;
   if(NOT_LINKED){
-    s.NOT=Math.round(v*2.5);
+    s.NOT=Math.round(v*ratio);
     document.getElementById('not-in').value=s.NOT;
     document.getElementById('not-sl').value=Math.min(s.NOT,5000000);
     document.getElementById('not-vl').textContent='$'+s.NOT.toLocaleString();
@@ -5133,9 +5144,11 @@ function setP(v,btn){
   render();
 }
 function onCapIn(v){
-  const s=gs();s.P=Math.max(1,parseFloat(v)||s.P);
+  const s=gs();
+  const ratio=s.NOT/s.P; // preserve current ratio
+  s.P=Math.max(1,parseFloat(v)||s.P);
   if(NOT_LINKED){
-    s.NOT=Math.round(s.P*2.5);
+    s.NOT=Math.round(s.P*ratio);
     document.getElementById('not-in').value=s.NOT;
     document.getElementById('not-sl').value=Math.min(s.NOT,5000000);
     document.getElementById('not-vl').textContent='$'+s.NOT.toLocaleString();
@@ -5145,9 +5158,11 @@ function onCapIn(v){
   document.querySelectorAll('#cap-prs .pr').forEach(b=>b.classList.remove('on'));softUpdate();
 }
 function onCapSl(v){
-  const s=gs();s.P=parseInt(v);
+  const s=gs();
+  const ratio=s.NOT/s.P; // preserve current ratio
+  s.P=parseInt(v);
   if(NOT_LINKED){
-    s.NOT=Math.round(s.P*2.5);
+    s.NOT=Math.round(s.P*ratio);
     document.getElementById('not-in').value=s.NOT;
     document.getElementById('not-sl').value=Math.min(s.NOT,5000000);
     document.getElementById('not-vl').textContent='$'+s.NOT.toLocaleString();
@@ -6046,7 +6061,8 @@ async function presetSaveConfirm(){
   snapshot._meta={
     activeTab:typeof activeTab!=='undefined'?activeTab:'36',
     theme:document.body.className||'t-light',
-    customTabs:typeof CUSTOM_TABS!=='undefined'?JSON.parse(JSON.stringify(CUSTOM_TABS)):[]
+    customTabs:typeof CUSTOM_TABS!=='undefined'?JSON.parse(JSON.stringify(CUSTOM_TABS)):[],
+    notLinked:NOT_LINKED
   };
   
   btn.disabled=true;
@@ -6209,6 +6225,19 @@ async function presetLoad(id){
       document.querySelectorAll('.th-btn').forEach(b=>{
         b.classList.toggle('on',b.dataset.t===snapshot._meta.theme);
       });
+    }
+    
+    // restore notional link state
+    if(snapshot._meta&&typeof snapshot._meta.notLinked==='boolean'){
+      NOT_LINKED=snapshot._meta.notLinked;
+      localStorage.setItem('batt_not_linked',NOT_LINKED?'true':'false');
+      const nlb=document.getElementById('not-link-btn');
+      if(nlb){
+        nlb.textContent=NOT_LINKED?'on':'off';
+        nlb.style.color=NOT_LINKED?'var(--acc2)':'var(--tx3)';
+        nlb.style.borderColor=NOT_LINKED?'var(--acc2)':'var(--bd2)';
+        nlb.style.background=NOT_LINKED?'var(--btno)':'var(--btn)';
+      }
     }
     
     // restore active tab
