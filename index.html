@@ -3,16 +3,35 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#000000" id="theme-color-meta">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="BATT">
-<meta name="description" content="Bet all the time, bet with style - Trading projection dashboard">
+<meta name="description" content="Bet all the time, bet with style - Professional crypto trading projection dashboard">
+<meta name="keywords" content="crypto, trading, calculator, liquidation, leverage, bitcoin, futures">
+<meta name="author" content="@cryptojurnal">
+<meta name="color-scheme" content="dark light">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%23000' width='100' height='100' rx='20'/><text y='65' x='50' text-anchor='middle' font-size='50' fill='%2300c47a'>📊</text></svg>">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%23000' width='100' height='100' rx='20'/><text y='65' x='50' text-anchor='middle' font-size='50' fill='%2300c47a'>📊</text></svg>">
 <title>bet all the time, bet with style</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
+<script>
+// Register Service Worker
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('/sw.js').catch(()=>{});
+  });
+}
+// Dark mode auto-detect
+if(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches){
+  document.documentElement.setAttribute('data-system-theme','dark');
+}
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',e=>{
+  document.documentElement.setAttribute('data-system-theme',e.matches?'dark':'light');
+});
+</script>
 <script>
 function goAuth(){
   const l1=document.getElementById('layer1');if(!l1)return;
@@ -189,6 +208,42 @@ body.t-dark{--bg:#0d0d0d;--panel:#111;--bd:#222;--bd2:#1e1e1e;--sf:#181818;--sf2
 body.t-ocean{--bg:#060e1a;--panel:#0a1220;--bd:#0d1e33;--bd2:#0f2040;--sf:#0d1828;--sf2:#0a1520;--tx:#b8d4f0;--tx2:#3a6a9a;--tx3:#1a3a5a;--acc:#2090e0;--acc2:#00c0a0;--mh:#0a4080;--mhc:#b8d4f0;--mhs:#0a3060;--inp:#0a1828;--btn:#0a1828;--btno:#0a2a4a;--btonc:#2090e0;--tog:#0a1828;--togon:#2090e0;--togonc:#fff;--tabact:#2090e0;--tabactc:#fff;--wd-on:#0a2040;--wd-onc:#2090e0}
 body.t-forest{--bg:#0a0f08;--panel:#0e1409;--bd:#1a2410;--bd2:#18200e;--sf:#111808;--sf2:#0e1506;--tx:#b0d090;--tx2:#3a6020;--tx3:#1a3010;--acc:#60c030;--acc2:#40e060;--mh:#1a4010;--mhc:#b0d090;--mhs:#0a2008;--inp:#0e1809;--btn:#0e1809;--btno:#0a2008;--btonc:#60c030;--tog:#0e1809;--togon:#60c030;--togonc:#000;--tabact:#60c030;--tabactc:#000;--wd-on:#0a2008;--wd-onc:#60c030}
 body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e1008;--sf2:#180e06;--tx:#f0c090;--tx2:#906030;--tx3:#503020;--acc:#f08030;--acc2:#e06020;--mh:#601808;--mhc:#f0c090;--mhs:#300c04;--inp:#1e1008;--btn:#1e1008;--btno:#301808;--btonc:#f08030;--tog:#1e1008;--togon:#f08030;--togonc:#fff;--tabact:#f08030;--tabactc:#fff;--wd-on:#301808;--wd-onc:#f08030}
+
+/* ── SKELETON LOADING ── */
+@keyframes skeleton-pulse{0%,100%{opacity:.4}50%{opacity:.8}}
+.skeleton{background:linear-gradient(90deg,var(--bd2) 25%,var(--bd) 50%,var(--bd2) 75%);background-size:200% 100%;animation:skeleton-pulse 1.5s ease-in-out infinite;border-radius:4px}
+.skeleton-text{height:12px;margin:4px 0;border-radius:3px}
+.skeleton-title{height:18px;width:60%;margin-bottom:8px}
+.skeleton-card{padding:16px;border-radius:12px;min-height:100px}
+.skeleton-avatar{width:48px;height:48px;border-radius:50%}
+.skeleton-btn{height:36px;border-radius:8px}
+
+/* ── PWA INSTALL BANNER ── */
+#pwa-install-banner{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(135deg,#0a2a1a 0%,#0a1a1a 100%);border-top:1px solid #004d30;padding:12px 16px;display:none;align-items:center;gap:12px;z-index:99998;animation:slideUp .3s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+#pwa-install-banner.show{display:flex}
+.pwa-icon{font-size:28px}
+.pwa-text{flex:1}
+.pwa-text h4{font-size:13px;font-weight:700;color:#fff;margin:0 0 2px}
+.pwa-text p{font-size:10px;color:#888;margin:0}
+.pwa-install-btn{padding:8px 16px;background:#00c47a;color:#000;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;transition:opacity .2s}
+.pwa-install-btn:hover{opacity:.88}
+.pwa-close-btn{padding:6px;background:none;border:none;color:#555;font-size:16px;cursor:pointer}
+
+/* ── LIVE PRICES WIDGET ── */
+.live-prices{display:flex;gap:8px;margin-bottom:16px;overflow-x:auto;scrollbar-width:none;padding:2px 0}
+.live-prices::-webkit-scrollbar{display:none}
+.price-card{flex:0 0 auto;background:#0d0d0d;border:0.5px solid #1a1a1a;border-radius:10px;padding:10px 14px;min-width:120px;transition:all .2s}
+.price-card:hover{border-color:#00c47a;transform:translateY(-1px)}
+.price-card-head{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.price-card-icon{font-size:16px}
+.price-card-sym{font-size:10px;font-weight:700;color:#fff;text-transform:uppercase}
+.price-card-price{font-size:14px;font-weight:800;color:#fff;margin-bottom:2px}
+.price-card-change{font-size:10px;font-weight:600;display:flex;align-items:center;gap:3px}
+.price-card-change.up{color:#00c47a}
+.price-card-change.down{color:#E24B4A}
+.price-card-change .arrow{font-size:8px}
+.prices-loading .price-card{background:linear-gradient(90deg,#0d0d0d 25%,#1a1a1a 50%,#0d0d0d 75%);background-size:200% 100%;animation:skeleton-pulse 1.5s ease-in-out infinite}
 body.t-lavender{--bg:#f0eef8;--panel:#fff;--bd:#d8d4f0;--bd2:#e4e0f4;--sf:#f8f6ff;--sf2:#f0eef8;--tx:#2a1a4a;--tx2:#8070b0;--tx3:#c0b0e0;--acc:#7050c0;--acc2:#5060e0;--mh:#4030a0;--mhc:#fff;--mhs:#c0b8f0;--inp:#f8f6ff;--btn:#f0eef8;--btno:#e0d8f8;--btonc:#7050c0;--tog:#fff;--togon:#4030a0;--togonc:#fff;--tabact:#4030a0;--tabactc:#fff;--wd-on:#e0d8f8;--wd-onc:#7050c0}
 
 .app{display:flex;height:100vh;overflow:hidden;background:#000;color:var(--tx);opacity:0}
@@ -776,6 +831,16 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 </style>
 </head>
 <body class="t-light">
+<!-- PWA INSTALL BANNER -->
+<div id="pwa-install-banner">
+  <span class="pwa-icon">📲</span>
+  <div class="pwa-text">
+    <h4>Install BATT App</h4>
+    <p>Add to home screen for the best experience</p>
+  </div>
+  <button class="pwa-install-btn" onclick="pwaInstall()">Install</button>
+  <button class="pwa-close-btn" onclick="pwaCloseBanner()">✕</button>
+</div>
 <!-- TOAST NOTIFICATIONS -->
 <div id="toast-container"></div>
 
@@ -1047,6 +1112,13 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
     <div class="l3-welcome">
       <h1>welcome back, <span id="l3-welcome-name">trader</span></h1>
       <p>your personal trading hub — explore features below</p>
+    </div>
+
+    <!-- LIVE PRICES -->
+    <div class="live-prices prices-loading" id="live-prices">
+      <div class="price-card"><div class="skeleton" style="width:80px;height:40px"></div></div>
+      <div class="price-card"><div class="skeleton" style="width:80px;height:40px"></div></div>
+      <div class="price-card"><div class="skeleton" style="width:80px;height:40px"></div></div>
     </div>
 
     <!-- QUICK STATS -->
@@ -5041,8 +5113,84 @@ async function authRestoreSession(){
   }catch(e){return false;}
 }
 
+// ── PWA INSTALL ──
+let pwaInstallPrompt=null;
+window.addEventListener('beforeinstallprompt',(e)=>{
+  e.preventDefault();
+  pwaInstallPrompt=e;
+  // Show banner after short delay if not dismissed before
+  if(!localStorage.getItem('pwa_dismissed')){
+    setTimeout(()=>{
+      const banner=document.getElementById('pwa-install-banner');
+      if(banner) banner.classList.add('show');
+    },3000);
+  }
+});
+function pwaInstall(){
+  if(!pwaInstallPrompt)return;
+  pwaInstallPrompt.prompt();
+  pwaInstallPrompt.userChoice.then((result)=>{
+    if(result.outcome==='accepted'){
+      showToast('App installed! 🎉','success');
+    }
+    pwaCloseBanner();
+    pwaInstallPrompt=null;
+  });
+}
+function pwaCloseBanner(){
+  const banner=document.getElementById('pwa-install-banner');
+  if(banner) banner.classList.remove('show');
+  localStorage.setItem('pwa_dismissed','1');
+}
+
+// ── LIVE CRYPTO PRICES ──
+async function fetchLivePrices(){
+  const container=document.getElementById('live-prices');
+  if(!container)return;
+  
+  try{
+    const r=await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,binancecoin&vs_currencies=usd&include_24hr_change=true');
+    const d=await r.json();
+    
+    const coins=[
+      {id:'bitcoin',sym:'BTC',icon:'🟠'},
+      {id:'ethereum',sym:'ETH',icon:'🔷'},
+      {id:'solana',sym:'SOL',icon:'🟣'},
+      {id:'binancecoin',sym:'BNB',icon:'🟡'}
+    ];
+    
+    container.classList.remove('prices-loading');
+    container.innerHTML=coins.map(c=>{
+      const price=d[c.id]?.usd||0;
+      const change=d[c.id]?.usd_24h_change||0;
+      const isUp=change>=0;
+      const priceStr=price>=1000?'$'+price.toLocaleString(undefined,{maximumFractionDigits:0}):'$'+price.toFixed(2);
+      const changeStr=(isUp?'+':'')+change.toFixed(2)+'%';
+      return `<div class="price-card">
+        <div class="price-card-head">
+          <span class="price-card-icon">${c.icon}</span>
+          <span class="price-card-sym">${c.sym}</span>
+        </div>
+        <div class="price-card-price">${priceStr}</div>
+        <div class="price-card-change ${isUp?'up':'down'}">
+          <span class="arrow">${isUp?'▲':'▼'}</span>${changeStr}
+        </div>
+      </div>`;
+    }).join('');
+    
+  }catch(e){
+    container.classList.remove('prices-loading');
+    container.innerHTML='<div style="font-size:10px;color:#555;padding:10px">Unable to load prices</div>';
+  }
+}
+
 // run on DOMContentLoaded
 document.addEventListener('DOMContentLoaded', async ()=>{
+  // Fetch live prices
+  fetchLivePrices();
+  // Refresh prices every 60 seconds
+  setInterval(fetchLivePrices,60000);
+  
   const restored = await authRestoreSession();
   if(restored){
     // valid session — skip auth + layer1, go straight to layer3 (member area)
