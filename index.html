@@ -6616,6 +6616,10 @@ async function deleteAccount(){
 
 // ── LAYER 3: MEMBER AREA NAVIGATION ──
 function goLayer3(){
+  // Ensure AI fab is hidden in member area
+  const aiFab=document.getElementById('ai-fab');
+  if(aiFab){aiFab.style.opacity='0';aiFab.style.pointerEvents='none';}
+  
   // update layer3 user info - use AUTH_USER or fallback to localStorage
   let user = AUTH_USER;
   if(!user){
@@ -7434,19 +7438,16 @@ function closeTradingPage() {
       page.style.transform = '';
       l3.classList.add('visible');
       
-      // Show floating elements again with smooth fade in
+      // Show user bar only (AI fab is only for dashboard, not member area)
       const userBar = document.getElementById('auth-user-bar');
-      const aiFab = document.getElementById('ai-fab');
-      const presetsToggle = document.querySelector('.panel-presets-toggle');
       if (userBar && AUTH_TOKEN) userBar.style.display = '';
+      
+      // Keep AI fab hidden - it's only for the cockpit dashboard
+      const aiFab = document.getElementById('ai-fab');
       if (aiFab) {
-        aiFab.style.display = '';
-        aiFab.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
-        aiFab.style.opacity = '1';
-        aiFab.style.transform = '';
-        aiFab.style.pointerEvents = '';
+        aiFab.style.opacity = '0';
+        aiFab.style.pointerEvents = 'none';
       }
-      if (presetsToggle && AUTH_TOKEN) presetsToggle.style.display = '';
     }, 400);
   }
   if (window._tpPriceInterval) {
