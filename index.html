@@ -2639,6 +2639,39 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
     <div class="th-btn" data-t="t-lavender" style="background:#7050c0" onclick="setTheme('t-lavender',this)" title="lavender"></div>
   </div>
 
+  <!-- leverage -->
+  <div class="sec-head" data-sec="sec-lev" onclick="toggleSec('sec-lev')">
+    <div class="seclbl">leverage · spot mode</div>
+    <span class="sec-toggle">▾</span>
+  </div>
+  <div class="sec-body" id="sec-lev">
+  <div class="sec">
+    <div class="mode-switcher">
+      <button class="msw-btn on" id="msw-lev" onclick="setSpotMode(false)">⚡ leverage</button>
+      <button class="msw-btn" id="msw-spot" onclick="setSpotMode(true)">◈ spot</button>
+    </div>
+    <div id="lev-controls">
+      <div class="prs" id="lv-prs">
+        <button class="pr on" onclick="setLev(5,this)">5×</button>
+        <button onclick="setLev(10,this)" class="pr">10×</button>
+        <button class="pr" onclick="setLev(20,this)">20×</button>
+        <button class="pr" onclick="setLev(50,this)">50×</button>
+        <button class="pr" onclick="setLev(100,this)">100×</button>
+      </div>
+      <div class="row">
+        <span class="lbl">type (×)</span>
+        <input type="number" id="lv-in" value="5" min="1" max="100" oninput="onLevIn(this.value)">
+      </div>
+      <input type="range" id="lv-sl" min="1" max="100" step="1" value="5" oninput="onLevSl(this.value)" style="width:100%;margin:2px 0 3px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span style="font-size:9px;color:var(--tx3)">current</span><span style="font-size:12px;font-weight:700;color:var(--acc2);background:var(--sf2);padding:2px 6px;border-radius:4px;border:0.5px solid var(--bd2)" id="lv-vl">5×</span></div>
+    </div>
+    <div id="spot-note-lev" style="display:none" class="spot-note">◈ spot mode — no leverage, no liquidation.<br>position size = your capital.</div>
+  </div>
+
+  </div><!-- /sec-lev -->
+
+  <div class="divider"></div>
+
   <!-- capital -->
   <div class="sec-head" data-sec="sec-cap" onclick="toggleSec('sec-cap')">
     <div class="seclbl">starting capital</div>
@@ -2670,39 +2703,6 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
   </div>
   <button class="save-btn" id="save-cap" onclick="saveSection('cap')">💾 save capital</button>
   </div><!-- /sec-cap -->
-
-  <div class="divider"></div>
-
-  <!-- leverage -->
-  <div class="sec-head" data-sec="sec-lev" onclick="toggleSec('sec-lev')">
-    <div class="seclbl">leverage · spot mode</div>
-    <span class="sec-toggle">▾</span>
-  </div>
-  <div class="sec-body" id="sec-lev">
-  <div class="sec">
-    <div class="mode-switcher">
-      <button class="msw-btn on" id="msw-lev" onclick="setSpotMode(false)">⚡ leverage</button>
-      <button class="msw-btn" id="msw-spot" onclick="setSpotMode(true)">◈ spot</button>
-    </div>
-    <div id="lev-controls">
-      <div class="prs" id="lv-prs">
-        <button class="pr on" onclick="setLev(5,this)">5×</button>
-        <button onclick="setLev(10,this)" class="pr">10×</button>
-        <button class="pr" onclick="setLev(20,this)">20×</button>
-        <button class="pr" onclick="setLev(50,this)">50×</button>
-        <button class="pr" onclick="setLev(100,this)">100×</button>
-      </div>
-      <div class="row">
-        <span class="lbl">type (×)</span>
-        <input type="number" id="lv-in" value="5" min="1" max="100" oninput="onLevIn(this.value)">
-      </div>
-      <input type="range" id="lv-sl" min="1" max="100" step="1" value="5" oninput="onLevSl(this.value)" style="width:100%;margin:2px 0 3px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span style="font-size:9px;color:var(--tx3)">current</span><span style="font-size:12px;font-weight:700;color:var(--acc2);background:var(--sf2);padding:2px 6px;border-radius:4px;border:0.5px solid var(--bd2)" id="lv-vl">5×</span></div>
-    </div>
-    <div id="spot-note-lev" style="display:none" class="spot-note">◈ spot mode — no leverage, no liquidation.<br>position size = your capital.</div>
-  </div>
-
-  </div><!-- /sec-lev -->
 
   <div class="divider"></div>
 
