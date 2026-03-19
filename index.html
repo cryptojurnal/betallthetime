@@ -635,7 +635,41 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 .auth-sync-btn:hover{opacity:1}
 
 /* ── LAYER 3: MEMBER AREA PAGE ── */
-#layer3{position:fixed;inset:0;z-index:9500;background:#000;display:flex;flex-direction:column;opacity:0;transition:opacity .6s ease;pointer-events:none}
+#layer3{position:fixed;inset:0;z-index:9500;background:#000;display:flex;flex-direction:column;opacity:0;transition:opacity .6s ease,background .3s;pointer-events:none}
+/* Member Area Themes */
+#layer3.ma-dark,#account-page.ma-dark{background:#000}
+#layer3.ma-dark .l3-card,#account-page.ma-dark .acc-card{background:#0d0d0d;border-color:#1a1a1a}
+#layer3.ma-dark .l3-card:hover{border-color:#00c47a}
+
+#layer3.ma-light,#account-page.ma-light{background:#f5f5f5}
+#layer3.ma-light .l3-container{color:#111}
+#layer3.ma-light .l3-user-info h2,#layer3.ma-light .l3-welcome h1,#layer3.ma-light .l3-card h3{color:#111}
+#layer3.ma-light .l3-user-info p,#layer3.ma-light .l3-welcome p,#layer3.ma-light .l3-card p,#layer3.ma-light .l3-section-title{color:#555}
+#layer3.ma-light .l3-card{background:#fff;border-color:#ddd}
+#layer3.ma-light .l3-card:hover{border-color:#00c47a;box-shadow:0 8px 32px rgba(0,196,122,0.15)}
+#layer3.ma-light .l3-header{border-color:#ddd}
+#account-page.ma-light{background:#f5f5f5}
+#account-page.ma-light .acc-container{color:#111}
+#account-page.ma-light .acc-header h1{color:#111}
+#account-page.ma-light .acc-sec-title{color:#555}
+#account-page.ma-light .acc-card{background:#fff;border-color:#ddd}
+#account-page.ma-light .acc-card *{color:#333}
+#account-page.ma-light .acc-stat-card{background:#fff;border-color:#ddd}
+#account-page.ma-light .acc-back{color:#00c47a;border-color:#ddd;background:#fff}
+
+#layer3.ma-midnight,#account-page.ma-midnight{background:#0a0a1a}
+#layer3.ma-midnight .l3-card{background:#0d0d20;border-color:#1a1a3a}
+#layer3.ma-midnight .l3-card:hover{border-color:#5b7fff}
+#layer3.ma-midnight .l3-card-badge.live{background:#0a1a3a;color:#5b7fff;border-color:#2a3a6a}
+#account-page.ma-midnight .acc-card{background:#0d0d20;border-color:#1a1a3a}
+#account-page.ma-midnight .acc-stat-card{background:#0d0d20;border-color:#1a1a3a}
+#account-page.ma-midnight .acc-stat-value{color:#5b7fff}
+
+#layer3.ma-emerald,#account-page.ma-emerald{background:#001a0a}
+#layer3.ma-emerald .l3-card{background:#002010;border-color:#003a20}
+#layer3.ma-emerald .l3-card:hover{border-color:#00c47a}
+#account-page.ma-emerald .acc-card{background:#002010;border-color:#003a20}
+#account-page.ma-emerald .acc-stat-card{background:#002010;border-color:#003a20}
 #layer3.visible{opacity:1;pointer-events:all}
 #layer3.hidden{display:none}
 .l3-container{flex:1;display:flex;flex-direction:column;max-width:960px;width:100%;margin:0 auto;padding:24px 24px 16px;overflow-y:auto;scrollbar-width:none}
@@ -823,16 +857,14 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
         <div class="acc-card">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
             <div>
-              <div style="font-size:12px;color:#e0e0e0;font-weight:600">Default theme</div>
-              <div style="font-size:10px;color:#444">Applied when you log in</div>
+              <div style="font-size:12px;color:#e0e0e0;font-weight:600">Member area theme</div>
+              <div style="font-size:10px;color:#444">Style for member pages</div>
             </div>
-            <select id="acc-pref-theme" onchange="savePref('theme',this.value)" style="font-size:11px;padding:6px 10px;background:#0a0a0a;border:0.5px solid #222;border-radius:6px;color:#e0e0e0;cursor:pointer">
-              <option value="t-light">Light</option>
-              <option value="t-dark">Dark</option>
-              <option value="t-ocean">Ocean</option>
-              <option value="t-forest">Forest</option>
-              <option value="t-sunset">Sunset</option>
-              <option value="t-lavender">Lavender</option>
+            <select id="acc-pref-theme" onchange="savePref('ma_theme',this.value)" style="font-size:11px;padding:6px 10px;background:#0a0a0a;border:0.5px solid #222;border-radius:6px;color:#e0e0e0;cursor:pointer">
+              <option value="ma-dark">Dark</option>
+              <option value="ma-light">Light</option>
+              <option value="ma-midnight">Midnight</option>
+              <option value="ma-emerald">Emerald</option>
             </select>
           </div>
           <div style="display:flex;align-items:center;justify-content:space-between">
@@ -3912,6 +3944,8 @@ function authOnSuccess(d){
   AUTH_USER  = d.user;
   localStorage.setItem('batt_token', d.token);
   if(d.user) localStorage.setItem('wz_user', JSON.stringify(d.user));
+  // load cloud preferences
+  if(typeof loadCloudPrefs==='function') loadCloudPrefs();
   // load cloud data if exists and merge
   if(d.data){
     try{
@@ -4614,8 +4648,10 @@ async function loadAccountPage(){
   const prefTheme=document.getElementById('acc-pref-theme');
   const prefLang=document.getElementById('acc-pref-lang');
   const prefs=JSON.parse(localStorage.getItem('wz_prefs')||'{}');
-  if(prefTheme) prefTheme.value=prefs.theme||'t-dark';
+  if(prefTheme) prefTheme.value=prefs.ma_theme||'ma-dark';
   if(prefLang) prefLang.value=prefs.lang||'en';
+  // Apply member theme
+  if(prefs.ma_theme) applyMemberTheme(prefs.ma_theme);
 }
 
 function savePref(key,value){
@@ -4624,16 +4660,56 @@ function savePref(key,value){
   localStorage.setItem('wz_prefs',JSON.stringify(prefs));
   
   // Apply immediately
-  if(key==='theme'){
-    document.body.className=value;
-    document.querySelectorAll('.th-btn').forEach(b=>{
-      b.classList.toggle('on',b.dataset.t===value);
-    });
+  if(key==='ma_theme'){
+    applyMemberTheme(value);
   }
   if(key==='lang'&&typeof aiSetLang==='function'){
     aiSetLang(value);
   }
+  
+  // Save to cloud if logged in
+  if(AUTH_TOKEN){
+    fetch(AUTH_URL+'/prefs/save',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+AUTH_TOKEN},
+      body:JSON.stringify({prefs})
+    }).catch(()=>{});
+  }
+  
   showToast('Preference saved','success',1500);
+}
+
+// Load preferences from cloud
+async function loadCloudPrefs(){
+  if(!AUTH_TOKEN)return;
+  try{
+    const r=await fetch(AUTH_URL+'/prefs/load',{
+      headers:{'Authorization':'Bearer '+AUTH_TOKEN}
+    });
+    const d=await r.json();
+    if(d.ok && d.prefs){
+      // Merge with localStorage (cloud takes priority)
+      const local=JSON.parse(localStorage.getItem('wz_prefs')||'{}');
+      const merged={...local,...d.prefs};
+      localStorage.setItem('wz_prefs',JSON.stringify(merged));
+      // Apply member theme if set
+      if(merged.ma_theme) applyMemberTheme(merged.ma_theme);
+      // Apply AI language if set
+      if(merged.lang && typeof aiSetLang==='function') aiSetLang(merged.lang);
+    }
+  }catch(e){}
+}
+
+function applyMemberTheme(theme){
+  const l3=document.getElementById('layer3');
+  const acc=document.getElementById('account-page');
+  const themes=['ma-dark','ma-light','ma-midnight','ma-emerald'];
+  themes.forEach(t=>{
+    if(l3) l3.classList.remove(t);
+    if(acc) acc.classList.remove(t);
+  });
+  if(l3) l3.classList.add(theme);
+  if(acc) acc.classList.add(theme);
 }
 
 async function changePassword(){
@@ -4855,6 +4931,11 @@ function goLayer3(){
     l3.classList.remove('hidden');
     requestAnimationFrame(()=>requestAnimationFrame(()=>{l3.classList.add('visible');}));
   }
+  // Apply saved member theme
+  const prefs=JSON.parse(localStorage.getItem('wz_prefs')||'{}');
+  if(prefs.ma_theme && typeof applyMemberTheme==='function'){
+    applyMemberTheme(prefs.ma_theme);
+  }
 }
 
 // Track if risk disclosure was shown this session
@@ -4931,6 +5012,8 @@ async function authRestoreSession(){
         syncControls();
         render();
       }
+      // load cloud preferences
+      if(typeof loadCloudPrefs==='function') loadCloudPrefs();
       return true;
     } else {
       AUTH_TOKEN=null; localStorage.removeItem('batt_token');
