@@ -3553,14 +3553,14 @@ async function authGoogleLogin(){
   try{
     // Use Google Identity Services
     google.accounts.id.initialize({
-      client_id: 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com', // <-- PUT YOUR GOOGLE CLIENT ID HERE
+      client_id: '951384802849-hgc699g447ugb8pr2u42ifur00b8hcig.apps.googleusercontent.com',
       callback: handleGoogleCredential
     });
     google.accounts.id.prompt((notification)=>{
       if(notification.isNotDisplayed()||notification.isSkippedMoment()){
         // One Tap not available, try popup
         google.accounts.oauth2.initTokenClient({
-          client_id: 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com', // <-- PUT YOUR GOOGLE CLIENT ID HERE
+          client_id: '951384802849-hgc699g447ugb8pr2u42ifur00b8hcig.apps.googleusercontent.com',
           scope: 'email profile',
           callback: async(response)=>{
             if(response.access_token){
