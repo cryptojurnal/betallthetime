@@ -6850,11 +6850,73 @@ function tpPlaceOrder() {
   const priceData = TP_STATE.prices[TP_STATE.pair] || { price: 69000 };
   const price = priceData.price;
   const isSpot = TP_STATE.marketType === 'spot';
+  const isSell = TP_STATE.side === 'short';
   
   if (size <= 0) {
-    showToast('Enter a valid position size', 'error');
+    showToast('Enter a valid size', 'error');
     return;
   }
+  
+  // Handle Spot Sell - sell existing holdings
+  if (isSpot && isSell) {
+    // Find holdings for this pair
+    const holding = TP_STATE.positions.find(p => 
+      p.pair === TP_STATE.pair && (p.marketType === 'spot' || p.leverage === 1)
+    );
+    
+    if (!holding) {
+      showToast(`No ${TP_STATE.pair.replace('USDT','')} holdings to sell`, 'error');
+      return;
+    }
+    
+    const holdingAmount = holding.size / holding.entryPrice; // coins owned
+    const sellAmount = size / price; // coins to sell
+    
+    if (sellAmount > holdingAmount * 1.001) { // small tolerance
+      showToast(`Insufficient holdings. You have ${holdingAmount.toFixed(6)} ${TP_STATE.pair.replace('USDT','')}`, 'error');
+      return;
+    }
+    
+    // Calculate proceeds
+    const proceeds = size;
+    const costBasis = sellAmount * holding.entryPrice;
+    const pnl = proceeds - costBasis;
+    
+    // Update balance
+    TP_STATE.balance += proceeds;
+    
+    // Update or remove holding
+    const remainingCoins = holdingAmount - sellAmount;
+    if (remainingCoins < 0.00001) {
+      // Close entire position
+      const idx = TP_STATE.positions.indexOf(holding);
+      TP_STATE.positions.splice(idx, 1);
+      
+      // Add to history
+      TP_STATE.history.unshift({
+        ...holding,
+        exitPrice: price,
+        pnl: pnl,
+        closedAt: Date.now()
+      });
+    } else {
+      // Partial sell - reduce holding
+      holding.size = remainingCoins * holding.entryPrice;
+    }
+    
+    if (TP_STATE.history.length > 50) TP_STATE.history = TP_STATE.history.slice(0, 50);
+    
+    tpSaveState();
+    tpUpdateUI();
+    tpRenderPositions();
+    tpRenderHistory();
+    
+    const pnlStr = pnl >= 0 ? `+$${pnl.toFixed(2)}` : `-$${Math.abs(pnl).toFixed(2)}`;
+    showToast(`Sold ${TP_STATE.pair.replace('USDT','')} @ $${price.toLocaleString()} (${pnlStr})`, pnl >= 0 ? 'success' : 'info');
+    return;
+  }
+  
+  // Handle Buy (Spot or Perpetual Long/Short)
   if (size > TP_STATE.balance) {
     showToast('Insufficient balance', 'error');
     return;
@@ -6884,7 +6946,7 @@ function tpPlaceOrder() {
   tpUpdateUI();
   tpRenderPositions();
   
-  const action = isSpot ? (TP_STATE.side === 'long' ? 'Bought' : 'Sold') : `Opened ${position.side.toUpperCase()}`;
+  const action = isSpot ? 'Bought' : `Opened ${position.side.toUpperCase()}`;
   showToast(`${action} ${position.pair.replace('USDT','')} @ $${price.toLocaleString()}`, 'success');
 }
 
@@ -7131,19 +7193,15 @@ function tpSetMarketType(type) {
   if (tpRow) tpRow.style.display = isSpot ? 'none' : 'flex';
   if (slRow) slRow.style.display = isSpot ? 'none' : 'flex';
   
-  // Update button labels
+  // Update button labels - show both Buy/Sell in spot mode
   if (longBtn) longBtn.textContent = isSpot ? 'Buy' : 'Long';
-  if (shortBtn) shortBtn.textContent = isSpot ? 'Sell' : 'Short';
-  if (isSpot) shortBtn.style.display = 'none'; // Can't short in spot
-  else shortBtn.style.display = 'block';
+  if (shortBtn) {
+    shortBtn.textContent = isSpot ? 'Sell' : 'Short';
+    shortBtn.style.display = 'block'; // Always show
+  }
   
   // Update exchange label
   document.getElementById('tp-pair-exchange').textContent = `${isSpot ? 'spot' : 'perpetual'} · ${TP_STATE.exchange}`;
-  
-  // If spot, force long
-  if (isSpot && TP_STATE.side === 'short') {
-    tpSelectSide('long');
-  }
   
   tpCalculate();
   tpSaveState();
@@ -7289,6 +7347,7 @@ tpCalculate = function() {
   const lev = TP_STATE.marketType === 'spot' ? 1 : TP_STATE.leverage;
   const side = TP_STATE.side;
   const isSpot = TP_STATE.marketType === 'spot';
+  const isSell = side === 'short';
   
   const posValue = isSpot ? size : size * lev;
   const margin = size;
@@ -7300,11 +7359,41 @@ tpCalculate = function() {
   
   const fmt = (n) => '$' + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   
-  document.getElementById('tp-sum-entry').textContent = fmt(price);
-  document.getElementById('tp-sum-value').textContent = fmt(posValue);
-  document.getElementById('tp-sum-value-label').textContent = isSpot ? 'Total' : 'Position Value';
+  // Update size label based on mode
+  const sizeLabel = document.getElementById('tp-size-label');
+  if (sizeLabel) {
+    if (isSpot && isSell) {
+      sizeLabel.textContent = 'Sell Amount';
+    } else {
+      sizeLabel.textContent = 'Size';
+    }
+  }
   
-  if (!isSpot) {
+  // Calculate holdings for spot
+  if (isSpot) {
+    const holding = TP_STATE.positions.find(p => 
+      p.pair === TP_STATE.pair && (p.marketType === 'spot' || p.leverage === 1)
+    );
+    const holdingAmount = holding ? (holding.size / holding.entryPrice) : 0;
+    const holdingValue = holdingAmount * price;
+    
+    document.getElementById('tp-sum-value-label').textContent = isSell ? 'You Receive' : 'Total Cost';
+    document.getElementById('tp-sum-value').textContent = fmt(size);
+    
+    // Show holdings info in entry price row for spot
+    if (isSell) {
+      document.getElementById('tp-sum-entry').textContent = holdingAmount > 0 ? 
+        `${holdingAmount.toFixed(6)} (~${fmt(holdingValue)})` : 'No holdings';
+      document.querySelector('#tp-sum-entry').closest('.tp-summary-row').querySelector('span:first-child').textContent = 'Your Holdings';
+    } else {
+      document.getElementById('tp-sum-entry').textContent = fmt(price);
+      document.querySelector('#tp-sum-entry').closest('.tp-summary-row').querySelector('span:first-child').textContent = 'Entry Price';
+    }
+  } else {
+    document.getElementById('tp-sum-entry').textContent = fmt(price);
+    document.querySelector('#tp-sum-entry').closest('.tp-summary-row').querySelector('span:first-child').textContent = 'Entry Price';
+    document.getElementById('tp-sum-value').textContent = fmt(posValue);
+    document.getElementById('tp-sum-value-label').textContent = 'Position Value';
     document.getElementById('tp-sum-margin').textContent = fmt(margin);
     document.getElementById('tp-sum-liq').textContent = fmt(liqPrice);
     document.getElementById('tp-sum-tp').textContent = fmt(tpPrice);
