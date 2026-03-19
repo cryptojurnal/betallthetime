@@ -595,6 +595,46 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 .auth-user-bar.hidden{display:none}
 .auth-sync-btn{background:none;border:none;color:#00c47a;font-size:11px;cursor:pointer;padding:0;font-weight:700;opacity:.7;transition:opacity .2s}
 .auth-sync-btn:hover{opacity:1}
+
+/* ── LAYER 3: MEMBER AREA PAGE ── */
+#layer3{position:fixed;inset:0;z-index:9500;background:#000;display:flex;flex-direction:column;opacity:0;transition:opacity .6s ease;pointer-events:none}
+#layer3.visible{opacity:1;pointer-events:all}
+#layer3.hidden{display:none}
+.l3-container{flex:1;display:flex;flex-direction:column;max-width:900px;width:100%;margin:0 auto;padding:40px 24px;overflow-y:auto}
+.l3-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:36px;padding-bottom:24px;border-bottom:0.5px solid #1a1a1a}
+.l3-profile{display:flex;align-items:center;gap:16px}
+.l3-avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#00c47a,#00a060);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#000;text-transform:uppercase}
+.l3-user-info h2{font-size:18px;font-weight:700;color:#fff;margin:0 0 4px}
+.l3-user-info p{font-size:12px;color:#555;margin:0}
+.l3-actions{display:flex;gap:10px}
+.l3-btn{padding:8px 16px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s;text-transform:uppercase;letter-spacing:.04em}
+.l3-btn-sync{background:#0a2a1a;border:0.5px solid #004d30;color:#00c47a}
+.l3-btn-sync:hover{background:#0d3a22}
+.l3-btn-logout{background:transparent;border:0.5px solid #2a0a0a;color:#E24B4A}
+.l3-btn-logout:hover{background:#1a0808}
+.l3-welcome{margin-bottom:32px}
+.l3-welcome h1{font-size:28px;font-weight:900;color:#fff;margin:0 0 8px;line-height:1.2}
+.l3-welcome h1 span{color:#00c47a}
+.l3-welcome p{font-size:13px;color:#555;margin:0}
+.l3-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-bottom:32px}
+.l3-card{background:#0d0d0d;border:0.5px solid #1a1a1a;border-radius:14px;padding:24px;cursor:pointer;transition:all .25s;position:relative;overflow:hidden}
+.l3-card:hover{border-color:#00c47a;transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,196,122,0.1)}
+.l3-card-icon{font-size:32px;margin-bottom:14px}
+.l3-card h3{font-size:15px;font-weight:700;color:#fff;margin:0 0 6px}
+.l3-card p{font-size:11px;color:#555;margin:0;line-height:1.5}
+.l3-card-badge{position:absolute;top:12px;right:12px;font-size:8px;font-weight:700;padding:3px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:.05em}
+.l3-card-badge.live{background:#0a2a1a;color:#00c47a;border:0.5px solid #004d30}
+.l3-card-badge.soon{background:#1a1a0a;color:#c4a000;border:0.5px solid #4d4000}
+.l3-card-badge.new{background:#1a0a2a;color:#a000c4;border:0.5px solid #40004d}
+.l3-section-title{font-size:10px;font-weight:700;color:#333;text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px}
+.l3-footer{margin-top:auto;padding-top:24px;border-top:0.5px solid #1a1a1a;text-align:center}
+.l3-footer p{font-size:10px;color:#333;margin:0}
+.l3-footer a{color:#00c47a;text-decoration:none}
+.l3-footer a:hover{text-decoration:underline}
+/* back to member area button in dashboard */
+.back-to-member{position:fixed;top:12px;left:12px;z-index:9400;display:flex;align-items:center;gap:6px;padding:6px 12px;background:#0a0a0a;border:0.5px solid #1a1a1a;border-radius:8px;color:#00c47a;font-size:10px;font-weight:700;cursor:pointer;transition:all .2s;opacity:0;pointer-events:none;text-transform:uppercase;letter-spacing:.04em}
+.back-to-member:hover{background:#0d0d0d;border-color:#00c47a}
+.back-to-member.visible{opacity:1;pointer-events:all}
 </style>
 </head>
 <body class="t-light">
@@ -727,6 +767,77 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
   <button class="auth-sync-btn" onclick="event.stopPropagation();authSave()" title="sync to cloud">↑ sync</button>
   <button class="auth-sync-btn" onclick="event.stopPropagation();authLogout()" title="logout" style="color:#E24B4A">✕</button>
 </div>
+
+<!-- LAYER 3 - MEMBER AREA -->
+<div id="layer3" class="hidden">
+  <div class="l3-container">
+    <div class="l3-header">
+      <div class="l3-profile">
+        <div class="l3-avatar" id="l3-avatar">U</div>
+        <div class="l3-user-info">
+          <h2 id="l3-username">@username</h2>
+          <p id="l3-email">user@email.com</p>
+        </div>
+      </div>
+      <div class="l3-actions">
+        <button class="l3-btn l3-btn-sync" onclick="authSave()">↑ sync</button>
+        <button class="l3-btn l3-btn-logout" onclick="authLogout()">logout</button>
+      </div>
+    </div>
+
+    <div class="l3-welcome">
+      <h1>welcome back,<br><span id="l3-welcome-name">trader</span></h1>
+      <p>your personal trading hub — explore features below</p>
+    </div>
+
+    <div class="l3-section-title">📦 tools & features</div>
+    <div class="l3-grid">
+      <div class="l3-card" onclick="openDashboard()">
+        <span class="l3-card-badge live">live</span>
+        <div class="l3-card-icon">📊</div>
+        <h3>Trading Dashboard</h3>
+        <p>Simulate trades, calculate liq%, manage positions across 36 months. Your main trading projection tool.</p>
+      </div>
+      <div class="l3-card" onclick="memberShowTab('presets');memberOpen();">
+        <span class="l3-card-badge live">live</span>
+        <div class="l3-card-icon">💾</div>
+        <h3>Presets</h3>
+        <p>Save, load, and manage your dashboard configurations. Access your setups from any device.</p>
+      </div>
+      <div class="l3-card" onclick="memberShowTab('account');memberOpen();">
+        <span class="l3-card-badge live">live</span>
+        <div class="l3-card-icon">👤</div>
+        <h3>Account</h3>
+        <p>View your profile, manage cloud sync, and account settings.</p>
+      </div>
+      <div class="l3-card" style="opacity:0.5;cursor:not-allowed" onclick="alert('Coming soon!')">
+        <span class="l3-card-badge soon">soon</span>
+        <div class="l3-card-icon">📈</div>
+        <h3>Trade Journal</h3>
+        <p>Log your real trades, track performance, and analyze your win rate over time.</p>
+      </div>
+      <div class="l3-card" style="opacity:0.5;cursor:not-allowed" onclick="alert('Coming soon!')">
+        <span class="l3-card-badge soon">soon</span>
+        <div class="l3-card-icon">🎯</div>
+        <h3>Risk Calculator</h3>
+        <p>Quick position sizing tool — calculate risk per trade based on your account and stop loss.</p>
+      </div>
+      <div class="l3-card" style="opacity:0.5;cursor:not-allowed" onclick="alert('Coming soon!')">
+        <span class="l3-card-badge soon">soon</span>
+        <div class="l3-card-icon">📚</div>
+        <h3>Learning Hub</h3>
+        <p>Guides, tutorials, and resources to level up your trading knowledge.</p>
+      </div>
+    </div>
+
+    <div class="l3-footer">
+      <p>built with 🤍 by <a href="https://t.me/CryptoJurnal" target="_blank">@cryptojurnal</a> · bet all the time, bet with style</p>
+    </div>
+  </div>
+</div>
+
+<!-- BACK TO MEMBER AREA BUTTON (shown when in dashboard) -->
+<button class="back-to-member" id="back-to-member" onclick="backToMemberArea()">← member area</button>
 
 <!-- LAYER 1 - philosophy -->
 <div id="layer1" onclick="goAuth()">
@@ -3466,6 +3577,11 @@ function launchApp(){
   if(window._attachAiFabDrag) window._attachAiFabDrag();
   document.documentElement.style.overflow='auto';
   document.body.style.overflow='auto';
+  // show back button only for logged-in users
+  if(AUTH_TOKEN){
+    const backBtn=document.getElementById('back-to-member');
+    if(backBtn) backBtn.classList.add('visible');
+  }
   l2.classList.add('out');
   setTimeout(()=>{l2.classList.add('hidden');showGuidePopup();},900);
 }
@@ -3530,12 +3646,12 @@ function authOnSuccess(d){
       });
     }catch(e){console.warn('data merge error',e);}
   }
-  // hide auth, show layer2 (risk disclosure)
+  // hide auth, show layer3 (member area)
   const al=document.getElementById('auth-layer');
   al.style.opacity='0';
   setTimeout(()=>{
     al.classList.add('hidden');
-    goLayer2();
+    goLayer3();
   },500);
   // show user bar
   const ub=document.getElementById('auth-user-bar');
@@ -3607,9 +3723,9 @@ async function sendGoogleToWorker(google_id,email,name){
       const ul=document.getElementById('auth-username-lbl');
       if(ub)ub.classList.remove('hidden');
       if(ul)ul.textContent='@'+(data.user?.username||email.split('@')[0]);
-      // hide auth layer, go to layer 2
+      // hide auth layer, go to layer 3 (member area)
       const al=document.getElementById('auth-layer');
-      if(al){al.style.opacity='0';setTimeout(()=>{al.classList.add('hidden');goLayer2();},500);}
+      if(al){al.style.opacity='0';setTimeout(()=>{al.classList.add('hidden');goLayer3();},500);}
     }else{
       alert(data.error||'Google login failed');
       resetGoogleBtn();
@@ -3673,11 +3789,73 @@ async function authLogout(){
 function authForceLogout(){
   AUTH_TOKEN=null; AUTH_USER=null;
   localStorage.removeItem('batt_token');
+  // hide user bar
   const ub=document.getElementById('auth-user-bar');
   if(ub) ub.classList.add('hidden');
+  // hide layer3 (member area)
+  const l3=document.getElementById('layer3');
+  if(l3){l3.classList.remove('visible');l3.classList.add('hidden');}
+  // hide dashboard
+  const app=document.querySelector('.app');
+  if(app) app.style.opacity='0';
+  // hide back button
+  const backBtn=document.getElementById('back-to-member');
+  if(backBtn) backBtn.classList.remove('visible');
+  // hide AI fab
+  const aiFab=document.getElementById('ai-fab');
+  if(aiFab){aiFab.style.opacity='0';aiFab.style.pointerEvents='none';}
   // show auth layer again
   const al=document.getElementById('auth-layer');
   al.classList.remove('hidden','out');
+  al.style.opacity='1';
+}
+
+// ── LAYER 3: MEMBER AREA NAVIGATION ──
+function goLayer3(){
+  // update layer3 user info
+  if(AUTH_USER){
+    const avatar=document.getElementById('l3-avatar');
+    const username=document.getElementById('l3-username');
+    const email=document.getElementById('l3-email');
+    const welcomeName=document.getElementById('l3-welcome-name');
+    if(avatar) avatar.textContent=(AUTH_USER.username||AUTH_USER.email||'U')[0].toUpperCase();
+    if(username) username.textContent='@'+(AUTH_USER.username||'user');
+    if(email) email.textContent=AUTH_USER.email||'';
+    if(welcomeName) welcomeName.textContent=AUTH_USER.username||'trader';
+  }
+  // hide layer2 if visible
+  const l2=document.getElementById('layer2');
+  if(l2){l2.classList.add('hidden');l2.style.opacity='0';}
+  // show layer3
+  const l3=document.getElementById('layer3');
+  if(l3){
+    l3.classList.remove('hidden');
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{l3.classList.add('visible');}));
+  }
+}
+
+function openDashboard(){
+  // hide layer3
+  const l3=document.getElementById('layer3');
+  if(l3){l3.classList.remove('visible');setTimeout(()=>{l3.classList.add('hidden');},500);}
+  // show layer2 (risk disclosure) first
+  setTimeout(()=>{goLayer2();},400);
+}
+
+function backToMemberArea(){
+  // hide dashboard
+  const app=document.querySelector('.app');
+  if(app) app.style.opacity='0';
+  // hide back button
+  const backBtn=document.getElementById('back-to-member');
+  if(backBtn) backBtn.classList.remove('visible');
+  // hide AI fab
+  const aiFab=document.getElementById('ai-fab');
+  if(aiFab){aiFab.style.opacity='0';aiFab.style.pointerEvents='none';}
+  // close AI panel if open
+  if(AI_OPEN) aiToggle();
+  // show layer3
+  setTimeout(()=>{goLayer3();},300);
 }
 
 // ── Auto-restore session on load ──
@@ -3718,12 +3896,12 @@ async function authRestoreSession(){
 document.addEventListener('DOMContentLoaded', async ()=>{
   const restored = await authRestoreSession();
   if(restored){
-    // valid session — skip auth + layer1, go straight to layer2
+    // valid session — skip auth + layer1, go straight to layer3 (member area)
     const al=document.getElementById('auth-layer');
     if(al){al.classList.add('hidden');}
     const l1=document.getElementById('layer1');
     if(l1){l1.classList.add('hidden');}
-    goLayer2();
+    goLayer3();
   }
   // if not restored — layer1 shows first (default), auth appears after click
 });
