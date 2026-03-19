@@ -4998,7 +4998,7 @@ function launchApp(){
   // show back button, keyboard hints, and presets toggle for logged-in users
   if(AUTH_TOKEN){
     const backBtn=document.getElementById('back-to-member');
-    if(backBtn) backBtn.classList.add('visible');
+    if(backBtn) backBtn.style.display='flex';
     const kbdHint=document.getElementById('kbd-hint');
     if(kbdHint) setTimeout(()=>{kbdHint.classList.add('visible');},2000);
     const presetsBtn=document.getElementById('presets-toggle-btn');
@@ -5312,7 +5312,7 @@ function authForceLogout(){
   if(app) app.style.opacity='0';
   // hide back button
   const backBtn=document.getElementById('back-to-member');
-  if(backBtn) backBtn.classList.remove('visible');
+  if(backBtn) backBtn.style.display='none';
   // hide keyboard hints
   const kbdHint=document.getElementById('kbd-hint');
   if(kbdHint) kbdHint.classList.remove('visible');
@@ -5469,7 +5469,7 @@ document.addEventListener('keydown',function(e){
   if(e.key==='Escape'){
     const app=document.querySelector('.app');
     const backBtn=document.getElementById('back-to-member');
-    if(app && backBtn && backBtn.classList.contains('visible')){
+    if(app && backBtn && backBtn.style.display==='flex'){
       e.preventDefault();
       backToMemberArea();
     }
@@ -9351,3 +9351,11 @@ function aiSetLang(lang){
   </div>
 
   <div id="ai-msgs"></div>
+  <div id="ai-chips"></div>
+  <div id="ai-input">
+    <textarea id="ai-inp" placeholder="ask anything..." rows="1"></textarea>
+    <button id="ai-send" onclick="aiSend()">→</button>
+  </div>
+</div>
+</body>
+</html>
