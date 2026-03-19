@@ -608,36 +608,37 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 #layer3{position:fixed;inset:0;z-index:9500;background:#000;display:flex;flex-direction:column;opacity:0;transition:opacity .6s ease;pointer-events:none}
 #layer3.visible{opacity:1;pointer-events:all}
 #layer3.hidden{display:none}
-.l3-container{flex:1;display:flex;flex-direction:column;max-width:900px;width:100%;margin:0 auto;padding:40px 24px;overflow-y:auto;scrollbar-width:none}
+.l3-container{flex:1;display:flex;flex-direction:column;max-width:960px;width:100%;margin:0 auto;padding:24px 24px 16px;overflow-y:auto;scrollbar-width:none}
 .l3-container::-webkit-scrollbar{display:none}
-.l3-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:36px;padding-bottom:24px;border-bottom:0.5px solid #1a1a1a}
-.l3-profile{display:flex;align-items:center;gap:16px}
-.l3-avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#00c47a,#00a060);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#000;text-transform:uppercase}
-.l3-user-info h2{font-size:18px;font-weight:700;color:#fff;margin:0 0 4px}
-.l3-user-info p{font-size:12px;color:#555;margin:0}
+.l3-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding-bottom:16px;border-bottom:0.5px solid #1a1a1a}
+.l3-profile{display:flex;align-items:center;gap:14px}
+.l3-avatar{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#00c47a,#00a060);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:#000;text-transform:uppercase;overflow:hidden}
+.l3-avatar img{width:100%;height:100%;object-fit:cover}
+.l3-user-info h2{font-size:16px;font-weight:700;color:#fff;margin:0 0 2px}
+.l3-user-info p{font-size:11px;color:#555;margin:0}
 .l3-actions{display:flex;gap:10px}
-.l3-btn{padding:8px 16px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s;text-transform:uppercase;letter-spacing:.04em}
+.l3-btn{padding:7px 14px;border-radius:8px;font-size:10px;font-weight:700;cursor:pointer;transition:all .2s;text-transform:uppercase;letter-spacing:.04em}
 .l3-btn-sync{background:#0a2a1a;border:0.5px solid #004d30;color:#00c47a}
 .l3-btn-sync:hover{background:#0d3a22}
 .l3-btn-logout{background:transparent;border:0.5px solid #2a0a0a;color:#E24B4A}
 .l3-btn-logout:hover{background:#1a0808}
-.l3-welcome{margin-bottom:32px}
-.l3-welcome h1{font-size:28px;font-weight:900;color:#fff;margin:0 0 8px;line-height:1.2}
+.l3-welcome{margin-bottom:16px}
+.l3-welcome h1{font-size:24px;font-weight:900;color:#fff;margin:0 0 4px;line-height:1.2}
 .l3-welcome h1 span{color:#00c47a}
-.l3-welcome p{font-size:13px;color:#555;margin:0}
-.l3-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-bottom:32px}
-.l3-card{background:#0d0d0d;border:0.5px solid #1a1a1a;border-radius:14px;padding:24px;cursor:pointer;transition:all .25s;position:relative;overflow:hidden}
+.l3-welcome p{font-size:12px;color:#555;margin:0}
+.l3-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.l3-card{background:#0d0d0d;border:0.5px solid #1a1a1a;border-radius:12px;padding:16px;cursor:pointer;transition:all .25s;position:relative;overflow:hidden}
 .l3-card:hover{border-color:#00c47a;transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,196,122,0.1)}
-.l3-card-icon{font-size:32px;margin-bottom:14px}
-.l3-card h3{font-size:15px;font-weight:700;color:#fff;margin:0 0 6px}
-.l3-card p{font-size:11px;color:#555;margin:0;line-height:1.5}
-.l3-card-badge{position:absolute;top:12px;right:12px;font-size:8px;font-weight:700;padding:3px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:.05em}
+.l3-card-icon{font-size:24px;margin-bottom:10px}
+.l3-card h3{font-size:13px;font-weight:700;color:#fff;margin:0 0 4px}
+.l3-card p{font-size:10px;color:#555;margin:0;line-height:1.4}
+.l3-card-badge{position:absolute;top:10px;right:10px;font-size:7px;font-weight:700;padding:2px 6px;border-radius:4px;text-transform:uppercase;letter-spacing:.05em}
 .l3-card-badge.live{background:#0a2a1a;color:#00c47a;border:0.5px solid #004d30}
 .l3-card-badge.soon{background:#1a1a0a;color:#c4a000;border:0.5px solid #4d4000}
 .l3-card-badge.new{background:#1a0a2a;color:#a000c4;border:0.5px solid #40004d}
-.l3-section-title{font-size:10px;font-weight:700;color:#333;text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px}
-.l3-footer{margin-top:auto;padding-top:24px;border-top:0.5px solid #1a1a1a;text-align:center}
-.l3-footer p{font-size:10px;color:#333;margin:0}
+.l3-section-title{font-size:9px;font-weight:700;color:#333;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
+.l3-footer{margin-top:auto;padding-top:12px;border-top:0.5px solid #1a1a1a;text-align:center}
+.l3-footer p{font-size:9px;color:#333;margin:0}
 .l3-footer a{color:#00c47a;text-decoration:none}
 .l3-footer a:hover{text-decoration:underline}
 /* back to member area button in dashboard */
@@ -670,22 +671,22 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 
 /* ── QUICK STATS ── */
-.l3-stats{display:flex;gap:12px;margin-bottom:28px;flex-wrap:wrap}
-.l3-stat{background:#0d0d0d;border:0.5px solid #1a1a1a;border-radius:10px;padding:14px 18px;min-width:120px;flex:1}
-.l3-stat-value{font-size:20px;font-weight:800;color:#00c47a;margin-bottom:2px}
-.l3-stat-label{font-size:9px;color:#444;text-transform:uppercase;letter-spacing:.06em}
-.l3-stat-sub{font-size:9px;color:#333;margin-top:4px}
-
-/* ── AVATAR WITH IMAGE ── */
-.l3-avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#00c47a,#00a060);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#000;text-transform:uppercase;overflow:hidden}
-.l3-avatar img{width:100%;height:100%;object-fit:cover}
+.l3-stats{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.l3-stat{background:#0d0d0d;border:0.5px solid #1a1a1a;border-radius:8px;padding:10px 14px;min-width:100px;flex:1}
+.l3-stat-value{font-size:18px;font-weight:800;color:#00c47a;margin-bottom:1px}
+.l3-stat-label{font-size:8px;color:#444;text-transform:uppercase;letter-spacing:.06em}
+.l3-stat-sub{font-size:8px;color:#333;margin-top:2px}
 
 /* ── SYNC STATUS ── */
-.l3-sync-status{font-size:9px;color:#333;margin-top:4px;text-align:center}
+.l3-sync-status{font-size:8px;color:#333;margin-top:2px;text-align:center}
 
 /* ── COMING SOON CARDS ── */
 .l3-card-soon{opacity:0.5;cursor:pointer}
 .l3-card-soon:hover{opacity:0.7;transform:none;box-shadow:none;border-color:#1a1a1a}
+
+/* ── RESPONSIVE: stack cards on mobile ── */
+@media(max-width:700px){.l3-grid{grid-template-columns:1fr 1fr}.l3-welcome h1{font-size:20px}}
+@media(max-width:480px){.l3-grid{grid-template-columns:1fr}.l3-header{flex-direction:column;gap:12px;align-items:flex-start}}
 </style>
 </head>
 <body class="t-light">
@@ -850,7 +851,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
     </div>
 
     <div class="l3-welcome">
-      <h1>welcome back,<br><span id="l3-welcome-name">trader</span></h1>
+      <h1>welcome back, <span id="l3-welcome-name">trader</span></h1>
       <p>your personal trading hub — explore features below</p>
     </div>
 
@@ -873,6 +874,12 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 
     <div class="l3-section-title">📦 tools & features</div>
     <div class="l3-grid">
+      <div class="l3-card" onclick="memberShowTab('account');memberOpen();">
+        <span class="l3-card-badge live">live</span>
+        <div class="l3-card-icon">👤</div>
+        <h3>Account</h3>
+        <p>View your profile, manage cloud sync, and account settings.</p>
+      </div>
       <div class="l3-card" onclick="openDashboard()">
         <span class="l3-card-badge live">live</span>
         <div class="l3-card-icon">📊</div>
@@ -885,11 +892,11 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
         <h3>Presets</h3>
         <p>Save, load, and manage your dashboard configurations. Access your setups from any device.</p>
       </div>
-      <div class="l3-card" onclick="memberShowTab('account');memberOpen();">
-        <span class="l3-card-badge live">live</span>
-        <div class="l3-card-icon">👤</div>
-        <h3>Account</h3>
-        <p>View your profile, manage cloud sync, and account settings.</p>
+      <div class="l3-card l3-card-soon" onclick="showToast('Coming soon! Stay tuned.','info')">
+        <span class="l3-card-badge soon">soon</span>
+        <div class="l3-card-icon">📚</div>
+        <h3>Learning Hub</h3>
+        <p>Guides, tutorials, and resources to level up your trading knowledge.</p>
       </div>
       <div class="l3-card l3-card-soon" onclick="showToast('Coming soon! Stay tuned.','info')">
         <span class="l3-card-badge soon">soon</span>
@@ -899,15 +906,9 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
       </div>
       <div class="l3-card l3-card-soon" onclick="showToast('Coming soon! Stay tuned.','info')">
         <span class="l3-card-badge soon">soon</span>
-        <div class="l3-card-icon">🎯</div>
-        <h3>Risk Calculator</h3>
-        <p>Quick position sizing tool — calculate risk per trade based on your account and stop loss.</p>
-      </div>
-      <div class="l3-card l3-card-soon" onclick="showToast('Coming soon! Stay tuned.','info')">
-        <span class="l3-card-badge soon">soon</span>
-        <div class="l3-card-icon">📚</div>
-        <h3>Learning Hub</h3>
-        <p>Guides, tutorials, and resources to level up your trading knowledge.</p>
+        <div class="l3-card-icon">🤝</div>
+        <h3>Bet With Us</h3>
+        <p>Join our trading community — share setups, discuss strategies, and grow together.</p>
       </div>
     </div>
 
