@@ -2741,10 +2741,10 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
       <div class="ci"><div class="cl">liq% t1 m01</div><div class="cv" id="c-lq" style="color:#EF9F27">40.0%</div><div style="font-size:7px;color:var(--tx3)">spot drop → wipe</div></div>
     </div>
     <div id="lev-ratio-row" style="font-size:8px;color:var(--tx3);padding:3px 1px;line-height:1.6;margin-top:3px">
-      <span style="color:var(--tx2)">acct</span> <span id="c-acct" style="color:var(--tx);font-weight:600">$1,000</span>
-      × <span id="c-ratio" style="color:var(--acc2);font-weight:600">2.50</span>
-      = <span id="c-not2" style="font-weight:600">$2,500</span>
-      → margin <span id="c-am2" style="color:var(--acc);font-weight:600">$500</span>
+      <span style="color:var(--tx2)">notional</span> <span id="c-not2" style="font-weight:600">$2,500</span>
+      ÷ <span id="c-lev2" style="color:var(--acc2);font-weight:600">5×</span>
+      = margin <span id="c-am2" style="color:var(--acc);font-weight:600">$500</span>
+      <span style="color:var(--tx3);margin-left:4px">(<span id="c-ratio" style="color:var(--tx2)">2.50</span>× of <span id="c-acct" style="color:var(--tx2)">$1,000</span> acct)</span>
     </div>
     </div><!-- /not-controls -->
     <div id="spot-note-not" style="display:none" class="spot-note">◈ spot mode — notional = capital.<br>no leverage, no margin, no liq%.</div>
@@ -3782,6 +3782,7 @@ function updComp(){
   const ca=document.getElementById('c-acct'); if(ca)ca.textContent=fmt(s.P);
   const cr=document.getElementById('c-ratio'); if(cr)cr.textContent=isSpot?'1.00':ratio.toFixed(2);
   const cn=document.getElementById('c-not2'); if(cn)cn.textContent=isSpot?fmt(s.P):fmt(s.NOT);
+  const cl=document.getElementById('c-lev2'); if(cl)cl.textContent=isSpot?'1×':s.LEV+'×';
   const ca2=document.getElementById('c-am2'); if(ca2)ca2.textContent=isSpot?'n/a':fmt(am);
   // show/hide lev-specific rows
   const lr=document.getElementById('lev-comp-row'),rr=document.getElementById('lev-ratio-row');
