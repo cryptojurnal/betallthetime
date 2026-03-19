@@ -731,23 +731,120 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
     <!-- ACCOUNT TAB -->
     <div id="mp-account-tab" style="display:none">
       <div class="mp-section">
-        <div class="mp-sec-title">account info</div>
+        
+        <!-- PROFILE -->
+        <div class="mp-sec-title">👤 profile</div>
         <div style="background:#111;border:0.5px solid #1a1a1a;border-radius:8px;padding:14px;margin-bottom:12px">
-          <div style="font-size:10px;color:#444;margin-bottom:3px">username</div>
-          <div style="font-size:13px;font-weight:700;color:#e0e0e0" id="mp-acc-username">—</div>
-          <div style="font-size:10px;color:#444;margin-top:10px;margin-bottom:3px">email</div>
-          <div style="font-size:12px;color:#888" id="mp-acc-email">—</div>
-          <div style="font-size:10px;color:#444;margin-top:10px;margin-bottom:3px">member since</div>
-          <div style="font-size:11px;color:#555" id="mp-acc-since">—</div>
+          <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px">
+            <div id="mp-acc-avatar" style="width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#00c47a,#00a060);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:#000;overflow:hidden">U</div>
+            <div style="flex:1">
+              <div style="font-size:14px;font-weight:700;color:#e0e0e0" id="mp-acc-username">—</div>
+              <div style="font-size:11px;color:#555" id="mp-acc-email">—</div>
+            </div>
+            <span id="mp-acc-type" style="font-size:8px;font-weight:700;padding:3px 8px;border-radius:4px;background:#0a2a1a;color:#00c47a;border:0.5px solid #004d30;text-transform:uppercase;letter-spacing:.05em">free</span>
+          </div>
+          <div style="display:flex;gap:8px;font-size:10px;color:#444">
+            <span>📅 joined <span id="mp-acc-since" style="color:#888">—</span></span>
+            <span id="mp-acc-google" style="display:none">• 🔗 Google connected</span>
+          </div>
         </div>
-        <div class="mp-sec-title" style="margin-top:16px">cloud sync</div>
+
+        <!-- QUICK STATS -->
+        <div class="mp-sec-title">📊 stats</div>
+        <div style="display:flex;gap:8px;margin-bottom:12px">
+          <div style="flex:1;background:#111;border:0.5px solid #1a1a1a;border-radius:8px;padding:10px;text-align:center">
+            <div style="font-size:18px;font-weight:800;color:#00c47a" id="mp-stat-presets">0</div>
+            <div style="font-size:8px;color:#444;text-transform:uppercase;letter-spacing:.05em">presets</div>
+          </div>
+          <div style="flex:1;background:#111;border:0.5px solid #1a1a1a;border-radius:8px;padding:10px;text-align:center">
+            <div style="font-size:18px;font-weight:800;color:#00c47a" id="mp-stat-syncs">0</div>
+            <div style="font-size:8px;color:#444;text-transform:uppercase;letter-spacing:.05em">syncs</div>
+          </div>
+          <div style="flex:1;background:#111;border:0.5px solid #1a1a1a;border-radius:8px;padding:10px;text-align:center">
+            <div style="font-size:18px;font-weight:800;color:#00c47a" id="mp-stat-days">0</div>
+            <div style="font-size:8px;color:#444;text-transform:uppercase;letter-spacing:.05em">days</div>
+          </div>
+        </div>
+
+        <!-- PREFERENCES -->
+        <div class="mp-sec-title">⚙️ preferences</div>
         <div style="background:#111;border:0.5px solid #1a1a1a;border-radius:8px;padding:14px;margin-bottom:12px">
-          <div style="font-size:10px;color:#444;margin-bottom:8px">sync your entire dashboard state to the cloud — load it from any device after login</div>
-          <button class="mp-save-btn" onclick="authSave()" style="margin-bottom:0">↑ sync to cloud now</button>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <div>
+              <div style="font-size:11px;color:#e0e0e0;font-weight:600">Default theme</div>
+              <div style="font-size:9px;color:#444">Applied when you log in</div>
+            </div>
+            <select id="mp-pref-theme" onchange="savePref('theme',this.value)" style="font-size:10px;padding:4px 8px;background:#0a0a0a;border:0.5px solid #222;border-radius:6px;color:#e0e0e0;cursor:pointer">
+              <option value="t-light">Light</option>
+              <option value="t-dark">Dark</option>
+              <option value="t-ocean">Ocean</option>
+              <option value="t-forest">Forest</option>
+              <option value="t-sunset">Sunset</option>
+              <option value="t-lavender">Lavender</option>
+            </select>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div>
+              <div style="font-size:11px;color:#e0e0e0;font-weight:600">Default language</div>
+              <div style="font-size:9px;color:#444">For AI assistant (Kira)</div>
+            </div>
+            <select id="mp-pref-lang" onchange="savePref('lang',this.value)" style="font-size:10px;padding:4px 8px;background:#0a0a0a;border:0.5px solid #222;border-radius:6px;color:#e0e0e0;cursor:pointer">
+              <option value="en">English</option>
+              <option value="id">Bahasa Indonesia</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- CLOUD SYNC -->
+        <div class="mp-sec-title">☁️ cloud sync</div>
+        <div style="background:#111;border:0.5px solid #1a1a1a;border-radius:8px;padding:14px;margin-bottom:12px">
+          <div style="font-size:10px;color:#444;margin-bottom:8px">Sync your dashboard state to access from any device</div>
+          <button class="mp-save-btn" onclick="authSaveWithToast()" style="margin-bottom:0">↑ sync to cloud now</button>
           <div style="font-size:9px;color:#333;margin-top:6px;text-align:center" id="mp-last-sync">never synced</div>
         </div>
-        <div class="mp-sec-title" style="margin-top:16px;color:#E24B4A">danger zone</div>
-        <button onclick="authLogout()" style="width:100%;padding:9px;background:transparent;border:0.5px solid #2a0a0a;border-radius:7px;color:#E24B4A;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s" onmouseover="this.style.background='#1a0a0a'" onmouseout="this.style.background='transparent'">logout</button>
+
+        <!-- SECURITY -->
+        <div class="mp-sec-title">🔒 security</div>
+        <div style="background:#111;border:0.5px solid #1a1a1a;border-radius:8px;padding:14px;margin-bottom:12px">
+          <div id="mp-security-password" style="display:none">
+            <div style="font-size:10px;color:#444;margin-bottom:8px">Change your password</div>
+            <input type="password" id="mp-old-pass" placeholder="Current password" style="width:100%;padding:8px 10px;background:#0a0a0a;border:0.5px solid #222;border-radius:6px;color:#e0e0e0;font-size:11px;margin-bottom:6px;box-sizing:border-box">
+            <input type="password" id="mp-new-pass" placeholder="New password (min 6 chars)" style="width:100%;padding:8px 10px;background:#0a0a0a;border:0.5px solid #222;border-radius:6px;color:#e0e0e0;font-size:11px;margin-bottom:8px;box-sizing:border-box">
+            <button onclick="changePassword()" style="width:100%;padding:8px;background:#222;border:none;border-radius:6px;color:#e0e0e0;font-size:10px;font-weight:700;cursor:pointer;transition:all .2s" onmouseover="this.style.background='#333'" onmouseout="this.style.background='#222'">update password</button>
+            <div id="mp-pass-msg" style="font-size:9px;margin-top:6px;text-align:center;min-height:14px"></div>
+          </div>
+          <div id="mp-security-google" style="display:none">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-size:20px">🔗</span>
+              <div>
+                <div style="font-size:11px;color:#e0e0e0;font-weight:600">Signed in with Google</div>
+                <div style="font-size:9px;color:#444">Password managed by Google</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DATA MANAGEMENT -->
+        <div class="mp-sec-title">💾 data management</div>
+        <div style="background:#111;border:0.5px solid #1a1a1a;border-radius:8px;padding:14px;margin-bottom:12px">
+          <div style="display:flex;gap:8px;margin-bottom:10px">
+            <button onclick="exportAllData()" style="flex:1;padding:8px;background:#0a2a1a;border:0.5px solid #004d30;border-radius:6px;color:#00c47a;font-size:10px;font-weight:700;cursor:pointer;transition:all .2s" onmouseover="this.style.background='#0d3a22'" onmouseout="this.style.background='#0a2a1a'">↓ export data</button>
+            <label style="flex:1;padding:8px;background:#1a1a2a;border:0.5px solid #30304d;border-radius:6px;color:#7070c4;font-size:10px;font-weight:700;cursor:pointer;text-align:center;transition:all .2s" onmouseover="this.style.background='#22223a'" onmouseout="this.style.background='#1a1a2a'">
+              ↑ import data
+              <input type="file" accept=".json" onchange="importData(event)" style="display:none">
+            </label>
+          </div>
+          <button onclick="clearAllPresets()" style="width:100%;padding:8px;background:transparent;border:0.5px solid #222;border-radius:6px;color:#555;font-size:10px;font-weight:700;cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='#555';this.style.color='#888'" onmouseout="this.style.borderColor='#222';this.style.color='#555'">🗑️ clear all presets</button>
+        </div>
+
+        <!-- DANGER ZONE -->
+        <div class="mp-sec-title" style="color:#E24B4A">⚠️ danger zone</div>
+        <div style="background:#1a0a0a;border:0.5px solid #2a0a0a;border-radius:8px;padding:14px">
+          <button onclick="authLogout()" style="width:100%;padding:9px;background:transparent;border:0.5px solid #4a1a1a;border-radius:6px;color:#E24B4A;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s;margin-bottom:8px" onmouseover="this.style.background='#2a0a0a'" onmouseout="this.style.background='transparent'">logout</button>
+          <button onclick="deleteAccount()" style="width:100%;padding:9px;background:#E24B4A;border:none;border-radius:6px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">delete account forever</button>
+          <div style="font-size:8px;color:#4a2020;margin-top:8px;text-align:center">This will permanently delete your account and all data</div>
+        </div>
+
       </div>
     </div>
   </div>
@@ -3807,10 +3904,11 @@ async function sendGoogleToWorker(google_id,email,name,picture){
     const data=await res.json();
     if(data.ok&&data.token){
       AUTH_TOKEN=data.token;
-      // add picture to user object
-      AUTH_USER=data.user ? {...data.user, picture:picture} : {email,name,picture};
+      // add picture and google_id to user object
+      AUTH_USER=data.user ? {...data.user, picture:picture, google_id:google_id} : {email,name,picture,google_id};
       localStorage.setItem('batt_token',data.token);
       localStorage.setItem('wz_user',JSON.stringify(AUTH_USER));
+      localStorage.setItem('wz_auth_google','1'); // flag for Google login
       // show user bar
       const ub=document.getElementById('auth-user-bar');
       const ul=document.getElementById('auth-username-lbl');
@@ -3887,6 +3985,7 @@ function authForceLogout(){
   localStorage.removeItem('wz_user');
   localStorage.removeItem('wz_sync_count');
   localStorage.removeItem('wz_last_sync');
+  localStorage.removeItem('wz_auth_google');
   // hide user bar
   const ub=document.getElementById('auth-user-bar');
   if(ub) ub.classList.add('hidden');
@@ -4312,6 +4411,283 @@ function memberShowTab(tab){
   document.getElementById('mp-tab-presets').classList.toggle('on',tab==='presets');
   document.getElementById('mp-tab-account').classList.toggle('on',tab==='account');
   if(tab==='presets') presetRenderList();
+  if(tab==='account') loadAccountTab();
+}
+
+// ── ACCOUNT TAB FUNCTIONS ──
+async function loadAccountTab(){
+  const user=AUTH_USER||{};
+  
+  // Avatar
+  const avatar=document.getElementById('mp-acc-avatar');
+  if(avatar){
+    if(user.picture){
+      avatar.innerHTML='<img src="'+user.picture+'" style="width:100%;height:100%;object-fit:cover">';
+    }else{
+      avatar.innerHTML='';
+      avatar.textContent=(user.username||user.email||'U')[0].toUpperCase();
+    }
+  }
+  
+  // Basic info
+  const username=document.getElementById('mp-acc-username');
+  const email=document.getElementById('mp-acc-email');
+  const since=document.getElementById('mp-acc-since');
+  if(username) username.textContent=user.username||'—';
+  if(email) email.textContent=user.email||'—';
+  if(since && user.created_at){
+    since.textContent=new Date(user.created_at).toLocaleDateString();
+  }
+  
+  // Google indicator
+  const googleEl=document.getElementById('mp-acc-google');
+  const isGoogle=user.google_id||localStorage.getItem('wz_auth_google');
+  if(googleEl) googleEl.style.display=isGoogle?'inline':'none';
+  
+  // Security section - show password change for email users, google message for google users
+  const passSection=document.getElementById('mp-security-password');
+  const googleSection=document.getElementById('mp-security-google');
+  if(passSection) passSection.style.display=isGoogle?'none':'block';
+  if(googleSection) googleSection.style.display=isGoogle?'block':'none';
+  
+  // Stats
+  const statPresets=document.getElementById('mp-stat-presets');
+  const statSyncs=document.getElementById('mp-stat-syncs');
+  const statDays=document.getElementById('mp-stat-days');
+  if(statSyncs) statSyncs.textContent=localStorage.getItem('wz_sync_count')||'0';
+  if(statDays && user.created_at){
+    const days=Math.floor((Date.now()-user.created_at)/(1000*60*60*24))+1;
+    statDays.textContent=days;
+  }
+  
+  // Fetch preset count
+  if(statPresets && AUTH_TOKEN){
+    try{
+      const r=await fetch(AUTH_URL+'/presets/list',{headers:{'Authorization':'Bearer '+AUTH_TOKEN}});
+      const d=await r.json();
+      if(d.ok) statPresets.textContent=(d.presets||[]).length;
+    }catch(e){}
+  }
+  
+  // Last sync
+  const lastSync=document.getElementById('mp-last-sync');
+  if(lastSync){
+    const ls=localStorage.getItem('wz_last_sync');
+    if(ls){
+      const diff=Date.now()-parseInt(ls);
+      const mins=Math.floor(diff/60000);
+      if(mins<1) lastSync.textContent='synced just now';
+      else if(mins<60) lastSync.textContent='synced '+mins+' min ago';
+      else lastSync.textContent='synced '+Math.floor(diff/3600000)+' hr ago';
+    }
+  }
+  
+  // Preferences
+  const prefTheme=document.getElementById('mp-pref-theme');
+  const prefLang=document.getElementById('mp-pref-lang');
+  const prefs=JSON.parse(localStorage.getItem('wz_prefs')||'{}');
+  if(prefTheme) prefTheme.value=prefs.theme||'t-dark';
+  if(prefLang) prefLang.value=prefs.lang||'en';
+}
+
+function savePref(key,value){
+  const prefs=JSON.parse(localStorage.getItem('wz_prefs')||'{}');
+  prefs[key]=value;
+  localStorage.setItem('wz_prefs',JSON.stringify(prefs));
+  
+  // Apply immediately
+  if(key==='theme'){
+    document.body.className=value;
+    document.querySelectorAll('.th-btn').forEach(b=>{
+      b.classList.toggle('on',b.dataset.t===value);
+    });
+  }
+  if(key==='lang'&&typeof aiSetLang==='function'){
+    aiSetLang(value);
+  }
+  showToast('Preference saved','success',1500);
+}
+
+async function changePassword(){
+  const oldPass=document.getElementById('mp-old-pass').value;
+  const newPass=document.getElementById('mp-new-pass').value;
+  const msgEl=document.getElementById('mp-pass-msg');
+  
+  if(!oldPass||!newPass){
+    msgEl.style.color='#E24B4A';
+    msgEl.textContent='Please fill both fields';
+    return;
+  }
+  if(newPass.length<6){
+    msgEl.style.color='#E24B4A';
+    msgEl.textContent='New password must be at least 6 characters';
+    return;
+  }
+  
+  msgEl.style.color='#888';
+  msgEl.textContent='Updating...';
+  
+  try{
+    const r=await fetch(AUTH_URL+'/auth/change-password',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+AUTH_TOKEN},
+      body:JSON.stringify({old_password:oldPass,new_password:newPass})
+    });
+    const d=await r.json();
+    if(d.ok){
+      msgEl.style.color='#00c47a';
+      msgEl.textContent='Password updated!';
+      document.getElementById('mp-old-pass').value='';
+      document.getElementById('mp-new-pass').value='';
+    }else{
+      msgEl.style.color='#E24B4A';
+      msgEl.textContent=d.error||'Failed to update';
+    }
+  }catch(e){
+    msgEl.style.color='#E24B4A';
+    msgEl.textContent='Connection failed';
+  }
+}
+
+function exportAllData(){
+  const data={
+    version:1,
+    exported:Date.now(),
+    user:AUTH_USER,
+    state:{},
+    customTabs:typeof CUSTOM_TABS!=='undefined'?CUSTOM_TABS:[],
+    prefs:JSON.parse(localStorage.getItem('wz_prefs')||'{}')
+  };
+  
+  // Export current state
+  ['36','q',...(typeof CUSTOM_TABS!=='undefined'?CUSTOM_TABS.map(t=>t.id):[])].forEach(id=>{
+    if(S&&S[id]){
+      data.state[id]={...S[id],ZM:S[id].ZM?[...S[id].ZM]:[]};
+    }
+  });
+  
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='batt-backup-'+new Date().toISOString().split('T')[0]+'.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  
+  showToast('Data exported!','success');
+}
+
+function importData(event){
+  const file=event.target.files[0];
+  if(!file)return;
+  
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const data=JSON.parse(e.target.result);
+      
+      if(!data.version||!data.state){
+        showToast('Invalid backup file','error');
+        return;
+      }
+      
+      if(!confirm('Import this backup? This will replace your current dashboard data.')){
+        return;
+      }
+      
+      // Restore custom tabs
+      if(data.customTabs&&Array.isArray(data.customTabs)){
+        CUSTOM_TABS.length=0;
+        data.customTabs.forEach(t=>CUSTOM_TABS.push(t));
+      }
+      
+      // Restore state
+      Object.keys(data.state).forEach(tabId=>{
+        if(!S[tabId])S[tabId]=mkState();
+        Object.assign(S[tabId],data.state[tabId]);
+        if(data.state[tabId].ZM) S[tabId].ZM=new Set(data.state[tabId].ZM);
+      });
+      
+      // Restore prefs
+      if(data.prefs){
+        localStorage.setItem('wz_prefs',JSON.stringify(data.prefs));
+        if(data.prefs.theme){
+          document.body.className=data.prefs.theme;
+        }
+      }
+      
+      // Re-render
+      if(typeof renderTabBar==='function') renderTabBar();
+      if(typeof syncControls==='function') syncControls();
+      if(typeof render==='function') render();
+      
+      showToast('Data imported successfully!','success');
+      memberClose();
+      
+    }catch(err){
+      showToast('Failed to parse backup file','error');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value=''; // reset file input
+}
+
+async function clearAllPresets(){
+  if(!AUTH_TOKEN){showToast('Please log in','error');return;}
+  if(!confirm('Delete ALL your presets? This cannot be undone.'))return;
+  if(!confirm('Are you really sure? All presets will be permanently deleted.'))return;
+  
+  try{
+    // Get all presets
+    const r=await fetch(AUTH_URL+'/presets/list',{headers:{'Authorization':'Bearer '+AUTH_TOKEN}});
+    const d=await r.json();
+    if(!d.ok)return;
+    
+    // Delete each one
+    for(const p of (d.presets||[])){
+      await fetch(AUTH_URL+'/presets/delete',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+AUTH_TOKEN},
+        body:JSON.stringify({id:p.id})
+      });
+    }
+    
+    showToast('All presets deleted','info');
+    loadAccountTab();
+    
+  }catch(e){
+    showToast('Failed to delete presets','error');
+  }
+}
+
+async function deleteAccount(){
+  if(!AUTH_TOKEN){showToast('Please log in','error');return;}
+  
+  const confirm1=prompt('Type "DELETE" to permanently delete your account:');
+  if(confirm1!=='DELETE'){
+    showToast('Account deletion cancelled','info');
+    return;
+  }
+  
+  if(!confirm('This is your FINAL warning. Your account and all data will be permanently deleted. Continue?')){
+    return;
+  }
+  
+  try{
+    const r=await fetch(AUTH_URL+'/auth/delete-account',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+AUTH_TOKEN}
+    });
+    const d=await r.json();
+    if(d.ok){
+      showToast('Account deleted. Goodbye!','info');
+      authForceLogout();
+    }else{
+      showToast(d.error||'Failed to delete account','error');
+    }
+  }catch(e){
+    showToast('Connection failed','error');
+  }
 }
 
 // ── LAYER 3: MEMBER AREA NAVIGATION ──
