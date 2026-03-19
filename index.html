@@ -1190,6 +1190,17 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 .back-to-member:active{cursor:grabbing}
 .back-to-member.visible{opacity:1;pointer-events:all}
 
+/* Cockpit Back Button - Eye-catching */
+.cockpit-back-btn{display:none;flex-direction:row;align-items:center;gap:8px;padding:8px 14px;margin:0;border-radius:8px 0 0 8px;cursor:pointer;background:linear-gradient(135deg,#0a1a10 0%,#0d2818 100%);border:1px solid #00c47a40;color:#00c47a;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;transition:all .25s ease;position:relative;overflow:hidden}
+.cockpit-back-btn::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(0,196,122,0.15),transparent);transition:left .5s ease}
+.cockpit-back-btn:hover::before{left:100%}
+.cockpit-back-btn:hover{background:linear-gradient(135deg,#0d2818 0%,#104020 100%);border-color:#00c47a80;box-shadow:0 0 20px rgba(0,196,122,0.2),inset 0 0 10px rgba(0,196,122,0.05)}
+.cockpit-back-btn:active{transform:scale(0.98)}
+.cockpit-back-icon{font-size:16px;animation:backArrowPulse 2s ease-in-out infinite}
+.cockpit-back-text{display:flex;flex-direction:column;align-items:flex-start;line-height:1.1}
+.cockpit-back-sub{font-size:8px;font-weight:500;color:#00c47a99;letter-spacing:.02em;text-transform:lowercase}
+@keyframes backArrowPulse{0%,100%{transform:translateX(0);opacity:1}50%{transform:translateX(-3px);opacity:0.7}}
+
 /* ── TOAST NOTIFICATIONS ── */
 #toast-container{position:fixed;bottom:24px;right:24px;z-index:99999;display:flex;flex-direction:column;gap:10px;pointer-events:none}
 .toast{padding:14px 20px;background:#111;border:0.5px solid #222;border-radius:12px;color:#fff;font-size:12px;font-weight:500;display:flex;align-items:center;gap:10px;pointer-events:all;animation:toastIn .3s ease;box-shadow:0 8px 32px rgba(0,0,0,.4);max-width:320px}
@@ -4356,7 +4367,10 @@ function render(){
   const topBody=mh+(wipeBanner||bustBanner)+`<div class="note" style="${IS_WIPED?'border-color:#E24B4A;background:#FCEBEB':''}">${IS_WIPED?'':noteText}</div>`+chartH+(isQ?assessH:'');
   rc.innerHTML=`<div class="top-panel" id="top-panel">
     <div style="display:flex;align-items:stretch;gap:0;width:100%;margin-bottom:6px">
-      <button id="back-to-member" class="spot-badge" onclick="backToMemberArea()" style="margin:0;margin-left:0;border-right:none;align-self:stretch;display:none;flex-direction:column;align-items:center;justify-content:center;border-radius:6px 0 0 6px;cursor:pointer;background:#1a1a1a;color:#888;border:0.5px solid #333;padding:3px 10px;transition:all .2s" onmouseover="this.style.borderColor='#00c47a';this.style.color='#00c47a'" onmouseout="this.style.borderColor='#333';this.style.color='#888'">← back<span class="spot-badge-sub">member area</span></button>
+      <button id="back-to-member" class="cockpit-back-btn" onclick="backToMemberArea()">
+        <span class="cockpit-back-icon">←</span>
+        <span class="cockpit-back-text">back<span class="cockpit-back-sub">member area</span></span>
+      </button>
       <button class="top-panel-toggle" onclick="toggleTopPanel()" style="flex:1;margin-bottom:0"><span class="tp-dots"><span class="tp-dot"></span><span class="tp-dot"></span><span class="tp-dot"></span></span><span class="tp-arrow">▾</span> <span id="tp-lbl">hide overview</span> <span class="tp-arrow" style="transform:none">▾</span><span class="tp-dots"><span class="tp-dot"></span><span class="tp-dot"></span><span class="tp-dot"></span></span></button>
       <span id="spot-badge" class="spot-badge ${s.SPOT?'spot':'lev'}" style="margin:0;margin-right:8px;border-left:none;align-self:stretch;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:0 6px 6px 0">${s.SPOT?'◈ spot dashboard':'⚡ leverage dashboard'}<span class="spot-badge-sub">current mode</span></span>
     </div>
