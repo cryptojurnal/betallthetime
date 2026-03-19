@@ -1246,6 +1246,50 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 /* ── RESPONSIVE: stack cards on mobile ── */
 @media(max-width:700px){.l3-grid{grid-template-columns:1fr 1fr}.l3-welcome h1{font-size:20px}}
 @media(max-width:480px){.l3-grid{grid-template-columns:1fr}.l3-header{flex-direction:column;gap:12px;align-items:flex-start}.acc-container{padding:16px 16px 60px}}
+
+/* ── ADMIN PANEL ── */
+#admin-page{position:fixed;top:0;left:0;width:100%;height:100%;background:#0a0a0a;z-index:9800;display:none;overflow-y:auto}
+#admin-page.visible{display:block;animation:fadeIn .3s ease}
+.admin-container{max-width:1200px;margin:0 auto;padding:24px 20px 60px}
+.admin-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;padding-bottom:16px;border-bottom:0.5px solid #1a1a1a}
+.admin-header h1{font-size:20px;font-weight:800;color:#fff;margin:0}
+.admin-back{background:none;border:1px solid #333;border-radius:6px;color:#888;font-size:11px;padding:8px 14px;cursor:pointer;transition:all .15s}
+.admin-back:hover{border-color:#00c47a;color:#00c47a}
+.admin-login{max-width:400px;margin:100px auto;padding:30px;background:#111;border:1px solid #1a1a1a;border-radius:12px;text-align:center}
+.admin-login h2{font-size:16px;font-weight:700;color:#fff;margin:0 0 20px}
+.admin-login input{width:100%;padding:12px;background:#0a0a0a;border:1px solid #222;border-radius:8px;color:#fff;font-size:13px;margin-bottom:12px;box-sizing:border-box}
+.admin-login input:focus{border-color:#00c47a;outline:none}
+.admin-login button{width:100%;padding:12px;background:#00c47a;border:none;border-radius:8px;color:#000;font-size:12px;font-weight:700;cursor:pointer;transition:opacity .15s}
+.admin-login button:hover{opacity:.9}
+.admin-login .error{color:#E24B4A;font-size:11px;margin-top:8px}
+.admin-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:24px}
+.admin-stat{background:#111;border:1px solid #1a1a1a;border-radius:10px;padding:16px;text-align:center}
+.admin-stat-value{font-size:28px;font-weight:800;color:#00c47a}
+.admin-stat-label{font-size:10px;color:#666;text-transform:uppercase;letter-spacing:.05em;margin-top:4px}
+.admin-section{background:#111;border:1px solid #1a1a1a;border-radius:10px;padding:16px;margin-bottom:16px}
+.admin-section-title{font-size:12px;font-weight:700;color:#fff;margin:0 0 12px;display:flex;align-items:center;gap:8px}
+.admin-table{width:100%;border-collapse:collapse;font-size:11px}
+.admin-table th{text-align:left;padding:8px 10px;background:#0a0a0a;color:#666;font-weight:600;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid #1a1a1a}
+.admin-table td{padding:8px 10px;border-bottom:1px solid #1a1a1a;color:#ccc}
+.admin-table tr:hover td{background:#0d0d0d}
+.admin-search{display:flex;gap:8px;margin-bottom:12px}
+.admin-search input{flex:1;padding:10px 12px;background:#0a0a0a;border:1px solid #222;border-radius:8px;color:#fff;font-size:12px}
+.admin-search input:focus{border-color:#00c47a;outline:none}
+.admin-search button{padding:10px 16px;background:#00c47a;border:none;border-radius:8px;color:#000;font-size:11px;font-weight:700;cursor:pointer}
+.admin-pagination{display:flex;justify-content:center;gap:8px;margin-top:12px}
+.admin-pagination button{padding:6px 12px;background:#1a1a1a;border:1px solid #333;border-radius:6px;color:#888;font-size:10px;cursor:pointer;transition:all .15s}
+.admin-pagination button:hover{border-color:#00c47a;color:#00c47a}
+.admin-pagination button.active{background:#00c47a;border-color:#00c47a;color:#000}
+.admin-pagination button:disabled{opacity:.4;cursor:default}
+.admin-tabs{display:flex;gap:4px;margin-bottom:16px;background:#0a0a0a;padding:4px;border-radius:8px}
+.admin-tab{flex:1;padding:10px;background:transparent;border:none;border-radius:6px;color:#666;font-size:11px;font-weight:600;cursor:pointer;transition:all .15s}
+.admin-tab.active{background:#00c47a;color:#000}
+.admin-tab:hover:not(.active){color:#fff}
+.admin-badge{display:inline-block;padding:2px 6px;border-radius:4px;font-size:9px;font-weight:600}
+.admin-badge.sync{background:#0a2a1a;color:#00c47a}
+.admin-badge.login{background:#0a1a2a;color:#5b7fff}
+.admin-badge.preset{background:#2a1a0a;color:#ffa500}
+.admin-loading{text-align:center;padding:40px;color:#555}
 </style>
 </head>
 <body class="t-light">
@@ -1551,6 +1595,108 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
   </div>
 </div>
 
+<!-- ADMIN PANEL -->
+<div id="admin-page">
+  <div class="admin-container">
+    <!-- Login Form (shown first) -->
+    <div id="admin-login-section" class="admin-login">
+      <h2>🔐 Admin Access</h2>
+      <input type="password" id="admin-key-input" placeholder="Enter admin key" onkeydown="if(event.key==='Enter')adminLogin()">
+      <button onclick="adminLogin()">Login</button>
+      <div class="error" id="admin-login-err"></div>
+      <div style="margin-top:20px">
+        <button onclick="closeAdminPage()" style="background:none;border:none;color:#555;font-size:11px;cursor:pointer">← back</button>
+      </div>
+    </div>
+
+    <!-- Dashboard (shown after login) -->
+    <div id="admin-dashboard" style="display:none">
+      <div class="admin-header">
+        <h1>📊 Admin Dashboard</h1>
+        <button class="admin-back" onclick="closeAdminPage()">← Back to Site</button>
+      </div>
+
+      <!-- Stats Cards -->
+      <div class="admin-stats" id="admin-stats">
+        <div class="admin-stat">
+          <div class="admin-stat-value" id="admin-total-users">-</div>
+          <div class="admin-stat-label">Total Users</div>
+        </div>
+        <div class="admin-stat">
+          <div class="admin-stat-value" id="admin-new-users">-</div>
+          <div class="admin-stat-label">New (7 days)</div>
+        </div>
+        <div class="admin-stat">
+          <div class="admin-stat-value" id="admin-active-users">-</div>
+          <div class="admin-stat-label">Active (7 days)</div>
+        </div>
+        <div class="admin-stat">
+          <div class="admin-stat-value" id="admin-total-presets">-</div>
+          <div class="admin-stat-label">Total Presets</div>
+        </div>
+        <div class="admin-stat">
+          <div class="admin-stat-value" id="admin-total-syncs">-</div>
+          <div class="admin-stat-label">Total Syncs</div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="admin-tabs">
+        <button class="admin-tab active" onclick="adminShowTab('users')">👥 Users</button>
+        <button class="admin-tab" onclick="adminShowTab('activity')">📜 Activity</button>
+      </div>
+
+      <!-- Users Tab -->
+      <div id="admin-users-tab" class="admin-section">
+        <div class="admin-section-title">👥 Registered Users</div>
+        <div class="admin-search">
+          <input type="text" id="admin-search-input" placeholder="Search by username or email..." onkeydown="if(event.key==='Enter')adminSearchUsers()">
+          <button onclick="adminSearchUsers()">Search</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Registered</th>
+                <th>Last Login</th>
+                <th>Presets</th>
+                <th>Syncs</th>
+              </tr>
+            </thead>
+            <tbody id="admin-users-tbody">
+              <tr><td colspan="6" class="admin-loading">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="admin-pagination" id="admin-users-pagination"></div>
+      </div>
+
+      <!-- Activity Tab -->
+      <div id="admin-activity-tab" class="admin-section" style="display:none">
+        <div class="admin-section-title">📜 Recent Activity</div>
+        <div style="overflow-x:auto">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>User</th>
+                <th>Action</th>
+                <th>Details</th>
+                <th>Time</th>
+              </tr>
+            </thead>
+            <tbody id="admin-activity-tbody">
+              <tr><td colspan="4" class="admin-loading">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="admin-pagination" id="admin-activity-pagination"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- SAVE PRESET MODAL -->
 <div id="preset-save-modal">
   <div class="psm-box">
@@ -1782,7 +1928,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
     </div>
 
     <div class="l3-footer">
-      <p>built with 🤍 by <a href="https://t.me/CryptoJurnal" target="_blank">@cryptojurnal</a> · bet all the time, bet with style</p>
+      <p>built with 🤍 by <a href="https://t.me/CryptoJurnal" target="_blank">@cryptojurnal</a> · <span onclick="openAdminPage()" style="cursor:default" title="Admin">bet all the time</span>, bet with style</p>
     </div>
   </div>
 </div>
@@ -5328,6 +5474,11 @@ document.addEventListener('keydown',function(e){
       backToMemberArea();
     }
   }
+  // Ctrl+Shift+A = Admin Panel (secret)
+  if((e.ctrlKey||e.metaKey)&&e.shiftKey&&e.key==='A'){
+    e.preventDefault();
+    openAdminPage();
+  }
 });
 
 // ── PRESET SYSTEM (Cloud via Cloudflare D1) ──
@@ -5712,6 +5863,203 @@ function openAccountPage(){
 function closeAccountPage(){
   const page=document.getElementById('account-page');
   if(page) page.classList.remove('visible');
+}
+
+// ── ADMIN PANEL FUNCTIONS ──
+var ADMIN_KEY = null;
+var ADMIN_USERS_PAGE = 1;
+var ADMIN_ACTIVITY_PAGE = 1;
+
+function openAdminPage(){
+  const page = document.getElementById('admin-page');
+  if(page) page.classList.add('visible');
+  
+  // If already logged in, show dashboard
+  if(ADMIN_KEY){
+    document.getElementById('admin-login-section').style.display = 'none';
+    document.getElementById('admin-dashboard').style.display = 'block';
+    adminLoadStats();
+    adminLoadUsers();
+  } else {
+    document.getElementById('admin-login-section').style.display = 'block';
+    document.getElementById('admin-dashboard').style.display = 'none';
+  }
+}
+
+function closeAdminPage(){
+  const page = document.getElementById('admin-page');
+  if(page) page.classList.remove('visible');
+}
+
+async function adminLogin(){
+  const input = document.getElementById('admin-key-input');
+  const err = document.getElementById('admin-login-err');
+  const key = input?.value?.trim();
+  
+  if(!key){
+    err.textContent = 'Please enter admin key';
+    return;
+  }
+  
+  err.textContent = 'Verifying...';
+  
+  try {
+    const r = await fetch(AUTH_URL + '/admin/stats', {
+      headers: { 'X-Admin-Key': key }
+    });
+    
+    if(r.ok){
+      ADMIN_KEY = key;
+      err.textContent = '';
+      input.value = '';
+      document.getElementById('admin-login-section').style.display = 'none';
+      document.getElementById('admin-dashboard').style.display = 'block';
+      adminLoadStats();
+      adminLoadUsers();
+    } else {
+      err.textContent = 'Invalid admin key';
+    }
+  } catch(e){
+    err.textContent = 'Connection error';
+  }
+}
+
+async function adminLoadStats(){
+  try {
+    const r = await fetch(AUTH_URL + '/admin/stats', {
+      headers: { 'X-Admin-Key': ADMIN_KEY }
+    });
+    const d = await r.json();
+    
+    if(d.ok && d.stats){
+      document.getElementById('admin-total-users').textContent = d.stats.total_users || 0;
+      document.getElementById('admin-new-users').textContent = d.stats.new_users_7d || 0;
+      document.getElementById('admin-active-users').textContent = d.stats.active_users_7d || 0;
+      document.getElementById('admin-total-presets').textContent = d.stats.total_presets || 0;
+      document.getElementById('admin-total-syncs').textContent = d.stats.total_syncs || 0;
+    }
+  } catch(e){
+    console.error('Admin stats error:', e);
+  }
+}
+
+async function adminLoadUsers(page = 1, search = ''){
+  ADMIN_USERS_PAGE = page;
+  const tbody = document.getElementById('admin-users-tbody');
+  tbody.innerHTML = '<tr><td colspan="6" class="admin-loading">Loading...</td></tr>';
+  
+  try {
+    let url = AUTH_URL + '/admin/users?page=' + page;
+    if(search) url += '&search=' + encodeURIComponent(search);
+    
+    const r = await fetch(url, {
+      headers: { 'X-Admin-Key': ADMIN_KEY }
+    });
+    const d = await r.json();
+    
+    if(d.ok && d.users){
+      if(d.users.length === 0){
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#555;padding:20px">No users found</td></tr>';
+      } else {
+        tbody.innerHTML = d.users.map(u => `
+          <tr>
+            <td><strong>${escHtml(u.username)}</strong></td>
+            <td>${escHtml(u.email)}</td>
+            <td>${formatDate(u.created_at)}</td>
+            <td>${u.last_login ? formatDate(u.last_login) : '—'}</td>
+            <td>${u.preset_count || 0}</td>
+            <td>${u.sync_count || 0}</td>
+          </tr>
+        `).join('');
+      }
+      
+      // Pagination
+      const pag = document.getElementById('admin-users-pagination');
+      const pages = d.pagination?.pages || 1;
+      const currentPage = d.pagination?.page || 1;
+      
+      if(pages > 1){
+        let html = '';
+        html += `<button ${currentPage <= 1 ? 'disabled' : ''} onclick="adminLoadUsers(${currentPage - 1}, '${search}')">← Prev</button>`;
+        for(let i = 1; i <= Math.min(pages, 5); i++){
+          html += `<button class="${i === currentPage ? 'active' : ''}" onclick="adminLoadUsers(${i}, '${search}')">${i}</button>`;
+        }
+        if(pages > 5){
+          html += `<span style="color:#555;padding:0 8px">...</span>`;
+          html += `<button onclick="adminLoadUsers(${pages}, '${search}')">${pages}</button>`;
+        }
+        html += `<button ${currentPage >= pages ? 'disabled' : ''} onclick="adminLoadUsers(${currentPage + 1}, '${search}')">Next →</button>`;
+        pag.innerHTML = html;
+      } else {
+        pag.innerHTML = '';
+      }
+    }
+  } catch(e){
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#E24B4A;padding:20px">Error loading users</td></tr>';
+  }
+}
+
+function adminSearchUsers(){
+  const search = document.getElementById('admin-search-input')?.value?.trim() || '';
+  adminLoadUsers(1, search);
+}
+
+async function adminLoadActivity(page = 1){
+  ADMIN_ACTIVITY_PAGE = page;
+  const tbody = document.getElementById('admin-activity-tbody');
+  tbody.innerHTML = '<tr><td colspan="4" class="admin-loading">Loading...</td></tr>';
+  
+  try {
+    const r = await fetch(AUTH_URL + '/admin/activity?page=' + page, {
+      headers: { 'X-Admin-Key': ADMIN_KEY }
+    });
+    const d = await r.json();
+    
+    if(d.ok && d.activity){
+      if(d.activity.length === 0){
+        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#555;padding:20px">No activity found</td></tr>';
+      } else {
+        tbody.innerHTML = d.activity.map(a => {
+          const badgeClass = a.action === 'sync' ? 'sync' : (a.action === 'login' ? 'login' : 'preset');
+          return `
+          <tr>
+            <td>${escHtml(a.username || '—')}</td>
+            <td><span class="admin-badge ${badgeClass}">${escHtml(a.action)}</span></td>
+            <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escHtml(a.details || '—')}</td>
+            <td>${formatDate(a.created_at)}</td>
+          </tr>
+        `}).join('');
+      }
+    }
+  } catch(e){
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#E24B4A;padding:20px">Error loading activity</td></tr>';
+  }
+}
+
+function adminShowTab(tab){
+  // Update tab buttons
+  document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  
+  // Show/hide content
+  document.getElementById('admin-users-tab').style.display = tab === 'users' ? 'block' : 'none';
+  document.getElementById('admin-activity-tab').style.display = tab === 'activity' ? 'block' : 'none';
+  
+  // Load data
+  if(tab === 'activity'){
+    adminLoadActivity();
+  }
+}
+
+function formatDate(ts){
+  if(!ts) return '—';
+  const d = new Date(ts);
+  return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+}
+
+function escHtml(str){
+  if(!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 async function loadAccountPage(){
