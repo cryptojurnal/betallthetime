@@ -699,6 +699,8 @@ body.t-lavender{--bg:#f0eef8;--panel:#fff;--bd:#d8d4f0;--bd2:#e4e0f4;--sf:#f8f6f
 .spot-badge-sub{font-size:7px;font-weight:400;opacity:.75;letter-spacing:.03em;text-transform:none}
 .spot-badge.lev{background:#1D3A5F;color:#5BB0FF;border:0.5px solid #2A5080}
 .spot-badge.spot{background:#1A3A1A;color:#5DC96A;border:0.5px solid #3A6A3A}
+.spot-badge.back{display:none;margin:0;margin-left:8px;align-self:stretch;flex-direction:column;align-items:center;justify-content:center;border-radius:6px 0 0 6px;cursor:pointer;background:#0a1a10;color:#00c47a;border:0.5px solid #004d30;transition:all .25s ease}
+.spot-badge.back:hover{background:#0d2818;border-color:#00c47a;box-shadow:0 0 12px rgba(0,196,122,0.25)}
 .mode-switcher{display:flex;align-items:center;gap:0;border:0.5px solid var(--bd2);border-radius:6px;overflow:hidden;margin:4px 0}
 .msw-btn{flex:1;padding:4px 6px;font-size:9px;font-weight:700;border:none;cursor:pointer;background:transparent;color:var(--tx3);letter-spacing:.04em;text-transform:uppercase;transition:all .2s}
 .msw-btn.on{background:var(--acc2);color:#fff}
@@ -1079,7 +1081,8 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 .auth-logout-btn:hover{background:#2a0a0a;border-color:#E24B4A;box-shadow:0 0 8px rgba(226,75,74,0.3)}
 
 /* ── LAYER 3: MEMBER AREA PAGE ── */
-#layer3{position:fixed;inset:0;z-index:9500;background:#000;display:flex;flex-direction:column;opacity:0;transition:opacity .6s ease,background .3s;pointer-events:none}
+#layer3{position:fixed;inset:0;z-index:9500;background:#000;display:flex;flex-direction:column;opacity:0;transform:scale(1.02) translateY(-10px);transition:opacity .5s cubic-bezier(0.4,0,0.2,1),transform .5s cubic-bezier(0.4,0,0.2,1),background .3s;pointer-events:none}
+#layer3.visible{opacity:1;transform:scale(1) translateY(0);pointer-events:all}
 /* Member Area Themes */
 #layer3.ma-dark,#account-page.ma-dark{background:#000}
 #layer3.ma-dark .l3-card,#account-page.ma-dark .acc-card{background:#0d0d0d;border-color:#1a1a1a}
@@ -1126,7 +1129,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 #layer3.ma-midnight .l3-ai-chips button:hover{border-color:#5b7fff;color:#5b7fff;background:#0a0a30}
 #layer3.ma-midnight .l3-ai-lang button.active{background:#5b7fff}
 #layer3.ma-emerald .l3-ai-box{background:#001a10;border-color:#003a20}
-#layer3.visible{opacity:1;pointer-events:all}
+#layer3.visible{opacity:1;transform:scale(1);pointer-events:all}
 #layer3.hidden{display:none}
 .l3-container{flex:1;display:flex;flex-direction:column;max-width:960px;width:100%;margin:0 auto;padding:24px 24px 16px;overflow-y:auto;scrollbar-width:none}
 .l3-container::-webkit-scrollbar{display:none}
@@ -1191,17 +1194,6 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 .back-to-member:hover{background:#0d0d0d;border-color:#00c47a}
 .back-to-member:active{cursor:grabbing}
 .back-to-member.visible{opacity:1;pointer-events:all}
-
-/* Cockpit Back Button - Eye-catching */
-.cockpit-back-btn{display:none;flex-direction:row;align-items:center;gap:8px;padding:8px 14px;margin:0;border-radius:8px 0 0 8px;cursor:pointer;background:linear-gradient(135deg,#0a1a10 0%,#0d2818 100%);border:1px solid #00c47a40;color:#00c47a;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;transition:all .25s ease;position:relative;overflow:hidden}
-.cockpit-back-btn::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:100%;background:linear-gradient(90deg,transparent,rgba(0,196,122,0.15),transparent);transition:left .5s ease}
-.cockpit-back-btn:hover::before{left:100%}
-.cockpit-back-btn:hover{background:linear-gradient(135deg,#0d2818 0%,#104020 100%);border-color:#00c47a80;box-shadow:0 0 20px rgba(0,196,122,0.2),inset 0 0 10px rgba(0,196,122,0.05)}
-.cockpit-back-btn:active{transform:scale(0.98)}
-.cockpit-back-icon{font-size:16px;animation:backArrowPulse 2s ease-in-out infinite}
-.cockpit-back-text{display:flex;flex-direction:column;align-items:flex-start;line-height:1.1}
-.cockpit-back-sub{font-size:8px;font-weight:500;color:#00c47a99;letter-spacing:.02em;text-transform:lowercase}
-@keyframes backArrowPulse{0%,100%{transform:translateX(0);opacity:1}50%{transform:translateX(-3px);opacity:0.7}}
 
 /* ── TOAST NOTIFICATIONS ── */
 #toast-container{position:fixed;bottom:24px;right:24px;z-index:99999;display:flex;flex-direction:column;gap:10px;pointer-events:none}
@@ -4369,10 +4361,7 @@ function render(){
   const topBody=mh+(wipeBanner||bustBanner)+`<div class="note" style="${IS_WIPED?'border-color:#E24B4A;background:#FCEBEB':''}">${IS_WIPED?'':noteText}</div>`+chartH+(isQ?assessH:'');
   rc.innerHTML=`<div class="top-panel" id="top-panel">
     <div style="display:flex;align-items:stretch;gap:0;width:100%;margin-bottom:6px">
-      <button id="back-to-member" class="cockpit-back-btn" onclick="backToMemberArea()">
-        <span class="cockpit-back-icon">←</span>
-        <span class="cockpit-back-text">back<span class="cockpit-back-sub">member area</span></span>
-      </button>
+      <button id="back-to-member" class="spot-badge back" onclick="backToMemberArea()">← member area<span class="spot-badge-sub">go back</span></button>
       <button class="top-panel-toggle" onclick="toggleTopPanel()" style="flex:1;margin-bottom:0"><span class="tp-dots"><span class="tp-dot"></span><span class="tp-dot"></span><span class="tp-dot"></span></span><span class="tp-arrow">▾</span> <span id="tp-lbl">hide overview</span> <span class="tp-arrow" style="transform:none">▾</span><span class="tp-dots"><span class="tp-dot"></span><span class="tp-dot"></span><span class="tp-dot"></span></span></button>
       <span id="spot-badge" class="spot-badge ${s.SPOT?'spot':'lev'}" style="margin:0;margin-right:8px;border-left:none;align-self:stretch;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:0 6px 6px 0">${s.SPOT?'◈ spot dashboard':'⚡ leverage dashboard'}<span class="spot-badge-sub">current mode</span></span>
     </div>
@@ -6488,12 +6477,20 @@ function openDashboard(){
 }
 
 function backToMemberArea(){
-  // hide dashboard
+  // Smooth fade out dashboard with pro easing
   const app=document.querySelector('.app');
-  if(app) app.style.opacity='0';
-  // hide back button
+  if(app){
+    app.style.transition='opacity 0.5s cubic-bezier(0.4,0,0.2,1), transform 0.5s cubic-bezier(0.4,0,0.2,1)';
+    app.style.opacity='0';
+    app.style.transform='scale(0.96) translateY(10px)';
+  }
+  // hide back button with fade
   const backBtn=document.getElementById('back-to-member');
-  if(backBtn) backBtn.style.display='none';
+  if(backBtn){
+    backBtn.style.transition='opacity 0.3s ease';
+    backBtn.style.opacity='0';
+    setTimeout(()=>{backBtn.style.display='none';backBtn.style.opacity='';},300);
+  }
   // hide keyboard hints
   const kbdHint=document.getElementById('kbd-hint');
   if(kbdHint) kbdHint.classList.remove('visible');
@@ -6510,13 +6507,24 @@ function backToMemberArea(){
   }
   const leftPanel=document.getElementById('left-panel');
   if(leftPanel) leftPanel.classList.add('collapsed');
-  // hide AI fab
+  // hide AI fab smoothly
   const aiFab=document.getElementById('ai-fab');
-  if(aiFab){aiFab.style.opacity='0';aiFab.style.pointerEvents='none';}
+  if(aiFab){
+    aiFab.style.transition='opacity 0.4s cubic-bezier(0.4,0,0.2,1), transform 0.4s cubic-bezier(0.4,0,0.2,1)';
+    aiFab.style.opacity='0';
+    aiFab.style.transform='scale(0.8) translateY(20px)';
+    aiFab.style.pointerEvents='none';
+  }
   // close AI panel if open
   if(AI_OPEN) aiToggle();
-  // show layer3
-  setTimeout(()=>{goLayer3();},300);
+  // show layer3 with smooth entrance after dashboard fades
+  setTimeout(()=>{
+    goLayer3();
+    // Reset app transform after transition
+    if(app){
+      app.style.transform='';
+    }
+  },450);
 }
 
 // ── Auto-restore session on load ──
@@ -7189,16 +7197,32 @@ function closeTradingPage() {
   const page = document.getElementById('trading-page');
   const l3 = document.getElementById('layer3');
   if (page) {
-    page.classList.remove('visible');
-    l3.classList.add('visible');
+    // Smooth fade out with pro easing
+    page.style.transition = 'opacity 0.5s cubic-bezier(0.4,0,0.2,1), transform 0.5s cubic-bezier(0.4,0,0.2,1)';
+    page.style.opacity = '0';
+    page.style.transform = 'scale(0.96) translateY(10px)';
     
-    // Show floating elements again
-    const userBar = document.getElementById('auth-user-bar');
-    const aiFab = document.getElementById('ai-fab');
-    const presetsToggle = document.querySelector('.panel-presets-toggle');
-    if (userBar && AUTH_TOKEN) userBar.style.display = '';
-    if (aiFab) aiFab.style.display = '';
-    if (presetsToggle && AUTH_TOKEN) presetsToggle.style.display = '';
+    // Show layer3 with smooth entrance
+    setTimeout(() => {
+      page.classList.remove('visible');
+      page.style.opacity = '';
+      page.style.transform = '';
+      l3.classList.add('visible');
+      
+      // Show floating elements again with smooth fade in
+      const userBar = document.getElementById('auth-user-bar');
+      const aiFab = document.getElementById('ai-fab');
+      const presetsToggle = document.querySelector('.panel-presets-toggle');
+      if (userBar && AUTH_TOKEN) userBar.style.display = '';
+      if (aiFab) {
+        aiFab.style.display = '';
+        aiFab.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+        aiFab.style.opacity = '1';
+        aiFab.style.transform = '';
+        aiFab.style.pointerEvents = '';
+      }
+      if (presetsToggle && AUTH_TOKEN) presetsToggle.style.display = '';
+    }, 400);
   }
   if (window._tpPriceInterval) {
     clearInterval(window._tpPriceInterval);
