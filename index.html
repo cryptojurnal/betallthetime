@@ -4279,6 +4279,11 @@ function render(){
     if(_gc) _gc.style.display='none';
     if(_tbl) _tbl.style.display='';
   }
+  // Re-show back button for logged-in users (render() recreates it with display:none)
+  if(typeof AUTH_TOKEN !== 'undefined' && AUTH_TOKEN){
+    const backBtn=document.getElementById('back-to-member');
+    if(backBtn) backBtn.style.display='flex';
+  }
 }
 
 function renderTbl(months){
