@@ -11193,10 +11193,10 @@ window.BATT_API = {
 // ── ADD TO COMMAND PALETTE ──
 CMD_ACTIONS.push(
   { icon: '🔔', title: 'Price Alerts', desc: 'Set price notifications', action: () => openAlertsPanel(), kbd: 'A', category: 'Advanced' },
-  { icon: '🔗', title: 'Webhooks', desc: 'Discord/Telegram integrations', action: () => openWebhooksPanel(), category: 'Advanced' },
-  { icon: '🎨', title: 'Theme Creator', desc: 'Design custom color theme', action: () => openThemeCreator(), category: 'Advanced' },
-  { icon: '📺', title: 'Toggle Ticker', desc: 'Live price ticker bar', action: () => toggleTicker(), category: 'Advanced' },
-  { icon: '💱', title: 'Currency: USD', desc: 'Change display currency', action: () => showCurrencyPicker(), category: 'Settings' },
+  { icon: '🔗', title: 'Webhooks', desc: 'Discord/Telegram integrations', action: () => openWebhooksPanel(), kbd: 'W', category: 'Advanced' },
+  { icon: '🎨', title: 'Theme Creator', desc: 'Design custom color theme', action: () => openThemeCreator(), kbd: 'Shift+T', category: 'Advanced' },
+  { icon: '📺', title: 'Toggle Ticker', desc: 'Live price ticker bar', action: () => toggleTicker(), kbd: 'T', category: 'Advanced' },
+  { icon: '💱', title: 'Currency', desc: 'Change display currency', action: () => showCurrencyPicker(), kbd: '$', category: 'Settings' },
   { icon: '🔑', title: 'API Access', desc: 'Generate developer API key', action: () => showApiPanel(), category: 'Advanced' }
 );
 
@@ -11239,17 +11239,52 @@ function showApiPanel() {
   });
 }
 
-// Additional keyboard shortcut for alerts
+// ── DIRECT KEYBOARD SHORTCUTS (No Ctrl+K needed!) ──
+// All these work when cockpit is visible
+
 document.addEventListener('keydown', (e) => {
+  // Skip if typing
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
   
-  // A for alerts
-  if (e.key === 'a' && !e.ctrlKey && !e.metaKey) {
-    const app = document.querySelector('.app');
-    if (app && getComputedStyle(app).opacity !== '0') {
-      e.preventDefault();
-      openAlertsPanel();
-    }
+  // Check if cockpit is visible
+  const app = document.querySelector('.app');
+  const cockpitVisible = app && getComputedStyle(app).opacity !== '0';
+  
+  if (!cockpitVisible) return;
+  
+  // A = Alerts
+  if (e.key === 'a' && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
+    e.preventDefault();
+    openAlertsPanel();
+    return;
+  }
+  
+  // W = Webhooks
+  if (e.key === 'w' && !e.ctrlKey && !e.metaKey) {
+    e.preventDefault();
+    openWebhooksPanel();
+    return;
+  }
+  
+  // T = Ticker toggle
+  if (e.key === 't' && !e.ctrlKey && !e.metaKey) {
+    e.preventDefault();
+    toggleTicker();
+    return;
+  }
+  
+  // Shift+T = Theme creator
+  if (e.key === 'T' && e.shiftKey) {
+    e.preventDefault();
+    openThemeCreator();
+    return;
+  }
+  
+  // $ or Shift+4 = Currency picker
+  if (e.key === '$' || (e.shiftKey && e.key === '4')) {
+    e.preventDefault();
+    showCurrencyPicker();
+    return;
   }
 });
 </script>
@@ -11302,28 +11337,40 @@ document.addEventListener('keydown', (e) => {
         <div class="shortcut-row"><span class="shortcut-label">Command palette</span><span class="shortcut-keys"><kbd>Ctrl</kbd><kbd>K</kbd></span></div>
         <div class="shortcut-row"><span class="shortcut-label">Back to member area</span><span class="shortcut-keys"><kbd>ESC</kbd></span></div>
         <div class="shortcut-row"><span class="shortcut-label">Show shortcuts</span><span class="shortcut-keys"><kbd>?</kbd></span></div>
-        <div class="shortcut-row"><span class="shortcut-label">Projection chart</span><span class="shortcut-keys"><kbd>P</kbd></span></div>
+        <div class="shortcut-row"><span class="shortcut-label">Ask AI</span><span class="shortcut-keys"><kbd>/</kbd></span></div>
       </div>
       <div class="shortcut-group">
-        <div class="shortcut-group-title">Actions</div>
+        <div class="shortcut-group-title">Data & Sync</div>
         <div class="shortcut-row"><span class="shortcut-label">Save preset</span><span class="shortcut-keys"><kbd>Ctrl</kbd><kbd>S</kbd></span></div>
         <div class="shortcut-row"><span class="shortcut-label">Sync to cloud</span><span class="shortcut-keys"><kbd>Ctrl</kbd><kbd>⇧</kbd><kbd>S</kbd></span></div>
         <div class="shortcut-row"><span class="shortcut-label">Undo</span><span class="shortcut-keys"><kbd>Ctrl</kbd><kbd>Z</kbd></span></div>
         <div class="shortcut-row"><span class="shortcut-label">Redo</span><span class="shortcut-keys"><kbd>Ctrl</kbd><kbd>Y</kbd></span></div>
       </div>
       <div class="shortcut-group">
-        <div class="shortcut-group-title">Cockpit</div>
+        <div class="shortcut-group-title">Cockpit Controls</div>
         <div class="shortcut-row"><span class="shortcut-label">Toggle spot/leverage</span><span class="shortcut-keys"><kbd>M</kbd></span></div>
         <div class="shortcut-row"><span class="shortcut-label">Toggle global mode</span><span class="shortcut-keys"><kbd>G</kbd></span></div>
         <div class="shortcut-row"><span class="shortcut-label">Open presets panel</span><span class="shortcut-keys"><kbd>Tab</kbd></span></div>
-        <div class="shortcut-row"><span class="shortcut-label">Ask AI</span><span class="shortcut-keys"><kbd>/</kbd></span></div>
+        <div class="shortcut-row"><span class="shortcut-label">Projection chart</span><span class="shortcut-keys"><kbd>P</kbd></span></div>
       </div>
       <div class="shortcut-group">
-        <div class="shortcut-group-title">Hidden Powers</div>
+        <div class="shortcut-group-title">Analysis</div>
         <div class="shortcut-row"><span class="shortcut-label">Compare presets</span><span class="shortcut-keys"><kbd>C</kbd></span></div>
         <div class="shortcut-row"><span class="shortcut-label">Monte Carlo sim</span><span class="shortcut-keys"><kbd>Ctrl</kbd><kbd>M</kbd></span></div>
         <div class="shortcut-row"><span class="shortcut-label">Risk heatmap</span><span class="shortcut-keys"><kbd>H</kbd></span></div>
+      </div>
+      <div class="shortcut-group">
+        <div class="shortcut-group-title">Advanced</div>
+        <div class="shortcut-row"><span class="shortcut-label">Price alerts</span><span class="shortcut-keys"><kbd>A</kbd></span></div>
+        <div class="shortcut-row"><span class="shortcut-label">Webhooks</span><span class="shortcut-keys"><kbd>W</kbd></span></div>
+        <div class="shortcut-row"><span class="shortcut-label">Toggle ticker</span><span class="shortcut-keys"><kbd>T</kbd></span></div>
+        <div class="shortcut-row"><span class="shortcut-label">Theme creator</span><span class="shortcut-keys"><kbd>⇧</kbd><kbd>T</kbd></span></div>
+        <div class="shortcut-row"><span class="shortcut-label">Currency</span><span class="shortcut-keys"><kbd>$</kbd></span></div>
+      </div>
+      <div class="shortcut-group">
+        <div class="shortcut-group-title">Secret</div>
         <div class="shortcut-row"><span class="shortcut-label">Admin panel</span><span class="shortcut-keys"><kbd>Ctrl</kbd><kbd>⇧</kbd><kbd>A</kbd></span></div>
+        <div class="shortcut-row"><span class="shortcut-label">Party mode</span><span class="shortcut-keys"><kbd>↑↑↓↓←→←→BA</kbd></span></div>
       </div>
     </div>
     <button onclick="closeShortcutsPanel()" style="margin-top:20px;padding:10px 20px;background:#1a1a1a;border:1px solid #333;border-radius:8px;color:#888;cursor:pointer;font-size:11px">Close</button>
