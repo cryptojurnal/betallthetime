@@ -965,7 +965,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
         <div class="l3-avatar" id="l3-avatar">U</div>
         <div class="l3-user-info">
           <h2 id="l3-username">@username</h2>
-          <p id="l3-email">user@email.com</p>
+          <p id="l3-email"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="6c191f091e2c09010d0500420f0301">[email&#160;protected]</a></p>
         </div>
       </div>
       <div class="l3-actions" style="flex-direction:column;align-items:flex-end;gap:4px">
@@ -1388,7 +1388,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 
 </div>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 let IDR=16700,IDR_LAST_UPDATE='';
 async function fetchIDR(force){
   try{
@@ -3774,14 +3774,19 @@ try{
 render();
 
 function goLayer2(){
-  const l1=document.getElementById('layer1');if(!l1)return;
-  l1.classList.add('out');
-  setTimeout(()=>{
-    l1.classList.add('hidden');
-    const l2=document.getElementById('layer2');
-    l2.classList.remove('hidden');
-    requestAnimationFrame(()=>requestAnimationFrame(()=>{l2.style.opacity='1';}));
-  },900);
+  const l1=document.getElementById('layer1');
+  const l2=document.getElementById('layer2');
+  // If coming from layer1, animate it out first
+  if(l1 && !l1.classList.contains('hidden')){
+    l1.classList.add('out');
+    setTimeout(()=>{
+      l1.classList.add('hidden');
+      if(l2){l2.classList.remove('hidden');requestAnimationFrame(()=>requestAnimationFrame(()=>{l2.style.opacity='1';}));}
+    },900);
+  } else {
+    // Coming from layer3 or elsewhere, just show layer2
+    if(l2){l2.classList.remove('hidden');requestAnimationFrame(()=>requestAnimationFrame(()=>{l2.style.opacity='1';}));}
+  }
 }
 function launchApp(){
   const l2=document.getElementById('layer2');if(!l2)return;
@@ -5319,9 +5324,3 @@ function aiSetLang(lang){
   </div>
 
   <div id="ai-msgs"></div>
-  <div id="ai-chips"></div>
-  <div id="ai-irow">
-    <textarea id="ai-inp" rows="1" placeholder="ask anything..." onkeydown="aiKey(event)"></textarea>
-    <button id="ai-sbtn" onclick="aiSend()">↑</button>
-  </div>
-</div>
