@@ -493,9 +493,87 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 .panel-left-edge{position:absolute;top:0;right:0;width:4px;height:100%;background:var(--acc);opacity:.35;transition:opacity .2s;cursor:pointer}
 .panel-left:not(.collapsed):hover .panel-left-edge{opacity:.7}
 .panel-left.collapsed .panel-left-edge{width:100%;opacity:.07;background:var(--acc)}
+
+/* ── AUTH PANEL ── */
+#auth-layer{position:fixed;inset:0;z-index:10000;background:#000;display:flex;align-items:center;justify-content:center;transition:opacity .5s ease}
+#auth-layer.out{opacity:0;pointer-events:none}
+#auth-layer.hidden{display:none}
+.auth-box{background:#0d0d0d;border:0.5px solid #1a1a1a;border-radius:14px;padding:32px 36px;width:100%;max-width:380px;box-shadow:0 24px 60px rgba(0,0,0,.6)}
+.auth-logo{font-size:13px;font-weight:900;color:#fff;line-height:1.1;margin-bottom:24px;letter-spacing:-.02em}
+.auth-logo span{color:#00c47a}
+.auth-tab-row{display:flex;border:0.5px solid #1e1e1e;border-radius:8px;overflow:hidden;margin-bottom:24px}
+.auth-tab{flex:1;padding:8px;font-size:11px;font-weight:700;border:none;background:transparent;color:#555;cursor:pointer;letter-spacing:.04em;text-transform:uppercase;transition:all .2s}
+.auth-tab.on{background:#00c47a;color:#000}
+.auth-field{margin-bottom:14px}
+.auth-field label{display:block;font-size:10px;color:#555;font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px}
+.auth-field input{width:100%;padding:10px 12px;background:#111;border:0.5px solid #222;border-radius:8px;color:#e0e0e0;font-size:12px;outline:none;transition:border-color .2s;box-sizing:border-box;font-family:inherit}
+.auth-field input:focus{border-color:#00c47a}
+.auth-submit{width:100%;padding:11px;background:#00c47a;color:#000;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.04em;transition:opacity .2s;margin-top:6px}
+.auth-submit:hover{opacity:.88}
+.auth-submit:disabled{opacity:.4;cursor:default}
+.auth-err{font-size:10px;color:#E24B4A;margin-top:8px;min-height:16px;line-height:1.4}
+.auth-ok{font-size:10px;color:#00c47a;margin-top:8px;min-height:16px}
+.auth-guest{display:block;text-align:center;margin-top:16px;font-size:10px;color:#333;cursor:pointer;letter-spacing:.04em;text-transform:uppercase;transition:color .2s;background:none;border:none;width:100%}
+.auth-guest:hover{color:#555}
+.auth-divider{height:0.5px;background:#1a1a1a;margin:16px 0}
+.auth-user-bar{display:flex;align-items:center;gap:8px;padding:4px 10px;background:#0a2a1a;border:0.5px solid #004d30;border-radius:20px;font-size:10px;color:#00c47a;font-weight:700;cursor:pointer;position:fixed;top:10px;right:80px;z-index:9998;transition:all .2s}
+.auth-user-bar:hover{background:#0d3a22}
+.auth-user-bar.hidden{display:none}
+.auth-sync-btn{background:none;border:none;color:#00c47a;font-size:11px;cursor:pointer;padding:0;font-weight:700;opacity:.7;transition:opacity .2s}
+.auth-sync-btn:hover{opacity:1}
 </style>
 </head>
 <body class="t-light">
+<!-- AUTH LAYER -->
+<div id="auth-layer">
+  <div class="auth-box">
+    <div class="auth-logo">bet all the time<br>bet with <span>style</span></div>
+    <div class="auth-tab-row">
+      <button class="auth-tab on" id="auth-tab-login" onclick="authShowTab('login')">login</button>
+      <button class="auth-tab" id="auth-tab-register" onclick="authShowTab('register')">register</button>
+    </div>
+    <!-- LOGIN -->
+    <div id="auth-login-form">
+      <div class="auth-field">
+        <label>email or username</label>
+        <input type="text" id="auth-login-input" placeholder="your@email.com or username" autocomplete="username">
+      </div>
+      <div class="auth-field">
+        <label>password</label>
+        <input type="password" id="auth-pass-input" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')authLogin()">
+      </div>
+      <div class="auth-err" id="auth-login-err"></div>
+      <button class="auth-submit" id="auth-login-btn" onclick="authLogin()">login</button>
+    </div>
+    <!-- REGISTER -->
+    <div id="auth-register-form" style="display:none">
+      <div class="auth-field">
+        <label>email</label>
+        <input type="email" id="auth-reg-email" placeholder="your@email.com" autocomplete="email">
+      </div>
+      <div class="auth-field">
+        <label>username</label>
+        <input type="text" id="auth-reg-user" placeholder="cooltrader99" autocomplete="username">
+      </div>
+      <div class="auth-field">
+        <label>password</label>
+        <input type="password" id="auth-reg-pass" placeholder="min 6 characters" autocomplete="new-password" onkeydown="if(event.key==='Enter')authRegister()">
+      </div>
+      <div class="auth-err" id="auth-reg-err"></div>
+      <button class="auth-submit" id="auth-reg-btn" onclick="authRegister()">create account</button>
+    </div>
+    <div class="auth-divider"></div>
+    <button class="auth-guest" onclick="authGuest()">continue without account →</button>
+    <div style="font-size:9px;color:#222;text-align:center;margin-top:10px">your data syncs across devices when logged in</div>
+  </div>
+</div>
+<!-- user bar shown after login -->
+<div class="auth-user-bar hidden" id="auth-user-bar" onclick="authShowMenu()">
+  <span id="auth-username-lbl">@user</span>
+  <button class="auth-sync-btn" onclick="event.stopPropagation();authSave()" title="sync to cloud">↑ sync</button>
+  <button class="auth-sync-btn" onclick="event.stopPropagation();authLogout()" title="logout" style="color:#E24B4A">✕</button>
+</div>
+
 <!-- LAYER 1 - philosophy -->
 <div id="layer1" onclick="goLayer2()">
   <div class="intro-quote">
@@ -3238,6 +3316,176 @@ function launchApp(){
   setTimeout(()=>{l2.classList.add('hidden');showGuidePopup();},900);
 }
 </script>
+<script>
+// ── AUTH SYSTEM ──
+const AUTH_URL = 'https://dashboard-ai-proxy.cryptojurnal.workers.dev';
+let AUTH_TOKEN = localStorage.getItem('batt_token') || null;
+let AUTH_USER  = null;
+
+function authShowTab(tab){
+  document.getElementById('auth-login-form').style.display   = tab==='login'    ? '' : 'none';
+  document.getElementById('auth-register-form').style.display = tab==='register' ? '' : 'none';
+  document.getElementById('auth-tab-login').classList.toggle('on',    tab==='login');
+  document.getElementById('auth-tab-register').classList.toggle('on', tab==='register');
+}
+
+async function authLogin(){
+  const btn = document.getElementById('auth-login-btn');
+  const err = document.getElementById('auth-login-err');
+  const login = document.getElementById('auth-login-input').value.trim();
+  const pass  = document.getElementById('auth-pass-input').value;
+  if(!login||!pass){err.textContent='fill in both fields';return;}
+  btn.disabled=true; btn.textContent='logging in...'; err.textContent='';
+  try{
+    const r = await fetch(AUTH_URL+'/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({login,password:pass})});
+    const d = await r.json();
+    if(!d.ok){err.textContent=d.error||'login failed';btn.disabled=false;btn.textContent='login';return;}
+    authOnSuccess(d);
+  }catch(e){err.textContent='connection failed — check your internet';btn.disabled=false;btn.textContent='login';}
+}
+
+async function authRegister(){
+  const btn = document.getElementById('auth-reg-btn');
+  const err = document.getElementById('auth-reg-err');
+  const email = document.getElementById('auth-reg-email').value.trim();
+  const user  = document.getElementById('auth-reg-user').value.trim();
+  const pass  = document.getElementById('auth-reg-pass').value;
+  if(!email||!user||!pass){err.textContent='fill in all fields';return;}
+  btn.disabled=true; btn.textContent='creating account...'; err.textContent='';
+  try{
+    const r = await fetch(AUTH_URL+'/auth/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,username:user,password:pass})});
+    const d = await r.json();
+    if(!d.ok){err.textContent=d.error||'registration failed';btn.disabled=false;btn.textContent='create account';return;}
+    authOnSuccess(d);
+  }catch(e){err.textContent='connection failed';btn.disabled=false;btn.textContent='create account';}
+}
+
+function authOnSuccess(d){
+  AUTH_TOKEN = d.token;
+  AUTH_USER  = d.user;
+  localStorage.setItem('batt_token', d.token);
+  // load cloud data if exists and merge
+  if(d.data){
+    try{
+      const parsed = typeof d.data==='string'?JSON.parse(d.data):d.data;
+      // merge into S state
+      Object.keys(parsed).forEach(tabId=>{
+        if(!S[tabId])S[tabId]=mkState();
+        Object.assign(S[tabId],parsed[tabId]);
+        if(parsed[tabId].ZM) S[tabId].ZM=new Set(parsed[tabId].ZM);
+      });
+    }catch(e){console.warn('data merge error',e);}
+  }
+  // hide auth, show dashboard
+  const al=document.getElementById('auth-layer');
+  al.classList.add('out');
+  setTimeout(()=>al.classList.add('hidden'),600);
+  // show user bar
+  const ub=document.getElementById('auth-user-bar');
+  const ul=document.getElementById('auth-username-lbl');
+  if(ub){ub.classList.remove('hidden');}
+  if(ul) ul.textContent='@'+d.user.username;
+  // proceed to layer 1
+}
+
+function authGuest(){
+  // just hide auth layer and proceed normally
+  const al=document.getElementById('auth-layer');
+  al.classList.add('out');
+  setTimeout(()=>al.classList.add('hidden'),600);
+}
+
+async function authSave(){
+  if(!AUTH_TOKEN){alert('log in first to sync');return;}
+  const btn=document.querySelector('.auth-sync-btn');
+  if(btn){btn.textContent='↑ ...';btn.disabled=true;}
+  try{
+    // serialize current state
+    const snapshot={};
+    ['36','q',...CUSTOM_TABS.map(t=>t.id)].forEach(id=>{
+      if(!S[id])return;
+      const s=S[id];
+      snapshot[id]={...s,ZM:[...s.ZM]};
+    });
+    const r=await fetch(AUTH_URL+'/data/save',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+AUTH_TOKEN},
+      body:JSON.stringify({data:snapshot})
+    });
+    const d=await r.json();
+    if(d.ok){
+      if(btn){btn.textContent='✓ saved';setTimeout(()=>{btn.textContent='↑ sync';btn.disabled=false;},1500);}
+    } else {
+      if(btn){btn.textContent='↑ sync';btn.disabled=false;}
+      if(d.error==='Unauthorized — please log in') authForceLogout();
+    }
+  }catch(e){if(btn){btn.textContent='↑ sync';btn.disabled=false;}}
+}
+
+async function authLogout(){
+  if(!confirm('log out?'))return;
+  if(AUTH_TOKEN){
+    fetch(AUTH_URL+'/auth/logout',{method:'POST',headers:{'Authorization':'Bearer '+AUTH_TOKEN}}).catch(()=>{});
+  }
+  authForceLogout();
+}
+
+function authForceLogout(){
+  AUTH_TOKEN=null; AUTH_USER=null;
+  localStorage.removeItem('batt_token');
+  const ub=document.getElementById('auth-user-bar');
+  if(ub) ub.classList.add('hidden');
+  // show auth layer again
+  const al=document.getElementById('auth-layer');
+  al.classList.remove('hidden','out');
+}
+
+// ── Auto-restore session on load ──
+async function authRestoreSession(){
+  if(!AUTH_TOKEN) return false;
+  try{
+    const r=await fetch(AUTH_URL+'/auth/me',{headers:{'Authorization':'Bearer '+AUTH_TOKEN}});
+    const d=await r.json();
+    if(d.ok){
+      AUTH_USER=d.user;
+      const ub=document.getElementById('auth-user-bar');
+      const ul=document.getElementById('auth-username-lbl');
+      if(ub) ub.classList.remove('hidden');
+      if(ul) ul.textContent='@'+d.user.username;
+      // load cloud data
+      const dr=await fetch(AUTH_URL+'/data/load',{headers:{'Authorization':'Bearer '+AUTH_TOKEN}});
+      const dd=await dr.json();
+      if(dd.ok&&dd.data){
+        const parsed=typeof dd.data==='string'?JSON.parse(dd.data):dd.data;
+        Object.keys(parsed).forEach(tabId=>{
+          if(!S[tabId])S[tabId]=mkState();
+          Object.assign(S[tabId],parsed[tabId]);
+          if(parsed[tabId].ZM) S[tabId].ZM=new Set(parsed[tabId].ZM);
+        });
+        // re-sync controls with loaded data
+        syncControls();
+        render();
+      }
+      return true;
+    } else {
+      AUTH_TOKEN=null; localStorage.removeItem('batt_token');
+      return false;
+    }
+  }catch(e){return false;}
+}
+
+// run on DOMContentLoaded
+document.addEventListener('DOMContentLoaded', async ()=>{
+  const restored = await authRestoreSession();
+  if(restored){
+    // valid session — skip auth layer, go straight to layer 1 (quote)
+    const al=document.getElementById('auth-layer');
+    if(al){al.classList.add('hidden');}
+  }
+  // if not restored, auth layer stays visible (default)
+});
+</script>
+
 <script>
 // ── AI ASSISTANT ──
 var AI_OPEN=false;
