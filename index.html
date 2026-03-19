@@ -1208,6 +1208,31 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 @keyframes toastIn{from{opacity:0;transform:translateX(100%)}to{opacity:1;transform:translateX(0)}}
 @keyframes toastOut{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(100%)}}
 
+/* ── PROFESSIONAL CONFIRMATION MODAL ── */
+.confirm-overlay{position:fixed;inset:0;z-index:99998;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s cubic-bezier(0.4,0,0.2,1)}
+.confirm-overlay.visible{opacity:1;pointer-events:all}
+.confirm-box{background:#111;border:1px solid #222;border-radius:16px;padding:28px;max-width:400px;width:90%;transform:scale(0.9) translateY(20px);transition:transform .3s cubic-bezier(0.4,0,0.2,1);box-shadow:0 20px 60px rgba(0,0,0,0.5)}
+.confirm-overlay.visible .confirm-box{transform:scale(1) translateY(0)}
+.confirm-icon{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 16px}
+.confirm-icon.warning{background:#2a1a0a;border:1px solid #4d3000}
+.confirm-icon.danger{background:#2a0a0a;border:1px solid #4d0000}
+.confirm-icon.info{background:#0a1a2a;border:1px solid #004d80}
+.confirm-icon.success{background:#0a2a1a;border:1px solid #004d30}
+.confirm-title{font-size:18px;font-weight:700;color:#fff;text-align:center;margin-bottom:8px}
+.confirm-message{font-size:13px;color:#888;text-align:center;line-height:1.5;margin-bottom:24px}
+.confirm-message strong{color:#ccc}
+.confirm-buttons{display:flex;gap:10px}
+.confirm-btn{flex:1;padding:12px 20px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;border:1px solid transparent}
+.confirm-btn.secondary{background:#1a1a1a;border-color:#333;color:#888}
+.confirm-btn.secondary:hover{background:#222;border-color:#444;color:#ccc}
+.confirm-btn.primary{background:#00c47a;border-color:#00c47a;color:#000}
+.confirm-btn.primary:hover{background:#00d884;box-shadow:0 4px 20px rgba(0,196,122,0.3)}
+.confirm-btn.danger{background:#E24B4A;border-color:#E24B4A;color:#fff}
+.confirm-btn.danger:hover{background:#ff5a59;box-shadow:0 4px 20px rgba(226,75,74,0.3)}
+.confirm-input{width:100%;padding:12px;background:#0a0a0a;border:1px solid #222;border-radius:8px;color:#fff;font-size:13px;margin-bottom:16px;box-sizing:border-box}
+.confirm-input:focus{border-color:#00c47a;outline:none}
+.confirm-input::placeholder{color:#444}
+
 /* ── KEYBOARD SHORTCUTS HINT ── */
 .kbd-hint{position:fixed;bottom:8px;right:60px;z-index:50;display:flex;gap:8px;opacity:0;transition:opacity .3s;pointer-events:none}
 .kbd-hint.visible{opacity:1}
@@ -1424,6 +1449,20 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 
 <!-- TOAST NOTIFICATIONS -->
 <div id="toast-container"></div>
+
+<!-- PROFESSIONAL CONFIRMATION MODAL -->
+<div class="confirm-overlay" id="confirm-overlay">
+  <div class="confirm-box">
+    <div class="confirm-icon" id="confirm-icon">⚠️</div>
+    <div class="confirm-title" id="confirm-title">Are you sure?</div>
+    <div class="confirm-message" id="confirm-message">This action cannot be undone.</div>
+    <input type="text" class="confirm-input" id="confirm-input" style="display:none" placeholder="">
+    <div class="confirm-buttons">
+      <button class="confirm-btn secondary" id="confirm-cancel">Cancel</button>
+      <button class="confirm-btn primary" id="confirm-ok">Confirm</button>
+    </div>
+  </div>
+</div>
 
 <!-- KEYBOARD SHORTCUTS HINT (shown in dashboard) -->
 <div class="kbd-hint" id="kbd-hint">
@@ -5200,7 +5239,7 @@ async function authGoogleLogin(){
     });
   }catch(e){
     console.error('Google auth error:',e);
-    alert('Google login failed. Make sure you set your GOOGLE_CLIENT_ID.');
+    showToast('Google login failed. Please try again.','error');
     resetGoogleBtn();
   }
 }
@@ -5236,12 +5275,12 @@ async function sendGoogleToWorker(google_id,email,name,picture){
       const al=document.getElementById('auth-layer');
       if(al){al.style.opacity='0';setTimeout(()=>{al.classList.add('hidden');goLayer3();},500);}
     }else{
-      alert(data.error||'Google login failed');
+      showToast(data.error||'Google login failed','error');
       resetGoogleBtn();
     }
   }catch(e){
     console.error('Google auth error:',e);
-    alert('Connection failed');
+    showToast('Connection failed. Please try again.','error');
     resetGoogleBtn();
   }
 }
@@ -5261,7 +5300,7 @@ function authGuest(){
 }
 
 async function authSave(){
-  if(!AUTH_TOKEN){alert('log in first to sync');return;}
+  if(!AUTH_TOKEN){showToast('Please log in first to sync','error');return;}
   const btn=document.querySelector('.auth-sync-btn');
   if(btn){btn.textContent='↑ ...';btn.disabled=true;}
   try{
@@ -5288,7 +5327,8 @@ async function authSave(){
 }
 
 async function authLogout(){
-  if(!confirm('log out?'))return;
+  const confirmed = await confirmLogout();
+  if(!confirmed) return;
   if(AUTH_TOKEN){
     fetch(AUTH_URL+'/auth/logout',{method:'POST',headers:{'Authorization':'Bearer '+AUTH_TOKEN}}).catch(()=>{});
   }
@@ -5375,6 +5415,171 @@ function showToast(message, type='info', duration=3500){
     toast.classList.add('out');
     setTimeout(()=>toast.remove(),300);
   },duration);
+}
+
+// ── PROFESSIONAL CONFIRMATION MODAL ──
+var _confirmCallback = null;
+var _confirmInputRequired = false;
+
+function showConfirm(options){
+  return new Promise((resolve)=>{
+    const overlay = document.getElementById('confirm-overlay');
+    const icon = document.getElementById('confirm-icon');
+    const title = document.getElementById('confirm-title');
+    const message = document.getElementById('confirm-message');
+    const input = document.getElementById('confirm-input');
+    const cancelBtn = document.getElementById('confirm-cancel');
+    const okBtn = document.getElementById('confirm-ok');
+    
+    // Set content
+    icon.textContent = options.icon || '⚠️';
+    icon.className = 'confirm-icon ' + (options.type || 'warning');
+    title.textContent = options.title || 'Are you sure?';
+    message.innerHTML = options.message || 'This action cannot be undone.';
+    
+    // Input field (optional)
+    if(options.input){
+      input.style.display = 'block';
+      input.placeholder = options.inputPlaceholder || '';
+      input.value = '';
+      _confirmInputRequired = options.inputRequired || false;
+    } else {
+      input.style.display = 'none';
+      _confirmInputRequired = false;
+    }
+    
+    // Buttons
+    cancelBtn.textContent = options.cancelText || 'Cancel';
+    cancelBtn.style.display = options.cancelText === '' ? 'none' : 'block';
+    okBtn.textContent = options.confirmText || 'Confirm';
+    okBtn.className = 'confirm-btn ' + (options.type === 'danger' ? 'danger' : 'primary');
+    
+    // Show modal
+    overlay.classList.add('visible');
+    if(options.input) setTimeout(()=>input.focus(),100);
+    
+    // Handle cancel
+    const handleCancel = ()=>{
+      overlay.classList.remove('visible');
+      cleanup();
+      resolve(false);
+    };
+    
+    // Handle confirm
+    const handleConfirm = ()=>{
+      if(_confirmInputRequired && !input.value.trim()){
+        input.style.borderColor = '#E24B4A';
+        input.focus();
+        return;
+      }
+      overlay.classList.remove('visible');
+      cleanup();
+      resolve(options.input ? input.value.trim() : true);
+    };
+    
+    // Handle escape key
+    const handleEscape = (e)=>{
+      if(e.key === 'Escape') handleCancel();
+      if(e.key === 'Enter' && !options.input) handleConfirm();
+    };
+    
+    // Cleanup listeners
+    const cleanup = ()=>{
+      cancelBtn.removeEventListener('click', handleCancel);
+      okBtn.removeEventListener('click', handleConfirm);
+      overlay.removeEventListener('click', handleOverlayClick);
+      document.removeEventListener('keydown', handleEscape);
+    };
+    
+    // Click outside to cancel
+    const handleOverlayClick = (e)=>{
+      if(e.target === overlay) handleCancel();
+    };
+    
+    // Attach listeners
+    cancelBtn.addEventListener('click', handleCancel);
+    okBtn.addEventListener('click', handleConfirm);
+    overlay.addEventListener('click', handleOverlayClick);
+    document.addEventListener('keydown', handleEscape);
+  });
+}
+
+// Quick confirm helpers
+function confirmLogout(){
+  return showConfirm({
+    icon: '👋',
+    type: 'warning',
+    title: 'Leaving so soon?',
+    message: 'You\'ll be logged out of your account.<br>Your data will stay safe in the cloud.',
+    confirmText: 'Log out',
+    cancelText: 'Stay'
+  });
+}
+
+function confirmDelete(itemName){
+  return showConfirm({
+    icon: '🗑️',
+    type: 'danger',
+    title: 'Delete this preset?',
+    message: '<strong>"'+itemName+'"</strong> will be permanently deleted.<br>This action cannot be undone.',
+    confirmText: 'Delete',
+    cancelText: 'Keep it'
+  });
+}
+
+function confirmDeleteAll(){
+  return showConfirm({
+    icon: '⚠️',
+    type: 'danger',
+    title: 'Delete ALL presets?',
+    message: 'This will permanently delete <strong>all your saved presets</strong>.<br>Are you absolutely sure?',
+    confirmText: 'Delete All',
+    cancelText: 'Cancel'
+  });
+}
+
+function confirmDeleteAccount(){
+  return showConfirm({
+    icon: '💔',
+    type: 'danger',
+    title: 'Delete your account?',
+    message: 'Your account and <strong>all your data</strong> will be permanently deleted.<br>This cannot be undone.',
+    confirmText: 'Delete Account',
+    cancelText: 'Keep Account'
+  });
+}
+
+function confirmImport(type, name){
+  return showConfirm({
+    icon: '📥',
+    type: 'info',
+    title: 'Import ' + type + '?',
+    message: name ? 'Import <strong>"'+name+'"</strong>?<br>This will add to your current data.' : 'This will replace your current dashboard data.',
+    confirmText: 'Import',
+    cancelText: 'Cancel'
+  });
+}
+
+function confirmReset(what){
+  return showConfirm({
+    icon: '🔄',
+    type: 'warning',
+    title: 'Reset ' + what + '?',
+    message: 'All your progress will be cleared.<br>This action cannot be undone.',
+    confirmText: 'Reset',
+    cancelText: 'Keep it'
+  });
+}
+
+function showInfo(icon, title, message){
+  return showConfirm({
+    icon: icon,
+    type: 'info',
+    title: title,
+    message: message,
+    confirmText: 'Got it',
+    cancelText: ''
+  }).then(()=>true);
 }
 
 // ── SYNC WITH TOAST ──
@@ -5723,7 +5928,8 @@ async function presetLoad(id){
 
 async function presetDelete(id,name){
   if(!AUTH_TOKEN){showToast('Please log in','error');return;}
-  if(!confirm('Delete preset "'+name+'"?'))return;
+  const confirmed = await confirmDelete(name);
+  if(!confirmed) return;
   
   try{
     const r=await fetch(AUTH_URL+'/presets/delete',{
@@ -6283,12 +6489,12 @@ function exportAllData(){
   if(typeof checkBadges==='function') checkBadges();
 }
 
-function importData(event){
+async function importData(event){
   const file=event.target.files[0];
   if(!file)return;
   
   const reader=new FileReader();
-  reader.onload=function(e){
+  reader.onload=async function(e){
     try{
       const data=JSON.parse(e.target.result);
       
@@ -6297,9 +6503,8 @@ function importData(event){
         return;
       }
       
-      if(!confirm('Import this backup? This will replace your current dashboard data.')){
-        return;
-      }
+      const confirmed = await confirmImport('backup', null);
+      if(!confirmed) return;
       
       // Restore custom tabs
       if(data.customTabs&&Array.isArray(data.customTabs)){
@@ -6341,8 +6546,8 @@ function importData(event){
 
 async function clearAllPresets(){
   if(!AUTH_TOKEN){showToast('Please log in','error');return;}
-  if(!confirm('Delete ALL your presets? This cannot be undone.'))return;
-  if(!confirm('Are you really sure? All presets will be permanently deleted.'))return;
+  const confirmed = await confirmDeleteAll();
+  if(!confirmed) return;
   
   try{
     // Get all presets
@@ -6370,13 +6575,25 @@ async function clearAllPresets(){
 async function deleteAccount(){
   if(!AUTH_TOKEN){showToast('Please log in','error');return;}
   
-  const confirm1=prompt('Type "DELETE" to permanently delete your account:');
-  if(confirm1!=='DELETE'){
-    showToast('Account deletion cancelled','info');
-    return;
-  }
+  // First confirmation
+  const confirmed = await confirmDeleteAccount();
+  if(!confirmed) return;
   
-  if(!confirm('This is your FINAL warning. Your account and all data will be permanently deleted. Continue?')){
+  // Second confirmation - require typing DELETE
+  const typed = await showConfirm({
+    icon: '⚠️',
+    type: 'danger',
+    title: 'Final Confirmation',
+    message: 'Type <strong>DELETE</strong> below to permanently delete your account.',
+    input: true,
+    inputPlaceholder: 'Type DELETE to confirm',
+    inputRequired: true,
+    confirmText: 'Delete Forever',
+    cancelText: 'Cancel'
+  });
+  
+  if(typed !== 'DELETE'){
+    showToast('Account deletion cancelled','info');
     return;
   }
   
@@ -6972,10 +7189,17 @@ function checkBadges(){
 
 function showBadgeInfo(id,name,desc,unlocked){
   const badge=BADGES.find(b=>b.id===id);
-  const status=unlocked?'✅ Unlocked':'🔒 Locked';
+  const status=unlocked?'<span style="color:#00c47a">✅ Unlocked</span>':'<span style="color:#666">🔒 Locked</span>';
   const date=localStorage.getItem('wz_badge_date_'+id);
-  const dateStr=date?'\nUnlocked: '+new Date(parseInt(date)).toLocaleDateString():'';
-  alert(badge.icon+' '+name+'\n\n'+desc+'\n\n'+status+dateStr);
+  const dateStr=date?'<br><small style="color:#555">Unlocked: '+new Date(parseInt(date)).toLocaleDateString()+'</small>':'';
+  showConfirm({
+    icon: badge.icon,
+    type: unlocked ? 'success' : 'info',
+    title: name,
+    message: desc+'<br><br>'+status+dateStr,
+    confirmText: 'Nice!',
+    cancelText: ''
+  });
 }
 
 function incrementBadgeCounter(key){
@@ -7079,7 +7303,8 @@ async function loadSharedPreset(shareCode){
     
     const preset=d.preset;
     
-    if(!confirm('Import preset "'+preset.name+'" from '+preset.username+'?'))return;
+    const confirmed = await confirmImport('preset', preset.name + '" from ' + preset.username);
+    if(!confirmed) return;
     
     const snapshot=preset.snapshot;
     
@@ -8187,8 +8412,9 @@ function tpToggleIndicator(indicator, btn) {
 }
 
 // Reset account
-function tpResetAccount() {
-  if (!confirm('Reset paper account? All positions and history will be cleared.')) return;
+async function tpResetAccount() {
+  const confirmed = await confirmReset('paper account');
+  if (!confirmed) return;
   TP_STATE = {
     ...TP_STATE,
     balance: 10000,
