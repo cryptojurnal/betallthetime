@@ -6895,26 +6895,24 @@ function tpUpdateChartData() {
 // Fetch live prices
 async function tpFetchPrices() {
   try {
-    // Use Binance API for prices (more reliable than CoinGecko)
-    const symbols = TP_PAIRS.map(p => p.symbol);
-    const url = `https://api.binance.com/api/v3/ticker/24hr?symbols=["${symbols.join('","')}"]`;
-    const r = await fetch(url);
-    const data = await r.json();
+    // Fetch each ticker individually (more reliable)
+    const data = await Promise.all(TP_PAIRS.map(async p => {
+      const r = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${p.symbol}`);
+      return r.json();
+    }));
     
-    if (Array.isArray(data)) {
-      data.forEach(ticker => {
-        const pair = TP_PAIRS.find(p => p.symbol === ticker.symbol);
-        if (pair) {
-          TP_STATE.prices[ticker.symbol] = {
-            price: parseFloat(ticker.lastPrice) || 0,
-            change: parseFloat(ticker.priceChangePercent) || 0,
-            high: parseFloat(ticker.highPrice) || 0,
-            low: parseFloat(ticker.lowPrice) || 0,
-            volume: parseFloat(ticker.quoteVolume) || 0
-          };
-        }
-      });
-    }
+    data.forEach((ticker, i) => {
+      const pair = TP_PAIRS[i];
+      if (ticker && ticker.symbol) {
+        TP_STATE.prices[ticker.symbol] = {
+          price: parseFloat(ticker.lastPrice) || 0,
+          change: parseFloat(ticker.priceChangePercent) || 0,
+          high: parseFloat(ticker.highPrice) || 0,
+          low: parseFloat(ticker.lowPrice) || 0,
+          volume: parseFloat(ticker.quoteVolume) || 0
+        };
+      }
+    });
     
     tpUpdatePriceDisplay();
     tpUpdatePositionsPnL();
@@ -8160,37 +8158,48 @@ async function fetchLivePrices(){
     {sym:'BNB',pair:'BNBUSDT',icon:'🟡'}
   ];
   
+  // Helper to fetch with timeout
+  const fetchWithTimeout = async (url, timeout = 5000) => {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeout);
+    try {
+      const response = await fetch(url, { signal: controller.signal });
+      clearTimeout(id);
+      return response;
+    } catch (e) {
+      clearTimeout(id);
+      throw e;
+    }
+  };
+  
   try{
-    // Use Binance API (more reliable, no CORS issues)
-    const symbols = coins.map(c=>c.pair).join(',');
-    const r = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbols=["${coins.map(c=>c.pair).join('","')}"]`);
-    
-    if(!r.ok) throw new Error('Binance API failed');
-    
-    const data = await r.json();
+    // Fetch each ticker individually
+    const results = await Promise.allSettled(coins.map(async c => {
+      const r = await fetchWithTimeout(`https://api.binance.com/api/v3/ticker/24hr?symbol=${c.pair}`);
+      return r.json();
+    }));
     
     container.classList.remove('prices-loading');
-    container.innerHTML=coins.map(c=>{
-      const ticker = data.find(d=>d.symbol===c.pair);
+    container.innerHTML=coins.map((c,i)=>{
+      const result = results[i];
+      const ticker = result.status === 'fulfilled' ? result.value : null;
       const price = parseFloat(ticker?.lastPrice)||0;
       const change = parseFloat(ticker?.priceChangePercent)||0;
       const isUp = change>=0;
-      const priceStr = price>=1000?'$'+price.toLocaleString(undefined,{maximumFractionDigits:0}):'$'+price.toFixed(2);
-      const changeStr = (isUp?'+':'')+change.toFixed(2)+'%';
+      const priceStr = price > 0 ? (price>=1000?'$'+price.toLocaleString(undefined,{maximumFractionDigits:0}):'$'+price.toFixed(2)) : '--';
+      const changeStr = price > 0 ? ((isUp?'+':'')+change.toFixed(2)+'%') : '--';
       return `<div class="price-card">
         <div class="price-card-head">
           <span class="price-card-icon">${c.icon}</span>
           <span class="price-card-sym">${c.sym}</span>
         </div>
         <div class="price-card-price">${priceStr}</div>
-        <div class="price-card-change ${isUp?'up':'down'}">
-          <span class="arrow">${isUp?'▲':'▼'}</span>${changeStr}
-        </div>
+        <div class="price-card-change ${price > 0 ? (isUp?'up':'down') : ''}">${price > 0 ? `<span class="arrow">${isUp?'▲':'▼'}</span>` : ''}${changeStr}</div>
       </div>`;
     }).join('');
     
   }catch(e){
-    console.log('fetchLivePrices error:', e.message);
+    // Silent fail - just show placeholder
     container.classList.remove('prices-loading');
     container.innerHTML=coins.map(c=>`<div class="price-card">
       <div class="price-card-head">
@@ -8208,10 +8217,10 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   // Check for shared preset in URL
   if(typeof checkSharedPresetUrl==='function') checkSharedPresetUrl();
   
-  // Fetch live prices
-  fetchLivePrices();
+  // Fetch live prices (with small delay for network init)
+  setTimeout(fetchLivePrices, 500);
   // Refresh prices every 60 seconds
-  setInterval(fetchLivePrices,60000);
+  setInterval(fetchLivePrices, 60000);
   
   // Check login streak
   if(typeof checkLoginStreak==='function') checkLoginStreak();
