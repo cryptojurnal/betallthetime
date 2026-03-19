@@ -404,6 +404,7 @@ table.det-tbl col:nth-child(9){width:11%}
 .td2{font-size:8px;color:var(--tx3);margin-top:1px;line-height:1.2}
 
 tr:nth-child(even) td{background:var(--sf)}
+tr.mo-sep>td,tr.mo-gap>td{padding:0!important;border:none!important}
 tr.mh>td{background:var(--mh)!important;color:var(--mhc)!important;font-weight:700;font-size:11px;padding:4px 5px}
 tr.mh-z>td{background:var(--sf2)!important;color:var(--tx2)!important;font-size:10px;padding:5px 7px}
 tr.skip-row>td{color:var(--tx3);font-style:italic}
@@ -1341,7 +1342,7 @@ const DEF_ML={}; // month labels {m: 'custom label'}
 const DEF_TL={}; // trade labels {t: 'asset name'} t=1..10
 const DEF_FR=[1,1,0,1,1,0,1,1,0,1];
 
-let TAB='36', THEME='t-light', VIEW='sum', ch=null, GLOBAL_MODE=true, TOP_PANEL_COLLAPSED=false, IS_WIPED=false, lbl_w=false;
+let TAB='36', THEME='t-light', VIEW='sum', ch=null, GLOBAL_MODE=true, TOP_PANEL_COLLAPSED=false, IS_WIPED=false, lbl_w=false, bustMonth=null;
 // ── FEE STATE ──
 // FEE is now per-tab inside S[TAB].FEE
 let FEE_LIVE={rate:null, exchange:'binance', symbol:'BTCUSDT', loading:false};
@@ -1550,7 +1551,7 @@ function initGrid(){
   for(let i=0;i<10;i++){
     const r=document.createElement('div');r.className='tg-row';
     r.innerHTML=`<div class="tg-no">T${i+1}</div>
-<input type="number" class="tg-in" id="bt${i}" value="${s.BT[i]}" min="0" max="500" step="0.1" oninput="onBT(${i},this.value)">
+<input type="number" class="tg-in" id="bt${i}" value="${s.BT[i]}" min="-500" max="500" step="0.1" oninput="onBT(${i},this.value)">
 <input type="number" class="tg-in fi" id="fr${i}" value="${s.FR[i]}" min="0" max="20" step="1" oninput="onFR(${i},this.value)">`;
     g.appendChild(r);
   }
@@ -1567,8 +1568,8 @@ function updGrid(){
   const el=document.getElementById('act-count');
   if(el)el.innerHTML=`<span>${act}</span> active · ${10-act} skipped`;
 }
-function onBT(i,v){gs().BT[i]=parseFloat(v)||0;updGrid();render();}
-function onFR(i,v){gs().FR[i]=parseInt(v)||0;updGrid();render();}
+function onBT(i,v){gs().BT[i]=parseFloat(v)||0;updGrid();softUpdate();}
+function onFR(i,v){gs().FR[i]=parseInt(v)||0;updGrid();softUpdate();}
 function onKpiSl(v){gs().KPI=parseFloat(v);document.getElementById('kpi-vl').textContent=gs().KPI.toFixed(2)+'×';render();}
 
 // ── SIMULATION ──
@@ -1630,16 +1631,19 @@ function sim(){
     const{trades,endAcc:gA,endAccF:gAF,lastNotional:ln}=runSeq(acc,s.LEV,initNot,mBT,mFR,s.KPI,s.SPOT);
     const monthFeePaid=trades.reduce((a,t)=>a+t.feePaid,0);
     const wdAmt=parseFloat(s.WD[m])||0;
-    const wd=Math.min(wdAmt,gA*0.99);
-    const fA=gA-wd;
-    banked+=wd;
-    const postLiq=wd>0?(fA/initNot*100):null;
-    const pct=(gA-acc)/acc*100;
-    // last active trade's notional becomes next month's base
+    // no cap — if withdrawal exceeds balance, account is bust
+    const wd=wdAmt;
+    const fA=gAF-wd;
+    const bust=fA<=0; // account wiped by withdrawal
+    banked+=bust?gAF:wd; // only bank what was actually there
+    // liq after withdrawal uses next month's notional base
     const lastActiveTrade=trades.filter(t=>!t.skip).slice(-1)[0];
     const prevLN=lastActiveTrade?lastActiveTrade.not+lastActiveTrade.sp:initNot;
+    const postLiq=wd>0&&!bust?(fA/prevLN*100):null;
+    const pct=(gA-acc)/acc*100;
     prevLastNotional=prevLN;
-    months.push({m,lb,isZ:false,sA:acc,eA:fA,gA,gAF,wd,banked,nw:fA+banked,trades,pct,postLiq,initNot,liqT1,mp,feePaid:monthFeePaid});
+    months.push({m,lb,isZ:false,sA:acc,eA:bust?0:fA,gA,gAF,wd,banked,nw:(bust?0:fA)+banked,trades,pct,postLiq,initNot,liqT1,mp,feePaid:monthFeePaid,bust});
+    if(bust) break; // stop simulating — account is done
     acc=fA;
   }
   return months;
@@ -1720,7 +1724,11 @@ function onMP(m,v){
 }
 // ── SOFT UPDATE: re-sim + patch metrics + table without rebuilding chart ──
 function softUpdate(){
-  if(IS_WIPED){render();return;} // full render if wiped state needs to change
+  const _months_pre=sim();
+  const _newBust=!!_months_pre.find(r=>r.bust);
+  const _liqT1=gs().P/gs().NOT*100;
+  const _newWiped=(!gs().SPOT)&&(_liqT1<1||!isFinite(_liqT1));
+  if(_newWiped!==IS_WIPED||_newBust!==!!bustMonth){render();return;}
   const s=gs();
   const isQ=isQTab(TAB);
   const months=sim();
@@ -1773,6 +1781,20 @@ function softUpdate(){
     if(ab) ab.outerHTML=buildAssessment(months,s);
   }
 
+  // patch chart data in place — no rebuild, no flash
+  if(ch&&!isQTab(TAB)){
+    const s2=gs();
+    const _lbs=['start',...months.map(r=>r.lb)];
+    const _d1=[s2.P,...months.map(r=>r.eA)];
+    const _d2=[null,...months.map(r=>r.banked>0?r.banked:null)];
+    const _d3=[s2.P,...months.map(r=>r.nw)];
+    ch.data.labels=_lbs;
+    ch.data.datasets[0].data=_d1;
+    ch.data.datasets[1].data=_d2;
+    ch.data.datasets[2].data=_d3;
+    _applyChartErrorStyle();
+    ch.update('none');
+  }
   // patch table only
   renderTbl(months);
 }
@@ -1780,11 +1802,8 @@ function softUpdate(){
 function onWdInline(m,v){
   const val=parseFloat(v)||0;
   gs().WD[m]=val;
-  // autosave WD immediately
   try{localStorage.setItem('wz_'+TAB+'_wd',JSON.stringify({WD:{...gs().WD}}));}catch(e){}
-  const el=document.getElementById('wd-inp-'+m);
-  if(el)el.classList.toggle('active',val>0);
-  softUpdate();
+  softUpdate(); // renderTbl handles warnings inline
 }
 
 function setLang(lang){
@@ -1898,6 +1917,9 @@ function setLang(lang){
 function toggleTopPanel(){
   TOP_PANEL_COLLAPSED=!TOP_PANEL_COLLAPSED;
   _applyTopPanel();
+  setTimeout(()=>{
+    if(ch){if(ch._errorPulse){clearInterval(ch._errorPulse);ch._errorPulse=null;}_applyChartErrorStyle();}
+  },450);
 }
 function _applyTopPanel(){
   const tp=document.getElementById('top-panel');
@@ -1943,7 +1965,19 @@ function onFeeExchangeChange(ex){
 
 function setSpotMode(isSpot){
   const s=gs();
+  // remember previous leverage when switching to spot
+  if(isSpot && !s.SPOT) s._prevLEV=s.LEV;
+  // restore previous leverage when switching back, or keep as-is
+  if(!isSpot && s._prevLEV) { /* keep s.LEV as user left it */ }
   s.SPOT=isSpot;
+  // update lev display: show 1x in spot, restore actual in lev
+  const levDisplay=isSpot?1:s.LEV;
+  const lvIn=document.getElementById('lv-in');
+  const lvSl=document.getElementById('lv-sl');
+  const lvVl=document.getElementById('lv-vl');
+  if(lvIn) lvIn.value=levDisplay;
+  if(lvSl) lvSl.value=Math.min(levDisplay,50);
+  if(lvVl) lvVl.textContent=levDisplay+'×';
   // update badge
   const badge=document.getElementById('spot-badge');
   if(badge){
@@ -2012,8 +2046,13 @@ function togglePanel(){
   panel.classList.toggle('collapsed');
   const isCollapsed=panel.classList.contains('collapsed');
   if(btn) btn.textContent=isCollapsed?'›':'‹';
-  // force chart resize after transition
-  setTimeout(()=>{if(ch){ch.resize();}},280);
+  setTimeout(()=>{
+    if(ch){
+      if(ch._errorPulse){clearInterval(ch._errorPulse);ch._errorPulse=null;}
+      ch.resize();
+      _applyChartErrorStyle();
+    }
+  },280);
 }
 
 // ── ZERO MONTH TOGGLE ──
@@ -2071,6 +2110,36 @@ function getTL(t){return gs().TL[t]||('trade '+t);}
 
 // ── RISK ASSESSMENT ──
 function buildAssessment(months, s){
+  // wipe state — funny assess bar
+  if(IS_WIPED){
+    const _lbl=LANG==='id';
+    const wipeFunny2=[
+      ['risk score','💀 EXTREME','broke math'],['liq%','0.0%','instant death'],
+      ['leverage',gs().LEV+'×','the culprit'],['avg monthly','fictional','reduce notional'],
+      ['CAGR','lmao','fix setup first'],['lifespan','0ms','one tick = dead'],
+      ['net seq','+15% (fake)','not real'],['verdict','fix liq% first','notional > account'],
+      ['fees','real tho','only thing working'],
+    ];
+    return `<div class="assess-bar" style="background:#2a0a0a;border-color:#7a0000">
+      ${wipeFunny2.map(([l,v,sub])=>`<div class="as-item"><div class="as-lbl" style="color:#E24B4A">${l}</div><div class="as-val" style="color:#ff7070;font-size:10px">${v}</div><div class="as-sub" style="color:#A32D2D">${sub}</div></div>`).join('')}
+    </div>`;
+  }
+  // bust state — show funny cards
+  if(bustMonth){
+    const bustFunny=[
+      ['risk score',    '💀 busted',          'you out-withdrew yourself'],
+      ['liq% buffer',   'irrelevant now',      'wallet is the problem'],
+      ['mode',          s.SPOT?'◈ spot':'⚡ '+s.LEV+'×', s.SPOT?'no lev · withdrawal did this':'not what killed you'],
+      ['avg monthly',   'one way',             'up then off a cliff'],
+      ['3mo / CAGR',    'lol',                 'ask again never'],
+      ['lifespan',      'already dead',        'sim stopped at '+getML(bustMonth.m)],
+      ['net seq',       'moot point',          'fix the withdrawal first'],
+      ['verdict',       'skill issue',         'withdrew more than you had'],
+    ];
+    return `<div class="assess-bar" style="background:#1a0a2e;border-color:#8B5CF6">
+      ${bustFunny.map(([l,v,sub])=>`<div class="as-item"><div class="as-lbl" style="color:#8B5CF6">${l}</div><div class="as-val" style="color:#c084fc;font-size:11px">${v}</div><div class="as-sub" style="color:#8B5CF6">${sub}</div></div>`).join('')}
+    </div>`;
+  }
   const isQ=isQTab(TAB);
   const isSpot=s.SPOT||false;
   const liqT1=isSpot?100:s.P/s.NOT*100;
@@ -2248,6 +2317,38 @@ function buildAssessment(months, s){
 
 // 36-month side panel: 3-col × 2-row, 6 precision cards, aligns flush with chart
 function buildAssessmentCards(months, s){
+  // wipe state — funny cards
+  if(IS_WIPED){
+    const wipeFunny=[
+      ['risk score',   '💀 infinite',      'broke the universe'],
+      ['liq% buffer',  '0.0%',             'any move = instant wipe'],
+      ['leverage',     s.LEV+'×',          'the murder weapon'],
+      ['avg monthly',  'theoretical',      'none of this is real'],
+      ['3yr CAGR',     'lmao',             'reduce notional first'],
+      ['lifespan',     'milliseconds',     'one bad tick = gone'],
+      ['net seq',      '+15.0% in theory', 'irrelevant rn'],
+      ['verdict',      'fix liq% first',   'notional > account'],
+    ];
+    return '<div class="sc-grid" style="grid-template-columns:repeat(4,1fr);height:100%;background:#2a0a0a;border-color:#7a0000">'+
+      wipeFunny.map(([l,v,sub])=>`<div class="sc-item" style="background:#2a0a0a;border-color:#3a0a0a"><div class="sc-lbl" style="color:#E24B4A">${l}</div><div class="sc-val" style="color:#ff7070;font-size:11px">${v}</div><div class="sc-sub" style="color:#A32D2D">${sub}</div></div>`).join('')+
+    '</div>';
+  }
+  // bust state — funny cards
+  if(bustMonth){
+    const bustCards=[
+      ['risk score',  '💀 busted',        'you withdrew the vibe'],
+      ['liq% buffer', 'wallet empty',      'not a liq problem'],
+      ['mode',        s.SPOT?'◈ spot':'⚡ '+s.LEV+'×', s.SPOT?'no lev · wd did this':'innocent bystander'],
+      ['avg monthly', 'one good run',      'then chaos'],
+      ['3yr CAGR',    'negative memory',   'account + regrets'],
+      ['lifespan',    'flatlined',         'stopped at '+getML(bustMonth.m)],
+      ['net seq',     'pointless now',     'fix the wd first'],
+      ['verdict',     'go fix m'+bustMonth.m, 'withdrawal > balance'],
+    ];
+    return '<div class="sc-grid" style="grid-template-columns:repeat(4,1fr);height:100%;background:#1a0a2e;border-color:#8B5CF6">'+
+      bustCards.map(([l,v,sub])=>`<div class="sc-item" style="background:#1a0a2e;border-color:#2a0a4a"><div class="sc-lbl" style="color:#8B5CF6">${l}</div><div class="sc-val" style="color:#c084fc;font-size:11px">${v}</div><div class="sc-sub" style="color:#6B21A8">${sub}</div></div>`).join('')+
+    '</div>';
+  }
   const isSpot=s.SPOT||false;
   const liqT1=isSpot?100:s.P/s.NOT*100;
   const fm=isSpot?100:s.NOT/s.LEV/s.P*100;
@@ -2358,6 +2459,8 @@ function render(){
   IS_WIPED = (!s.SPOT) && (liqT1 < 1 || !isFinite(liqT1));
 
   const months=sim();
+  bustMonth=months.find(r=>r.bust)||null;
+  const IS_BUST=!!bustMonth;
   const last=months[months.length-1];
   const act=months.filter(r=>!r.isZ);
   const avgPct=act.length?act.reduce((a,r)=>a+r.pct,0)/act.length:0;
@@ -2366,10 +2469,45 @@ function render(){
   const tr=(last.nw/s.P-1)*100;
   const m1M=!isQ?months.find(r=>r.nw>=1000000):null;
   const totalFeesPaid=months.filter(r=>!r.isZ).reduce((a,r)=>a+(r.feePaid||0),0);
-  const wv=(val,color='')=>IS_WIPED?'<div class="mvv wipe-val">wiped</div>':'<div class="mvv"'+(color?' style="color:'+color+'"':'')+' >'+val+'</div>';
-  const ws=(sub)=>IS_WIPED?'<div class="ms" style="color:#E24B4A;font-size:8px">— invalid —</div>':'<div class="ms">'+sub+'</div>';
+  const wv=(val,color='')=>{
+    if(IS_WIPED) return '<div class="mvv wipe-val">wiped</div>';
+    return '<div class="mvv"'+(color?' style="color:'+color+'"':'')+'>'+val+'</div>';
+  };
+  const ws=(sub)=>{
+    if(IS_WIPED) return '<div class="ms" style="color:#E24B4A;font-size:8px">— invalid —</div>';
+    return '<div class="ms">'+sub+'</div>';
+  };
+  // funny card messages for error states
+  const WIPE_MSGS = [
+    ['your CAGR',      'you broke math',        'impressive wrongness'],
+    ['total return',   'negative infinity',      'congrats on that'],
+    ['end account',    'the void',               'Rp0 · nothing left'],
+    ['total banked',   'your dreams',            'safely in the trash'],
+    ['combined NW',    'thoughts & prayers',     'account + regrets'],
+    ['$1M milestone',  'next life maybe',        'keep manifesting'],
+    ['avg monthly',    'lmao',                   'not like this'],
+    ['net seq result', 'skill issue',            'wins: 0 · losses: all'],
+    ['liq%',           'instant',                'any move wipes you'],
+    ['fees paid',      'the only real number',   'at least this worked'],
+  ];
+  const BUST_MSGS = [
+    ['your CAGR',      'you went all-in',   'bold strategy'],
+    ['total return',   'ate the seed money',      'impressive'],
+    ['end account',    '$0.00',                   'gone. reduced to atoms'],
+    ['total banked',   fmt(bustMonth?bustMonth.gAF:0), 'all you had left'],
+    ['combined NW',    'your personality',        'priceless, apparently'],
+    ['$1M milestone',  'deleted',                 'try again sweetheart'],
+    ['avg monthly',    'one month wonder',        'then the cliff'],
+    ['net seq result', 'technically a record',    'worst withdrawal ever'],
+    [s.SPOT?'mode':'liq%', s.SPOT?'◈ spot · no liq':'not the problem rn', s.SPOT?'wd still busted you':'withdrawal did this'],
+    ['fees paid',      fmt(months.filter(r=>!r.isZ&&!r.bust).reduce((a,r)=>a+(r.feePaid||0),0)), 'before the chaos'],
+  ];
+  const errMsgs = IS_WIPED ? WIPE_MSGS : (IS_BUST ? BUST_MSGS : null);
   let mh='<div class="metrics">';
-  if(isQ){
+  if(errMsgs){
+    mh+=errMsgs.map(([lbl,val,sub])=>`<div class="mc"><div class="mll">${lbl}</div><div class="mvv" style="color:#E24B4A;font-size:11px">${val}</div><div class="ms" style="color:#E24B4A;opacity:.7">${sub}</div></div>`).join('');
+    mh+='</div>';
+  } else if(isQ){
     mh+=`
       <div class="mc"><div class="mll">${t('q_end_lbl')}</div>${wv(fmt(last.eA),'var(--acc2)')}${ws(fIDR(last.eA))}</div>
       <div class="mc"><div class="mll">${t('total_gain_lbl')}</div>${wv('+'+tr.toFixed(1)+'%','var(--acc2)')}${ws(fmt(last.eA-s.P))}</div>
@@ -2393,10 +2531,17 @@ function render(){
       <div class="mc"><div class="mll">total fees paid</div><div class="mvv" style="color:#E24B4A">−${fmt(totalFeesPaid)}</div><div class="ms">${s.SPOT?'trade only · spot':'trade + funding · all months'}</div></div>
     `;
   }
-  mh+='</div>';
+  if(!errMsgs) mh+='</div>';
 
   // Wipe banner shown instead of note bar when IS_WIPED
   lbl_w=LANG==='id';
+  const bustBanner=IS_BUST?`<div class="wipe-banner" style="border-color:#8B5CF6;background:#1a0a2e">
+    <span class="wipe-banner-icon">💀</span>
+    <div>
+      <div class="wipe-banner-msg" style="color:#c084fc">YOU BUSTED THE ACCOUNT — withdrew ${fmt(bustMonth.wd)} but only had ${fmt(bustMonth.gAF)} after fees. classic. the sim stopped at ${getML(bustMonth.m)}.</div>
+      <div class="wipe-banner-fix" style="color:#a855f7">fix: reduce the withdrawal in the highlighted row below ↓ — the table stays open so you can adjust</div>
+    </div>
+  </div>`:'';
   const wipeBanner=IS_WIPED?`<div class="wipe-banner">
     <span class="wipe-banner-icon">💸</span>
     <div>
@@ -2461,7 +2606,7 @@ function render(){
   </div>`;
 
   if(ch){ch.destroy();ch=null;}
-  const topBody=mh+wipeBanner+`<div class="note" style="${IS_WIPED?'border-color:#E24B4A;background:#FCEBEB':''}">${IS_WIPED?'':noteText}</div>`+chartH+(isQ?assessH:'');
+  const topBody=mh+(wipeBanner||bustBanner)+`<div class="note" style="${IS_WIPED?'border-color:#E24B4A;background:#FCEBEB':''}">${IS_WIPED?'':noteText}</div>`+chartH+(isQ?assessH:'');
   rc.innerHTML=`<div class="top-panel" id="top-panel">
     <div style="display:flex;align-items:stretch;gap:0;width:100%;margin-bottom:6px">
       <button class="top-panel-toggle" onclick="toggleTopPanel()" style="flex:1;margin-bottom:0"><span class="tp-dots"><span class="tp-dot"></span><span class="tp-dot"></span><span class="tp-dot"></span></span><span class="tp-arrow">▾</span> <span id="tp-lbl">hide overview</span> <span class="tp-arrow" style="transform:none">▾</span><span class="tp-dots"><span class="tp-dot"></span><span class="tp-dot"></span><span class="tp-dot"></span></span></button>
@@ -2513,6 +2658,8 @@ function render(){
       });
     }
   } // end if(!isQ) chart block
+  // apply error animation if needed
+  if(!isQTab(TAB)) _applyChartErrorStyle();
   try{
     if(!isQ){
       const aside=document.getElementById('assess-side');
@@ -2572,13 +2719,37 @@ function renderTbl(months){
         </tr>`;
         return;
       }
+      // Bust state: withdrawal exceeded balance — keep row editable so user can fix it
+      if(mo.bust){
+        h+=`<tr style="background:#1a0a2e">
+          <td style="text-align:left;padding:6px 8px"><input class="lbl-sum" value="${getML(mo.m)}" onchange="onMonthLabel(${mo.m},this.value)" onclick="this.select()" style="width:72px;color:#c084fc;border-bottom-color:#8B5CF6"></td>
+          <td style="color:#888;font-size:10px">${fmt(mo.sA)}</td>
+          <td style="color:#E24B4A;font-size:10px;font-weight:700">💀 busted</td>
+          <td colspan="3" style="color:#c084fc;font-size:9px;font-style:italic">withdrew ${fmt(mo.wd)} · only had ${fmt(mo.gAF)}</td>
+          <td style="padding:6px 5px">
+            <div class="wd-cell"><input type="number" class="wd-inp active" id="wd-inp-${mo.m}" value="${mo.wd||''}" min="0" step="1" placeholder="0" onchange="onWdInline(${mo.m},this.value)" onblur="onWdInline(${mo.m},this.value)" style="border-color:#8B5CF6;background:#2a0a4a;color:#c084fc;font-weight:700"></div>
+          </td>
+          <td colspan="4" style="color:#8B5CF6;font-size:9px;text-align:center">← fix withdrawal to resume simulation</td>
+        </tr>`;
+        return;
+      }
       h+=`<tr>
-        <td style="white-space:nowrap"><input class="lbl-sum" value="${getML(mo.m)}" placeholder="${mo.lb}" onchange="onMonthLabel(${mo.m},this.value)" onclick="this.select()" style="width:72px"> <span onclick="toggleZeroMonth(${mo.m})" title="set as zero month" style="cursor:pointer;font-size:9px;color:var(--tx3);padding:1px 4px;border:0.5px solid var(--bd2);border-radius:3px;user-select:none" onmouseover="this.style.color='var(--acc)'" onmouseout="this.style.color='var(--tx3)'">⊘</span>${mo.mp>1?'<span style="background:#EAF3DE;color:#3B6D11;font-size:9px;padding:1px 4px;border-radius:3px;font-weight:700;margin-left:2px">⚡'+mo.mp.toFixed(1)+'×</span>':''}</td>
+        <td style="white-space:nowrap"><input class="lbl-sum" value="${getML(mo.m)}" placeholder="${mo.lb}" onchange="onMonthLabel(${mo.m},this.value)" onclick="this.select()" style="width:72px"> <span title="jump to full detail" onclick="event.stopPropagation();jumpToDetail(${mo.m})" style="cursor:pointer;font-size:9px;color:var(--acc2);padding:1px 4px;border:0.5px solid var(--acc2);border-radius:3px;user-select:none;margin-left:2px" onmouseover="this.style.background='var(--btno)'" onmouseout="this.style.background='transparent'">→</span> <span onclick="toggleZeroMonth(${mo.m})" title="set as zero month" style="cursor:pointer;font-size:9px;color:var(--tx3);padding:1px 4px;border:0.5px solid var(--bd2);border-radius:3px;user-select:none" onmouseover="this.style.color='var(--acc)'" onmouseout="this.style.color='var(--tx3)'">⊘</span>${mo.mp>1?'<span style="background:#EAF3DE;color:#3B6D11;font-size:9px;padding:1px 4px;border-radius:3px;font-weight:700;margin-left:2px">⚡'+mo.mp.toFixed(1)+'×</span>':''}</td>
         <td>${fmt(mo.sA)}</td>
         <td style="color:var(--acc2);font-weight:700">${mo.wd>0?'<span style="color:var(--tx2);font-size:10px">'+fmt(mo.gA)+'</span> <span style="color:#E24B4A;font-size:9px">−'+fmt(mo.wd)+'</span><br><span style="font-weight:700">'+fmt(mo.eA)+'</span>':fmt(mo.eA)}</td>
         <td>${mo.pct.toFixed(1)}%</td>
         <td>+${fmt(gain)}</td>
-        <td><div class="wd-cell"><input type="number" class="wd-inp${wdVal>0?' active':''}" id="wd-inp-${mo.m}" value="${wdVal||''}" min="0" step="1" placeholder="0" onchange="onWdInline(${mo.m},this.value)" onblur="onWdInline(${mo.m},this.value)"></div></td>
+        <td><div class="wd-cell" style="flex-wrap:wrap;gap:2px"><input type="number" class="wd-inp${wdVal>0?' active':''}" id="wd-inp-${mo.m}" value="${wdVal||''}" min="0" step="1" placeholder="0" onchange="onWdInline(${mo.m},this.value)" onblur="onWdInline(${mo.m},this.value)">${(()=>{
+  const _avail=mo.gAF||mo.eA||0;
+  const _gain=_avail-(mo.sA||0);
+  const _ov=wdVal>_avail;
+  const _ue=!_ov&&_gain>=0&&wdVal>_gain&&wdVal>0;
+  const _liq=mo.postLiq!==null&&!s.SPOT;
+  if(_ov) return '<span style="font-size:8px;padding:1px 4px;border-radius:3px;font-weight:700;background:#A32D2D;color:#fff">⚠ busts account</span>';
+  if(_ue) return '<span style="font-size:8px;padding:1px 4px;border-radius:3px;font-weight:700;background:#854F0B;color:#fff">'+(s.SPOT?'draining capital':'wd > gains')+' (earned '+fmt(_gain)+')</span>';
+  if(_liq) return '<span style="font-size:8px;padding:1px 4px;border-radius:3px;font-weight:700;background:'+(mo.postLiq<20?'#A32D2D':mo.postLiq<40?'#854F0B':'#1a3a1a')+';color:'+(mo.postLiq<20?'#fff':mo.postLiq<40?'#EF9F27':'#5DC96A')+'">liq→'+mo.postLiq.toFixed(0)+'%'+(mo.postLiq<20?' ⚠ DANGER':mo.postLiq<40?' ⚠':'')+'</span>';
+  return '';
+})()}</div></td>
         <td style="color:var(--acc)">${fmt(mo.banked)}</td>
         <td style="font-weight:700">${fmt(mo.nw)}</td>
         <td style="color:${s.SPOT?'var(--tx3)':lc(l1)};font-weight:700">${s.SPOT?'◈':l1.toFixed(0)+'%'}</td>
@@ -2587,6 +2758,16 @@ function renderTbl(months){
       </tr>
       `;
     });
+    // show halted rows for months after bust
+    if(bustMonth){
+      const total=isQTab(TAB)?3:36;
+      for(let mm=bustMonth.m+1;mm<=total;mm++){
+        h+=`<tr style="opacity:.35">
+          <td style="color:var(--tx3);font-style:italic;padding:4px 8px">${getML(mm)||getMLabel(mm)}</td>
+          <td colspan="10" style="color:var(--tx3);font-size:9px;text-align:center;font-style:italic">— halted · account busted at ${getML(bustMonth.m)} · fix withdrawal above to resume —</td>
+        </tr>`;
+      }
+    }
   } else {
     h=`<thead><tr>
       <th style="text-align:left;width:10%">trade</th>
@@ -2616,6 +2797,18 @@ function renderTbl(months){
       const wdVal=s.WD[mo.m]||0;
       if(IS_WIPED){
         h+=`<tr class="wipe-row"><td style="text-align:left">${getML(mo.m)}</td><td colspan="12">💸 ${lbl_w?'setup tidak valid — liq% < 1%':'invalid setup — liq% < 1%'}</td></tr>`;
+        return;
+      }
+      if(mo.bust){
+        h+=`<tr style="background:#1a0a2e">
+          <td style="text-align:left;padding:6px 8px"><input class="lbl-in" value="${getML(mo.m)}" onchange="onMonthLabel(${mo.m},this.value)" onclick="this.select()" style="color:#c084fc;border-bottom-color:#8B5CF6"></td>
+          <td style="color:#888;font-size:9px">${fmt(mo.sA)}</td>
+          <td colspan="7" style="color:#c084fc;font-size:9px;font-style:italic">💀 busted — withdrew ${fmt(mo.wd)} · only had ${fmt(mo.gAF)} after fees</td>
+          <td colspan="2" style="color:#8B5CF6;font-size:9px;text-align:center">fix withdrawal ↓</td>
+          <td colspan="2" style="padding:6px 5px;text-align:right">
+            <input type="number" class="wd-inp active" id="wd-inp-d-${mo.m}" value="${mo.wd||''}" min="0" step="1" placeholder="0" onchange="onWdInline(${mo.m},this.value)" onblur="onWdInline(${mo.m},this.value)" style="width:60px;border-color:#8B5CF6;background:#2a0a4a;color:#c084fc;font-weight:700">
+          </td>
+        </tr>`;
         return;
       }
       const mLabel=getML(mo.m);
@@ -2706,8 +2899,8 @@ function renderTbl(months){
           <td>${!GLOBAL_MODE
             ?'<input type="number" value="'+(gs().MT[mo.m]?.fr[t.no-1]??t.freq)+'" min="0" max="20" step="1" style="width:30px;padding:2px 3px;font-size:9px;text-align:center;border:0.5px solid var(--acc2);border-radius:3px;background:var(--inp);color:var(--acc2);font-weight:700" oninput="onManualFR('+mo.m+','+(t.no-1)+',this.value)">'
             :'<span style="color:var(--tx2)">'+t.freq+'×</span>'}</td>
-          <td>+${fmt(t.sp)}</td>
-          <td style="color:var(--acc2);font-weight:600">+${fmt(t.cp)}</td>
+          <td style="color:${t.tgt<0?'#E24B4A':'var(--acc2)'}">${t.tgt>=0?'+':''}${fmt(t.sp)}</td>
+          <td style="color:${t.tgt<0?'#E24B4A':'var(--acc2)'};font-weight:600">${t.tgt>=0?'+':''}${fmt(t.cp)}</td>
           <td style="color:${feePaid>0?'#E24B4A':'var(--tx3)'}">−${fmt(feePaid)}<div style="font-size:7px;color:var(--tx3);opacity:.7">2×${gs().FEE.method}</div></td>
           <td style="color:${netCol};font-weight:700">${netCp>=0?'+':''}${fmt(netCp)}</td>
           <td style="color:var(--tx3);font-size:10px">${s.SPOT?'<span style="color:var(--tx3);font-size:9px">n/a</span>':fmt(t.accA)}</td>
@@ -2718,19 +2911,49 @@ function renderTbl(months){
       if(!mo.isZ&&!IS_WIPED){
         const gain=mo.gAF!==undefined?(mo.gAF-mo.sA):0;
         const netPct=mo.gAF!==undefined?((mo.gAF-mo.sA)/mo.sA*100):mo.pct;
+        const netAfterAll=(mo.eA-mo.sA)/mo.sA*100;
+        const netCol2=netAfterAll>=0?'#7eb8f7':'#f07070';
+        const grossCol=mo.pct>=0?'#5DC96A':'#E24B4A';
+        const sb='background:#111827;border-top:1px solid #1e2a3a;border-bottom:1px solid #1e2a3a;padding:10px 8px;vertical-align:middle';
+        const wdRound=Math.round(mo.wd);
         h+=`<tr class="mo-sep">
-          <td colspan="13" style="padding:0;border:none">
-            <div style="display:flex;align-items:center;height:24px;background:#1a1a2e;border-top:1.5px solid #2a2a4a;border-bottom:1.5px solid #2a2a4a;padding:0 8px;gap:12px">
-              <span style="font-size:8px;font-weight:700;color:#4a4a8a;letter-spacing:.1em;text-transform:uppercase">end of ${getML(mo.m)}</span>
-              <span style="font-size:8px;color:#3a3a7a">·</span>
-              <span style="font-size:9px;color:#5a5aaa;font-weight:600">net: ${netPct>=0?'+':''}${netPct.toFixed(1)}%</span>
-              <span style="font-size:8px;color:#3a3a7a">·</span>
-              <span style="font-size:9px;color:#5a5aaa">acct → ${fmt(mo.eA)}</span>
-              ${mo.wd>0?'<span style="font-size:8px;color:#3a3a7a">·</span><span style="font-size:9px;color:#7a4a7a">wd −'+fmt(mo.wd)+'</span>':''}
-            </div>
+          <!-- col1: label + net -->
+          <td style="${sb};text-align:left;padding-left:12px">
+            <div style="font-size:8px;font-weight:700;color:#6b7fa8;letter-spacing:.07em;text-transform:uppercase;margin-bottom:4px">end of ${getML(mo.m)}</div>
+            <div style="font-size:9px;color:${netCol2};font-weight:600">${netAfterAll>=0?'+':''}${netAfterAll.toFixed(1)}% net</div>
+          </td>
+          <td style="${sb}"></td>
+          <td style="${sb}"></td>
+          <td style="${sb}"></td>
+          <td style="${sb}"></td>
+          <td style="${sb}"></td>
+          <td style="${sb}"></td>
+          <!-- col8: gross profit → monthly gross -->
+          <td style="${sb};text-align:right;padding-right:8px">
+            <div style="font-size:7px;color:#fff;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">monthly gross</div>
+            <div style="font-size:12px;font-weight:700;color:${grossCol};line-height:1">${mo.pct>=0?'+':''}${mo.pct.toFixed(1)}%</div>
+            <div style="font-size:7px;color:#fff;margin-top:3px">pre-fee</div>
+          </td>
+          <!-- col9: combine → empty -->
+          <td style="${sb}"></td>
+          <!-- col10: fee paid → month fees -->
+          <td style="${sb};text-align:right;padding-right:8px">
+            <div style="font-size:7px;color:#fff;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">month fees</div>
+            <div style="font-size:12px;font-weight:700;color:#E24B4A;line-height:1">−${fmt(mo.feePaid||0)}</div>
+            <div style="font-size:7px;color:#fff;margin-top:3px">2×${gs().FEE.method}</div>
+          </td>
+          <!-- col11: net pnl → empty -->
+          <td style="${sb}"></td>
+          <!-- col12: acct bal gross → empty -->
+          <td style="${sb}"></td>
+          <!-- col13: acct bal post-fee → end balance -->
+          <td style="${sb};text-align:right;padding-right:12px">
+            <div style="font-size:7px;color:#fff;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">end · acc balance</div>
+            <div style="font-size:12px;font-weight:700;color:#8ab4e8;line-height:1">${fmt(mo.eA)}</div>
+            <div style="font-size:7px;color:#fff;margin-top:3px">${mo.wd>0?'wd −$'+wdRound:'&nbsp;'}</div>
           </td>
         </tr>
-        <tr class="mo-gap"><td colspan="13" style="height:8px;background:var(--bg);border:none;padding:0"></td></tr>`;
+        <tr class="mo-gap"><td colspan="13" style="height:10px;background:var(--bg);border:none;padding:0"></td></tr>`;
       }
     });
   }
@@ -2753,7 +2976,7 @@ function setTheme(t,btn){
   document.body.className=t;
   document.querySelectorAll('.th-btn').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
   try{localStorage.setItem('wz_theme',t);}catch(e){}
-  if(ch){ch.destroy();ch=null;}
+  if(ch){if(ch._errorPulse){clearInterval(ch._errorPulse);ch._errorPulse=null;}ch.destroy();ch=null;}
   render();
 }
 
@@ -2809,7 +3032,7 @@ function onCapIn(v){
   }
   document.getElementById('cap-sl').value=Math.min(s.P,10000000000);
   document.getElementById('cap-vl').textContent='$'+s.P.toLocaleString();
-  document.querySelectorAll('#cap-prs .pr').forEach(b=>b.classList.remove('on'));render();
+  document.querySelectorAll('#cap-prs .pr').forEach(b=>b.classList.remove('on'));softUpdate();
 }
 function onCapSl(v){
   const s=gs();s.P=parseInt(v);
@@ -2821,35 +3044,35 @@ function onCapSl(v){
   }
   document.getElementById('cap-in').value=s.P;
   document.getElementById('cap-vl').textContent='$'+s.P.toLocaleString();
-  document.querySelectorAll('#cap-prs .pr').forEach(b=>b.classList.remove('on'));render();
+  document.querySelectorAll('#cap-prs .pr').forEach(b=>b.classList.remove('on'));softUpdate();
 }
 function setLev(v,btn){
   const s=gs();s.LEV=v;
   document.getElementById('lv-sl').value=v;document.getElementById('lv-in').value=v;document.getElementById('lv-vl').textContent=v+'×';
   document.querySelectorAll('#lv-prs .pr').forEach(b=>b.classList.remove('on'));
-  if(btn)btn.classList.add('on');render();
+  if(btn)btn.classList.add('on');softUpdate();
 }
 function onLevIn(v){
   const s=gs();s.LEV=Math.max(1,parseInt(v)||s.LEV);
   document.getElementById('lv-sl').value=Math.min(s.LEV,50);document.getElementById('lv-vl').textContent=s.LEV+'×';
-  document.querySelectorAll('#lv-prs .pr').forEach(b=>b.classList.remove('on'));render();
+  document.querySelectorAll('#lv-prs .pr').forEach(b=>b.classList.remove('on'));softUpdate();
 }
 function onLevSl(v){
   const s=gs();s.LEV=parseInt(v);
   document.getElementById('lv-in').value=s.LEV;document.getElementById('lv-vl').textContent=s.LEV+'×';
-  document.querySelectorAll('#lv-prs .pr').forEach(b=>b.classList.remove('on'));render();
+  document.querySelectorAll('#lv-prs .pr').forEach(b=>b.classList.remove('on'));softUpdate();
 }
 function onNotIn(v){
   const s=gs();s.NOT=Math.max(1,parseFloat(v)||s.NOT);
   document.getElementById('not-sl').value=Math.min(s.NOT,100000000000);
   document.getElementById('not-vl').textContent='$'+s.NOT.toLocaleString();
-  document.querySelectorAll('#not-prs .pr').forEach(b=>b.classList.remove('on'));render();
+  document.querySelectorAll('#not-prs .pr').forEach(b=>b.classList.remove('on'));softUpdate();
 }
 function onNotSl(v){
   const s=gs();s.NOT=parseInt(v);
   document.getElementById('not-in').value=s.NOT;
   document.getElementById('not-vl').textContent='$'+s.NOT.toLocaleString();
-  document.querySelectorAll('#not-prs .pr').forEach(b=>b.classList.remove('on'));render();
+  document.querySelectorAll('#not-prs .pr').forEach(b=>b.classList.remove('on'));softUpdate();
 }
 function setNot(v,btn){
   const s=gs();s.NOT=v;
@@ -2858,7 +3081,64 @@ function setNot(v,btn){
   document.getElementById('not-vl').textContent='$'+v.toLocaleString();
   document.querySelectorAll('#not-prs .pr').forEach(b=>b.classList.remove('on'));
   if(btn)btn.classList.add('on');
-  render();
+  softUpdate();
+}
+
+function _applyChartErrorStyle(){
+  try{
+  if(!ch||!ch.data||!ch.data.datasets||!ch.data.datasets[0])return;
+  // ALWAYS kill interval first — restart only if error
+  if(ch._errorPulse){clearInterval(ch._errorPulse);ch._errorPulse=null;}
+  const isBust=!!bustMonth;
+  const isWiped=IS_WIPED;
+  if(isBust||isWiped){
+    const col=isBust?'#8B5CF6':'#E24B4A';
+    const dash=isBust?[4,4]:[2,2];
+    ch.data.datasets[0].borderColor=col;ch.data.datasets[0].borderDash=dash;ch.data.datasets[0].tension=0;
+    ch.data.datasets[1].borderColor=col;ch.data.datasets[1].borderDash=dash;ch.data.datasets[1].tension=0;
+    ch.data.datasets[2].borderColor=col;ch.data.datasets[2].borderDash=dash;ch.data.datasets[2].tension=0;
+    let _tick=0;
+    ch._errorPulse=setInterval(()=>{
+      _tick++;
+      if(ch&&ch.data&&ch.data.datasets[0]){
+        const thick=_tick%2===0;
+        ch.data.datasets[0].borderWidth=thick?2.5:0.8;
+        ch.data.datasets[1].borderWidth=thick?2:0.6;
+        ch.data.datasets[2].borderWidth=thick?2:0.6;
+        ch.update('none');
+      }
+    },500);
+  } else {
+    // fully restore normal — no animation
+    const _acc=getComputedStyle(document.body).getPropertyValue('--acc').trim()||'#185fa5';
+    ch.data.datasets[0].borderColor='#1D9E75';ch.data.datasets[0].borderDash=[];ch.data.datasets[0].borderWidth=2;ch.data.datasets[0].tension=.4;
+    ch.data.datasets[1].borderColor=_acc;ch.data.datasets[1].borderDash=[5,3];ch.data.datasets[1].borderWidth=1.5;ch.data.datasets[1].tension=.4;
+    ch.data.datasets[2].borderColor='#BA7517';ch.data.datasets[2].borderDash=[];ch.data.datasets[2].borderWidth=1.5;ch.data.datasets[2].tension=.4;
+  }
+  }catch(e){console.warn('chart style err:',e);}
+}
+
+function jumpToDetail(m){
+  // switch to full trade detail view
+  setView('det',document.querySelector('#vt .tb:nth-child(3)'));
+  // wait for table to render then scroll to that month header
+  setTimeout(()=>{
+    const tbl=document.getElementById('tbl');
+    if(!tbl)return;
+    // find the mh row for this month by looking for the label input value
+    const rows=tbl.querySelectorAll('tr.mh');
+    for(const row of rows){
+      const inp=row.querySelector('.lbl-in');
+      if(inp&&(inp.value===getML(m)||inp.placeholder===getMLabel(m))){
+        row.scrollIntoView({behavior:'smooth',block:'center'});
+        // flash highlight
+        row.style.outline='2px solid var(--acc2)';
+        row.style.outlineOffset='1px';
+        setTimeout(()=>{row.style.outline='';row.style.outlineOffset='';},1500);
+        break;
+      }
+    }
+  },120);
 }
 
 // ── CHART ZOOM ──
