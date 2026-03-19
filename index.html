@@ -1075,6 +1075,8 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 .auth-user-bar.hidden{display:none}
 .auth-sync-btn{background:none;border:none;color:#00c47a;font-size:11px;cursor:pointer;padding:0;font-weight:700;opacity:.7;transition:opacity .2s}
 .auth-sync-btn:hover{opacity:1}
+.auth-logout-btn{color:#E24B4A!important;background:#1a0a0a;border:1px solid #E24B4A40;border-radius:10px;padding:2px 8px!important;font-size:9px!important;opacity:1!important;margin-left:4px;transition:all .2s}
+.auth-logout-btn:hover{background:#2a0a0a;border-color:#E24B4A;box-shadow:0 0 8px rgba(226,75,74,0.3)}
 
 /* ── LAYER 3: MEMBER AREA PAGE ── */
 #layer3{position:fixed;inset:0;z-index:9500;background:#000;display:flex;flex-direction:column;opacity:0;transition:opacity .6s ease,background .3s;pointer-events:none}
@@ -1824,7 +1826,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
   <span id="auth-username-lbl" style="cursor:pointer" onclick="event.stopPropagation();if(!window._ubWasDragged)memberOpen();">@user</span>
   <button class="auth-sync-btn" onclick="event.stopPropagation();authSave()" title="sync to cloud">↑ sync</button>
   <button class="auth-sync-btn" onclick="event.stopPropagation();backToMemberArea()" title="member area" style="color:#00c47a">☰</button>
-  <button class="auth-sync-btn" onclick="event.stopPropagation();authLogout()" title="logout" style="color:#E24B4A">✕</button>
+  <button class="auth-sync-btn auth-logout-btn" onclick="event.stopPropagation();authLogout()" title="logout">⏻ out</button>
 </div>
 
 <!-- LAYER 3 - MEMBER AREA -->
