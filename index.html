@@ -5959,6 +5959,8 @@ function goLayer3(){
   if(prefs.ma_theme && typeof applyMemberTheme==='function'){
     applyMemberTheme(prefs.ma_theme);
   }
+  // Fetch live prices when entering member area
+  if(typeof fetchLivePrices==='function') fetchLivePrices();
 }
 
 // Track if risk disclosure was shown this session
@@ -6809,7 +6811,7 @@ async function tpFetchCandleData() {
   const interval = getTimeframeInterval(TP_STATE.timeframe);
   
   try {
-    const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=200`;
+    const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=1000`;
     const response = await fetch(url);
     const data = await response.json();
     
@@ -6867,7 +6869,7 @@ function tpGenerateSampleData() {
   const interval = 60 * 15;
   
   let currentPrice = price * 0.95;
-  for (let i = 100; i >= 0; i--) {
+  for (let i = 1000; i >= 0; i--) {
     const time = now - (i * interval);
     const volatility = price * 0.002;
     const open = currentPrice;
@@ -6893,21 +6895,26 @@ function tpUpdateChartData() {
 // Fetch live prices
 async function tpFetchPrices() {
   try {
-    const ids = TP_PAIRS.map(p => p.id).join(',');
-    const r = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true&include_24hr_high=true&include_24hr_low=true`);
-    const d = await r.json();
+    // Use Binance API for prices (more reliable than CoinGecko)
+    const symbols = TP_PAIRS.map(p => p.symbol);
+    const url = `https://api.binance.com/api/v3/ticker/24hr?symbols=["${symbols.join('","')}"]`;
+    const r = await fetch(url);
+    const data = await r.json();
     
-    TP_PAIRS.forEach(p => {
-      const data = d[p.id];
-      if (data) {
-        TP_STATE.prices[p.symbol] = {
-          price: data.usd || 0,
-          change: data.usd_24h_change || 0,
-          high: data.usd_24h_high || data.usd * 1.02,
-          low: data.usd_24h_low || data.usd * 0.98
-        };
-      }
-    });
+    if (Array.isArray(data)) {
+      data.forEach(ticker => {
+        const pair = TP_PAIRS.find(p => p.symbol === ticker.symbol);
+        if (pair) {
+          TP_STATE.prices[ticker.symbol] = {
+            price: parseFloat(ticker.lastPrice) || 0,
+            change: parseFloat(ticker.priceChangePercent) || 0,
+            high: parseFloat(ticker.highPrice) || 0,
+            low: parseFloat(ticker.lowPrice) || 0,
+            volume: parseFloat(ticker.quoteVolume) || 0
+          };
+        }
+      });
+    }
     
     tpUpdatePriceDisplay();
     tpUpdatePositionsPnL();
@@ -6924,7 +6931,7 @@ function tpUpdatePriceDisplay() {
   
   document.getElementById('tp-pair-icon').textContent = pairInfo.icon;
   document.getElementById('tp-pair-name').textContent = TP_STATE.pair.replace('USDT', '/USDT');
-  document.getElementById('tp-pair-exchange').textContent = `perpetual · ${TP_STATE.exchange}`;
+  document.getElementById('tp-pair-exchange').textContent = `${TP_STATE.marketType} · ${TP_STATE.exchange}`;
   
   const priceEl = document.getElementById('tp-price-main');
   const changeEl = document.getElementById('tp-price-change');
@@ -6938,7 +6945,7 @@ function tpUpdatePriceDisplay() {
   
   document.getElementById('tp-high').textContent = '$' + (priceData.high || 0).toLocaleString();
   document.getElementById('tp-low').textContent = '$' + (priceData.low || 0).toLocaleString();
-  document.getElementById('tp-vol').textContent = '$' + ((priceData.price || 0) * 1000000).toLocaleString(undefined, { notation: 'compact' });
+  document.getElementById('tp-vol').textContent = '$' + (priceData.volume || 0).toLocaleString(undefined, { notation: 'compact', maximumFractionDigits: 1 });
   
   tpCalculate();
 }
@@ -8146,24 +8153,30 @@ async function fetchLivePrices(){
   const container=document.getElementById('live-prices');
   if(!container)return;
   
+  const coins=[
+    {sym:'BTC',pair:'BTCUSDT',icon:'🟠'},
+    {sym:'ETH',pair:'ETHUSDT',icon:'🔷'},
+    {sym:'SOL',pair:'SOLUSDT',icon:'🟣'},
+    {sym:'BNB',pair:'BNBUSDT',icon:'🟡'}
+  ];
+  
   try{
-    const r=await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,binancecoin&vs_currencies=usd&include_24hr_change=true');
-    const d=await r.json();
+    // Use Binance API (more reliable, no CORS issues)
+    const symbols = coins.map(c=>c.pair).join(',');
+    const r = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbols=["${coins.map(c=>c.pair).join('","')}"]`);
     
-    const coins=[
-      {id:'bitcoin',sym:'BTC',icon:'🟠'},
-      {id:'ethereum',sym:'ETH',icon:'🔷'},
-      {id:'solana',sym:'SOL',icon:'🟣'},
-      {id:'binancecoin',sym:'BNB',icon:'🟡'}
-    ];
+    if(!r.ok) throw new Error('Binance API failed');
+    
+    const data = await r.json();
     
     container.classList.remove('prices-loading');
     container.innerHTML=coins.map(c=>{
-      const price=d[c.id]?.usd||0;
-      const change=d[c.id]?.usd_24h_change||0;
-      const isUp=change>=0;
-      const priceStr=price>=1000?'$'+price.toLocaleString(undefined,{maximumFractionDigits:0}):'$'+price.toFixed(2);
-      const changeStr=(isUp?'+':'')+change.toFixed(2)+'%';
+      const ticker = data.find(d=>d.symbol===c.pair);
+      const price = parseFloat(ticker?.lastPrice)||0;
+      const change = parseFloat(ticker?.priceChangePercent)||0;
+      const isUp = change>=0;
+      const priceStr = price>=1000?'$'+price.toLocaleString(undefined,{maximumFractionDigits:0}):'$'+price.toFixed(2);
+      const changeStr = (isUp?'+':'')+change.toFixed(2)+'%';
       return `<div class="price-card">
         <div class="price-card-head">
           <span class="price-card-icon">${c.icon}</span>
@@ -8177,8 +8190,16 @@ async function fetchLivePrices(){
     }).join('');
     
   }catch(e){
+    console.log('fetchLivePrices error:', e.message);
     container.classList.remove('prices-loading');
-    container.innerHTML='<div style="font-size:10px;color:#555;padding:10px">Unable to load prices</div>';
+    container.innerHTML=coins.map(c=>`<div class="price-card">
+      <div class="price-card-head">
+        <span class="price-card-icon">${c.icon}</span>
+        <span class="price-card-sym">${c.sym}</span>
+      </div>
+      <div class="price-card-price">--</div>
+      <div class="price-card-change">--</div>
+    </div>`).join('');
   }
 }
 
