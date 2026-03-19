@@ -506,6 +506,66 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 .panel-left:not(.collapsed):hover .panel-left-edge{opacity:.7}
 .panel-left.collapsed .panel-left-edge{width:100%;opacity:.07;background:var(--acc)}
 
+
+/* ── MEMBER PANEL ── */
+#member-panel{position:fixed;top:0;right:0;width:360px;height:100vh;background:#0a0a0a;border-left:0.5px solid #1a1a1a;z-index:9500;transform:translateX(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;overflow:hidden}
+#member-panel.open{transform:translateX(0)}
+#member-overlay{position:fixed;inset:0;z-index:9499;background:rgba(0,0,0,.5);backdrop-filter:blur(2px);opacity:0;pointer-events:none;transition:opacity .35s}
+#member-overlay.open{opacity:1;pointer-events:all}
+.mp-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:0.5px solid #1a1a1a;flex-shrink:0}
+.mp-user{display:flex;flex-direction:column;gap:2px}
+.mp-username{font-size:14px;font-weight:700;color:#fff}
+.mp-email{font-size:10px;color:#444}
+.mp-close{background:none;border:none;color:#333;font-size:18px;cursor:pointer;padding:0;transition:color .2s;line-height:1}
+.mp-close:hover{color:#fff}
+.mp-tabs{display:flex;border-bottom:0.5px solid #1a1a1a;flex-shrink:0}
+.mp-tab{flex:1;padding:10px;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border:none;background:transparent;color:#333;cursor:pointer;transition:all .2s;border-bottom:2px solid transparent}
+.mp-tab.on{color:#00c47a;border-bottom-color:#00c47a}
+.mp-body{flex:1;overflow-y:auto;scrollbar-width:none}
+.mp-body::-webkit-scrollbar{display:none}
+/* presets tab */
+.mp-section{padding:14px 18px}
+.mp-sec-title{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#333;margin-bottom:10px}
+.mp-save-btn{width:100%;padding:10px;background:#00c47a;color:#000;border:none;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.04em;display:flex;align-items:center;justify-content:center;gap:6px;transition:opacity .2s;margin-bottom:14px}
+.mp-save-btn:hover{opacity:.88}
+.mp-save-btn:disabled{opacity:.4;cursor:default}
+.preset-card{background:#111;border:0.5px solid #1a1a1a;border-radius:8px;padding:12px 14px;margin-bottom:8px;transition:border-color .2s}
+.preset-card:hover{border-color:#2a2a2a}
+.preset-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px}
+.preset-name{font-size:12px;font-weight:700;color:#e0e0e0;cursor:pointer;flex:1;background:none;border:none;padding:0;text-align:left;font-family:inherit}
+.preset-name:hover{color:#fff}
+.preset-name-inp{font-size:12px;font-weight:700;color:#00c47a;background:transparent;border:none;border-bottom:1px solid #00c47a;outline:none;width:100%;font-family:inherit;padding:0}
+.preset-actions{display:flex;gap:4px;flex-shrink:0}
+.preset-btn{background:none;border:0.5px solid #222;border-radius:4px;color:#555;font-size:9px;cursor:pointer;padding:2px 7px;font-weight:700;transition:all .2s;white-space:nowrap}
+.preset-btn:hover{border-color:#00c47a;color:#00c47a}
+.preset-btn.del:hover{border-color:#E24B4A;color:#E24B4A}
+.preset-btn.load{background:#00c47a;color:#000;border-color:#00c47a}
+.preset-btn.load:hover{opacity:.85}
+.preset-meta{font-size:9px;color:#333;display:flex;gap:8px;align-items:center}
+.preset-desc{font-size:10px;color:#444;margin-top:4px;line-height:1.5}
+.mp-empty{text-align:center;padding:32px 18px;color:#333;font-size:11px;line-height:1.8}
+.mp-empty-icon{font-size:28px;margin-bottom:8px}
+/* sync section */
+.mp-sync-row{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-top:0.5px solid #1a1a1a}
+.mp-sync-status{font-size:9px;color:#333}
+.mp-sync-btn-sm{background:none;border:0.5px solid #222;border-radius:6px;color:#00c47a;font-size:10px;font-weight:700;padding:4px 10px;cursor:pointer;transition:all .2s}
+.mp-sync-btn-sm:hover{background:#0a2a1a;border-color:#00c47a}
+/* save preset modal */
+#preset-save-modal{position:fixed;inset:0;z-index:9600;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);opacity:0;pointer-events:none;transition:opacity .25s}
+#preset-save-modal.open{opacity:1;pointer-events:all}
+.psm-box{background:#111;border:0.5px solid #1a1a1a;border-radius:12px;padding:24px;width:100%;max-width:340px}
+.psm-title{font-size:14px;font-weight:700;color:#fff;margin-bottom:16px}
+.psm-field{margin-bottom:12px}
+.psm-field label{display:block;font-size:9px;font-weight:700;color:#444;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px}
+.psm-field input,.psm-field textarea{width:100%;padding:9px 12px;background:#0a0a0a;border:0.5px solid #222;border-radius:7px;color:#e0e0e0;font-size:12px;outline:none;font-family:inherit;box-sizing:border-box;transition:border-color .2s}
+.psm-field input:focus,.psm-field textarea:focus{border-color:#00c47a}
+.psm-field textarea{resize:none;height:60px}
+.psm-row{display:flex;gap:8px;margin-top:4px}
+.psm-cancel{flex:1;padding:9px;background:transparent;border:0.5px solid #222;border-radius:7px;color:#555;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s}
+.psm-cancel:hover{border-color:#555;color:#e0e0e0}
+.psm-confirm{flex:2;padding:9px;background:#00c47a;border:none;border-radius:7px;color:#000;font-size:11px;font-weight:700;cursor:pointer;transition:opacity .2s}
+.psm-confirm:hover{opacity:.88}
+.psm-confirm:disabled{opacity:.4;cursor:default}
 /* ── AUTH PANEL ── */
 #auth-layer{position:fixed;inset:0;z-index:10000;background:#000;display:flex;align-items:center;justify-content:center;transition:opacity .5s ease}
 #auth-layer.out{opacity:0;pointer-events:none}
@@ -538,6 +598,81 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 </style>
 </head>
 <body class="t-light">
+<!-- MEMBER PANEL OVERLAY -->
+<div id="member-overlay" onclick="memberClose()"></div>
+
+<!-- MEMBER PANEL -->
+<div id="member-panel">
+  <div class="mp-head">
+    <div class="mp-user">
+      <div class="mp-username" id="mp-username">@user</div>
+      <div class="mp-email" id="mp-email">guest</div>
+    </div>
+    <button class="mp-close" onclick="memberClose()">✕</button>
+  </div>
+  <div class="mp-tabs">
+    <button class="mp-tab on" id="mp-tab-presets" onclick="memberShowTab('presets')">📋 presets</button>
+    <button class="mp-tab" id="mp-tab-account" onclick="memberShowTab('account')">👤 account</button>
+  </div>
+
+  <div class="mp-body" id="mp-body">
+    <!-- PRESETS TAB -->
+    <div id="mp-presets-tab">
+      <div class="mp-section">
+        <button class="mp-save-btn" onclick="presetSaveModal()">
+          <span>+</span> save current dashboard as preset
+        </button>
+        <div class="mp-sec-title">saved presets <span id="mp-preset-count" style="color:#333"></span></div>
+        <div id="mp-preset-list"><div class="mp-empty"><div class="mp-empty-icon">📋</div>no presets yet<br>save your current setup to access it anytime</div></div>
+      </div>
+    </div>
+
+    <!-- ACCOUNT TAB -->
+    <div id="mp-account-tab" style="display:none">
+      <div class="mp-section">
+        <div class="mp-sec-title">account info</div>
+        <div style="background:#111;border:0.5px solid #1a1a1a;border-radius:8px;padding:14px;margin-bottom:12px">
+          <div style="font-size:10px;color:#444;margin-bottom:3px">username</div>
+          <div style="font-size:13px;font-weight:700;color:#e0e0e0" id="mp-acc-username">—</div>
+          <div style="font-size:10px;color:#444;margin-top:10px;margin-bottom:3px">email</div>
+          <div style="font-size:12px;color:#888" id="mp-acc-email">—</div>
+          <div style="font-size:10px;color:#444;margin-top:10px;margin-bottom:3px">member since</div>
+          <div style="font-size:11px;color:#555" id="mp-acc-since">—</div>
+        </div>
+        <div class="mp-sec-title" style="margin-top:16px">cloud sync</div>
+        <div style="background:#111;border:0.5px solid #1a1a1a;border-radius:8px;padding:14px;margin-bottom:12px">
+          <div style="font-size:10px;color:#444;margin-bottom:8px">sync your entire dashboard state to the cloud — load it from any device after login</div>
+          <button class="mp-save-btn" onclick="authSave()" style="margin-bottom:0">↑ sync to cloud now</button>
+          <div style="font-size:9px;color:#333;margin-top:6px;text-align:center" id="mp-last-sync">never synced</div>
+        </div>
+        <div class="mp-sec-title" style="margin-top:16px;color:#E24B4A">danger zone</div>
+        <button onclick="authLogout()" style="width:100%;padding:9px;background:transparent;border:0.5px solid #2a0a0a;border-radius:7px;color:#E24B4A;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s" onmouseover="this.style.background='#1a0a0a'" onmouseout="this.style.background='transparent'">logout</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SAVE PRESET MODAL -->
+<div id="preset-save-modal">
+  <div class="psm-box">
+    <div class="psm-title">💾 save as preset</div>
+    <div class="psm-field">
+      <label>preset name</label>
+      <input id="psm-name" type="text" placeholder="e.g. BTC scalp 5× leverage" maxlength="50">
+    </div>
+    <div class="psm-field">
+      <label>description (optional)</label>
+      <textarea id="psm-desc" placeholder="notes about this setup..."></textarea>
+    </div>
+    <div style="font-size:9px;color:#333;margin-bottom:12px">saves: all tabs · capital · leverage · notional · trades · labels · spot/leverage mode · fees · withdrawals · zero months</div>
+    <div class="psm-row">
+      <button class="psm-cancel" onclick="presetSaveModalClose()">cancel</button>
+      <button class="psm-confirm" id="psm-confirm-btn" onclick="presetSaveConfirm()">save preset</button>
+    </div>
+    <div style="font-size:10px;color:#E24B4A;margin-top:8px;min-height:14px" id="psm-err"></div>
+  </div>
+</div>
+
 <!-- AUTH LAYER -->
 <div id="auth-layer" class="hidden" style="opacity:0;transition:opacity .5s ease">
   <div class="auth-box">
@@ -587,7 +722,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
   </div>
 </div>
 <!-- user bar shown after login -->
-<div class="auth-user-bar hidden" id="auth-user-bar" onclick="authShowMenu()">
+<div class="auth-user-bar hidden" id="auth-user-bar" onclick="memberOpen()">
   <span id="auth-username-lbl">@user</span>
   <button class="auth-sync-btn" onclick="event.stopPropagation();authSave()" title="sync to cloud">↑ sync</button>
   <button class="auth-sync-btn" onclick="event.stopPropagation();authLogout()" title="logout" style="color:#E24B4A">✕</button>
