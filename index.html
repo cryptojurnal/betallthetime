@@ -371,10 +371,43 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
 
 /* Main Layout */
 .tp-main{display:flex;flex:1;overflow:hidden}
-.tp-chart-area{flex:1;display:flex;flex-direction:column;border-right:1px solid #1a1a1a}
+.tp-chart-section{flex:1;display:flex;flex-direction:column}
+.tp-chart-area{flex:1;display:flex;border-right:1px solid #1a1a1a}
+.tp-chart-wrap{flex:1;display:flex;flex-direction:column}
+.tp-orderbook{width:200px;background:#0a0a0a;border-left:1px solid #1a1a1a;display:flex;flex-direction:column}
 .tp-sidebar{width:320px;display:flex;flex-direction:column;background:#0a0a0a;flex-shrink:0}
+@media(max-width:1200px){.tp-orderbook{width:160px}}
 @media(max-width:1100px){.tp-sidebar{width:280px}}
-@media(max-width:900px){.tp-main{flex-direction:column}.tp-sidebar{width:100%;max-height:50vh}.tp-chart-area{border-right:none;border-bottom:1px solid #1a1a1a}}
+@media(max-width:900px){.tp-main{flex-direction:column}.tp-sidebar{width:100%;max-height:50vh}.tp-chart-area{border-right:none;border-bottom:1px solid #1a1a1a}.tp-orderbook{display:none}}
+
+/* Order Book */
+.tp-ob-header{padding:8px 10px;border-bottom:1px solid #1a1a1a;font-size:10px;font-weight:700;color:#555;text-transform:uppercase;display:flex;justify-content:space-between}
+.tp-ob-header span{color:#888}
+.tp-ob-content{flex:1;overflow:hidden;display:flex;flex-direction:column}
+.tp-ob-asks,.tp-ob-bids{flex:1;overflow:hidden;display:flex;flex-direction:column}
+.tp-ob-asks{justify-content:flex-end}
+.tp-ob-spread{padding:6px 10px;background:#111;text-align:center;font-size:10px;color:#555;border-top:1px solid #1a1a1a;border-bottom:1px solid #1a1a1a}
+.tp-ob-spread span{color:#888;font-weight:600}
+.tp-ob-row{display:flex;justify-content:space-between;padding:2px 10px;font-size:10px;font-family:monospace;position:relative}
+.tp-ob-row.ask{color:#E24B4A}
+.tp-ob-row.bid{color:#00c47a}
+.tp-ob-row .price{flex:1}
+.tp-ob-row .size{flex:1;text-align:right;color:#555}
+.tp-ob-row .depth{position:absolute;right:0;top:0;bottom:0;opacity:0.15}
+.tp-ob-row.ask .depth{background:#E24B4A}
+.tp-ob-row.bid .depth{background:#00c47a}
+.tp-ob-mid{padding:8px 10px;background:#111;text-align:center;border-top:1px solid #1a1a1a;border-bottom:1px solid #1a1a1a}
+.tp-ob-mid-price{font-size:14px;font-weight:800;color:#fff}
+.tp-ob-mid-change{font-size:9px;margin-top:2px}
+.tp-ob-mid-change.up{color:#00c47a}
+.tp-ob-mid-change.down{color:#E24B4A}
+
+/* Market Type Toggle */
+.tp-market-type{display:flex;gap:4px;padding:8px 10px;background:#000;border-bottom:1px solid #1a1a1a}
+.tp-market-type button{padding:6px 14px;background:#111;border:1px solid #1a1a1a;border-radius:6px;color:#555;font-size:10px;font-weight:700;cursor:pointer;transition:all .15s}
+.tp-market-type button:hover{border-color:#333;color:#888}
+.tp-market-type button.active{background:#00c47a;border-color:#00c47a;color:#000}
+.tp-market-type button.perp.active{background:#5b7fff;border-color:#5b7fff;color:#fff}
 
 /* Chart */
 .tp-chart{flex:1;background:#0a0a0a;position:relative;min-height:300px}
@@ -1674,23 +1707,51 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 
   <!-- Main Layout -->
   <div class="tp-main">
-    <!-- Chart Area -->
-    <div class="tp-chart-area">
-      <div class="tp-chart-toolbar">
-        <div class="tp-chart-tf">
-          <button onclick="tpSetTimeframe('1m')">1m</button>
-          <button onclick="tpSetTimeframe('5m')">5m</button>
-          <button class="active" onclick="tpSetTimeframe('15m')">15m</button>
-          <button onclick="tpSetTimeframe('1h')">1H</button>
-          <button onclick="tpSetTimeframe('4h')">4H</button>
-          <button onclick="tpSetTimeframe('1d')">1D</button>
+    <!-- Chart Section -->
+    <div class="tp-chart-section">
+      <!-- Market Type Toggle -->
+      <div class="tp-market-type">
+        <button class="active" onclick="tpSetMarketType('spot')">Spot</button>
+        <button class="perp" onclick="tpSetMarketType('perpetual')">Perpetual</button>
+      </div>
+      
+      <!-- Chart + Order Book -->
+      <div class="tp-chart-area">
+        <div class="tp-chart-wrap">
+          <div class="tp-chart-toolbar">
+            <div class="tp-chart-tf">
+              <button onclick="tpSetTimeframe('1m')">1m</button>
+              <button onclick="tpSetTimeframe('5m')">5m</button>
+              <button class="active" onclick="tpSetTimeframe('15m')">15m</button>
+              <button onclick="tpSetTimeframe('1h')">1H</button>
+              <button onclick="tpSetTimeframe('4h')">4H</button>
+              <button onclick="tpSetTimeframe('1d')">1D</button>
+            </div>
+            <div class="tp-chart-type">
+              <button class="active" onclick="tpSetChartType('candle')" title="Candles">📊</button>
+              <button onclick="tpSetChartType('line')" title="Line">📈</button>
+            </div>
+          </div>
+          <div class="tp-chart" id="tp-chart-container"></div>
         </div>
-        <div class="tp-chart-type">
-          <button class="active" onclick="tpSetChartType('candle')" title="Candles">📊</button>
-          <button onclick="tpSetChartType('line')" title="Line">📈</button>
+        
+        <!-- Order Book -->
+        <div class="tp-orderbook">
+          <div class="tp-ob-header">
+            <span>Price</span>
+            <span>Size</span>
+          </div>
+          <div class="tp-ob-content">
+            <div class="tp-ob-asks" id="tp-ob-asks"></div>
+            <div class="tp-ob-mid">
+              <div class="tp-ob-mid-price" id="tp-ob-price">$69,420.50</div>
+              <div class="tp-ob-mid-change up" id="tp-ob-change">+2.45%</div>
+            </div>
+            <div class="tp-ob-bids" id="tp-ob-bids"></div>
+          </div>
+          <div class="tp-ob-spread">Spread: <span id="tp-ob-spread">$12.50 (0.02%)</span></div>
         </div>
       </div>
-      <div class="tp-chart" id="tp-chart-container"></div>
     </div>
 
     <!-- Sidebar -->
@@ -1700,11 +1761,12 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
         <div class="tp-order-tabs">
           <button class="tp-order-tab active" onclick="tpSetOrderType('market')">Market</button>
           <button class="tp-order-tab" onclick="tpSetOrderType('limit')">Limit</button>
+          <button class="tp-order-tab" onclick="tpSetOrderType('stop')">Stop</button>
         </div>
 
         <div class="tp-side-btns">
-          <button class="tp-side-btn long active" onclick="tpSelectSide('long')" id="tp-side-long">Long</button>
-          <button class="tp-side-btn short" onclick="tpSelectSide('short')" id="tp-side-short">Short</button>
+          <button class="tp-side-btn long active" onclick="tpSelectSide('long')" id="tp-side-long">Buy</button>
+          <button class="tp-side-btn short" onclick="tpSelectSide('short')" id="tp-side-short">Sell</button>
         </div>
 
         <div class="tp-input-group" id="tp-limit-price-group" style="display:none">
@@ -1715,9 +1777,17 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
           </div>
         </div>
 
+        <div class="tp-input-group" id="tp-stop-price-group" style="display:none">
+          <div class="tp-input-label">Stop Price</div>
+          <div class="tp-input-wrap">
+            <input type="number" class="tp-input" id="tp-stop-price" placeholder="0.00" oninput="tpCalculate()">
+            <span class="tp-input-suffix">USDT</span>
+          </div>
+        </div>
+
         <div class="tp-input-group">
           <div class="tp-input-label">
-            Size
+            <span id="tp-size-label">Size</span>
             <span onclick="tpSetMaxSize()">Max</span>
           </div>
           <div class="tp-input-wrap">
@@ -1730,13 +1800,15 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
           </div>
         </div>
 
-        <div class="tp-leverage-row">
+        <!-- Leverage (only for perpetual) -->
+        <div class="tp-leverage-row" id="tp-leverage-row">
           <span class="tp-leverage-label">Leverage</span>
-          <input type="range" class="tp-leverage-slider" id="tp-leverage-slider" min="1" max="100" value="10" oninput="tpSetLeverageSlider(this.value)">
+          <input type="range" class="tp-leverage-slider" id="tp-leverage-slider" min="1" max="125" value="10" oninput="tpSetLeverageSlider(this.value)">
           <span class="tp-leverage-value" id="tp-leverage-value">10x</span>
         </div>
 
-        <div class="tp-tpsl-row">
+        <!-- TP/SL -->
+        <div class="tp-tpsl-row" id="tp-tpsl-row">
           <div class="tp-input-group">
             <div class="tp-input-label">Take Profit %</div>
             <div class="tp-input-wrap">
@@ -1755,15 +1827,16 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 
         <div class="tp-order-summary">
           <div class="tp-summary-row"><span>Entry Price</span><span id="tp-sum-entry">$69,420.50</span></div>
-          <div class="tp-summary-row"><span>Position Value</span><span id="tp-sum-value">$1,000.00</span></div>
-          <div class="tp-summary-row"><span>Margin Required</span><span id="tp-sum-margin">$100.00</span></div>
-          <div class="tp-summary-row warn"><span>Liquidation</span><span id="tp-sum-liq">$62,478.45</span></div>
-          <div class="tp-summary-row highlight"><span>Take Profit</span><span id="tp-sum-tp">$76,362.55</span></div>
-          <div class="tp-summary-row warn"><span>Stop Loss</span><span id="tp-sum-sl">$65,949.48</span></div>
+          <div class="tp-summary-row"><span id="tp-sum-value-label">Position Value</span><span id="tp-sum-value">$1,000.00</span></div>
+          <div class="tp-summary-row" id="tp-sum-margin-row"><span>Margin Required</span><span id="tp-sum-margin">$100.00</span></div>
+          <div class="tp-summary-row warn" id="tp-sum-liq-row"><span>Liquidation</span><span id="tp-sum-liq">$62,478.45</span></div>
+          <div class="tp-summary-row highlight" id="tp-sum-tp-row"><span>Take Profit</span><span id="tp-sum-tp">$76,362.55</span></div>
+          <div class="tp-summary-row warn" id="tp-sum-sl-row"><span>Stop Loss</span><span id="tp-sum-sl">$65,949.48</span></div>
+          <div class="tp-summary-row"><span>Est. Fee</span><span id="tp-sum-fee">~$0.10</span></div>
         </div>
 
         <button class="tp-submit-btn long" id="tp-submit" onclick="tpPlaceOrder()">
-          Long BTC/USDT
+          Buy BTC
         </button>
       </div>
 
@@ -1771,7 +1844,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
       <div class="tp-positions">
         <div class="tp-pos-tabs">
           <button class="tp-pos-tab active" onclick="tpShowTab('positions')" id="tp-tab-positions">Positions <span id="tp-pos-count">0</span></button>
-          <button class="tp-pos-tab" onclick="tpShowTab('orders')" id="tp-tab-orders">Orders <span>0</span></button>
+          <button class="tp-pos-tab" onclick="tpShowTab('orders')" id="tp-tab-orders">Orders <span id="tp-orders-count">0</span></button>
           <button class="tp-pos-tab" onclick="tpShowTab('history')" id="tp-tab-history">History</button>
         </div>
 
@@ -6413,11 +6486,13 @@ var TP_STATE = {
   pair: 'BTCUSDT',
   side: 'long',
   orderType: 'market',
+  marketType: 'spot', // 'spot' or 'perpetual'
   leverage: 10,
   balance: 10000,
   startBalance: 10000,
   positions: [],
   history: [],
+  pendingOrders: [],
   prices: {},
   timeframe: '15m',
   chartType: 'candle'
@@ -6774,6 +6849,7 @@ function tpPlaceOrder() {
   const sl = parseFloat(document.getElementById('tp-sl')?.value) || 5;
   const priceData = TP_STATE.prices[TP_STATE.pair] || { price: 69000 };
   const price = priceData.price;
+  const isSpot = TP_STATE.marketType === 'spot';
   
   if (size <= 0) {
     showToast('Enter a valid position size', 'error');
@@ -6792,11 +6868,12 @@ function tpPlaceOrder() {
     id: Date.now().toString(),
     pair: TP_STATE.pair,
     side: TP_STATE.side,
-    leverage: TP_STATE.leverage,
+    marketType: TP_STATE.marketType,
+    leverage: isSpot ? 1 : TP_STATE.leverage,
     size,
     entryPrice: price,
-    tpPercent: tp,
-    slPercent: sl,
+    tpPercent: isSpot ? 0 : tp,
+    slPercent: isSpot ? 0 : sl,
     exchange: TP_STATE.exchange,
     openedAt: Date.now()
   };
@@ -6806,7 +6883,9 @@ function tpPlaceOrder() {
   tpSaveState();
   tpUpdateUI();
   tpRenderPositions();
-  showToast(`Opened ${position.side.toUpperCase()} ${position.pair.replace('USDT','')} @ $${price.toLocaleString()}`, 'success');
+  
+  const action = isSpot ? (TP_STATE.side === 'long' ? 'Bought' : 'Sold') : `Opened ${position.side.toUpperCase()}`;
+  showToast(`${action} ${position.pair.replace('USDT','')} @ $${price.toLocaleString()}`, 'success');
 }
 
 // Close position
@@ -6910,16 +6989,24 @@ function tpRenderPositions() {
     const pnl = tpCalcPnL(pos, currentPrice);
     const pnlPercent = (pnl / pos.size) * 100;
     const isUp = pnl >= 0;
+    const isSpot = pos.marketType === 'spot' || pos.leverage === 1;
     const liqMove = 100 / pos.leverage * 0.9;
     const liqPrice = pos.side === 'long' ? pos.entryPrice * (1 - liqMove / 100) : pos.entryPrice * (1 + liqMove / 100);
+    
+    // Calculate holdings for spot
+    const holdings = isSpot ? (pos.size / pos.entryPrice) : null;
+    const currentValue = isSpot ? (holdings * currentPrice) : null;
     
     return `
       <div class="tp-position-card">
         <div class="tp-pos-row1">
           <div class="tp-pos-symbol">
             <span class="tp-pos-symbol-name">${pos.pair.replace('USDT', '')}/USDT</span>
-            <span class="tp-pos-badge ${pos.side}">${pos.side.toUpperCase()}</span>
-            <span class="tp-pos-badge lev">${pos.leverage}x</span>
+            ${isSpot ? 
+              `<span class="tp-pos-badge" style="background:#1a2a1a;color:#8ac">SPOT</span>` :
+              `<span class="tp-pos-badge ${pos.side}">${pos.side.toUpperCase()}</span>
+               <span class="tp-pos-badge lev">${pos.leverage}x</span>`
+            }
           </div>
           <div class="tp-pos-pnl">
             <div class="tp-pos-pnl-value ${isUp ? 'up' : 'down'}">${isUp ? '+' : ''}$${pnl.toFixed(2)}</div>
@@ -6927,13 +7014,20 @@ function tpRenderPositions() {
           </div>
         </div>
         <div class="tp-pos-row2">
-          <div class="tp-pos-stat">Size<span>$${pos.size}</span></div>
-          <div class="tp-pos-stat">Entry<span>$${pos.entryPrice.toLocaleString()}</span></div>
-          <div class="tp-pos-stat">Mark<span>$${currentPrice.toLocaleString()}</span></div>
-          <div class="tp-pos-stat">Liq<span style="color:#E24B4A">$${liqPrice.toLocaleString()}</span></div>
+          ${isSpot ? `
+            <div class="tp-pos-stat">Bought<span>$${pos.size.toFixed(2)}</span></div>
+            <div class="tp-pos-stat">Holdings<span>${holdings.toFixed(6)}</span></div>
+            <div class="tp-pos-stat">Avg Price<span>$${pos.entryPrice.toLocaleString()}</span></div>
+            <div class="tp-pos-stat">Value<span>$${currentValue.toFixed(2)}</span></div>
+          ` : `
+            <div class="tp-pos-stat">Size<span>$${pos.size}</span></div>
+            <div class="tp-pos-stat">Entry<span>$${pos.entryPrice.toLocaleString()}</span></div>
+            <div class="tp-pos-stat">Mark<span>$${currentPrice.toLocaleString()}</span></div>
+            <div class="tp-pos-stat">Liq<span style="color:#E24B4A">$${liqPrice.toLocaleString()}</span></div>
+          `}
         </div>
         <div class="tp-pos-actions">
-          <button onclick="tpClosePosition('${pos.id}')" class="close">Close Position</button>
+          <button onclick="tpClosePosition('${pos.id}')" class="close">${isSpot ? 'Sell' : 'Close Position'}</button>
         </div>
       </div>
     `;
@@ -7003,7 +7097,8 @@ function tpResetAccount() {
     balance: 10000,
     startBalance: 10000,
     positions: [],
-    history: []
+    history: [],
+    pendingOrders: []
   };
   tpSaveState();
   tpUpdateUI();
@@ -7011,6 +7106,213 @@ function tpResetAccount() {
   tpRenderHistory();
   showToast('Paper account reset!', 'success');
 }
+
+// Market type toggle (Spot / Perpetual)
+function tpSetMarketType(type) {
+  TP_STATE.marketType = type;
+  document.querySelectorAll('.tp-market-type button').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  
+  const isSpot = type === 'spot';
+  const leverageRow = document.getElementById('tp-leverage-row');
+  const tpslRow = document.getElementById('tp-tpsl-row');
+  const marginRow = document.getElementById('tp-sum-margin-row');
+  const liqRow = document.getElementById('tp-sum-liq-row');
+  const tpRow = document.getElementById('tp-sum-tp-row');
+  const slRow = document.getElementById('tp-sum-sl-row');
+  const longBtn = document.getElementById('tp-side-long');
+  const shortBtn = document.getElementById('tp-side-short');
+  
+  // Show/hide perpetual-only elements
+  if (leverageRow) leverageRow.style.display = isSpot ? 'none' : 'flex';
+  if (tpslRow) tpslRow.style.display = isSpot ? 'none' : 'flex';
+  if (marginRow) marginRow.style.display = isSpot ? 'none' : 'flex';
+  if (liqRow) liqRow.style.display = isSpot ? 'none' : 'flex';
+  if (tpRow) tpRow.style.display = isSpot ? 'none' : 'flex';
+  if (slRow) slRow.style.display = isSpot ? 'none' : 'flex';
+  
+  // Update button labels
+  if (longBtn) longBtn.textContent = isSpot ? 'Buy' : 'Long';
+  if (shortBtn) shortBtn.textContent = isSpot ? 'Sell' : 'Short';
+  if (isSpot) shortBtn.style.display = 'none'; // Can't short in spot
+  else shortBtn.style.display = 'block';
+  
+  // Update exchange label
+  document.getElementById('tp-pair-exchange').textContent = `${isSpot ? 'spot' : 'perpetual'} · ${TP_STATE.exchange}`;
+  
+  // If spot, force long
+  if (isSpot && TP_STATE.side === 'short') {
+    tpSelectSide('long');
+  }
+  
+  tpCalculate();
+  tpSaveState();
+}
+
+// Order type with stop order support
+function tpSetOrderType(type) {
+  TP_STATE.orderType = type;
+  document.querySelectorAll('.tp-order-tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  
+  document.getElementById('tp-limit-price-group').style.display = (type === 'limit' || type === 'stop') ? 'block' : 'none';
+  document.getElementById('tp-stop-price-group').style.display = type === 'stop' ? 'block' : 'none';
+}
+
+// Generate and render order book
+function tpRenderOrderBook() {
+  const asksContainer = document.getElementById('tp-ob-asks');
+  const bidsContainer = document.getElementById('tp-ob-bids');
+  const priceEl = document.getElementById('tp-ob-price');
+  const changeEl = document.getElementById('tp-ob-change');
+  const spreadEl = document.getElementById('tp-ob-spread');
+  
+  if (!asksContainer || !bidsContainer) return;
+  
+  const priceData = TP_STATE.prices[TP_STATE.pair] || { price: 69000, change: 0 };
+  const price = priceData.price;
+  const change = priceData.change;
+  
+  // Generate simulated order book data
+  const spread = price * 0.0001; // 0.01% spread
+  const asks = [];
+  const bids = [];
+  
+  for (let i = 0; i < 8; i++) {
+    const askPrice = price + spread/2 + (i * price * 0.0002 * (1 + Math.random() * 0.5));
+    const bidPrice = price - spread/2 - (i * price * 0.0002 * (1 + Math.random() * 0.5));
+    const askSize = (Math.random() * 2 + 0.1).toFixed(4);
+    const bidSize = (Math.random() * 2 + 0.1).toFixed(4);
+    asks.push({ price: askPrice, size: askSize, depth: Math.random() * 80 + 10 });
+    bids.push({ price: bidPrice, size: bidSize, depth: Math.random() * 80 + 10 });
+  }
+  
+  // Render asks (reversed so lowest ask is at bottom)
+  asksContainer.innerHTML = asks.reverse().map(a => `
+    <div class="tp-ob-row ask">
+      <span class="price">${a.price.toFixed(2)}</span>
+      <span class="size">${a.size}</span>
+      <div class="depth" style="width:${a.depth}%"></div>
+    </div>
+  `).join('');
+  
+  // Render bids
+  bidsContainer.innerHTML = bids.map(b => `
+    <div class="tp-ob-row bid">
+      <span class="price">${b.price.toFixed(2)}</span>
+      <span class="size">${b.size}</span>
+      <div class="depth" style="width:${b.depth}%"></div>
+    </div>
+  `).join('');
+  
+  // Update mid price
+  if (priceEl) priceEl.textContent = '$' + price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (changeEl) {
+    const isUp = change >= 0;
+    changeEl.textContent = (isUp ? '+' : '') + change.toFixed(2) + '%';
+    changeEl.className = 'tp-ob-mid-change ' + (isUp ? 'up' : 'down');
+  }
+  
+  // Update spread
+  if (spreadEl) {
+    const spreadUsd = spread.toFixed(2);
+    const spreadPercent = ((spread / price) * 100).toFixed(4);
+    spreadEl.textContent = `$${spreadUsd} (${spreadPercent}%)`;
+  }
+}
+
+// Update openTradingPage to include order book
+var _origOpenTradingPage = openTradingPage;
+openTradingPage = function() {
+  tpLoadState();
+  const page = document.getElementById('trading-page');
+  const l3 = document.getElementById('layer3');
+  if (page) {
+    page.classList.add('visible');
+    l3.classList.remove('visible');
+    tpFetchPrices();
+    tpInitChart();
+    tpUpdateUI();
+    tpRenderPositions();
+    tpRenderHistory();
+    tpRenderPairList();
+    tpRenderOrderBook();
+    
+    // Apply market type settings
+    tpSetMarketType(TP_STATE.marketType);
+    document.querySelectorAll('.tp-market-type button').forEach(b => {
+      b.classList.toggle('active', b.textContent.toLowerCase() === TP_STATE.marketType);
+    });
+    
+    // Start price updates
+    if (!window._tpPriceInterval) {
+      window._tpPriceInterval = setInterval(() => {
+        tpFetchPrices();
+        tpRenderOrderBook();
+      }, 5000);
+    }
+  }
+};
+
+// Update tpSelectSide for spot/perpetual
+var _origSelectSide = tpSelectSide;
+tpSelectSide = function(side) {
+  TP_STATE.side = side;
+  document.getElementById('tp-side-long').classList.toggle('active', side === 'long');
+  document.getElementById('tp-side-short').classList.toggle('active', side === 'short');
+  
+  const btn = document.getElementById('tp-submit');
+  const isSpot = TP_STATE.marketType === 'spot';
+  const pairShort = TP_STATE.pair.replace('USDT', '');
+  
+  if (btn) {
+    btn.className = 'tp-submit-btn ' + side;
+    if (isSpot) {
+      btn.textContent = side === 'long' ? `Buy ${pairShort}` : `Sell ${pairShort}`;
+    } else {
+      btn.textContent = `${side === 'long' ? 'Long' : 'Short'} ${pairShort}/USDT`;
+    }
+  }
+  tpCalculate();
+};
+
+// Update calculate for spot/perpetual
+var _origCalculate = tpCalculate;
+tpCalculate = function() {
+  const size = parseFloat(document.getElementById('tp-size')?.value) || 0;
+  const tp = parseFloat(document.getElementById('tp-tp')?.value) || 10;
+  const sl = parseFloat(document.getElementById('tp-sl')?.value) || 5;
+  const priceData = TP_STATE.prices[TP_STATE.pair] || { price: 69000 };
+  const price = TP_STATE.orderType === 'limit' ? 
+    (parseFloat(document.getElementById('tp-limit-price')?.value) || priceData.price) : 
+    priceData.price;
+  const lev = TP_STATE.marketType === 'spot' ? 1 : TP_STATE.leverage;
+  const side = TP_STATE.side;
+  const isSpot = TP_STATE.marketType === 'spot';
+  
+  const posValue = isSpot ? size : size * lev;
+  const margin = size;
+  const liqMove = 100 / lev * 0.9;
+  const liqPrice = side === 'long' ? price * (1 - liqMove / 100) : price * (1 + liqMove / 100);
+  const tpPrice = side === 'long' ? price * (1 + tp / 100) : price * (1 - tp / 100);
+  const slPrice = side === 'long' ? price * (1 - sl / 100) : price * (1 + sl / 100);
+  const fee = posValue * 0.001; // 0.1% fee
+  
+  const fmt = (n) => '$' + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  
+  document.getElementById('tp-sum-entry').textContent = fmt(price);
+  document.getElementById('tp-sum-value').textContent = fmt(posValue);
+  document.getElementById('tp-sum-value-label').textContent = isSpot ? 'Total' : 'Position Value';
+  
+  if (!isSpot) {
+    document.getElementById('tp-sum-margin').textContent = fmt(margin);
+    document.getElementById('tp-sum-liq').textContent = fmt(liqPrice);
+    document.getElementById('tp-sum-tp').textContent = fmt(tpPrice);
+    document.getElementById('tp-sum-sl').textContent = fmt(slPrice);
+  }
+  
+  document.getElementById('tp-sum-fee').textContent = '~' + fmt(fee);
+};
 
 // ── PUSH NOTIFICATIONS ──
 var _pushRegistration=null;
