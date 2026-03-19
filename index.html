@@ -621,13 +621,13 @@ body.t-lavender{--bg:#f0eef8;--panel:#fff;--bd:#d8d4f0;--bd2:#e4e0f4;--sf:#f8f6f
 .panel-left.collapsed .pl-body{display:none}
 .panel-left-toggle{position:fixed;left:0;top:50%;transform:translateY(-50%);width:42px;height:90px;background:linear-gradient(135deg,var(--acc),#1D9E75);border:none;border-radius:0 14px 14px 0;cursor:grab;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px;font-size:14px;color:#fff;transition:all .25s cubic-bezier(.4,0,.2,1);z-index:100;box-shadow:4px 0 20px rgba(0,0,0,0.3);opacity:0;pointer-events:none;user-select:none;touch-action:none;overflow:hidden}
 .panel-left-toggle.visible{opacity:1;pointer-events:all;animation:togglePulseLeft 2s ease-in-out infinite}
+.panel-left-toggle.expanded{left:224px;animation:none}
 .panel-left-toggle:hover{width:52px;box-shadow:6px 0 28px rgba(0,0,0,0.4);animation:none}
 .panel-left-toggle.dragging{cursor:grabbing;box-shadow:8px 0 32px rgba(0,0,0,0.5);transform:translateY(-50%) scale(1.08);animation:none}
 .panel-left-toggle-icon{font-size:22px;animation:bounceIconLeft 1.5s ease-in-out infinite}
+.panel-left-toggle.expanded .panel-left-toggle-icon{animation:none}
 .panel-left-toggle-label{font-size:8px;font-weight:800;letter-spacing:0.5px;text-transform:uppercase;writing-mode:vertical-rl;text-orientation:mixed;margin-top:4px}
 .panel-left-toggle::before{content:'';position:absolute;right:6px;top:50%;transform:translateY(-50%);width:4px;height:28px;background:rgba(255,255,255,0.2);border-radius:2px}
-.panel-left:not(.collapsed) .panel-left-toggle{left:224px;animation:none}
-.panel-left:not(.collapsed) .panel-left-toggle-icon{animation:none}
 @keyframes togglePulseLeft{0%,100%{box-shadow:4px 0 20px rgba(0,0,0,0.3)}50%{box-shadow:4px 0 30px rgba(29,158,117,0.5)}}
 @keyframes bounceIconLeft{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
 .panel-left{position:relative}
@@ -2138,12 +2138,14 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 
 <div class="app">
 
+<!-- LEFT PANEL TOGGLE (outside panel for proper visibility) -->
+<button class="panel-left-toggle" id="left-panel-toggle" title="Controls - Drag to move">
+  <span class="panel-left-toggle-icon">⚙️</span>
+  <span class="panel-left-toggle-label">CTRL</span>
+</button>
+
 <!-- LEFT PANEL -->
 <div class="panel-left collapsed" id="left-panel">
-  <button class="panel-left-toggle" id="left-panel-toggle" title="Controls - Drag to move">
-    <span class="panel-left-toggle-icon">⚙️</span>
-    <span class="panel-left-toggle-label">CTRL</span>
-  </button>
   <div class="pl-body">
   <div class="pl-head">
     <h1 style="font-size:18px;font-weight:900;line-height:1.2;letter-spacing:-.02em;color:var(--tx)">bet all the time<br><span style="font-size:18px;font-weight:900">bet with style</span></h1>
@@ -3641,9 +3643,11 @@ function toggleSec(id){
 function togglePanel(){
   const panel=document.getElementById('left-panel');
   const btn=document.getElementById('collapse-btn');
+  const toggle=document.getElementById('left-panel-toggle');
   panel.classList.toggle('collapsed');
   const isCollapsed=panel.classList.contains('collapsed');
   if(btn) btn.textContent=isCollapsed?'›':'‹';
+  if(toggle) toggle.classList.toggle('expanded', !isCollapsed);
   setTimeout(()=>{
     if(ch){
       if(ch._errorPulse){clearInterval(ch._errorPulse);ch._errorPulse=null;}
@@ -4840,6 +4844,9 @@ function launchApp(){
   if(window._attachAiFabDrag) window._attachAiFabDrag();
   document.documentElement.style.overflow='auto';
   document.body.style.overflow='auto';
+  // Show left panel toggle for ALL users
+  const leftToggle=document.getElementById('left-panel-toggle');
+  if(leftToggle) leftToggle.classList.add('visible');
   // show back button, keyboard hints, and presets toggle for logged-in users
   if(AUTH_TOKEN){
     const backBtn=document.getElementById('back-to-member');
@@ -5166,6 +5173,14 @@ function authForceLogout(){
   if(presetsBtn) presetsBtn.classList.remove('visible');
   const presetsPanel=document.getElementById('panel-presets');
   if(presetsPanel) presetsPanel.classList.remove('open');
+  // hide left panel toggle and collapse panel
+  const leftToggle=document.getElementById('left-panel-toggle');
+  if(leftToggle){
+    leftToggle.classList.remove('visible');
+    leftToggle.classList.remove('expanded');
+  }
+  const leftPanel=document.getElementById('left-panel');
+  if(leftPanel) leftPanel.classList.add('collapsed');
   // hide AI fab
   const aiFab=document.getElementById('ai-fab');
   if(aiFab){aiFab.style.opacity='0';aiFab.style.pointerEvents='none';}
@@ -6121,7 +6136,10 @@ function backToMemberArea(){
   if(presetsPanel) presetsPanel.classList.remove('open');
   // hide left panel toggle and collapse panel
   const leftToggle=document.getElementById('left-panel-toggle');
-  if(leftToggle) leftToggle.classList.remove('visible');
+  if(leftToggle){
+    leftToggle.classList.remove('visible');
+    leftToggle.classList.remove('expanded');
+  }
   const leftPanel=document.getElementById('left-panel');
   if(leftPanel) leftPanel.classList.add('collapsed');
   // hide AI fab
