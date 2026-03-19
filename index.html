@@ -515,9 +515,9 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 
 
 /* ── MEMBER PANEL ── */
-#member-panel{position:fixed;top:0;right:0;width:360px;height:100vh;background:#0a0a0a;border-left:0.5px solid #1a1a1a;z-index:9500;transform:translateX(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;overflow:hidden}
+#member-panel{position:fixed;top:0;right:0;width:360px;height:100vh;background:#0a0a0a;border-left:0.5px solid #1a1a1a;z-index:9700;transform:translateX(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;overflow:hidden}
 #member-panel.open{transform:translateX(0)}
-#member-overlay{position:fixed;inset:0;z-index:9499;background:rgba(0,0,0,.5);backdrop-filter:blur(2px);opacity:0;pointer-events:none;transition:opacity .35s}
+#member-overlay{position:fixed;inset:0;z-index:9650;background:rgba(0,0,0,.5);backdrop-filter:blur(2px);opacity:0;pointer-events:none;transition:opacity .35s}
 #member-overlay.open{opacity:1;pointer-events:all}
 .mp-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:0.5px solid #1a1a1a;flex-shrink:0}
 .mp-user{display:flex;flex-direction:column;gap:2px}
@@ -685,7 +685,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 .l3-card-soon:hover{opacity:0.7;transform:none;box-shadow:none;border-color:#1a1a1a}
 
 /* ── ACCOUNT PAGE ── */
-.account-page{position:fixed;top:0;left:0;width:100%;height:100%;background:#000;z-index:9000;display:none;overflow-y:auto}
+.account-page{position:fixed;top:0;left:0;width:100%;height:100%;background:#000;z-index:9600;display:none;overflow-y:auto}
 .account-page.visible{display:block;animation:fadeIn .3s ease}
 .acc-container{max-width:540px;margin:0 auto;padding:24px 20px 60px}
 .acc-header{display:flex;align-items:center;gap:16px;margin-bottom:24px;padding-bottom:16px;border-bottom:0.5px solid #1a1a1a}
