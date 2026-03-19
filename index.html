@@ -3034,9 +3034,9 @@ function t(key,arg){
 
 const GUIDE_HTML=`
 <style>
-.guide-wrap{max-width:720px;padding:4px 0 20px;font-size:12px;line-height:1.7;color:var(--tx)}
+.guide-wrap{max-width:800px;padding:4px 0 20px;font-size:12px;line-height:1.7;color:var(--tx)}
 .g-title{font-size:18px;font-weight:700;color:var(--tx);margin-bottom:4px}
-.g-sub{font-size:11px;color:var(--tx2);margin-bottom:20px}
+.g-sub{font-size:11px;color:var(--tx2);margin-bottom:16px}
 .g-sec{margin-bottom:22px}
 .g-sec-title{font-size:13px;font-weight:700;color:var(--acc2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;padding-bottom:5px;border-bottom:0.5px solid var(--bd2)}
 .g-term{display:grid;grid-template-columns:140px 1fr;gap:8px 16px;margin-bottom:8px;align-items:start}
@@ -3055,324 +3055,318 @@ body.t-ocean .g-warn,.body.t-forest .g-warn,.body.t-sunset .g-warn,.body.t-laven
 .g-toggle-demo{display:inline-flex;align-items:center;gap:6px;background:var(--sf2);border:0.5px solid var(--bd2);border-radius:6px;padding:4px 10px;font-size:10px;color:var(--tx2);margin:4px 0}
 .g-tog-on{padding:2px 8px;border-radius:4px;background:var(--togon);color:var(--togonc);font-size:10px;font-weight:700}
 .g-tog-off{padding:2px 8px;border-radius:4px;background:transparent;color:var(--tx2);font-size:10px}
+
+/* Tab Navigation - Improved */
+.g-nav{display:flex;gap:4px;margin:16px 0 20px;padding:6px;background:var(--sf2);border-radius:12px;border:1px solid var(--bd2);overflow-x:auto;-webkit-overflow-scrolling:touch}
+.g-nav::-webkit-scrollbar{height:0}
+.g-nav-btn{padding:10px 16px;font-size:11px;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:transparent;color:var(--tx2);transition:all .15s;display:flex;align-items:center;gap:6px;white-space:nowrap;flex-shrink:0}
+.g-nav-btn:hover{background:var(--bg);color:var(--tx)}
+.g-nav-btn.active{background:var(--acc2);color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.g-nav-btn .g-nav-icon{font-size:14px}
+.g-panel{display:none;animation:gFadeIn .25s ease;min-height:200px}
+.g-panel.active{display:block}
+@keyframes gFadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 </style>
 
 <div class="g-title">bet all the time, bet with style · guide</div>
 <div class="g-sub">by <a href="https://t.me/CryptoJurnal" target="_blank" style="color:var(--acc2);font-weight:700;text-decoration:none">@cryptojurnal ↗</a> · essential concepts · keep it simple, keep it disciplined</div>
 
+<!-- ALWAYS VISIBLE: Two Tabs Section -->
 <div class="g-sec">
   <div class="g-sec-title">🗂️ the two tabs — start here</div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
     <div style="background:var(--sf2);border-radius:8px;padding:14px 16px;border-left:3px solid var(--acc2)">
       <div style="font-size:13px;font-weight:700;color:var(--tx);margin-bottom:6px">36-MONTH · long term projection</div>
-      <div style="font-size:11px;color:var(--tx2);line-height:1.7">your <b>master plan</b>. set it once, let compounding do the work over 36 months. use this to <b>onboard a strategy</b>, stress-test your risk setup, and see where your capital ends up. this is not for day-to-day tweaking — this is the big picture. think of it as your <b>trading blueprint</b>.</div>
+      <div style="font-size:11px;color:var(--tx2);line-height:1.7">your <b>master plan</b>. set it once, let compounding do the work over 36 months. use this to <b>onboard a strategy</b>, stress-test your risk setup, and see where your capital ends up. think of it as your <b>trading blueprint</b>.</div>
       <div style="margin-top:8px;font-size:10px;color:var(--acc2);font-weight:600">ideal for: planning · capital allocation · long-term conviction</div>
     </div>
     <div style="background:var(--sf2);border-radius:8px;padding:14px 16px;border-left:3px solid var(--acc)">
       <div style="font-size:13px;font-weight:700;color:var(--tx);margin-bottom:6px">QUARTER · short term assessment</div>
-      <div style="font-size:11px;color:var(--tx2);line-height:1.7">your <b>live trading lab</b>. 3 months, zero zero-months, pure execution. use this <b>before entering a trade</b> to validate your setup — check if liq%, leverage, and notional make sense for the current market. think of it as your <b>pre-flight checklist</b> before you bet.</div>
+      <div style="font-size:11px;color:var(--tx2);line-height:1.7">your <b>live trading lab</b>. 3 months, zero zero-months, pure execution. use this <b>before entering a trade</b> to validate your setup — check if liq%, leverage, and notional make sense. think of it as your <b>pre-flight checklist</b>.</div>
       <div style="margin-top:8px;font-size:10px;color:var(--acc);font-weight:600">ideal for: scalp · day trade · quick validation · formula testing</div>
     </div>
   </div>
-  <div class="g-tip"><b>workflow:</b> use the quarter tab to find the right formula for current conditions → once confident, port those settings to 36-month for the full projection. both tabs have completely independent state so you can freely experiment in quarter without touching your master plan.</div>
+  <div class="g-tip"><b>workflow:</b> use the quarter tab to find the right formula for current conditions → once confident, port those settings to 36-month for the full projection. both tabs have completely independent state.</div>
 </div>
 
-<div class="g-sec">
-  <div class="g-sec-title">🔑 core concepts — read these first</div>
-  <div class="g-term"><span class="g-term-name">liq%</span><span class="g-term-def">liquidation percentage. <b>how far the spot price must drop (or rise against you) before your position gets wiped.</b> this is the most important number in the whole dashboard. higher = safer. if liq% = 40%, the market needs to move 40% against your entry to liquidate trade 1.</span></div>
-  <div class="g-term"><span class="g-term-name">notional</span><span class="g-term-def">the <b>total position size after leverage is applied.</b> if you put $100 actual margin at 10× leverage, notional = $1,000. this is what the exchange is actually trading for you.</span></div>
-  <div class="g-term"><span class="g-term-name">actual margin</span><span class="g-term-def">the <b>real capital from your account used as collateral</b> for trade 1. formula: notional ÷ leverage. this is what you actually risk per trade entry.</span></div>
-  <div class="g-term"><span class="g-term-name">fm% (frac margin)</span><span class="g-term-def"><b>fractional margin</b> — actual margin as a % of your total account. if fm% = 16%, you\'re deploying 16% of your account as margin for trade 1. lower = safer.</span></div>
-  <div class="g-term"><span class="g-term-name">carry-forward</span><span class="g-term-def">each trade's notional <b>grows by adding the previous trade's profit.</b> so if trade 1 notional = $250 and profit = $20, trade 2 notional = $270. this compounds within the sequence naturally.</span></div>
-  <div class="g-tip"><b>the relationship:</b> liq% = account ÷ notional × 100. so if account = $1,000 and notional = $2,500, liq% = 40%. if you withdraw $500, account drops to $500, liq% drops to 20% — you\'re now twice as close to liquidation. this is why withdrawal directly impacts your safety buffer.</div>
+<!-- HORIZONTAL TAB NAVIGATION -->
+<div class="g-nav" id="guide-nav">
+  <button class="g-nav-btn active" onclick="showGuidePanel('basics')"><span class="g-nav-icon">🔑</span> Basics</button>
+  <button class="g-nav-btn" onclick="showGuidePanel('metrics')"><span class="g-nav-icon">📊</span> Metrics</button>
+  <button class="g-nav-btn" onclick="showGuidePanel('controls')"><span class="g-nav-icon">⚙️</span> Controls</button>
+  <button class="g-nav-btn" onclick="showGuidePanel('risk')"><span class="g-nav-icon">🎯</span> Risk</button>
+  <button class="g-nav-btn" onclick="showGuidePanel('spot')"><span class="g-nav-icon">◈</span> Spot Mode</button>
+  <button class="g-nav-btn" onclick="showGuidePanel('errors')"><span class="g-nav-icon">🚨</span> Errors</button>
+  <button class="g-nav-btn" onclick="showGuidePanel('power')"><span class="g-nav-icon">⚡</span> Power</button>
+  <button class="g-nav-btn" onclick="showGuidePanel('glossary')"><span class="g-nav-icon">📚</span> Glossary</button>
 </div>
 
-<div class="g-sec">
-  <div class="g-sec-title">📊 dashboard metrics explained</div>
-  <div class="g-term"><span class="g-term-name">account</span><span class="g-term-def">your <b>live trading account balance</b> at the end of each month after all trades and withdrawals.</span></div>
-  <div class="g-term"><span class="g-term-name">banked</span><span class="g-term-def">profits you have <b>physically withdrawn</b> from the account. this money is safe — it doesn\'t compound anymore but it also can\'t be liquidated.</span></div>
-  <div class="g-term"><span class="g-term-name">combined NW</span><span class="g-term-def"><b>net worth = account + banked.</b> this is your real financial position. always assess your success by this number, not just the account balance.</span></div>
-  <div class="g-term"><span class="g-term-name">seq potential</span><span class="g-term-def">maximum <b>total % gain in one full sequence</b> (all 10 trades combined). this is the ceiling for one month if every active trade hits target.</span></div>
-  <div class="g-term"><span class="g-term-name">single profit</span><span class="g-term-def">profit from <b>one execution</b> of that trade (notional × target%). one trade, one time.</span></div>
-  <div class="g-term"><span class="g-term-name">combine profit</span><span class="g-term-def">single profit × freq. if single profit = $20 and freq = 4, combine profit = $80. <b>this is what actually gets added to your account</b> for that trade slot.</span></div>
-  <div class="g-term"><span class="g-term-name">freq</span><span class="g-term-def">how many times you execute that trade setup in the sequence. <b>higher freq = more total profit but also more exposure.</b> set to 0 to skip that trade entirely.</span></div>
-  <div class="g-term"><span class="g-term-name">3yr CAGR</span><span class="g-term-def"><b>compound annual growth rate over 36 months.</b> normalizes total return into a yearly figure. benchmark: S&amp;P 500 ~10% · Warren Buffett ~20% · Druckenmiller ~30%. anything above 50% in crypto with controlled risk is elite.</span></div>
-  <div class="g-term"><span class="g-term-name">$1M milestone</span><span class="g-term-def">the month when your <b>combined NW (account + banked) first crosses $1,000,000.</b> not just account — total wealth. this is the real target.</span></div>
-  <div class="g-term"><span class="g-term-name">account lifespan</span><span class="g-term-def">estimated survival time based on risk structure. <b>from minutes (extreme) to generational (almost unliquidatable).</b> formula: (liq%)² ÷ leverage factor ÷ margin factor. not a guarantee — a calibrated signal.</span></div>
-  <div class="g-term"><span class="g-term-name">liq t1 vs liq last</span><span class="g-term-def">liq t1 = buffer at the start of the month (trade 1). liq last = buffer at the end of the sequence (last active trade). <b>liq grows through the sequence</b> because account grows while notional also grows but slower. watch liq t1 — it\'s your tightest point.</span></div>
-  <div class="g-term"><span class="g-term-name">margin push ⚡</span><span class="g-term-def">per-month multiplier on trade 1 notional. if push = 1.4×, trade 1 starts 40% larger than carry-forward. <b>this deliberately reduces liq% on that month</b> (more risk, more potential). use on high-conviction months only.</span></div>
-  <div class="g-term"><span class="g-term-name">zero month ⊘</span><span class="g-term-def">a month where you don\'t trade. <b>no profit, no loss, no compounding.</b> the carry-forward notional pauses and resumes next active month. use for unclear market conditions, personal events, or planned rest.</span></div>
-  <div class="g-term"><span class="g-term-name">global vs manual</span><span class="g-term-def">global mode applies one trade setup to all months. manual mode lets you <b>set different targets and freqs per month</b> in the full detail view — useful when market conditions change mid-plan.</span></div>
-</div>
-
-<div class="g-sec">
-  <div class="g-sec-title">🔘 toggle switches — tiny but essential</div>
-  <div style="font-size:11px;color:var(--tx2);margin-bottom:10px;line-height:1.7">this dashboard has several toggle switches that control important behaviors. here\'s exactly what each one does:</div>
-
-  <div class="g-term">
-    <span class="g-term-name">link to capital<br><span style="font-weight:400;font-size:9px;color:var(--tx3)">(notional panel)</span></span>
-    <span class="g-term-def">
-      <div class="g-toggle-demo"><span class="g-tog-off">off</span><span style="color:var(--tx3);font-size:10px">↔</span><span class="g-tog-on">on</span></div><br>
-      <b>off (default — recommended):</b> notional stays fixed when you change capital. safer behavior — your position size doesn\'t jump around automatically.<br>
-      <b>on:</b> notional scales proportionally with capital to maintain the same liq% ratio. useful when you want the risk profile to stay consistent as capital grows. <b>watch out</b> — turning this on and bumping capital will automatically increase notional and may surprise you.
-    </span>
+<!-- PANEL: BASICS -->
+<div class="g-panel active" id="gp-basics">
+  <div class="g-sec">
+    <div class="g-sec-title">🔑 core concepts</div>
+    <div class="g-term"><span class="g-term-name">liq%</span><span class="g-term-def">liquidation percentage. <b>how far price must move against you before wipe.</b> most important number. higher = safer. formula: account ÷ notional × 100. aim for 100%+, 40% is the floor.</span></div>
+    <div class="g-term"><span class="g-term-name">notional</span><span class="g-term-def"><b>total position size after leverage.</b> $100 at 10× = $1,000 notional. this is what the exchange trades for you.</span></div>
+    <div class="g-term"><span class="g-term-name">actual margin</span><span class="g-term-def"><b>real capital used as collateral</b> for trade 1. formula: notional ÷ leverage.</span></div>
+    <div class="g-term"><span class="g-term-name">fm%</span><span class="g-term-def"><b>fractional margin</b> — margin as % of account. if fm% = 16%, you're deploying 16% as margin. lower = safer. if fm% > 100%, position cannot open.</span></div>
+    <div class="g-term"><span class="g-term-name">leverage</span><span class="g-term-def">multiplier. 5× means you control 5× your capital. higher leverage = higher risk + lower liq%.</span></div>
+    <div class="g-term"><span class="g-term-name">carry-forward</span><span class="g-term-def">each trade's notional <b>grows by adding previous trade's profit.</b> compounds within the sequence.</span></div>
+    <div class="g-tip"><b>the relationship:</b> liq% = account ÷ notional × 100. if account = $1,000 and notional = $2,500, liq% = 40%. withdraw $500 → liq% drops to 20%.</div>
   </div>
 
-  <div class="g-term" style="margin-top:8px">
-    <span class="g-term-name">global mode<br><span style="font-weight:400;font-size:9px;color:var(--tx3)">(trade slots panel)</span></span>
-    <span class="g-term-def">
-      <div class="g-toggle-demo"><span class="g-tog-on">● on</span><span style="color:var(--tx3);font-size:10px">↔</span><span class="g-tog-off">○ off</span></div><br>
-      <b>on (default):</b> all 36 months use the same 10 trade slots you\'ve configured in the left panel. simple and clean — one formula, applied everywhere.<br>
-      <b>off (per-month mode):</b> unlocks manual target/freq inputs in the full trade detail view for every individual month. lets you adapt to different market conditions month by month — bull month gets aggressive targets, choppy month gets conservative. the trade slot panel in the left dims when in manual mode (you edit directly in the table instead).
-    </span>
-  </div>
-
-  <div class="g-tip"><b>pro tip:</b> start with global mode on to test your base formula. when you have a strong view on an upcoming month (e.g. a known catalyst or halving event), switch to manual mode and push that month's targets up. keep global mode on for the rest.</div>
-</div>
-
-<div class="g-sec">
-  <div class="g-sec-title">🎨 customization — everything is editable</div>
-  <div style="font-size:11px;color:var(--tx2);margin-bottom:10px;line-height:1.7">almost every label and value in this dashboard can be customized. here\'s what you can change freely:</div>
-  <div class="g-term"><span class="g-term-name">month labels</span><span class="g-term-def">click any month name in the summary or detail table and type your own label — e.g. <b>"april 2026"</b>, <b>"halving month"</b>, or anything that gives it meaning. labels survive saves.</span></div>
-  <div class="g-term"><span class="g-term-name">trade labels</span><span class="g-term-def">in the full trade detail view, click any trade row label to rename it — e.g. <b>"BTC/USDT long"</b>, <b>"MOODENG pump"</b>, or your own shorthand. useful for tracking which asset each slot targets.</span></div>
-  <div class="g-term"><span class="g-term-name">withdrawal column</span><span class="g-term-def">click any cell in the withdrawal column (monthly summary or detail view) to type a withdrawal amount for that month. the field highlights in accent color when active. it deducts from gross end balance and lowers liq% for the next month.</span></div>
-  <div class="g-term"><span class="g-term-name">margin push ⚡</span><span class="g-term-def">in the detail view, the push field on each month header lets you type a multiplier (e.g. 1.5) to boost trade 1's notional for that specific month only. the cell glows green when active. use sparingly.</span></div>
-  <div class="g-term"><span class="g-term-name">zero month ⊘</span><span class="g-term-def">click the ⊘ button on any month row to mark it as a zero month (no trading). click again to reactivate. zero months are shown dimmed in the table. in summary view, click the entire zero row to toggle it back.</span></div>
-  <div class="g-term"><span class="g-term-name">themes</span><span class="g-term-def">6 color themes available: Light, Dark, Ocean, Forest, Sunset, Lavender. pick from the color dots at the top of the left panel. theme preference is saved to your browser.</span></div>
-  <div class="g-tip"><b>labels and zero months auto-save</b> the moment you edit them — no button needed. for capital, position, and trade settings, use the 💾 save buttons in the left panel so you can experiment freely without overwriting your saved state. <b>36-month and quarter tabs save independently.</b></div>
-</div>
-
-<div class="g-sec">
-  <div class="g-sec-title">⚙️ controls — how to use them</div>
-  <div class="g-step"><div class="g-step-num">1</div><div class="g-step-body"><b>set starting capital</b> — your actual account size. use the preset buttons ($100 · $1k · $10k · $100k · $1M · $10M · $100M · $1B · $10B) or type/slide manually. capital doesn\'t affect liq% directly — the ratio to notional is what matters.</div></div>
-  <div class="g-step"><div class="g-step-num">2</div><div class="g-step-body"><b>set leverage</b> — higher leverage means smaller actual margin per trade but also shrinks your liq% buffer. watch the liq% in the notional panel update live.</div></div>
-  <div class="g-step"><div class="g-step-num">3</div><div class="g-step-body"><b>set notional (trade 1)</b> — your first trade's position size. use the preset buttons ($100 · $1k · $10k · $1M · $10M · $1B) or type/slide freely. the comp panel shows actual margin, fm%, and liq% in real time. <b>keep liq% at or above 40% — that\'s your floor, not your target.</b> aim for 100%+ liq for a genuinely healthy setup. "link to capital" toggle controls whether notional auto-scales when you change capital.</div></div>
-  <div class="g-step"><div class="g-step-num">4</div><div class="g-step-body"><b>set trade slots</b> — 10 slots, each with target% and freq. set either to 0 to skip that trade. the sequence runs top to bottom, notional compounding with each trade's profit.</div></div>
-  <div class="g-step"><div class="g-step-num">5</div><div class="g-step-body"><b>global mode vs manual</b> — when global is ON, all months use the same trade targets. turn it OFF to set different targets per month in the full trade detail view.</div></div>
-  <div class="g-step"><div class="g-step-num">6</div><div class="g-step-body"><b>zero months</b> — months where you don\'t trade. click the ⊘ button on any month to mark it as zero. click again to activate.</div></div>
-  <div class="g-step"><div class="g-step-num">7</div><div class="g-step-body"><b>withdrawal</b> — type any amount in the withdrawal column. <b>important: withdrawing reduces your account which lowers liq% for the next month.</b> always check liq t1 after setting a withdrawal.</div></div>
-  <div class="g-step"><div class="g-step-num">8</div><div class="g-step-body"><b>margin push up (⚡)</b> — in full trade detail, type a multiplier (e.g. 1.4) in the push field. only trade 1 of that month gets multiplied. trades 2–10 compound naturally from that higher base.</div></div>
-  <div class="g-warn">⚠ key rule: when you withdraw, your liq% drops for the next month. the projection shows this — watch the liq t1 column. if it drops below 20%, you\'re in the danger zone. always check liq% after setting a withdrawal amount.</div>
-</div>
-
-<div class="g-sec">
-  <div class="g-sec-title">🎯 risk assessment — quick read</div>
-  <div class="g-term"><span class="g-term-name">risk score</span><span class="g-term-def">composite 0–100 score. <b>lower = safer.</b> factors: liq% buffer (main weight), leverage level, fm% of account, number of active trades.</span></div>
-  <div class="g-term"><span class="g-term-name">liq t1 buffer</span><span class="g-term-def">same as liq% for trade 1 month 1. the fill bar shows it visually — green = good buffer, amber = watchable, red = danger.</span></div>
-  <div class="g-term"><span class="g-term-name">account lifespan</span><span class="g-term-def">estimated how long the account structure survives adverse conditions. from <b>minutes</b> (extreme) to <b>generational</b> (almost unliquidatable). formula: (liq%)² ÷ leverage factor ÷ margin factor.</span></div>
-  <div class="g-tip"><b>the bet all the time baseline:</b> liq% ≥ 40% (floor) · leverage ≤ 15× · fm% ≤ 20% → risk score below 30, lifespan "months to years". <b>a truly healthy setup targets liq% above 100%</b> — that means the market would need to completely collapse to wipe you. 40% is where you draw the line, not where you aim.</div>
-</div>
-
-<div class="g-sec">
-  <div class="g-sec-title">✅ what makes a good setup — quick checklist</div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
-    <div style="background:#EAF3DE;border-radius:7px;padding:10px 12px">
-      <div style="font-size:11px;font-weight:700;color:#3B6D11;margin-bottom:6px">✓ healthy setup</div>
-      <div style="font-size:10px;color:#3B6D11;line-height:1.8">liq% t1 ≥ 100% (ideal)<br>liq% t1 ≥ 40% (minimum floor)<br>leverage ≤ 15×<br>fm% ≤ 20%<br>account lifespan: months → years<br>risk score &lt; 30<br>active trades: 5–10<br>at least 1 zero month per 6</div>
+  <div class="g-sec">
+    <div class="g-sec-title">🔘 toggle switches</div>
+    <div class="g-term">
+      <span class="g-term-name">link to capital</span>
+      <span class="g-term-def">
+        <b>off (default):</b> notional stays fixed when capital changes. safer.<br>
+        <b>on:</b> notional scales with capital to maintain liq% ratio.
+      </span>
     </div>
-    <div style="background:#FCEBEB;border-radius:7px;padding:10px 12px">
-      <div style="font-size:11px;font-weight:700;color:#A32D2D;margin-bottom:6px">✕ danger zone</div>
-      <div style="font-size:10px;color:#A32D2D;line-height:1.8">liq% t1 &lt; 20%<br>leverage ≥ 25×<br>fm% &gt; 40%<br>account lifespan: hours → days<br>risk score &gt; 60<br>withdrawal without checking liq%<br>margin push every month</div>
+    <div class="g-term">
+      <span class="g-term-name">global mode</span>
+      <span class="g-term-def">
+        <b>on (default):</b> all months use same trade slots.<br>
+        <b>off:</b> each month has independent targets/freqs.
+      </span>
     </div>
   </div>
-  <div class="g-tip"><b>the discipline rule:</b> never enter a trade without checking liq% first. if liq% is below 30%, reduce notional or increase capital before opening. the market doesn\'t care about your plan — your risk structure is the only thing you control.</div>
-</div>
 
-<div class="g-sec">
-  <div class="g-sec-title">💾 saving your work</div>
-  <div class="g-term"><span class="g-term-name">save capital</span><span class="g-term-def">saves starting capital to browser storage. survives page reload.</span></div>
-  <div class="g-term"><span class="g-term-name">save position</span><span class="g-term-def">saves leverage, notional, and KPI scale.</span></div>
-  <div class="g-term"><span class="g-term-name">save trades</span><span class="g-term-def">saves all 10 trade targets and freqs.</span></div>
-  <div class="g-tip"><b>labels and zero months save automatically</b> the moment you edit them — no button needed. capital, position, and trade settings use manual save buttons so you can experiment freely without overwriting your saved state. <b>36-month and quarter tabs have separate state</b> — save each independently.</div>
-</div>
-
-<div class="g-sec">
-  <div class="g-sec-title">◈ spot mode</div>
-  <div style="font-size:11px;color:var(--tx2);margin-bottom:10px;line-height:1.7">spot mode simulates <b>buying and holding an asset without leverage</b>. your full capital is your position — no margin, no liquidation risk, no funding fee. you can still project compounding returns across 36 months or a single quarter.</div>
-
-  <div class="g-term"><span class="g-term-name">how to switch</span><span class="g-term-def">in the left panel under <b>leverage · spot mode</b>, click the <b>◈ spot</b> button. the badge next to the dashboard title confirms which mode you are in. each tab remembers its own mode independently — you can have one tab in leverage and another in spot for direct comparison.</span></div>
-
-  <div class="g-term"><span class="g-term-name">what changes in spot</span><span class="g-term-def"><b>leverage slider</b> disabled — position size equals your full capital. <b>notional</b> disabled — follows account automatically. <b>funding fee</b> removed — no perpetual contract in spot. <b>liq%</b> irrelevant — you cannot be liquidated, worst case is position goes to zero.</span></div>
-
-  <div class="g-term"><span class="g-term-name">fee structure in spot</span><span class="g-term-def">spot fees are higher than futures — standard tier is 0.1% on most exchanges vs 0.02–0.05% futures. the dashboard pre-fills correct spot rates when you switch mode and select your exchange. the same <b>2× rule</b> applies: every trade pays fee twice — open + close. choose maker (limit order) or taker (market order) based on how you actually execute.</span></div>
-
-  <div class="g-term"><span class="g-term-name">size× (position size multiplier)</span><span class="g-term-def">in spot mode, the <b>size×</b> in the detail table scales how much of your capital you deploy that month. at 1× you deploy 100% of your account. use it as a position sizing tool to simulate partial deployment — not as leverage.</span></div>
-
-  <div class="g-term"><span class="g-term-name">risk score in spot</span><span class="g-term-def">no liquidation means the risk score uses different criteria: <b>fee drag</b> (high fee rates eating returns), <b>concentration</b> (too few active trades = high variance), <b>target aggression</b> (unrealistically high % targets), and <b>win/loss ratio</b>. lower score = fee-efficient, diversified, realistic.</span></div>
-
-  <div class="g-tip"><b>spot vs leverage:</b> use spot to project a buy-and-hold compounding strategy or see what the same setup looks like without leverage risk. use leverage for futures with margin. run both side by side in separate tabs.</div>
-</div>
-
-<div class="g-sec">
-  <div class="g-sec-title">🚨 error states — when things go wrong</div>
-  <div style="font-size:11px;color:var(--tx2);margin-bottom:12px;line-height:1.7">the dashboard detects invalid setups and shows clear error states. here\'s what each means and how to fix it:</div>
-  
-  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px">
-    <div style="background:#2a0a0a;border-radius:8px;padding:12px;border-left:3px solid #E24B4A">
-      <div style="font-size:16px;margin-bottom:6px">🚫</div>
-      <div style="font-size:11px;font-weight:700;color:#ff7070;margin-bottom:4px">FM% > 100%</div>
-      <div style="font-size:10px;color:#E24B4A;line-height:1.6">margin required exceeds your capital. the exchange would reject this order — you literally don\'t have enough money to open the position.</div>
-      <div style="font-size:9px;color:#ff9999;margin-top:6px;font-style:italic">fix: increase leverage, reduce notional, or add capital</div>
-    </div>
-    <div style="background:#2a0a0a;border-radius:8px;padding:12px;border-left:3px solid #E24B4A">
-      <div style="font-size:16px;margin-bottom:6px">💸</div>
-      <div style="font-size:11px;font-weight:700;color:#ff7070;margin-bottom:4px">Liq% < 1%</div>
-      <div style="font-size:10px;color:#E24B4A;line-height:1.6">your buffer is essentially zero. any price movement against you — even 0.1% — would trigger liquidation instantly.</div>
-      <div style="font-size:9px;color:#ff9999;margin-top:6px;font-style:italic">fix: reduce notional or add more capital</div>
-    </div>
-    <div style="background:#1a0a2e;border-radius:8px;padding:12px;border-left:3px solid #8B5CF6">
-      <div style="font-size:16px;margin-bottom:6px">💀</div>
-      <div style="font-size:11px;font-weight:700;color:#c084fc;margin-bottom:4px">WD Bust</div>
-      <div style="font-size:10px;color:#8B5CF6;line-height:1.6">you tried to withdraw more than your account balance after trades. the simulation stops because your account is empty.</div>
-      <div style="font-size:9px;color:#a78bfa;margin-top:6px;font-style:italic">fix: reduce the withdrawal amount for that month</div>
-    </div>
+  <div class="g-sec">
+    <div class="g-sec-title">💾 saving</div>
+    <div class="g-term"><span class="g-term-name">save buttons</span><span class="g-term-def">capital, position, trades use manual 💾 buttons — experiment freely without overwriting.</span></div>
+    <div class="g-term"><span class="g-term-name">auto-save</span><span class="g-term-def">labels, zero months, withdrawals, fees save automatically on edit.</span></div>
+    <div class="g-term"><span class="g-term-name">cloud presets</span><span class="g-term-def">logged-in users can save to cloud and sync across devices.</span></div>
   </div>
-  
-  <div class="g-tip"><b>recovery:</b> when you fix the issue (adjust leverage, notional, capital, or withdrawal), the dashboard automatically recalculates and returns to normal state. all metric cards, tables, and charts update in real-time.</div>
 </div>
 
-<div class="g-sec">
-  <div class="g-sec-title">⚡ power user features</div>
-  <div style="font-size:11px;color:var(--tx2);margin-bottom:10px;line-height:1.7">advanced tools for deeper analysis. access via keyboard shortcuts or the command palette (press <b>?</b> to see all shortcuts).</div>
-  
-  <div class="g-term"><span class="g-term-name">keyboard shortcuts</span><span class="g-term-def">press <b>?</b> anywhere to open the shortcuts panel. key commands: <b>P</b> = projection chart, <b>Ctrl+M</b> = monte carlo, <b>C</b> = compare presets, <b>H</b> = risk heatmap, <b>T</b> = cycle themes, <b>S</b> = settings, <b>G</b> = guide, <b>Esc</b> = close any modal.</span></div>
-  <div class="g-term"><span class="g-term-name">projection chart 📈</span><span class="g-term-def">visual line chart showing your account growth over 36 months (or 3 months for quarter). see the compounding curve and identify inflection points. press <b>P</b> to open.</span></div>
-  <div class="g-term"><span class="g-term-name">monte carlo 🎲</span><span class="g-term-def">runs 1000 simulations with random variance (±5% on each trade outcome) to show probability distribution of final results. see best case, worst case, median, and percentiles. press <b>Ctrl+M</b> to run.</span></div>
-  <div class="g-term"><span class="g-term-name">compare presets ⚖️</span><span class="g-term-def">side-by-side comparison of saved cloud presets. useful for evaluating different strategies before committing. press <b>C</b> to open (requires saved presets).</span></div>
-  <div class="g-term"><span class="g-term-name">risk heatmap 🔥</span><span class="g-term-def">color-coded grid showing risk level for each month. green = safe, yellow = moderate, orange = high, red = extreme. quick visual scan of your risk profile. press <b>H</b> to open.</span></div>
-  <div class="g-term"><span class="g-term-name">price alerts 🔔</span><span class="g-term-def">set alerts for BTC/ETH price levels. get notified via telegram or email when price crosses your target. access from the fab menu or settings.</span></div>
-  
-  <div class="g-tip"><b>note:</b> power features (projection, monte carlo, heatmap) are disabled when your setup is in an error state (FM% > 100% or Liq% < 1%). fix the setup first, then run analysis.</div>
+<!-- PANEL: METRICS -->
+<div class="g-panel" id="gp-metrics">
+  <div class="g-sec">
+    <div class="g-sec-title">📊 cockpit indicators (6×2 grid)</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+      <div style="background:var(--sf2);padding:10px 12px;border-radius:6px">
+        <div style="font-size:11px;font-weight:700;color:var(--acc2);margin-bottom:4px">3yr CAGR</div>
+        <div style="font-size:10px;color:var(--tx2)">compound annual growth rate over 36 months. S&P ~10%, Buffett ~20%, elite crypto 50%+.</div>
+      </div>
+      <div style="background:var(--sf2);padding:10px 12px;border-radius:6px">
+        <div style="font-size:11px;font-weight:700;color:var(--acc2);margin-bottom:4px">total return</div>
+        <div style="font-size:10px;color:var(--tx2)">percentage gain from start to final combined NW.</div>
+      </div>
+      <div style="background:var(--sf2);padding:10px 12px;border-radius:6px">
+        <div style="font-size:11px;font-weight:700;color:var(--acc2);margin-bottom:4px">combined NW</div>
+        <div style="font-size:10px;color:var(--tx2)">net worth = end account + banked. your true wealth.</div>
+      </div>
+      <div style="background:var(--sf2);padding:10px 12px;border-radius:6px">
+        <div style="font-size:11px;font-weight:700;color:var(--acc2);margin-bottom:4px">banked</div>
+        <div style="font-size:10px;color:var(--tx2)">profits withdrawn. safe from liquidation.</div>
+      </div>
+      <div style="background:var(--sf2);padding:10px 12px;border-radius:6px">
+        <div style="font-size:11px;font-weight:700;color:var(--acc2);margin-bottom:4px">end account</div>
+        <div style="font-size:10px;color:var(--tx2)">balance at M36. shows active months + IDR.</div>
+      </div>
+      <div style="background:var(--sf2);padding:10px 12px;border-radius:6px">
+        <div style="font-size:11px;font-weight:700;color:#f7931a;margin-bottom:4px">₿ equivalent</div>
+        <div style="font-size:10px;color:var(--tx2)">end balance in BTC at live price.</div>
+      </div>
+      <div style="background:var(--sf2);padding:10px 12px;border-radius:6px">
+        <div style="font-size:11px;font-weight:700;color:var(--acc2);margin-bottom:4px">$1M milestone</div>
+        <div style="font-size:10px;color:var(--tx2)">first month NW crosses $1,000,000.</div>
+      </div>
+      <div style="background:var(--sf2);padding:10px 12px;border-radius:6px">
+        <div style="font-size:11px;font-weight:700;color:var(--acc2);margin-bottom:4px">avg monthly %</div>
+        <div style="font-size:10px;color:var(--tx2)">average gain per active month.</div>
+      </div>
+      <div style="background:var(--sf2);padding:10px 12px;border-radius:6px">
+        <div style="font-size:11px;font-weight:700;color:var(--acc2);margin-bottom:4px">seq net %</div>
+        <div style="font-size:10px;color:var(--tx2)">net gain from 10-trade sequence. shows W/L.</div>
+      </div>
+      <div style="background:var(--sf2);padding:10px 12px;border-radius:6px">
+        <div style="font-size:11px;font-weight:700;color:var(--acc2);margin-bottom:4px">liq% t1</div>
+        <div style="font-size:10px;color:var(--tx2)">buffer at trade 1 month 1. the tightest point.</div>
+      </div>
+      <div style="background:var(--sf2);padding:10px 12px;border-radius:6px">
+        <div style="font-size:11px;font-weight:700;color:#E24B4A;margin-bottom:4px">total fees</div>
+        <div style="font-size:10px;color:var(--tx2)">cumulative trading + funding fees.</div>
+      </div>
+      <div style="background:var(--sf2);padding:10px 12px;border-radius:6px">
+        <div style="font-size:11px;font-weight:700;color:#5b7fff;margin-bottom:4px">1yr return</div>
+        <div style="font-size:10px;color:var(--tx2)">percentage gain by M12.</div>
+      </div>
+    </div>
+    <div class="g-tip"><b>IDR conversion:</b> values in Indonesian Rupiah shown as subtitles. rate updates from live forex.</div>
+  </div>
 </div>
 
-<div class="g-sec">
-  <div class="g-sec-title">☁️ cloud sync & presets</div>
-  <div style="font-size:11px;color:var(--tx2);margin-bottom:10px;line-height:1.7">save your setups to the cloud and access them from any device. requires a free account.</div>
-  
-  <div class="g-term"><span class="g-term-name">create account</span><span class="g-term-def">sign up with email or continue with Google. your presets, preferences, and custom tabs sync automatically once logged in.</span></div>
-  <div class="g-term"><span class="g-term-name">save preset</span><span class="g-term-def">click <b>save to cloud</b> in the member area (accessible from top-right menu after login). give your preset a name — it saves ALL tabs, custom tabs, theme, and settings as a single snapshot.</span></div>
-  <div class="g-term"><span class="g-term-name">load preset</span><span class="g-term-def">in the member area, click any saved preset to load it. confirms before overwriting current state. you can also share presets with others via share link.</span></div>
-  <div class="g-term"><span class="g-term-name">share preset</span><span class="g-term-def">generate a share link for any preset. recipients can import it directly — great for sharing strategies with friends or community.</span></div>
-  <div class="g-term"><span class="g-term-name">custom tabs</span><span class="g-term-def">create additional tabs beyond the default 36-month and quarter. click the <b>+</b> button in the tab bar. custom tabs have fully independent state and can be renamed or deleted.</span></div>
-  
-  <div class="g-tip"><b>local vs cloud:</b> the 💾 save buttons in the left panel save to your browser (local). cloud presets save to your account and sync across devices. both are useful — local for quick experiments, cloud for setups you want to keep.</div>
+<!-- PANEL: CONTROLS -->
+<div class="g-panel" id="gp-controls">
+  <div class="g-sec">
+    <div class="g-sec-title">⚙️ how to use controls</div>
+    <div class="g-step"><div class="g-step-num">1</div><div class="g-step-body"><b>set starting capital</b> — your actual account size. use presets or type/slide manually.</div></div>
+    <div class="g-step"><div class="g-step-num">2</div><div class="g-step-body"><b>set leverage</b> — higher = smaller margin but lower liq%. watch liq% update live.</div></div>
+    <div class="g-step"><div class="g-step-num">3</div><div class="g-step-body"><b>set notional</b> — trade 1 position size. <b>keep liq% ≥ 40%</b> (floor), aim for 100%+.</div></div>
+    <div class="g-step"><div class="g-step-num">4</div><div class="g-step-body"><b>set trade slots</b> — 10 slots with target% and freq. set either to 0 to skip.</div></div>
+    <div class="g-step"><div class="g-step-num">5</div><div class="g-step-body"><b>zero months</b> — click ⊘ to mark months with no trading.</div></div>
+    <div class="g-step"><div class="g-step-num">6</div><div class="g-step-body"><b>withdrawal</b> — type in withdrawal column. <b>always check liq% after.</b></div></div>
+    <div class="g-step"><div class="g-step-num">7</div><div class="g-step-body"><b>margin push ⚡</b> — per-month multiplier on trade 1 notional. use sparingly.</div></div>
+    <div class="g-warn">⚠ when you withdraw, liq% drops for next month. if it drops below 20%, you're in the danger zone.</div>
+  </div>
+
+  <div class="g-sec">
+    <div class="g-sec-title">🎨 customization</div>
+    <div class="g-term"><span class="g-term-name">month labels</span><span class="g-term-def">click any month name to rename — e.g. "april 2026", "halving month".</span></div>
+    <div class="g-term"><span class="g-term-name">trade labels</span><span class="g-term-def">in detail view, click trade row to rename — e.g. "BTC/USDT long".</span></div>
+    <div class="g-term"><span class="g-term-name">themes</span><span class="g-term-def">6 themes: Light, Dark, Ocean, Forest, Sunset, Lavender.</span></div>
+  </div>
 </div>
 
-<div class="g-sec">
-  <div class="g-sec-title">📊 cockpit indicators</div>
-  <div style="font-size:11px;color:var(--tx2);margin-bottom:10px;line-height:1.7">the metric cards (6×2 grid) show key performance indicators. here\'s what each one means:</div>
-  
-  <div class="g-term"><span class="g-term-name">3yr CAGR</span><span class="g-term-def">compound annual growth rate over 36 months. normalizes total return to yearly. benchmark: S&P 500 ~10%, Buffett ~20%, elite crypto traders 50%+.</span></div>
-  <div class="g-term"><span class="g-term-name">total return</span><span class="g-term-def">percentage gain from starting capital to final combined NW (account + banked). the raw multiplier of your money.</span></div>
-  <div class="g-term"><span class="g-term-name">combined NW</span><span class="g-term-def">net worth = end account balance + all banked withdrawals. this is your true wealth — what you\'d have if you closed everything.</span></div>
-  <div class="g-term"><span class="g-term-name">banked</span><span class="g-term-def">total profits withdrawn and secured. this money is safe — can\'t be liquidated, doesn\'t compound anymore.</span></div>
-  <div class="g-term"><span class="g-term-name">end account</span><span class="g-term-def">balance remaining in the trading account at M36. shows active months count (e.g. "30/36 active") and IDR equivalent.</span></div>
-  <div class="g-term"><span class="g-term-name">₿ equivalent</span><span class="g-term-def">your end account balance converted to BTC at current live price. updates with market. useful for measuring gains in bitcoin terms.</span></div>
-  <div class="g-term"><span class="g-term-name">$1M milestone</span><span class="g-term-def">the first month when combined NW crosses $1,000,000. shows "beyond 36" if not reached within the projection.</span></div>
-  <div class="g-term"><span class="g-term-name">avg monthly %</span><span class="g-term-def">average percentage gain per active month. excludes zero months. quick gauge of consistency.</span></div>
-  <div class="g-term"><span class="g-term-name">seq net %</span><span class="g-term-def">net gain from one full 10-trade sequence (wins minus losses). shows W/L breakdown.</span></div>
-  <div class="g-term"><span class="g-term-name">liq% t1</span><span class="g-term-def">liquidation buffer at trade 1 of month 1. the tightest point — if this is red, your whole plan is at risk.</span></div>
-  <div class="g-term"><span class="g-term-name">total fees paid</span><span class="g-term-def">cumulative trading fees + funding fees across all months. shown in red because it\'s a cost. factor this into your real expectations.</span></div>
-  <div class="g-term"><span class="g-term-name">1yr return</span><span class="g-term-def">percentage gain by month 12 (M12 NW vs starting capital). useful for comparing to annual benchmarks.</span></div>
-  
-  <div class="g-tip"><b>IDR conversion:</b> values in Indonesian Rupiah are shown as subtitles on relevant cards. rate updates periodically from live forex data. useful for local purchasing power context.</div>
+<!-- PANEL: RISK -->
+<div class="g-panel" id="gp-risk">
+  <div class="g-sec">
+    <div class="g-sec-title">🎯 risk assessment</div>
+    <div class="g-term"><span class="g-term-name">risk score</span><span class="g-term-def">0–100. <b>lower = safer.</b> factors: liq%, leverage, fm%, active trades. 0-20 safe, 21-45 moderate, 46-70 high, 71-100 extreme.</span></div>
+    <div class="g-term"><span class="g-term-name">liq t1 buffer</span><span class="g-term-def">liq% for trade 1 month 1. green = good, amber = watchable, red = danger.</span></div>
+    <div class="g-term"><span class="g-term-name">lifespan</span><span class="g-term-def">estimated survival time. from <b>minutes</b> (extreme) to <b>generational</b> (almost unliquidatable).</span></div>
+  </div>
+
+  <div class="g-sec">
+    <div class="g-sec-title">✅ healthy vs danger</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div style="background:#EAF3DE;border-radius:7px;padding:10px 12px">
+        <div style="font-size:11px;font-weight:700;color:#3B6D11;margin-bottom:6px">✓ healthy setup</div>
+        <div style="font-size:10px;color:#3B6D11;line-height:1.8">liq% ≥ 100% (ideal)<br>liq% ≥ 40% (floor)<br>leverage ≤ 15×<br>fm% ≤ 20%<br>risk score < 30</div>
+      </div>
+      <div style="background:#FCEBEB;border-radius:7px;padding:10px 12px">
+        <div style="font-size:11px;font-weight:700;color:#A32D2D;margin-bottom:6px">✕ danger zone</div>
+        <div style="font-size:10px;color:#A32D2D;line-height:1.8">liq% < 20%<br>leverage ≥ 25×<br>fm% > 40%<br>risk score > 60<br>wd without checking liq%</div>
+      </div>
+    </div>
+    <div class="g-tip"><b>discipline rule:</b> never enter a trade without checking liq% first. if below 30%, reduce notional or add capital.</div>
+  </div>
 </div>
 
-<div class="g-sec">
-  <div class="g-sec-title">📚 glossary — essential terms</div>
-  <div style="font-size:11px;color:var(--tx2);margin-bottom:10px;line-height:1.7">quick reference for all key terms used in this dashboard:</div>
-  
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-    <div style="background:var(--sf2);padding:8px 10px;border-radius:6px;font-size:10px">
-      <b style="color:var(--acc2)">liq%</b><br><span style="color:var(--tx2)">account ÷ notional × 100. higher = safer.</span>
+<!-- PANEL: SPOT -->
+<div class="g-panel" id="gp-spot">
+  <div class="g-sec">
+    <div class="g-sec-title">◈ spot mode</div>
+    <div style="font-size:11px;color:var(--tx2);margin-bottom:12px">spot mode = <b>buy and hold without leverage</b>. no margin, no liquidation risk, no funding fee.</div>
+    <div class="g-term"><span class="g-term-name">how to switch</span><span class="g-term-def">click the <b>◈ spot</b> button under leverage panel. each tab remembers its own mode.</span></div>
+    <div class="g-term"><span class="g-term-name">what changes</span><span class="g-term-def">leverage disabled, notional = account, funding fee removed, liq% irrelevant.</span></div>
+    <div class="g-term"><span class="g-term-name">fees</span><span class="g-term-def">spot fees higher (~0.1%) vs futures (~0.02-0.05%). still 2× per trade (open + close).</span></div>
+    <div class="g-term"><span class="g-term-name">size×</span><span class="g-term-def">scales how much capital deployed that month. at 1× = 100% deployed.</span></div>
+    <div class="g-term"><span class="g-term-name">risk score</span><span class="g-term-def">uses different criteria: fee drag, concentration, target aggression, win/loss ratio.</span></div>
+    <div class="g-tip"><b>spot vs leverage:</b> run both side by side in separate tabs to compare strategies.</div>
+  </div>
+</div>
+
+<!-- PANEL: ERRORS -->
+<div class="g-panel" id="gp-errors">
+  <div class="g-sec">
+    <div class="g-sec-title">🚨 error states</div>
+    <div style="font-size:11px;color:var(--tx2);margin-bottom:12px">dashboard detects invalid setups and shows clear error states:</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px">
+      <div style="background:#2a0a0a;border-radius:8px;padding:12px;border-left:3px solid #E24B4A">
+        <div style="font-size:16px;margin-bottom:6px">🚫</div>
+        <div style="font-size:11px;font-weight:700;color:#ff7070;margin-bottom:4px">FM% > 100%</div>
+        <div style="font-size:10px;color:#E24B4A;line-height:1.5">margin exceeds capital. exchange rejects order.</div>
+        <div style="font-size:9px;color:#ff9999;margin-top:6px">fix: ↑ leverage, ↓ notional, or ↑ capital</div>
+      </div>
+      <div style="background:#2a0a0a;border-radius:8px;padding:12px;border-left:3px solid #E24B4A">
+        <div style="font-size:16px;margin-bottom:6px">💸</div>
+        <div style="font-size:11px;font-weight:700;color:#ff7070;margin-bottom:4px">Liq% < 1%</div>
+        <div style="font-size:10px;color:#E24B4A;line-height:1.5">zero buffer. any move = instant liquidation.</div>
+        <div style="font-size:9px;color:#ff9999;margin-top:6px">fix: ↓ notional or ↑ capital</div>
+      </div>
+      <div style="background:#1a0a2e;border-radius:8px;padding:12px;border-left:3px solid #8B5CF6">
+        <div style="font-size:16px;margin-bottom:6px">💀</div>
+        <div style="font-size:11px;font-weight:700;color:#c084fc;margin-bottom:4px">WD Bust</div>
+        <div style="font-size:10px;color:#8B5CF6;line-height:1.5">withdrawal exceeded balance.</div>
+        <div style="font-size:9px;color:#a78bfa;margin-top:6px">fix: ↓ withdrawal amount</div>
+      </div>
     </div>
-    <div style="background:var(--sf2);padding:8px 10px;border-radius:6px;font-size:10px">
-      <b style="color:var(--acc2)">fm%</b><br><span style="color:var(--tx2)">margin ÷ account × 100. lower = safer.</span>
-    </div>
-    <div style="background:var(--sf2);padding:8px 10px;border-radius:6px;font-size:10px">
-      <b style="color:var(--acc2)">notional</b><br><span style="color:var(--tx2)">position size after leverage. capital × leverage.</span>
-    </div>
-    <div style="background:var(--sf2);padding:8px 10px;border-radius:6px;font-size:10px">
-      <b style="color:var(--acc2)">margin</b><br><span style="color:var(--tx2)">collateral locked for trade. notional ÷ leverage.</span>
-    </div>
-    <div style="background:var(--sf2);padding:8px 10px;border-radius:6px;font-size:10px">
-      <b style="color:var(--acc2)">leverage</b><br><span style="color:var(--tx2)">multiplier. 10× = control 10× your capital.</span>
-    </div>
-    <div style="background:var(--sf2);padding:8px 10px;border-radius:6px;font-size:10px">
-      <b style="color:var(--acc2)">carry-forward</b><br><span style="color:var(--tx2)">profit from trade N added to trade N+1 notional.</span>
-    </div>
-    <div style="background:var(--sf2);padding:8px 10px;border-radius:6px;font-size:10px">
-      <b style="color:var(--acc2)">target%</b><br><span style="color:var(--tx2)">expected % gain/loss per trade execution.</span>
-    </div>
-    <div style="background:var(--sf2);padding:8px 10px;border-radius:6px;font-size:10px">
-      <b style="color:var(--acc2)">freq</b><br><span style="color:var(--tx2)">how many times that trade executes per month.</span>
-    </div>
-    <div style="background:var(--sf2);padding:8px 10px;border-radius:6px;font-size:10px">
-      <b style="color:var(--acc2)">KPI scale</b><br><span style="color:var(--tx2)">global multiplier on all targets. 0.5× = half.</span>
-    </div>
-    <div style="background:var(--sf2);padding:8px 10px;border-radius:6px;font-size:10px">
-      <b style="color:var(--acc2)">push×</b><br><span style="color:var(--tx2)">per-month notional boost. affects trade 1 only.</span>
-    </div>
-    <div style="background:var(--sf2);padding:8px 10px;border-radius:6px;font-size:10px">
-      <b style="color:var(--acc2)">zero month</b><br><span style="color:var(--tx2)">month with no trades. account stays flat.</span>
-    </div>
-    <div style="background:var(--sf2);padding:8px 10px;border-radius:6px;font-size:10px">
-      <b style="color:var(--acc2)">banked</b><br><span style="color:var(--tx2)">profits withdrawn. safe from liquidation.</span>
-    </div>
-    <div style="background:var(--sf2);padding:8px 10px;border-radius:6px;font-size:10px">
-      <b style="color:var(--acc2)">NW</b><br><span style="color:var(--tx2)">net worth = account + banked.</span>
-    </div>
-    <div style="background:var(--sf2);padding:8px 10px;border-radius:6px;font-size:10px">
-      <b style="color:var(--acc2)">CAGR</b><br><span style="color:var(--tx2)">compound annual growth rate.</span>
-    </div>
-    <div style="background:var(--sf2);padding:8px 10px;border-radius:6px;font-size:10px">
-      <b style="color:var(--acc2)">maker</b><br><span style="color:var(--tx2)">limit order. adds liquidity. lower fee.</span>
-    </div>
-    <div style="background:var(--sf2);padding:8px 10px;border-radius:6px;font-size:10px">
-      <b style="color:var(--acc2)">taker</b><br><span style="color:var(--tx2)">market order. removes liquidity. higher fee.</span>
-    </div>
-    <div style="background:var(--sf2);padding:8px 10px;border-radius:6px;font-size:10px">
-      <b style="color:var(--acc2)">funding</b><br><span style="color:var(--tx2)">perpetual fee every 8h. paid or received.</span>
-    </div>
-    <div style="background:var(--sf2);padding:8px 10px;border-radius:6px;font-size:10px">
-      <b style="color:var(--acc2)">cross margin</b><br><span style="color:var(--tx2)">whole account as collateral. this dashboard mode.</span>
-    </div>
-    <div style="background:var(--sf2);padding:8px 10px;border-radius:6px;font-size:10px">
-      <b style="color:var(--acc2)">isolated margin</b><br><span style="color:var(--tx2)">only allocated margin at risk. NOT this dashboard.</span>
-    </div>
-    <div style="background:var(--sf2);padding:8px 10px;border-radius:6px;font-size:10px">
-      <b style="color:var(--acc2)">spot mode</b><br><span style="color:var(--tx2)">no leverage. buy & hold. no liquidation risk.</span>
+    <div class="g-tip"><b>recovery:</b> fix the issue → dashboard auto-recalculates → normal state restored.</div>
+  </div>
+</div>
+
+<!-- PANEL: POWER -->
+<div class="g-panel" id="gp-power">
+  <div class="g-sec">
+    <div class="g-sec-title">⚡ power user features</div>
+    <div class="g-term"><span class="g-term-name">shortcuts</span><span class="g-term-def">press <b>?</b> to see all. P = projection, Ctrl+M = monte carlo, C = compare, H = heatmap, T = theme.</span></div>
+    <div class="g-term"><span class="g-term-name">projection 📈</span><span class="g-term-def">visual line chart of 36-month growth. press <b>P</b>.</span></div>
+    <div class="g-term"><span class="g-term-name">monte carlo 🎲</span><span class="g-term-def">1000 simulations with ±5% variance. shows probability distribution. press <b>Ctrl+M</b>.</span></div>
+    <div class="g-term"><span class="g-term-name">compare ⚖️</span><span class="g-term-def">side-by-side preset comparison. press <b>C</b>.</span></div>
+    <div class="g-term"><span class="g-term-name">heatmap 🔥</span><span class="g-term-def">color-coded risk by month. press <b>H</b>.</span></div>
+    <div class="g-term"><span class="g-term-name">alerts 🔔</span><span class="g-term-def">set BTC/ETH price alerts with telegram/email notifications.</span></div>
+  </div>
+
+  <div class="g-sec">
+    <div class="g-sec-title">☁️ cloud sync</div>
+    <div class="g-term"><span class="g-term-name">save preset</span><span class="g-term-def">saves ALL tabs, custom tabs, theme as one snapshot. access in member area.</span></div>
+    <div class="g-term"><span class="g-term-name">share preset</span><span class="g-term-def">generate link to share with others. they can import directly.</span></div>
+    <div class="g-term"><span class="g-term-name">custom tabs</span><span class="g-term-def">click <b>+</b> in tab bar. fully independent state, can rename/delete.</span></div>
+    <div class="g-tip"><b>local vs cloud:</b> 💾 buttons save to browser. cloud presets sync across devices.</div>
+  </div>
+</div>
+
+<!-- PANEL: GLOSSARY -->
+<div class="g-panel" id="gp-glossary">
+  <div class="g-sec">
+    <div class="g-sec-title">📚 glossary</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
+      <div style="background:var(--sf2);padding:6px 8px;border-radius:5px;font-size:9px"><b style="color:var(--acc2)">liq%</b><br><span style="color:var(--tx2)">account÷notional×100</span></div>
+      <div style="background:var(--sf2);padding:6px 8px;border-radius:5px;font-size:9px"><b style="color:var(--acc2)">fm%</b><br><span style="color:var(--tx2)">margin÷account×100</span></div>
+      <div style="background:var(--sf2);padding:6px 8px;border-radius:5px;font-size:9px"><b style="color:var(--acc2)">notional</b><br><span style="color:var(--tx2)">capital×leverage</span></div>
+      <div style="background:var(--sf2);padding:6px 8px;border-radius:5px;font-size:9px"><b style="color:var(--acc2)">margin</b><br><span style="color:var(--tx2)">notional÷leverage</span></div>
+      <div style="background:var(--sf2);padding:6px 8px;border-radius:5px;font-size:9px"><b style="color:var(--acc2)">leverage</b><br><span style="color:var(--tx2)">position multiplier</span></div>
+      <div style="background:var(--sf2);padding:6px 8px;border-radius:5px;font-size:9px"><b style="color:var(--acc2)">carry-forward</b><br><span style="color:var(--tx2)">profit→next notional</span></div>
+      <div style="background:var(--sf2);padding:6px 8px;border-radius:5px;font-size:9px"><b style="color:var(--acc2)">target%</b><br><span style="color:var(--tx2)">expected %/trade</span></div>
+      <div style="background:var(--sf2);padding:6px 8px;border-radius:5px;font-size:9px"><b style="color:var(--acc2)">freq</b><br><span style="color:var(--tx2)">executions/month</span></div>
+      <div style="background:var(--sf2);padding:6px 8px;border-radius:5px;font-size:9px"><b style="color:var(--acc2)">KPI scale</b><br><span style="color:var(--tx2)">global target×</span></div>
+      <div style="background:var(--sf2);padding:6px 8px;border-radius:5px;font-size:9px"><b style="color:var(--acc2)">push×</b><br><span style="color:var(--tx2)">per-month notional×</span></div>
+      <div style="background:var(--sf2);padding:6px 8px;border-radius:5px;font-size:9px"><b style="color:var(--acc2)">zero month</b><br><span style="color:var(--tx2)">no trades</span></div>
+      <div style="background:var(--sf2);padding:6px 8px;border-radius:5px;font-size:9px"><b style="color:var(--acc2)">banked</b><br><span style="color:var(--tx2)">withdrawn profit</span></div>
+      <div style="background:var(--sf2);padding:6px 8px;border-radius:5px;font-size:9px"><b style="color:var(--acc2)">NW</b><br><span style="color:var(--tx2)">account+banked</span></div>
+      <div style="background:var(--sf2);padding:6px 8px;border-radius:5px;font-size:9px"><b style="color:var(--acc2)">CAGR</b><br><span style="color:var(--tx2)">annual growth rate</span></div>
+      <div style="background:var(--sf2);padding:6px 8px;border-radius:5px;font-size:9px"><b style="color:var(--acc2)">maker</b><br><span style="color:var(--tx2)">limit order (low fee)</span></div>
+      <div style="background:var(--sf2);padding:6px 8px;border-radius:5px;font-size:9px"><b style="color:var(--acc2)">taker</b><br><span style="color:var(--tx2)">market order (hi fee)</span></div>
+      <div style="background:var(--sf2);padding:6px 8px;border-radius:5px;font-size:9px"><b style="color:var(--acc2)">funding</b><br><span style="color:var(--tx2)">perpetual fee/8h</span></div>
+      <div style="background:var(--sf2);padding:6px 8px;border-radius:5px;font-size:9px"><b style="color:var(--acc2)">cross margin</b><br><span style="color:var(--tx2)">whole acct collateral</span></div>
+      <div style="background:var(--sf2);padding:6px 8px;border-radius:5px;font-size:9px"><b style="color:var(--acc2)">isolated</b><br><span style="color:var(--tx2)">per-position (NOT this)</span></div>
+      <div style="background:var(--sf2);padding:6px 8px;border-radius:5px;font-size:9px"><b style="color:var(--acc2)">spot</b><br><span style="color:var(--tx2)">no leverage mode</span></div>
     </div>
   </div>
 </div>
 
-<div class="g-sec" style="border:1.5px solid #E24B4A;border-radius:10px;padding:14px 16px;background:#FCEBEB">
+<!-- ALWAYS VISIBLE: Important Notice -->
+<div class="g-sec" style="border:1.5px solid #E24B4A;border-radius:10px;padding:14px 16px;background:#FCEBEB;margin-top:20px">
   <div class="g-sec-title" style="color:#A32D2D;border-bottom-color:#f5c6c6">⚠️ important — read before you onboard</div>
   <div style="font-size:11px;color:#7a2020;line-height:1.8">
-    <b>this dashboard is a projection and assessment tool — not a trading guarantee.</b><br><br>
-    all numbers you see are <b>pre-execution estimates</b> based on the inputs you provide. real results will differ depending on your timing, discipline, market conditions, and execution quality.<br><br>
-    <b>what this dashboard DOES calculate:</b><br>
-    · trading fees (maker/taker) — deducted from each trade<br>
-    · funding fees (perpetual contracts) — based on rate × holds per month<br>
-    · compounding effects — gains roll into next trade notional<br>
-    · withdrawal impact — shows how taking profit affects liq%<br><br>
-    <b>what this dashboard does NOT calculate:</b><br>
-    · slippage and spread costs (varies by market depth)<br>
-    · exchange-specific liquidation mechanics (each exchange differs)<br>
-    · partial fills or execution delays<br>
-    · black swan events or flash crashes<br><br>
-    the final outcome depends entirely on <b>your own execution</b>. this tool helps you prepare and assess your setup before entering — the bet itself, and the results, are yours alone. any gains or losses are the direct result of your personal trading decisions and experience.<br><br>
-    <b style="color:#A32D2D">🔒 cross margin mode only.</b> the liq% formula (account ÷ notional × 100) is designed specifically for cross margin. if you are using isolated margin, the liquidation mechanics are different and this dashboard\'s liq% will not apply accurately. always confirm your margin mode before relying on these projections.
+    <b>this dashboard is a projection tool — not a trading guarantee.</b><br><br>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:8px 0">
+      <div><b>✓ calculated:</b> trading fees, funding fees, compounding, withdrawal impact</div>
+      <div><b>✕ not calculated:</b> slippage, spread, exchange-specific liq mechanics, flash crashes</div>
+    </div>
+    the final outcome depends entirely on <b>your own execution</b>.<br><br>
+    <b style="color:#A32D2D">🔒 cross margin mode only.</b> the liq% formula is for cross margin. isolated margin has different mechanics.
   </div>
 </div>
 `;
 
+// Guide panel switcher for English
+function showGuidePanel(id){
+  document.querySelectorAll('.g-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.g-nav-btn').forEach(b=>b.classList.remove('active'));
+  var panel=document.getElementById('gp-'+id);
+  if(panel)panel.classList.add('active');
+  if(event && event.target) event.target.closest('.g-nav-btn').classList.add('active');
+}
 
 const GUIDE_HTML_ID=`
 <style>
-.guide-wrap{max-width:720px;padding:4px 0 20px;font-size:12px;line-height:1.7;color:var(--tx)}
+.guide-wrap{max-width:800px;padding:4px 0 20px;font-size:12px;line-height:1.7;color:var(--tx)}
 .g-title{font-size:18px;font-weight:700;color:var(--tx);margin-bottom:4px}
-.g-sub{font-size:11px;color:var(--tx2);margin-bottom:20px}
+.g-sub{font-size:11px;color:var(--tx2);margin-bottom:16px}
 .g-sec{margin-bottom:22px}
 .g-sec-title{font-size:13px;font-weight:700;color:var(--acc2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px;padding-bottom:5px;border-bottom:0.5px solid var(--bd2)}
 .g-term{display:grid;grid-template-columns:140px 1fr;gap:8px 16px;margin-bottom:8px;align-items:start}
@@ -3387,315 +3381,272 @@ const GUIDE_HTML_ID=`
 .g-step-body b{color:var(--tx);font-weight:600}
 .g-warn{background:#FAEEDA;border-radius:8px;padding:10px 14px;font-size:11px;color:#854F0B;margin:10px 0;line-height:1.7}
 body.t-dark .g-warn{background:#2a1a00;color:#EF9F27}
-.g-toggle-demo{display:inline-flex;align-items:center;gap:6px;background:var(--sf2);border:0.5px solid var(--bd2);border-radius:6px;padding:4px 10px;font-size:10px;color:var(--tx2);margin:4px 0}
-.g-tog-on{padding:2px 8px;border-radius:4px;background:var(--togon);color:var(--togonc);font-size:10px;font-weight:700}
-.g-tog-off{padding:2px 8px;border-radius:4px;background:transparent;color:var(--tx2);font-size:10px}
+.g-nav{display:flex;gap:4px;margin:16px 0 20px;padding:6px;background:var(--sf2);border-radius:12px;border:1px solid var(--bd2);overflow-x:auto;-webkit-overflow-scrolling:touch}
+.g-nav::-webkit-scrollbar{height:0}
+.g-nav-btn{padding:10px 16px;font-size:11px;font-weight:600;border:none;border-radius:8px;cursor:pointer;background:transparent;color:var(--tx2);transition:all .15s;display:flex;align-items:center;gap:6px;white-space:nowrap;flex-shrink:0}
+.g-nav-btn:hover{background:var(--bg);color:var(--tx)}
+.g-nav-btn.active{background:var(--acc2);color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.g-nav-btn .g-nav-icon{font-size:14px}
+.g-panel{display:none;animation:gFadeIn .25s ease;min-height:200px}
+.g-panel.active{display:block}
+@keyframes gFadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 </style>
 
 <div class="g-title">bet all the time, bet with style · panduan</div>
 <div class="g-sub">oleh <a href="https://t.me/CryptoJurnal" target="_blank" style="color:var(--acc2);font-weight:700;text-decoration:none">@cryptojurnal ↗</a> · konsep dasar · tetap simpel, tetap disiplin</div>
 
+<!-- SELALU TERLIHAT: Dua Tab -->
 <div class="g-sec">
   <div class="g-sec-title">🗂️ dua tab — mulai dari sini</div>
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
     <div style="background:var(--sf2);border-radius:8px;padding:14px 16px;border-left:3px solid var(--acc2)">
       <div style="font-size:13px;font-weight:700;color:var(--tx);margin-bottom:6px">36-MONTH · proyeksi jangka panjang</div>
-      <div style="font-size:11px;color:var(--tx2);line-height:1.7"><b>rencana utamamu</b>. set sekali, biarkan compounding bekerja selama 36 bulan. gunakan ini untuk <b>merencanakan strategi</b>, stress-test setup risiko, dan lihat ke mana arah modal kamu. bukan untuk otak-atik harian — ini adalah gambaran besar. anggap saja sebagai <b>blueprint trading</b>-mu.</div>
+      <div style="font-size:11px;color:var(--tx2);line-height:1.7"><b>rencana utamamu</b>. set sekali, biarkan compounding bekerja selama 36 bulan. gunakan ini untuk <b>merencanakan strategi</b> dan lihat ke mana arah modal kamu. anggap sebagai <b>blueprint trading</b>-mu.</div>
       <div style="margin-top:8px;font-size:10px;color:var(--acc2);font-weight:600">cocok untuk: perencanaan · alokasi modal · keyakinan jangka panjang</div>
     </div>
     <div style="background:var(--sf2);border-radius:8px;padding:14px 16px;border-left:3px solid var(--acc)">
       <div style="font-size:13px;font-weight:700;color:var(--tx);margin-bottom:6px">QUARTER · asesmen jangka pendek</div>
-      <div style="font-size:11px;color:var(--tx2);line-height:1.7"><b>lab trading langsungmu</b>. 3 bulan, tanpa zero month, murni eksekusi. gunakan ini <b>sebelum masuk trade</b> untuk memvalidasi setup — cek apakah liq%, leverage, dan notional masuk akal untuk kondisi pasar saat ini. anggap sebagai <b>checklist pra-terbang</b> sebelum kamu bet.</div>
+      <div style="font-size:11px;color:var(--tx2);line-height:1.7"><b>lab trading langsungmu</b>. 3 bulan, murni eksekusi. gunakan <b>sebelum masuk trade</b> untuk memvalidasi setup. anggap sebagai <b>checklist pra-terbang</b>.</div>
       <div style="margin-top:8px;font-size:10px;color:var(--acc);font-weight:600">cocok untuk: scalp · day trade · validasi cepat · uji formula</div>
     </div>
   </div>
-  <div class="g-tip"><b>alur kerja:</b> gunakan tab quarter untuk menemukan formula yang tepat sesuai kondisi pasar → setelah yakin, pindahkan pengaturan tersebut ke 36-month untuk proyeksi penuh. kedua tab punya state yang sepenuhnya independen, jadi kamu bisa eksperimen bebas di quarter tanpa mengganggu rencana utama.</div>
+  <div class="g-tip"><b>alur kerja:</b> gunakan quarter untuk menemukan formula yang tepat → setelah yakin, pindahkan ke 36-month untuk proyeksi penuh. kedua tab punya state independen.</div>
 </div>
 
-<div class="g-sec">
-  <div class="g-sec-title">🔑 konsep inti — baca ini dulu</div>
-  <div class="g-term"><span class="g-term-name">liq%</span><span class="g-term-def">persentase likuidasi. <b>seberapa jauh harga spot harus turun (atau naik berlawanan arahmu) sebelum posisimu terhapus.</b> ini adalah angka terpenting di seluruh dashboard. makin tinggi = makin aman. jika liq% = 40%, pasar perlu bergerak 40% melawan entrymu untuk melikuidasi trade 1.</span></div>
-  <div class="g-term"><span class="g-term-name">notional</span><span class="g-term-def"><b>total ukuran posisi setelah leverage diterapkan.</b> jika kamu menempatkan $100 margin aktual di leverage 10×, notional = $1.000. inilah yang sebenarnya diperdagangkan exchange untukmu.</span></div>
-  <div class="g-term"><span class="g-term-name">actual margin</span><span class="g-term-def"><b>modal nyata dari akunmu yang digunakan sebagai jaminan</b> untuk trade 1. rumus: notional ÷ leverage. inilah yang benar-benar kamu risiko per entri trade.</span></div>
-  <div class="g-term"><span class="g-term-name">fm% (frac margin)</span><span class="g-term-def"><b>fractional margin</b> — actual margin sebagai % dari total akunmu. jika fm% = 16%, kamu mendeploy 16% akun sebagai margin untuk trade 1. makin rendah = makin aman.</span></div>
-  <div class="g-term"><span class="g-term-name">carry-forward</span><span class="g-term-def">notional setiap trade <b>bertambah dengan profit trade sebelumnya.</b> jadi jika notional trade 1 = $250 dan profit = $20, notional trade 2 = $270. ini compounding alami dalam satu sekuens.</span></div>
-  <div class="g-tip"><b>hubungannya:</b> liq% = akun ÷ notional × 100. jadi jika akun = $1.000 dan notional = $2.500, liq% = 40%. jika kamu menarik $500, akun turun ke $500, liq% turun ke 20% — kamu kini dua kali lebih dekat ke likuidasi. itulah mengapa penarikan langsung berdampak pada buffer keamananmu.</div>
+<!-- NAVIGASI TAB HORIZONTAL -->
+<div class="g-nav" id="guide-nav-id">
+  <button class="g-nav-btn active" onclick="showGuidePanelId('basics')"><span class="g-nav-icon">🔑</span> Dasar</button>
+  <button class="g-nav-btn" onclick="showGuidePanelId('metrics')"><span class="g-nav-icon">📊</span> Metrik</button>
+  <button class="g-nav-btn" onclick="showGuidePanelId('controls')"><span class="g-nav-icon">⚙️</span> Kontrol</button>
+  <button class="g-nav-btn" onclick="showGuidePanelId('risk')"><span class="g-nav-icon">🎯</span> Risiko</button>
+  <button class="g-nav-btn" onclick="showGuidePanelId('spot')"><span class="g-nav-icon">◈</span> Spot</button>
+  <button class="g-nav-btn" onclick="showGuidePanelId('errors')"><span class="g-nav-icon">🚨</span> Error</button>
+  <button class="g-nav-btn" onclick="showGuidePanelId('power')"><span class="g-nav-icon">⚡</span> Power</button>
+  <button class="g-nav-btn" onclick="showGuidePanelId('glossary')"><span class="g-nav-icon">📚</span> Glosarium</button>
 </div>
 
-<div class="g-sec">
-  <div class="g-sec-title">📊 penjelasan metrik dashboard</div>
-  <div class="g-term"><span class="g-term-name">account</span><span class="g-term-def"><b>saldo akun trading aktifmu</b> di akhir setiap bulan setelah semua trade dan penarikan.</span></div>
-  <div class="g-term"><span class="g-term-name">banked</span><span class="g-term-def">profit yang sudah <b>ditarik secara fisik</b> dari akun. uang ini aman — tidak compounding lagi tapi juga tidak bisa dilikuidasi.</span></div>
-  <div class="g-term"><span class="g-term-name">combined NW</span><span class="g-term-def"><b>kekayaan bersih = akun + ditarik.</b> ini adalah posisi keuangan nyatamu. selalu nilai kesuksesanmu dari angka ini, bukan hanya saldo akun.</span></div>
-  <div class="g-term"><span class="g-term-name">seq potential</span><span class="g-term-def">maksimum <b>total % gain dalam satu sekuens penuh</b> (semua 10 trade digabung). ini adalah batas atas untuk satu bulan jika setiap trade aktif mencapai target.</span></div>
-  <div class="g-term"><span class="g-term-name">single profit</span><span class="g-term-def">profit dari <b>satu eksekusi</b> trade tersebut (notional × target%). satu trade, satu kali.</span></div>
-  <div class="g-term"><span class="g-term-name">combine profit</span><span class="g-term-def">single profit × freq. jika single profit = $20 dan freq = 4, combine profit = $80. <b>inilah yang benar-benar ditambahkan ke akunmu</b> untuk slot trade tersebut.</span></div>
-  <div class="g-term"><span class="g-term-name">freq</span><span class="g-term-def">berapa kali kamu mengeksekusi setup trade tersebut dalam sekuens. <b>freq makin tinggi = total profit makin besar tapi eksposur juga makin besar.</b> set ke 0 untuk skip trade tersebut sepenuhnya.</span></div>
-  <div class="g-term"><span class="g-term-name">3yr CAGR</span><span class="g-term-def"><b>compound annual growth rate selama 36 bulan.</b> menormalisasi total return menjadi angka tahunan. benchmark: S&P 500 ~10% · Warren Buffett ~20% · Druckenmiller ~30%. di atas 50% di crypto dengan risiko terkontrol adalah level elite.</span></div>
-  <div class="g-term"><span class="g-term-name">$1M milestone</span><span class="g-term-def">bulan ketika <b>NW gabungan (akun + ditarik) pertama kali menembus $1.000.000.</b> bukan hanya akun — total kekayaan. ini target sesungguhnya.</span></div>
-  <div class="g-term"><span class="g-term-name">account lifespan</span><span class="g-term-def">estimasi seberapa lama struktur akun bertahan di kondisi buruk. dari <b>menit</b> (ekstrem) hingga <b>generasional</b> (hampir tidak bisa dilikuidasi). rumus: (liq%)² ÷ faktor leverage ÷ faktor margin. bukan jaminan — sinyal terkalibrasi.</span></div>
-  <div class="g-term"><span class="g-term-name">liq t1 vs liq last</span><span class="g-term-def">liq t1 = buffer di awal bulan (trade 1). liq last = buffer di akhir sekuens (trade aktif terakhir). <b>liq tumbuh sepanjang sekuens</b> karena akun bertumbuh sementara notional juga bertumbuh tapi lebih lambat. perhatikan liq t1 — titik tersempitmu.</span></div>
-  <div class="g-term"><span class="g-term-name">margin push ⚡</span><span class="g-term-def">multiplier per bulan pada notional trade 1. jika push = 1.4×, trade 1 dimulai 40% lebih besar dari carry-forward. <b>ini sengaja mengurangi liq% bulan tersebut</b> (risiko lebih besar, potensi lebih besar). gunakan hanya di bulan high-conviction.</span></div>
-  <div class="g-term"><span class="g-term-name">zero month ⊘</span><span class="g-term-def">bulan di mana kamu tidak trading. <b>tidak ada profit, tidak ada kerugian, tidak ada compounding.</b> notional carry-forward dijeda dan dilanjutkan bulan aktif berikutnya. gunakan untuk kondisi pasar tidak jelas, acara pribadi, atau istirahat terencana.</span></div>
-  <div class="g-term"><span class="g-term-name">global vs manual</span><span class="g-term-def">global mode menerapkan satu setup trade ke semua bulan. manual mode memungkinkan kamu <b>set target dan freq berbeda per bulan</b> di tampilan detail penuh — berguna ketika kondisi pasar berubah di tengah rencana.</span></div>
-</div>
-
-<div class="g-sec">
-  <div class="g-sec-title">🔘 toggle switch — kecil tapi krusial</div>
-  <div style="font-size:11px;color:var(--tx2);margin-bottom:10px;line-height:1.7">dashboard ini punya beberapa toggle switch yang mengontrol perilaku penting. ini penjelasan masing-masing:</div>
-  <div class="g-term">
-    <span class="g-term-name">link to capital<br><span style="font-weight:400;font-size:9px;color:var(--tx3)">(panel notional)</span></span>
-    <span class="g-term-def">
-      <div class="g-toggle-demo"><span class="g-tog-off">off</span><span style="color:var(--tx3);font-size:10px">↔</span><span class="g-tog-on">on</span></div><br>
-      <b>off (default — disarankan):</b> notional tetap saat kamu mengubah modal. perilaku lebih aman — ukuran posisimu tidak berubah otomatis.<br>
-      <b>on:</b> notional menyesuaikan secara proporsional dengan modal untuk mempertahankan rasio liq% yang sama. berguna saat kamu ingin profil risiko tetap konsisten seiring bertumbuhnya modal. <b>hati-hati</b> — mengaktifkan ini dan menaikkan modal akan otomatis meningkatkan notional dan bisa mengejutkanmu.
-    </span>
+<!-- PANEL: DASAR -->
+<div class="g-panel active" id="gp-basics-id">
+  <div class="g-sec">
+    <div class="g-sec-title">🔑 konsep inti</div>
+    <div class="g-term"><span class="g-term-name">liq%</span><span class="g-term-def">persentase likuidasi. <b>seberapa jauh harga harus bergerak melawan sebelum wipe.</b> angka terpenting. makin tinggi = makin aman. rumus: akun ÷ notional × 100. target 100%+, 40% adalah batas minimum.</span></div>
+    <div class="g-term"><span class="g-term-name">notional</span><span class="g-term-def"><b>ukuran posisi setelah leverage.</b> $100 di 10× = $1.000 notional.</span></div>
+    <div class="g-term"><span class="g-term-name">margin aktual</span><span class="g-term-def"><b>modal nyata sebagai jaminan</b> untuk trade 1. rumus: notional ÷ leverage.</span></div>
+    <div class="g-term"><span class="g-term-name">fm%</span><span class="g-term-def"><b>fractional margin</b> — margin sebagai % dari akun. jika fm% = 16%, kamu mendeploy 16% sebagai margin. makin rendah = makin aman. jika fm% > 100%, posisi tidak bisa dibuka.</span></div>
+    <div class="g-term"><span class="g-term-name">leverage</span><span class="g-term-def">pengali. 5× = kontrol 5× modalmu. makin tinggi = makin berisiko + liq% makin rendah.</span></div>
+    <div class="g-term"><span class="g-term-name">carry-forward</span><span class="g-term-def">notional setiap trade <b>bertambah dari profit trade sebelumnya.</b> compounding dalam sequence.</span></div>
+    <div class="g-tip"><b>hubungannya:</b> liq% = akun ÷ notional × 100. jika akun = $1.000 dan notional = $2.500, liq% = 40%. tarik $500 → liq% turun ke 20%.</div>
   </div>
-  <div class="g-term" style="margin-top:8px">
-    <span class="g-term-name">global mode<br><span style="font-weight:400;font-size:9px;color:var(--tx3)">(panel trade slots)</span></span>
-    <span class="g-term-def">
-      <div class="g-toggle-demo"><span class="g-tog-on">● on</span><span style="color:var(--tx3);font-size:10px">↔</span><span class="g-tog-off">○ off</span></div><br>
-      <b>on (default):</b> semua 36 bulan menggunakan 10 slot trade yang sama yang kamu konfigurasi di panel kiri. simpel dan bersih — satu formula, diterapkan ke semua bulan.<br>
-      <b>off (mode per-bulan):</b> membuka input target/freq manual di tampilan detail penuh untuk setiap bulan individual. memungkinkan adaptasi ke kondisi pasar berbeda tiap bulan — bulan bullish pakai target agresif, bulan choppy pakai target konservatif.
-    </span>
-  </div>
-  <div class="g-tip"><b>pro tip:</b> mulai dengan global mode on untuk menguji formula dasarmu. saat kamu punya pandangan kuat tentang bulan tertentu (misalnya ada katalis atau event halving), beralih ke manual mode dan naikkan target bulan itu.</div>
-</div>
 
-<div class="g-sec">
-  <div class="g-sec-title">🎨 kustomisasi — semua bisa diedit</div>
-  <div style="font-size:11px;color:var(--tx2);margin-bottom:10px;line-height:1.7">hampir setiap label dan nilai di dashboard ini bisa dikustomisasi. ini yang bisa kamu ubah bebas:</div>
-  <div class="g-term"><span class="g-term-name">label bulan</span><span class="g-term-def">klik nama bulan mana saja di tabel summary atau detail dan ketik label sendiri — mis. <b>"april 2026"</b>, <b>"bulan halving"</b>, atau apapun yang bermakna bagimu. label tersimpan otomatis.</span></div>
-  <div class="g-term"><span class="g-term-name">label trade</span><span class="g-term-def">di tampilan detail penuh, klik label baris trade mana saja untuk mengganti namanya — mis. <b>"BTC/USDT long"</b>, <b>"MOODENG pump"</b>, atau singkatanmu sendiri. berguna untuk melacak aset mana yang ditarget tiap slot.</span></div>
-  <div class="g-term"><span class="g-term-name">kolom withdrawal</span><span class="g-term-def">klik sel mana saja di kolom withdrawal untuk mengetik jumlah penarikan bulan tersebut. field menyala saat aktif. ini dikurangi dari saldo akhir gross dan menurunkan liq% bulan berikutnya.</span></div>
-  <div class="g-term"><span class="g-term-name">margin push ⚡</span><span class="g-term-def">di tampilan detail, field push di setiap header bulan memungkinkan kamu mengetik multiplier (mis. 1.5) untuk meningkatkan notional trade 1 bulan tersebut saja. sel menyala hijau saat aktif. gunakan dengan hemat.</span></div>
-  <div class="g-term"><span class="g-term-name">zero month ⊘</span><span class="g-term-def">klik tombol ⊘ di baris bulan mana saja untuk menandainya sebagai zero month (tidak trading). klik lagi untuk mengaktifkan kembali. zero month ditampilkan redup di tabel.</span></div>
-  <div class="g-term"><span class="g-term-name">tema</span><span class="g-term-def">tersedia 6 tema warna: Light, Dark, Ocean, Forest, Sunset, Lavender. pilih dari titik warna di bagian atas panel kiri. preferensi tema tersimpan di browser.</span></div>
-  <div class="g-tip"><b>label dan zero month tersimpan otomatis</b> begitu kamu mengeditnya — tidak perlu tombol. untuk pengaturan modal, posisi, dan trade, gunakan tombol 💾 save di panel kiri agar kamu bisa eksperimen bebas tanpa menimpa state tersimpan. <b>tab 36-month dan quarter masing-masing punya state independen.</b></div>
-</div>
-
-<div class="g-sec">
-  <div class="g-sec-title">⚙️ kontrol — cara menggunakannya</div>
-  <div class="g-step"><div class="g-step-num">1</div><div class="g-step-body"><b>set starting capital</b> — ukuran akun aktualmu. gunakan tombol preset ($100 · $1k · $10k · $100k · $1M · dst) atau ketik/geser manual. modal tidak langsung mempengaruhi liq% — rasio ke notional-lah yang menentukan.</div></div>
-  <div class="g-step"><div class="g-step-num">2</div><div class="g-step-body"><b>set leverage</b> — leverage lebih tinggi berarti margin aktual per trade lebih kecil tapi juga mempersempit buffer liq%-mu. perhatikan liq% di panel notional yang update secara live.</div></div>
-  <div class="g-step"><div class="g-step-num">3</div><div class="g-step-body"><b>set notional (trade 1)</b> — ukuran posisi trade pertamamu. gunakan tombol preset atau ketik/geser bebas. panel comp menampilkan actual margin, fm%, dan liq% secara real time. <b>jaga liq% di atas atau sama dengan 40% — itu adalah floor, bukan target.</b> targetkan liq% 100%+ untuk setup yang benar-benar sehat.</div></div>
-  <div class="g-step"><div class="g-step-num">4</div><div class="g-step-body"><b>set trade slots</b> — 10 slot, masing-masing dengan target% dan freq. set salah satunya ke 0 untuk skip trade. sekuens berjalan dari atas ke bawah, notional compounding dengan profit setiap trade.</div></div>
-  <div class="g-step"><div class="g-step-num">5</div><div class="g-step-body"><b>global mode vs manual</b> — saat global ON, semua bulan menggunakan target trade yang sama. matikan untuk set target berbeda per bulan di tampilan detail penuh.</div></div>
-  <div class="g-step"><div class="g-step-num">6</div><div class="g-step-body"><b>zero months</b> — bulan di mana kamu tidak trading. klik tombol ⊘ di bulan mana saja untuk menandainya sebagai zero. klik lagi untuk mengaktifkan.</div></div>
-  <div class="g-step"><div class="g-step-num">7</div><div class="g-step-body"><b>withdrawal</b> — ketik jumlah di kolom withdrawal. <b>penting: menarik dana mengurangi akunmu yang menurunkan liq% untuk bulan berikutnya.</b> selalu cek liq t1 setelah set penarikan.</div></div>
-  <div class="g-step"><div class="g-step-num">8</div><div class="g-step-body"><b>margin push up (⚡)</b> — di detail penuh, ketik multiplier (mis. 1.4) di field push. hanya trade 1 bulan tersebut yang dikalikan. trade 2–10 compounding alami dari basis yang lebih tinggi itu.</div></div>
-  <div class="g-warn">⚠ aturan kunci: saat kamu menarik, liq%-mu turun untuk bulan berikutnya. proyeksi menunjukkan ini — perhatikan kolom liq t1. jika turun di bawah 20%, kamu berada di zona bahaya. selalu cek liq% setelah set jumlah penarikan.</div>
-</div>
-
-<div class="g-sec">
-  <div class="g-sec-title">🎯 risk assessment — baca cepat</div>
-  <div class="g-term"><span class="g-term-name">risk score</span><span class="g-term-def">skor komposit 0–100. <b>makin rendah = makin aman.</b> faktor: buffer liq% (bobot utama), level leverage, fm% dari akun, jumlah trade aktif.</span></div>
-  <div class="g-term"><span class="g-term-name">liq t1 buffer</span><span class="g-term-def">sama dengan liq% untuk trade 1 bulan 1. bar isian menunjukkannya secara visual — hijau = buffer bagus, kuning = perlu diperhatikan, merah = bahaya.</span></div>
-  <div class="g-term"><span class="g-term-name">account lifespan</span><span class="g-term-def">estimasi berapa lama struktur akun bertahan di kondisi buruk. dari <b>menit</b> (ekstrem) hingga <b>generasional</b> (hampir tidak bisa dilikuidasi). rumus: (liq%)² ÷ faktor leverage ÷ faktor margin.</span></div>
-  <div class="g-tip"><b>baseline bet all the time:</b> liq% ≥ 40% (floor) · leverage ≤ 15× · fm% ≤ 20% → risk score di bawah 30, lifespan "bulan hingga tahun". <b>setup yang benar-benar sehat menargetkan liq% di atas 100%</b> — artinya pasar perlu runtuh total untuk menghabiskanmu. 40% adalah garis batasmu, bukan targetmu.</div>
-</div>
-
-<div class="g-sec">
-  <div class="g-sec-title">✅ apa yang membuat setup bagus — checklist cepat</div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
-    <div style="background:#EAF3DE;border-radius:7px;padding:10px 12px">
-      <div style="font-size:11px;font-weight:700;color:#3B6D11;margin-bottom:6px">✓ setup sehat</div>
-      <div style="font-size:10px;color:#3B6D11;line-height:1.8">liq% t1 ≥ 100% (ideal)<br>liq% t1 ≥ 40% (batas minimum)<br>leverage ≤ 15×<br>fm% ≤ 20%<br>ketahanan akun: bulan → tahun<br>risk score &lt; 30<br>trade aktif: 5–10<br>minimal 1 zero month per 6 bulan</div>
+  <div class="g-sec">
+    <div class="g-sec-title">🔘 toggle switch</div>
+    <div class="g-term">
+      <span class="g-term-name">link to capital</span>
+      <span class="g-term-def">
+        <b>off (default):</b> notional tetap saat modal berubah. lebih aman.<br>
+        <b>on:</b> notional ikut berubah untuk menjaga rasio liq%.
+      </span>
     </div>
-    <div style="background:#FCEBEB;border-radius:7px;padding:10px 12px">
-      <div style="font-size:11px;font-weight:700;color:#A32D2D;margin-bottom:6px">✕ zona bahaya</div>
-      <div style="font-size:10px;color:#A32D2D;line-height:1.8">liq% t1 &lt; 20%<br>leverage ≥ 25×<br>fm% &gt; 40%<br>ketahanan akun: jam → hari<br>risk score &gt; 60<br>menarik tanpa cek liq%<br>margin push setiap bulan</div>
+    <div class="g-term">
+      <span class="g-term-name">global mode</span>
+      <span class="g-term-def">
+        <b>on (default):</b> semua bulan pakai slot trade yang sama.<br>
+        <b>off:</b> setiap bulan punya target/freq independen.
+      </span>
     </div>
   </div>
-  <div class="g-tip"><b>aturan disiplin:</b> jangan pernah masuk trade tanpa cek liq% dulu. jika liq% di bawah 30%, kurangi notional atau tambah modal sebelum buka posisi. pasar tidak peduli rencanamu — struktur risikomu adalah satu-satunya yang bisa kamu kendalikan.</div>
-</div>
 
-<div class="g-sec">
-  <div class="g-sec-title">💾 menyimpan pekerjaan</div>
-  <div class="g-term"><span class="g-term-name">save capital</span><span class="g-term-def">menyimpan starting capital ke browser storage. tetap ada setelah halaman di-reload.</span></div>
-  <div class="g-term"><span class="g-term-name">save position</span><span class="g-term-def">menyimpan leverage, notional, dan KPI scale.</span></div>
-  <div class="g-term"><span class="g-term-name">save trades</span><span class="g-term-def">menyimpan semua 10 target trade dan freq.</span></div>
-  <div class="g-tip"><b>label dan zero month tersimpan otomatis</b> begitu kamu mengeditnya — tidak perlu tombol. pengaturan modal, posisi, dan trade menggunakan tombol save manual agar kamu bisa eksperimen bebas tanpa menimpa state tersimpan. <b>tab 36-month dan quarter punya state terpisah</b> — simpan masing-masing secara independen.</div>
-</div>
-
-<div class="g-sec">
-  <div class="g-sec-title">◈ mode spot</div>
-  <div style="font-size:11px;color:var(--tx2);margin-bottom:10px;line-height:1.7">mode spot mensimulasikan <b>membeli dan memegang aset tanpa leverage</b>. seluruh modal kamu adalah posisimu — tanpa margin, tanpa risiko likuidasi, tanpa biaya funding. kamu tetap bisa memproyeksikan compounding return selama 36 bulan atau satu kuartal.</div>
-
-  <div class="g-term"><span class="g-term-name">cara beralih</span><span class="g-term-def">di panel kiri bagian <b>leverage · spot mode</b>, klik tombol <b>◈ spot</b>. badge di sebelah judul dashboard mengkonfirmasi mode aktif. setiap tab menyimpan modenya sendiri — satu tab leverage, satu tab spot untuk perbandingan langsung.</span></div>
-
-  <div class="g-term"><span class="g-term-name">apa yang berubah di mode spot</span><span class="g-term-def"><b>slider leverage</b> dinonaktifkan — ukuran posisi sama dengan modal penuh. <b>notional</b> dinonaktifkan — mengikuti akun otomatis. <b>biaya funding</b> dihapus — tidak ada kontrak perpetual di spot. <b>liq%</b> tidak relevan — kamu tidak bisa dilikuidasi.</span></div>
-
-  <div class="g-term"><span class="g-term-name">struktur biaya di spot</span><span class="g-term-def">biaya spot lebih tinggi dari futures — tier standar 0.1% di sebagian besar exchange vs 0.02–0.05% futures. dashboard otomatis mengisi tarif spot yang benar saat kamu beralih mode. <b>aturan 2×</b> tetap berlaku: setiap trade bayar biaya dua kali — buka + tutup.</span></div>
-
-  <div class="g-term"><span class="g-term-name">size× (pengali ukuran posisi)</span><span class="g-term-def">di mode spot, <b>size×</b> di header tabel detail menentukan berapa banyak modal yang di-deploy bulan itu. gunakan sebagai alat sizing posisi untuk mensimulasikan deployment parsial — bukan leverage.</span></div>
-
-  <div class="g-term"><span class="g-term-name">risk score di mode spot</span><span class="g-term-def">risk score menggunakan kriteria berbeda: <b>fee drag</b>, <b>konsentrasi trade</b>, <b>agresivitas target</b>, dan <b>rasio win/loss</b>. skor rendah = efisien biaya, terdiversifikasi, target realistis.</span></div>
-
-  <div class="g-tip"><b>spot vs leverage:</b> gunakan spot untuk buy-and-hold compounding atau melihat setup tanpa risiko leverage. jalankan keduanya berdampingan di tab terpisah.</div>
-</div>
-
-<div class="g-sec">
-  <div class="g-sec-title">🚨 status error — ketika ada yang salah</div>
-  <div style="font-size:11px;color:var(--tx2);margin-bottom:12px;line-height:1.7">dashboard mendeteksi setup invalid dan menampilkan status error yang jelas. ini artinya dan cara memperbaikinya:</div>
-  
-  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px">
-    <div style="background:#2a0a0a;border-radius:8px;padding:12px;border-left:3px solid #E24B4A">
-      <div style="font-size:16px;margin-bottom:6px">🚫</div>
-      <div style="font-size:11px;font-weight:700;color:#ff7070;margin-bottom:4px">FM% > 100%</div>
-      <div style="font-size:10px;color:#E24B4A;line-height:1.6">margin yang dibutuhkan melebihi modal. exchange akan menolak order ini — kamu tidak punya cukup uang untuk membuka posisi.</div>
-      <div style="font-size:9px;color:#ff9999;margin-top:6px;font-style:italic">solusi: naikkan leverage, kurangi notional, atau tambah modal</div>
-    </div>
-    <div style="background:#2a0a0a;border-radius:8px;padding:12px;border-left:3px solid #E24B4A">
-      <div style="font-size:16px;margin-bottom:6px">💸</div>
-      <div style="font-size:11px;font-weight:700;color:#ff7070;margin-bottom:4px">Liq% < 1%</div>
-      <div style="font-size:10px;color:#E24B4A;line-height:1.6">buffer-mu praktis nol. pergerakan harga apapun — bahkan 0.1% — akan memicu likuidasi instan.</div>
-      <div style="font-size:9px;color:#ff9999;margin-top:6px;font-style:italic">solusi: kurangi notional atau tambah modal</div>
-    </div>
-    <div style="background:#1a0a2e;border-radius:8px;padding:12px;border-left:3px solid #8B5CF6">
-      <div style="font-size:16px;margin-bottom:6px">💀</div>
-      <div style="font-size:11px;font-weight:700;color:#c084fc;margin-bottom:4px">WD Bust</div>
-      <div style="font-size:10px;color:#8B5CF6;line-height:1.6">kamu mencoba menarik lebih dari saldo akun setelah trading. simulasi berhenti karena akunmu kosong.</div>
-      <div style="font-size:9px;color:#a78bfa;margin-top:6px;font-style:italic">solusi: kurangi jumlah penarikan untuk bulan itu</div>
-    </div>
+  <div class="g-sec">
+    <div class="g-sec-title">💾 menyimpan</div>
+    <div class="g-term"><span class="g-term-name">tombol save</span><span class="g-term-def">modal, posisi, trade pakai tombol 💾 manual — eksperimen bebas tanpa menimpa.</span></div>
+    <div class="g-term"><span class="g-term-name">auto-save</span><span class="g-term-def">label, zero month, penarikan, fee tersimpan otomatis saat edit.</span></div>
+    <div class="g-term"><span class="g-term-name">cloud preset</span><span class="g-term-def">user login bisa simpan ke cloud dan sinkron antar device.</span></div>
   </div>
-  
-  <div class="g-tip"><b>pemulihan:</b> ketika kamu memperbaiki masalah (atur leverage, notional, modal, atau penarikan), dashboard otomatis menghitung ulang dan kembali ke kondisi normal.</div>
 </div>
 
-<div class="g-sec">
-  <div class="g-sec-title">⚡ fitur power user</div>
-  <div style="font-size:11px;color:var(--tx2);margin-bottom:10px;line-height:1.7">tools lanjutan untuk analisis lebih dalam. akses via shortcut keyboard atau tekan <b>?</b> untuk melihat semua shortcut.</div>
-  
-  <div class="g-term"><span class="g-term-name">shortcut keyboard</span><span class="g-term-def">tekan <b>?</b> di mana saja untuk membuka panel shortcut. perintah utama: <b>P</b> = projection chart, <b>Ctrl+M</b> = monte carlo, <b>C</b> = compare presets, <b>H</b> = risk heatmap, <b>T</b> = ganti tema, <b>Esc</b> = tutup modal.</span></div>
-  <div class="g-term"><span class="g-term-name">projection chart 📈</span><span class="g-term-def">grafik visual pertumbuhan akun selama 36 bulan. lihat kurva compounding dan identifikasi titik infleksi. tekan <b>P</b> untuk membuka.</span></div>
-  <div class="g-term"><span class="g-term-name">monte carlo 🎲</span><span class="g-term-def">jalankan 1000 simulasi dengan varians acak (±5% pada setiap hasil trade) untuk melihat distribusi probabilitas. tekan <b>Ctrl+M</b> untuk menjalankan.</span></div>
-  <div class="g-term"><span class="g-term-name">compare presets ⚖️</span><span class="g-term-def">perbandingan side-by-side preset tersimpan. tekan <b>C</b> untuk membuka (perlu preset tersimpan).</span></div>
-  <div class="g-term"><span class="g-term-name">risk heatmap 🔥</span><span class="g-term-def">grid berwarna menunjukkan level risiko per bulan. hijau = aman, kuning = moderat, oranye = tinggi, merah = ekstrem. tekan <b>H</b> untuk membuka.</span></div>
-  <div class="g-term"><span class="g-term-name">price alerts 🔔</span><span class="g-term-def">set alert untuk level harga BTC/ETH. dapat notifikasi via telegram atau email ketika harga menembus target.</span></div>
-  
-  <div class="g-tip"><b>catatan:</b> fitur power (projection, monte carlo, heatmap) dinonaktifkan saat setup dalam status error. perbaiki setup dulu, baru jalankan analisis.</div>
+<!-- PANEL: METRIK -->
+<div class="g-panel" id="gp-metrics-id">
+  <div class="g-sec">
+    <div class="g-sec-title">📊 indikator cockpit (grid 6×2)</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+      <div style="background:var(--sf2);padding:10px 12px;border-radius:6px">
+        <div style="font-size:11px;font-weight:700;color:var(--acc2);margin-bottom:4px">3yr CAGR</div>
+        <div style="font-size:10px;color:var(--tx2)">compound annual growth rate 36 bulan.</div>
+      </div>
+      <div style="background:var(--sf2);padding:10px 12px;border-radius:6px">
+        <div style="font-size:11px;font-weight:700;color:var(--acc2);margin-bottom:4px">total return</div>
+        <div style="font-size:10px;color:var(--tx2)">persentase gain dari awal ke NW akhir.</div>
+      </div>
+      <div style="background:var(--sf2);padding:10px 12px;border-radius:6px">
+        <div style="font-size:11px;font-weight:700;color:var(--acc2);margin-bottom:4px">combined NW</div>
+        <div style="font-size:10px;color:var(--tx2)">net worth = akun akhir + banked.</div>
+      </div>
+      <div style="background:var(--sf2);padding:10px 12px;border-radius:6px">
+        <div style="font-size:11px;font-weight:700;color:var(--acc2);margin-bottom:4px">banked</div>
+        <div style="font-size:10px;color:var(--tx2)">profit ditarik. aman dari likuidasi.</div>
+      </div>
+      <div style="background:var(--sf2);padding:10px 12px;border-radius:6px">
+        <div style="font-size:11px;font-weight:700;color:var(--acc2);margin-bottom:4px">end account</div>
+        <div style="font-size:10px;color:var(--tx2)">saldo di M36. tampilkan bulan aktif + IDR.</div>
+      </div>
+      <div style="background:var(--sf2);padding:10px 12px;border-radius:6px">
+        <div style="font-size:11px;font-weight:700;color:#f7931a;margin-bottom:4px">₿ equivalent</div>
+        <div style="font-size:10px;color:var(--tx2)">saldo akhir dalam BTC di harga live.</div>
+      </div>
+    </div>
+    <div class="g-tip"><b>konversi IDR:</b> nilai dalam Rupiah ditampilkan di subtitle kartu. rate diupdate dari forex live.</div>
+  </div>
 </div>
 
-<div class="g-sec">
-  <div class="g-sec-title">☁️ cloud sync & preset</div>
-  <div style="font-size:11px;color:var(--tx2);margin-bottom:10px;line-height:1.7">simpan setup ke cloud dan akses dari device mana saja. perlu akun gratis.</div>
-  
-  <div class="g-term"><span class="g-term-name">buat akun</span><span class="g-term-def">daftar dengan email atau lanjutkan dengan Google. preset, preferensi, dan tab kustom otomatis sync setelah login.</span></div>
-  <div class="g-term"><span class="g-term-name">simpan preset</span><span class="g-term-def">klik <b>save to cloud</b> di member area. beri nama — menyimpan SEMUA tab, tab kustom, tema, dan pengaturan sebagai satu snapshot.</span></div>
-  <div class="g-term"><span class="g-term-name">muat preset</span><span class="g-term-def">di member area, klik preset tersimpan untuk memuatnya. konfirmasi sebelum menimpa state saat ini.</span></div>
-  <div class="g-term"><span class="g-term-name">bagikan preset</span><span class="g-term-def">generate link share untuk preset apapun. penerima bisa mengimpor langsung — bagus untuk berbagi strategi dengan teman.</span></div>
-  <div class="g-term"><span class="g-term-name">tab kustom</span><span class="g-term-def">buat tab tambahan selain 36-month dan quarter default. klik tombol <b>+</b> di tab bar. tab kustom punya state independen dan bisa di-rename atau dihapus.</span></div>
-  
-  <div class="g-tip"><b>lokal vs cloud:</b> tombol 💾 save di panel kiri menyimpan ke browser (lokal). cloud preset menyimpan ke akun dan sync antar device. keduanya berguna — lokal untuk eksperimen cepat, cloud untuk setup yang ingin kamu simpan.</div>
+<!-- PANEL: KONTROL -->
+<div class="g-panel" id="gp-controls-id">
+  <div class="g-sec">
+    <div class="g-sec-title">⚙️ cara menggunakan kontrol</div>
+    <div class="g-step"><div class="g-step-num">1</div><div class="g-step-body"><b>set modal awal</b> — ukuran akun aktual. pakai preset atau ketik/slide manual.</div></div>
+    <div class="g-step"><div class="g-step-num">2</div><div class="g-step-body"><b>set leverage</b> — makin tinggi = margin makin kecil tapi liq% makin rendah.</div></div>
+    <div class="g-step"><div class="g-step-num">3</div><div class="g-step-body"><b>set notional</b> — ukuran posisi trade 1. <b>jaga liq% ≥ 40%</b> (minimum), target 100%+.</div></div>
+    <div class="g-step"><div class="g-step-num">4</div><div class="g-step-body"><b>set slot trade</b> — 10 slot dengan target% dan freq. set salah satu ke 0 untuk skip.</div></div>
+    <div class="g-step"><div class="g-step-num">5</div><div class="g-step-body"><b>zero month</b> — klik ⊘ untuk tandai bulan tanpa trading.</div></div>
+    <div class="g-step"><div class="g-step-num">6</div><div class="g-step-body"><b>penarikan</b> — ketik di kolom withdrawal. <b>selalu cek liq% setelahnya.</b></div></div>
+    <div class="g-warn">⚠ saat menarik, liq% turun untuk bulan berikutnya. jika turun di bawah 20%, kamu dalam zona bahaya.</div>
+  </div>
 </div>
 
-<div class="g-sec">
-  <div class="g-sec-title">📊 indikator cockpit</div>
-  <div style="font-size:11px;color:var(--tx2);margin-bottom:10px;line-height:1.7">kartu metrik (grid 6×2) menunjukkan indikator performa utama:</div>
-  
-  <div class="g-term"><span class="g-term-name">3yr CAGR</span><span class="g-term-def">compound annual growth rate selama 36 bulan. benchmark: S&P 500 ~10%, Buffett ~20%, elite crypto 50%+.</span></div>
-  <div class="g-term"><span class="g-term-name">total return</span><span class="g-term-def">persentase gain dari modal awal ke NW akhir gabungan (akun + ditarik).</span></div>
-  <div class="g-term"><span class="g-term-name">combined NW</span><span class="g-term-def">net worth = saldo akhir akun + semua penarikan. kekayaan sebenarnya.</span></div>
-  <div class="g-term"><span class="g-term-name">banked</span><span class="g-term-def">total profit yang ditarik dan diamankan. tidak bisa dilikuidasi.</span></div>
-  <div class="g-term"><span class="g-term-name">end account</span><span class="g-term-def">saldo tersisa di akun trading di M36. tampilkan jumlah bulan aktif dan setara IDR.</span></div>
-  <div class="g-term"><span class="g-term-name">₿ equivalent</span><span class="g-term-def">saldo akhir dikonversi ke BTC di harga live saat ini.</span></div>
-  <div class="g-term"><span class="g-term-name">$1M milestone</span><span class="g-term-def">bulan pertama saat NW gabungan melewati $1.000.000.</span></div>
-  <div class="g-term"><span class="g-term-name">avg monthly %</span><span class="g-term-def">rata-rata persentase gain per bulan aktif.</span></div>
-  <div class="g-term"><span class="g-term-name">total fees paid</span><span class="g-term-def">kumulatif biaya trading + funding. ditampilkan merah karena ini biaya.</span></div>
-  <div class="g-term"><span class="g-term-name">1yr return</span><span class="g-term-def">persentase gain di bulan 12 (M12 NW vs modal awal).</span></div>
-  
-  <div class="g-tip"><b>konversi IDR:</b> nilai dalam Rupiah ditampilkan di subtitle kartu relevan. rate diupdate berkala dari data forex live.</div>
-</div>
+<!-- PANEL: RISIKO -->
+<div class="g-panel" id="gp-risk-id">
+  <div class="g-sec">
+    <div class="g-sec-title">🎯 asesmen risiko</div>
+    <div class="g-term"><span class="g-term-name">risk score</span><span class="g-term-def">0–100. <b>makin rendah = makin aman.</b> faktor: liq%, leverage, fm%, trade aktif. 0-20 aman, 21-45 moderat, 46-70 tinggi, 71-100 ekstrem.</span></div>
+    <div class="g-term"><span class="g-term-name">liq t1 buffer</span><span class="g-term-def">liq% untuk trade 1 bulan 1. hijau = bagus, kuning = waspada, merah = bahaya.</span></div>
+    <div class="g-term"><span class="g-term-name">lifespan</span><span class="g-term-def">estimasi waktu bertahan. dari <b>menit</b> (ekstrem) hingga <b>generasi</b> (hampir tak bisa dilikuidasi).</span></div>
+  </div>
 
-<div class="g-sec">
-  <div class="g-sec-title">📚 glosarium — istilah penting</div>
-  <div style="font-size:11px;color:var(--tx2);margin-bottom:10px;line-height:1.7">referensi cepat untuk semua istilah kunci:</div>
-  
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-    <div style="background:var(--sf2);padding:8px 10px;border-radius:6px;font-size:10px">
-      <b style="color:var(--acc2)">liq%</b><br><span style="color:var(--tx2)">akun ÷ notional × 100. makin tinggi = makin aman.</span>
-    </div>
-    <div style="background:var(--sf2);padding:8px 10px;border-radius:6px;font-size:10px">
-      <b style="color:var(--acc2)">fm%</b><br><span style="color:var(--tx2)">margin ÷ akun × 100. makin rendah = makin aman.</span>
-    </div>
-    <div style="background:var(--sf2);padding:8px 10px;border-radius:6px;font-size:10px">
-      <b style="color:var(--acc2)">notional</b><br><span style="color:var(--tx2)">ukuran posisi setelah leverage. modal × leverage.</span>
-    </div>
-    <div style="background:var(--sf2);padding:8px 10px;border-radius:6px;font-size:10px">
-      <b style="color:var(--acc2)">margin</b><br><span style="color:var(--tx2)">jaminan untuk trade. notional ÷ leverage.</span>
-    </div>
-    <div style="background:var(--sf2);padding:8px 10px;border-radius:6px;font-size:10px">
-      <b style="color:var(--acc2)">leverage</b><br><span style="color:var(--tx2)">pengali. 10× = kontrol 10× modalmu.</span>
-    </div>
-    <div style="background:var(--sf2);padding:8px 10px;border-radius:6px;font-size:10px">
-      <b style="color:var(--acc2)">carry-forward</b><br><span style="color:var(--tx2)">profit trade N ditambah ke notional trade N+1.</span>
-    </div>
-    <div style="background:var(--sf2);padding:8px 10px;border-radius:6px;font-size:10px">
-      <b style="color:var(--acc2)">target%</b><br><span style="color:var(--tx2)">ekspektasi % gain/loss per eksekusi trade.</span>
-    </div>
-    <div style="background:var(--sf2);padding:8px 10px;border-radius:6px;font-size:10px">
-      <b style="color:var(--acc2)">freq</b><br><span style="color:var(--tx2)">berapa kali trade dieksekusi per bulan.</span>
-    </div>
-    <div style="background:var(--sf2);padding:8px 10px;border-radius:6px;font-size:10px">
-      <b style="color:var(--acc2)">KPI scale</b><br><span style="color:var(--tx2)">pengali global semua target. 0.5× = setengah.</span>
-    </div>
-    <div style="background:var(--sf2);padding:8px 10px;border-radius:6px;font-size:10px">
-      <b style="color:var(--acc2)">push×</b><br><span style="color:var(--tx2)">boost notional per bulan. hanya trade 1.</span>
-    </div>
-    <div style="background:var(--sf2);padding:8px 10px;border-radius:6px;font-size:10px">
-      <b style="color:var(--acc2)">zero month</b><br><span style="color:var(--tx2)">bulan tanpa trade. akun tetap.</span>
-    </div>
-    <div style="background:var(--sf2);padding:8px 10px;border-radius:6px;font-size:10px">
-      <b style="color:var(--acc2)">banked</b><br><span style="color:var(--tx2)">profit ditarik. aman dari likuidasi.</span>
-    </div>
-    <div style="background:var(--sf2);padding:8px 10px;border-radius:6px;font-size:10px">
-      <b style="color:var(--acc2)">NW</b><br><span style="color:var(--tx2)">net worth = akun + banked.</span>
-    </div>
-    <div style="background:var(--sf2);padding:8px 10px;border-radius:6px;font-size:10px">
-      <b style="color:var(--acc2)">CAGR</b><br><span style="color:var(--tx2)">compound annual growth rate.</span>
-    </div>
-    <div style="background:var(--sf2);padding:8px 10px;border-radius:6px;font-size:10px">
-      <b style="color:var(--acc2)">maker</b><br><span style="color:var(--tx2)">limit order. fee lebih rendah.</span>
-    </div>
-    <div style="background:var(--sf2);padding:8px 10px;border-radius:6px;font-size:10px">
-      <b style="color:var(--acc2)">taker</b><br><span style="color:var(--tx2)">market order. fee lebih tinggi.</span>
-    </div>
-    <div style="background:var(--sf2);padding:8px 10px;border-radius:6px;font-size:10px">
-      <b style="color:var(--acc2)">funding</b><br><span style="color:var(--tx2)">biaya perpetual tiap 8 jam.</span>
-    </div>
-    <div style="background:var(--sf2);padding:8px 10px;border-radius:6px;font-size:10px">
-      <b style="color:var(--acc2)">cross margin</b><br><span style="color:var(--tx2)">seluruh akun jadi jaminan. mode dashboard ini.</span>
-    </div>
-    <div style="background:var(--sf2);padding:8px 10px;border-radius:6px;font-size:10px">
-      <b style="color:var(--acc2)">isolated margin</b><br><span style="color:var(--tx2)">hanya margin teralokasi berisiko. BUKAN mode ini.</span>
-    </div>
-    <div style="background:var(--sf2);padding:8px 10px;border-radius:6px;font-size:10px">
-      <b style="color:var(--acc2)">mode spot</b><br><span style="color:var(--tx2)">tanpa leverage. buy & hold. tanpa risiko likuidasi.</span>
+  <div class="g-sec">
+    <div class="g-sec-title">✅ sehat vs bahaya</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div style="background:#EAF3DE;border-radius:7px;padding:10px 12px">
+        <div style="font-size:11px;font-weight:700;color:#3B6D11;margin-bottom:6px">✓ setup sehat</div>
+        <div style="font-size:10px;color:#3B6D11;line-height:1.8">liq% ≥ 100% (ideal)<br>liq% ≥ 40% (minimum)<br>leverage ≤ 15×<br>fm% ≤ 20%<br>risk score < 30</div>
+      </div>
+      <div style="background:#FCEBEB;border-radius:7px;padding:10px 12px">
+        <div style="font-size:11px;font-weight:700;color:#A32D2D;margin-bottom:6px">✕ zona bahaya</div>
+        <div style="font-size:10px;color:#A32D2D;line-height:1.8">liq% < 20%<br>leverage ≥ 25×<br>fm% > 40%<br>risk score > 60<br>wd tanpa cek liq%</div>
+      </div>
     </div>
   </div>
 </div>
 
-<div class="g-sec" style="border:1.5px solid #E24B4A;border-radius:10px;padding:14px 16px;background:#FCEBEB">
+<!-- PANEL: SPOT -->
+<div class="g-panel" id="gp-spot-id">
+  <div class="g-sec">
+    <div class="g-sec-title">◈ mode spot</div>
+    <div style="font-size:11px;color:var(--tx2);margin-bottom:12px">mode spot = <b>beli dan tahan tanpa leverage</b>. tanpa margin, tanpa risiko likuidasi, tanpa funding fee.</div>
+    <div class="g-term"><span class="g-term-name">cara beralih</span><span class="g-term-def">klik tombol <b>◈ spot</b> di bawah panel leverage. setiap tab ingat modenya sendiri.</span></div>
+    <div class="g-term"><span class="g-term-name">apa yang berubah</span><span class="g-term-def">leverage dinonaktifkan, notional = akun, funding fee dihapus, liq% tidak relevan.</span></div>
+    <div class="g-term"><span class="g-term-name">fee</span><span class="g-term-def">fee spot lebih tinggi (~0.1%) vs futures (~0.02-0.05%). tetap 2× per trade (buka + tutup).</span></div>
+    <div class="g-tip"><b>spot vs leverage:</b> jalankan keduanya berdampingan di tab terpisah untuk membandingkan strategi.</div>
+  </div>
+</div>
+
+<!-- PANEL: ERROR -->
+<div class="g-panel" id="gp-errors-id">
+  <div class="g-sec">
+    <div class="g-sec-title">🚨 status error</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px">
+      <div style="background:#2a0a0a;border-radius:8px;padding:12px;border-left:3px solid #E24B4A">
+        <div style="font-size:16px;margin-bottom:6px">🚫</div>
+        <div style="font-size:11px;font-weight:700;color:#ff7070;margin-bottom:4px">FM% > 100%</div>
+        <div style="font-size:10px;color:#E24B4A;line-height:1.5">margin melebihi modal. exchange tolak order.</div>
+        <div style="font-size:9px;color:#ff9999;margin-top:6px">fix: ↑ leverage, ↓ notional, atau ↑ modal</div>
+      </div>
+      <div style="background:#2a0a0a;border-radius:8px;padding:12px;border-left:3px solid #E24B4A">
+        <div style="font-size:16px;margin-bottom:6px">💸</div>
+        <div style="font-size:11px;font-weight:700;color:#ff7070;margin-bottom:4px">Liq% < 1%</div>
+        <div style="font-size:10px;color:#E24B4A;line-height:1.5">buffer nol. pergerakan apapun = likuidasi instan.</div>
+        <div style="font-size:9px;color:#ff9999;margin-top:6px">fix: ↓ notional atau ↑ modal</div>
+      </div>
+      <div style="background:#1a0a2e;border-radius:8px;padding:12px;border-left:3px solid #8B5CF6">
+        <div style="font-size:16px;margin-bottom:6px">💀</div>
+        <div style="font-size:11px;font-weight:700;color:#c084fc;margin-bottom:4px">WD Bust</div>
+        <div style="font-size:10px;color:#8B5CF6;line-height:1.5">penarikan melebihi saldo.</div>
+        <div style="font-size:9px;color:#a78bfa;margin-top:6px">fix: ↓ jumlah penarikan</div>
+      </div>
+    </div>
+    <div class="g-tip"><b>pemulihan:</b> perbaiki masalah → dashboard auto-recalculate → normal kembali.</div>
+  </div>
+</div>
+
+<!-- PANEL: POWER -->
+<div class="g-panel" id="gp-power-id">
+  <div class="g-sec">
+    <div class="g-sec-title">⚡ fitur power user</div>
+    <div class="g-term"><span class="g-term-name">shortcut</span><span class="g-term-def">tekan <b>?</b> untuk lihat semua. P = projection, Ctrl+M = monte carlo, C = compare, H = heatmap, T = tema.</span></div>
+    <div class="g-term"><span class="g-term-name">projection 📈</span><span class="g-term-def">grafik pertumbuhan 36 bulan. tekan <b>P</b>.</span></div>
+    <div class="g-term"><span class="g-term-name">monte carlo 🎲</span><span class="g-term-def">1000 simulasi dengan varians ±5%. tekan <b>Ctrl+M</b>.</span></div>
+    <div class="g-term"><span class="g-term-name">compare ⚖️</span><span class="g-term-def">perbandingan preset side-by-side. tekan <b>C</b>.</span></div>
+    <div class="g-term"><span class="g-term-name">heatmap 🔥</span><span class="g-term-def">risiko berwarna per bulan. tekan <b>H</b>.</span></div>
+  </div>
+
+  <div class="g-sec">
+    <div class="g-sec-title">☁️ cloud sync</div>
+    <div class="g-term"><span class="g-term-name">simpan preset</span><span class="g-term-def">simpan SEMUA tab, tema sebagai satu snapshot. akses di member area.</span></div>
+    <div class="g-term"><span class="g-term-name">bagikan preset</span><span class="g-term-def">generate link untuk dibagikan. mereka bisa import langsung.</span></div>
+    <div class="g-term"><span class="g-term-name">tab kustom</span><span class="g-term-def">klik <b>+</b> di tab bar. state independen, bisa rename/hapus.</span></div>
+  </div>
+</div>
+
+<!-- PANEL: GLOSARIUM -->
+<div class="g-panel" id="gp-glossary-id">
+  <div class="g-sec">
+    <div class="g-sec-title">📚 glosarium</div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
+      <div style="background:var(--sf2);padding:6px 8px;border-radius:5px;font-size:9px"><b style="color:var(--acc2)">liq%</b><br><span style="color:var(--tx2)">akun÷notional×100</span></div>
+      <div style="background:var(--sf2);padding:6px 8px;border-radius:5px;font-size:9px"><b style="color:var(--acc2)">fm%</b><br><span style="color:var(--tx2)">margin÷akun×100</span></div>
+      <div style="background:var(--sf2);padding:6px 8px;border-radius:5px;font-size:9px"><b style="color:var(--acc2)">notional</b><br><span style="color:var(--tx2)">modal×leverage</span></div>
+      <div style="background:var(--sf2);padding:6px 8px;border-radius:5px;font-size:9px"><b style="color:var(--acc2)">margin</b><br><span style="color:var(--tx2)">notional÷leverage</span></div>
+      <div style="background:var(--sf2);padding:6px 8px;border-radius:5px;font-size:9px"><b style="color:var(--acc2)">leverage</b><br><span style="color:var(--tx2)">pengali posisi</span></div>
+      <div style="background:var(--sf2);padding:6px 8px;border-radius:5px;font-size:9px"><b style="color:var(--acc2)">carry-forward</b><br><span style="color:var(--tx2)">profit→notional</span></div>
+      <div style="background:var(--sf2);padding:6px 8px;border-radius:5px;font-size:9px"><b style="color:var(--acc2)">target%</b><br><span style="color:var(--tx2)">ekspektasi %/trade</span></div>
+      <div style="background:var(--sf2);padding:6px 8px;border-radius:5px;font-size:9px"><b style="color:var(--acc2)">freq</b><br><span style="color:var(--tx2)">eksekusi/bulan</span></div>
+      <div style="background:var(--sf2);padding:6px 8px;border-radius:5px;font-size:9px"><b style="color:var(--acc2)">KPI scale</b><br><span style="color:var(--tx2)">pengali target global</span></div>
+      <div style="background:var(--sf2);padding:6px 8px;border-radius:5px;font-size:9px"><b style="color:var(--acc2)">push×</b><br><span style="color:var(--tx2)">notional× per-bulan</span></div>
+      <div style="background:var(--sf2);padding:6px 8px;border-radius:5px;font-size:9px"><b style="color:var(--acc2)">zero month</b><br><span style="color:var(--tx2)">tanpa trade</span></div>
+      <div style="background:var(--sf2);padding:6px 8px;border-radius:5px;font-size:9px"><b style="color:var(--acc2)">banked</b><br><span style="color:var(--tx2)">profit ditarik</span></div>
+      <div style="background:var(--sf2);padding:6px 8px;border-radius:5px;font-size:9px"><b style="color:var(--acc2)">NW</b><br><span style="color:var(--tx2)">akun+banked</span></div>
+      <div style="background:var(--sf2);padding:6px 8px;border-radius:5px;font-size:9px"><b style="color:var(--acc2)">CAGR</b><br><span style="color:var(--tx2)">tingkat pertumbuhan tahunan</span></div>
+      <div style="background:var(--sf2);padding:6px 8px;border-radius:5px;font-size:9px"><b style="color:var(--acc2)">maker</b><br><span style="color:var(--tx2)">limit order (fee rendah)</span></div>
+      <div style="background:var(--sf2);padding:6px 8px;border-radius:5px;font-size:9px"><b style="color:var(--acc2)">taker</b><br><span style="color:var(--tx2)">market order (fee tinggi)</span></div>
+      <div style="background:var(--sf2);padding:6px 8px;border-radius:5px;font-size:9px"><b style="color:var(--acc2)">funding</b><br><span style="color:var(--tx2)">fee perpetual/8jam</span></div>
+      <div style="background:var(--sf2);padding:6px 8px;border-radius:5px;font-size:9px"><b style="color:var(--acc2)">cross margin</b><br><span style="color:var(--tx2)">seluruh akun jaminan</span></div>
+      <div style="background:var(--sf2);padding:6px 8px;border-radius:5px;font-size:9px"><b style="color:var(--acc2)">isolated</b><br><span style="color:var(--tx2)">per-posisi (BUKAN ini)</span></div>
+      <div style="background:var(--sf2);padding:6px 8px;border-radius:5px;font-size:9px"><b style="color:var(--acc2)">spot</b><br><span style="color:var(--tx2)">tanpa leverage</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- SELALU TERLIHAT: Notice Penting -->
+<div class="g-sec" style="border:1.5px solid #E24B4A;border-radius:10px;padding:14px 16px;background:#FCEBEB;margin-top:20px">
   <div class="g-sec-title" style="color:#A32D2D;border-bottom-color:#f5c6c6">⚠️ penting — baca sebelum onboard</div>
   <div style="font-size:11px;color:#7a2020;line-height:1.8">
-    <b>dashboard ini adalah alat proyeksi dan asesmen — bukan jaminan trading.</b><br><br>
-    semua angka yang kamu lihat adalah <b>estimasi pra-eksekusi</b> berdasarkan input yang kamu berikan. hasil nyata akan berbeda tergantung timing, disiplin, kondisi pasar, dan kualitas eksekusimu.<br><br>
-    <b>yang DIHITUNG dashboard ini:</b><br>
-    · biaya trading (maker/taker) — dipotong dari setiap trade<br>
-    · funding fee (kontrak perpetual) — berdasarkan rate × holds per bulan<br>
-    · efek compounding — profit mengalir ke notional trade berikutnya<br>
-    · dampak penarikan — menunjukkan bagaimana mengambil profit memengaruhi liq%<br><br>
-    <b>yang TIDAK dihitung dashboard ini:</b><br>
-    · slippage dan spread (bervariasi tergantung kedalaman market)<br>
-    · mekanisme likuidasi spesifik exchange (setiap exchange berbeda)<br>
-    · partial fill atau keterlambatan eksekusi<br>
-    · black swan event atau flash crash<br><br>
-    hasil akhir sepenuhnya bergantung pada <b>eksekusimu sendiri</b>. alat ini membantumu mempersiapkan dan menilai setup sebelum masuk — taruhan itu sendiri, dan hasilnya, adalah milikmu sepenuhnya.<br><br>
-    <b style="color:#A32D2D">🔒 hanya untuk cross margin mode.</b> rumus liq% (akun ÷ notional × 100) dirancang khusus untuk cross margin. jika kamu menggunakan isolated margin, mekanisme likuidasinya berbeda dan liq% dashboard ini tidak akan berlaku secara akurat.
+    <b>dashboard ini adalah alat proyeksi — bukan jaminan trading.</b><br><br>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:8px 0">
+      <div><b>✓ dihitung:</b> fee trading, funding fee, compounding, dampak penarikan</div>
+      <div><b>✕ tidak dihitung:</b> slippage, spread, mekanisme liq exchange, flash crash</div>
+    </div>
+    hasil akhir sepenuhnya bergantung pada <b>eksekusimu sendiri</b>.<br><br>
+    <b style="color:#A32D2D">🔒 hanya cross margin.</b> rumus liq% untuk cross margin. isolated margin punya mekanisme berbeda.
   </div>
 </div>
 `;
+
+// Guide panel switcher for Indonesian
+function showGuidePanelId(id){
+  document.querySelectorAll('#gp-basics-id,#gp-metrics-id,#gp-controls-id,#gp-risk-id,#gp-spot-id,#gp-errors-id,#gp-power-id,#gp-glossary-id').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('#guide-nav-id .g-nav-btn').forEach(b=>b.classList.remove('active'));
+  var panel=document.getElementById('gp-'+id+'-id');
+  if(panel)panel.classList.add('active');
+  if(event && event.target) event.target.closest('.g-nav-btn').classList.add('active');
+}
 
 const ZERO_36_DEF=[6,11,17,22,30,35];
 const TOTAL=36;
