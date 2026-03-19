@@ -38,6 +38,9 @@ function launchApp(){
   // snap dashboard visible immediately
   const app=document.querySelector('.app');
   if(app) app.style.opacity='1';
+  // show presets toggle if logged in
+  const presetsBtn=document.getElementById('presets-toggle-btn');
+  if(presetsBtn && AUTH_TOKEN) presetsBtn.classList.add('visible');
   l2.classList.add('out');
   setTimeout(()=>{l2.classList.add('hidden');showGuidePopup();},900);
 }
@@ -203,12 +206,14 @@ body.t-lavender{--bg:#f0eef8;--panel:#fff;--bd:#d8d4f0;--bd2:#e4e0f4;--sf:#f8f6f
 .panel-right::-webkit-scrollbar{display:none}
 
 /* PRESETS PANEL (collapsible right) */
-.panel-presets{width:0;min-width:0;background:var(--panel);border-left:0.5px solid var(--bd);overflow:hidden;flex-shrink:0;transition:width .3s ease,min-width .3s ease;display:flex;flex-direction:column;position:relative}
+.panel-presets{width:0;min-width:0;background:var(--panel);border-left:0.5px solid var(--bd);flex-shrink:0;transition:width .3s ease,min-width .3s ease;display:flex;flex-direction:column;position:relative;overflow:visible}
 .panel-presets.open{width:280px;min-width:280px}
-.panel-presets-toggle{position:absolute;left:-28px;top:50%;transform:translateY(-50%);width:28px;height:60px;background:var(--panel);border:0.5px solid var(--bd);border-right:none;border-radius:8px 0 0 8px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--tx2);transition:all .2s;z-index:10}
-.panel-presets-toggle:hover{background:var(--sf);color:var(--acc2)}
-.panel-presets.open .panel-presets-toggle{left:-28px}
-.pp-inner{width:280px;min-width:280px;display:flex;flex-direction:column;height:100%;overflow:hidden}
+.panel-presets-toggle{position:fixed;right:0;top:50%;transform:translateY(-50%);width:32px;height:70px;background:var(--panel);border:1px solid var(--bd);border-right:none;border-radius:10px 0 0 10px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--tx2);transition:all .2s;z-index:100;box-shadow:-2px 0 8px rgba(0,0,0,0.15);opacity:0;pointer-events:none}
+.panel-presets-toggle.visible{opacity:1;pointer-events:all}
+.panel-presets-toggle:hover{background:var(--sf);color:var(--acc2);width:36px}
+.panel-presets.open .panel-presets-toggle{right:280px}
+.pp-inner{width:280px;min-width:280px;display:flex;flex-direction:column;height:100%;overflow:hidden;opacity:0;transition:opacity .2s}
+.panel-presets.open .pp-inner{opacity:1}
 .pp-head{padding:12px 14px;border-bottom:0.5px solid var(--bd2);display:flex;align-items:center;justify-content:space-between}
 .pp-head h3{font-size:13px;font-weight:700;color:var(--tx);margin:0;display:flex;align-items:center;gap:6px}
 .pp-close{background:none;border:none;color:var(--tx3);font-size:14px;cursor:pointer;padding:4px;transition:color .2s}
@@ -1450,7 +1455,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 
 <!-- PRESETS PANEL (collapsible right) -->
 <div class="panel-presets" id="panel-presets">
-  <button class="panel-presets-toggle" onclick="togglePresetsPanel()" title="Presets">💾</button>
+  <button class="panel-presets-toggle" id="presets-toggle-btn" onclick="togglePresetsPanel()" title="Presets">💾</button>
   <div class="pp-inner">
     <div class="pp-head">
       <h3>💾 Presets</h3>
@@ -3884,12 +3889,14 @@ function launchApp(){
   if(window._attachAiFabDrag) window._attachAiFabDrag();
   document.documentElement.style.overflow='auto';
   document.body.style.overflow='auto';
-  // show back button and keyboard hints only for logged-in users
+  // show back button, keyboard hints, and presets toggle for logged-in users
   if(AUTH_TOKEN){
     const backBtn=document.getElementById('back-to-member');
     if(backBtn) backBtn.classList.add('visible');
     const kbdHint=document.getElementById('kbd-hint');
     if(kbdHint) setTimeout(()=>{kbdHint.classList.add('visible');},2000);
+    const presetsBtn=document.getElementById('presets-toggle-btn');
+    if(presetsBtn) presetsBtn.classList.add('visible');
   }
   l2.classList.add('out');
   setTimeout(()=>{l2.classList.add('hidden');showGuidePopup();},900);
@@ -4130,6 +4137,11 @@ function authForceLogout(){
   // hide keyboard hints
   const kbdHint=document.getElementById('kbd-hint');
   if(kbdHint) kbdHint.classList.remove('visible');
+  // hide presets toggle and close panel
+  const presetsBtn=document.getElementById('presets-toggle-btn');
+  if(presetsBtn) presetsBtn.classList.remove('visible');
+  const presetsPanel=document.getElementById('panel-presets');
+  if(presetsPanel) presetsPanel.classList.remove('open');
   // hide AI fab
   const aiFab=document.getElementById('ai-fab');
   if(aiFab){aiFab.style.opacity='0';aiFab.style.pointerEvents='none';}
@@ -4958,6 +4970,8 @@ function openDashboard(){
         if(backBtn) backBtn.classList.add('visible');
         const kbdHint=document.getElementById('kbd-hint');
         if(kbdHint) setTimeout(()=>{kbdHint.classList.add('visible');},500);
+        const presetsBtn=document.getElementById('presets-toggle-btn');
+        if(presetsBtn) presetsBtn.classList.add('visible');
       }
     },400);
   } else {
@@ -4976,6 +4990,11 @@ function backToMemberArea(){
   // hide keyboard hints
   const kbdHint=document.getElementById('kbd-hint');
   if(kbdHint) kbdHint.classList.remove('visible');
+  // hide presets toggle and close panel
+  const presetsBtn=document.getElementById('presets-toggle-btn');
+  if(presetsBtn) presetsBtn.classList.remove('visible');
+  const presetsPanel=document.getElementById('panel-presets');
+  if(presetsPanel) presetsPanel.classList.remove('open');
   // hide AI fab
   const aiFab=document.getElementById('ai-fab');
   if(aiFab){aiFab.style.opacity='0';aiFab.style.pointerEvents='none';}
