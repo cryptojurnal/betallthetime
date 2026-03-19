@@ -336,112 +336,171 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
 .push-prompt-btn.enable{background:#00c47a;border:none;color:#000}
 
 /* ── PAPER TRADING PAGE ── */
-#trading-page{position:fixed;inset:0;background:#000;z-index:9700;overflow-y:auto;display:none;opacity:0;transition:opacity .3s}
-#trading-page.visible{display:block;opacity:1}
-.tp-container{max-width:1200px;margin:0 auto;padding:20px}
-.tp-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid #1a1a1a}
-.tp-back{background:none;border:none;color:#888;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:6px}
-.tp-back:hover{color:#fff}
-.tp-title{font-size:20px;font-weight:800;color:#fff;display:flex;align-items:center;gap:10px}
-.tp-title span{font-size:10px;background:#0a2a1a;color:#00c47a;padding:4px 10px;border-radius:6px;font-weight:700}
-.tp-balance{text-align:right}
-.tp-balance-label{font-size:10px;color:#555;text-transform:uppercase;letter-spacing:.05em}
-.tp-balance-value{font-size:24px;font-weight:800;color:#00c47a}
-.tp-balance-pnl{font-size:11px;margin-top:2px}
+#trading-page{position:fixed;inset:0;background:#0a0a0a;z-index:9700;display:none;opacity:0;transition:opacity .3s}
+#trading-page.visible{display:flex;flex-direction:column;opacity:1}
+
+/* Top Bar */
+.tp-topbar{display:flex;align-items:center;justify-content:space-between;padding:8px 16px;background:#000;border-bottom:1px solid #1a1a1a;flex-shrink:0}
+.tp-topbar-left{display:flex;align-items:center;gap:16px}
+.tp-back{background:none;border:none;color:#555;font-size:18px;cursor:pointer;padding:6px;border-radius:6px;transition:all .2s}
+.tp-back:hover{background:#111;color:#fff}
+.tp-logo{font-size:15px;font-weight:800;color:#00c47a;display:flex;align-items:center;gap:6px}
+.tp-logo span{font-size:8px;background:#1a1a1a;color:#555;padding:3px 8px;border-radius:4px;font-weight:600}
+.tp-pair-selector{display:flex;align-items:center;gap:12px;padding:8px 14px;background:#111;border:1px solid #1a1a1a;border-radius:8px;cursor:pointer;transition:all .2s}
+.tp-pair-selector:hover{border-color:#333}
+.tp-pair-selector-icon{font-size:20px}
+.tp-pair-selector-info{text-align:left}
+.tp-pair-selector-name{font-size:14px;font-weight:800;color:#fff}
+.tp-pair-selector-ex{font-size:9px;color:#555;text-transform:uppercase}
+.tp-pair-selector-arrow{color:#333;font-size:10px}
+.tp-price-display{display:flex;align-items:center;gap:20px}
+.tp-price-main{font-size:22px;font-weight:800;color:#fff}
+.tp-price-change{font-size:12px;font-weight:700;padding:4px 10px;border-radius:6px}
+.tp-price-change.up{background:#0a2a1a;color:#00c47a}
+.tp-price-change.down{background:#2a0a0a;color:#E24B4A}
+.tp-price-details{display:flex;gap:16px;font-size:10px;color:#555}
+.tp-price-details span{color:#888}
+
+.tp-topbar-right{display:flex;align-items:center;gap:12px}
+.tp-balance-box{text-align:right;padding:8px 14px;background:#111;border-radius:8px}
+.tp-balance-label{font-size:9px;color:#555;text-transform:uppercase;letter-spacing:.03em}
+.tp-balance-value{font-size:16px;font-weight:800;color:#fff}
+.tp-balance-pnl{font-size:10px;font-weight:600}
 .tp-balance-pnl.up{color:#00c47a}
 .tp-balance-pnl.down{color:#E24B4A}
 
-.tp-main{display:grid;grid-template-columns:320px 1fr;gap:20px}
-@media(max-width:900px){.tp-main{grid-template-columns:1fr}}
+/* Main Layout */
+.tp-main{display:flex;flex:1;overflow:hidden}
+.tp-chart-area{flex:1;display:flex;flex-direction:column;border-right:1px solid #1a1a1a}
+.tp-sidebar{width:320px;display:flex;flex-direction:column;background:#0a0a0a;flex-shrink:0}
+@media(max-width:1100px){.tp-sidebar{width:280px}}
+@media(max-width:900px){.tp-main{flex-direction:column}.tp-sidebar{width:100%;max-height:50vh}.tp-chart-area{border-right:none;border-bottom:1px solid #1a1a1a}}
 
-/* Trade Form */
-.tp-form{background:#0a0a0a;border:1px solid #1a1a1a;border-radius:12px;padding:20px}
-.tp-form-title{font-size:14px;font-weight:700;color:#fff;margin-bottom:16px;display:flex;align-items:center;gap:8px}
-.tp-exchange-tabs{display:flex;gap:4px;margin-bottom:16px;background:#111;border-radius:8px;padding:4px}
-.tp-ex-tab{flex:1;padding:10px;border:none;background:transparent;color:#555;font-size:11px;font-weight:700;cursor:pointer;border-radius:6px;transition:all .2s}
-.tp-ex-tab:hover{color:#888}
-.tp-ex-tab.active{background:#1a1a1a;color:#fff}
-.tp-ex-tab img{width:16px;height:16px;margin-right:6px;vertical-align:middle;border-radius:3px}
+/* Chart */
+.tp-chart{flex:1;background:#0a0a0a;position:relative;min-height:300px}
+.tp-chart-toolbar{display:flex;align-items:center;gap:8px;padding:8px 12px;background:#000;border-bottom:1px solid #1a1a1a}
+.tp-chart-tf{display:flex;gap:2px}
+.tp-chart-tf button{padding:6px 10px;background:transparent;border:none;color:#555;font-size:10px;font-weight:700;cursor:pointer;border-radius:4px;transition:all .15s}
+.tp-chart-tf button:hover{background:#111;color:#888}
+.tp-chart-tf button.active{background:#1a1a1a;color:#fff}
+.tp-chart-type{display:flex;gap:2px;margin-left:auto}
+.tp-chart-type button{padding:6px 10px;background:transparent;border:none;color:#555;font-size:12px;cursor:pointer;border-radius:4px;transition:all .15s}
+.tp-chart-type button:hover{background:#111;color:#888}
+.tp-chart-type button.active{background:#1a1a1a;color:#fff}
+#tp-chart-container{flex:1;width:100%}
 
-.tp-pair{margin-bottom:16px}
-.tp-pair-label{font-size:10px;color:#555;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em}
-.tp-pair-select{width:100%;padding:12px;background:#111;border:1px solid #222;border-radius:8px;color:#fff;font-size:14px;font-weight:700;cursor:pointer}
-.tp-pair-price{display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding:10px;background:#111;border-radius:8px}
-.tp-pair-price-val{font-size:18px;font-weight:800;color:#fff}
-.tp-pair-price-chg{font-size:11px;font-weight:600}
-.tp-pair-price-chg.up{color:#00c47a}
-.tp-pair-price-chg.down{color:#E24B4A}
+/* Order Form */
+.tp-order-form{padding:12px;border-bottom:1px solid #1a1a1a}
+.tp-order-tabs{display:flex;gap:4px;margin-bottom:12px}
+.tp-order-tab{flex:1;padding:10px;background:#111;border:none;color:#555;font-size:11px;font-weight:700;cursor:pointer;border-radius:6px;transition:all .2s}
+.tp-order-tab:hover{color:#888}
+.tp-order-tab.active{background:#1a1a1a;color:#fff}
 
-.tp-side{display:flex;gap:8px;margin-bottom:16px}
-.tp-side-btn{flex:1;padding:14px;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s}
-.tp-side-btn.long{background:#0a2a1a;color:#00c47a;border:1px solid #004d30}
-.tp-side-btn.long:hover,.tp-side-btn.long.active{background:#00c47a;color:#000}
-.tp-side-btn.short{background:#2a0a0a;color:#E24B4A;border:1px solid #4d0000}
-.tp-side-btn.short:hover,.tp-side-btn.short.active{background:#E24B4A;color:#fff}
+.tp-side-btns{display:flex;gap:6px;margin-bottom:12px}
+.tp-side-btn{flex:1;padding:12px;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s}
+.tp-side-btn.long{background:#0d1f16;color:#00c47a;border:1px solid #0a2a1a}
+.tp-side-btn.long:hover,.tp-side-btn.long.active{background:#00c47a;color:#000;border-color:#00c47a}
+.tp-side-btn.short{background:#1f0d0d;color:#E24B4A;border:1px solid #2a0a0a}
+.tp-side-btn.short:hover,.tp-side-btn.short.active{background:#E24B4A;color:#fff;border-color:#E24B4A}
 
-.tp-field{margin-bottom:14px}
-.tp-field-label{font-size:10px;color:#555;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;display:flex;justify-content:space-between}
-.tp-field-label span{color:#888}
-.tp-field-input{width:100%;padding:12px;background:#111;border:1px solid #222;border-radius:8px;color:#fff;font-size:14px;box-sizing:border-box}
-.tp-field-input:focus{border-color:#00c47a;outline:none}
-.tp-field-row{display:flex;gap:8px}
-.tp-field-row .tp-field{flex:1;margin-bottom:0}
+.tp-input-group{margin-bottom:10px}
+.tp-input-label{display:flex;justify-content:space-between;font-size:9px;color:#555;margin-bottom:4px;text-transform:uppercase;letter-spacing:.03em}
+.tp-input-label span{color:#00c47a;cursor:pointer}
+.tp-input-wrap{display:flex;background:#111;border:1px solid #1a1a1a;border-radius:6px;overflow:hidden}
+.tp-input-wrap:focus-within{border-color:#00c47a}
+.tp-input{flex:1;background:transparent;border:none;color:#fff;font-size:13px;font-weight:600;padding:10px 12px;outline:none}
+.tp-input::placeholder{color:#333}
+.tp-input-suffix{padding:10px 12px;color:#555;font-size:11px;font-weight:600;background:#0a0a0a;border-left:1px solid #1a1a1a}
+.tp-input-btns{display:flex;flex-direction:column;border-left:1px solid #1a1a1a}
+.tp-input-btns button{background:#0a0a0a;border:none;color:#555;font-size:10px;padding:0 10px;cursor:pointer;flex:1}
+.tp-input-btns button:hover{background:#111;color:#fff}
+.tp-input-btns button:first-child{border-bottom:1px solid #1a1a1a}
 
-.tp-leverage{margin-bottom:16px}
-.tp-lev-btns{display:flex;gap:4px}
-.tp-lev-btn{flex:1;padding:10px;background:#111;border:1px solid #222;border-radius:6px;color:#555;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s}
-.tp-lev-btn:hover{border-color:#333;color:#888}
-.tp-lev-btn.active{background:#00c47a;border-color:#00c47a;color:#000}
+.tp-leverage-row{display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.tp-leverage-label{font-size:10px;color:#555;white-space:nowrap}
+.tp-leverage-slider{flex:1;-webkit-appearance:none;height:4px;background:#1a1a1a;border-radius:2px;outline:none}
+.tp-leverage-slider::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;background:#00c47a;border-radius:50%;cursor:pointer}
+.tp-leverage-value{font-size:12px;font-weight:800;color:#00c47a;min-width:36px;text-align:right}
 
-.tp-summary{background:#111;border-radius:8px;padding:12px;margin-bottom:16px;font-size:11px}
-.tp-summary-row{display:flex;justify-content:space-between;margin-bottom:6px;color:#555}
-.tp-summary-row:last-child{margin-bottom:0}
-.tp-summary-row span:last-child{color:#e0e0e0;font-weight:600}
+.tp-tpsl-row{display:flex;gap:6px;margin-bottom:12px}
+.tp-tpsl-row .tp-input-group{flex:1;margin-bottom:0}
 
-.tp-submit{width:100%;padding:16px;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s}
-.tp-submit.long{background:#00c47a;color:#000}
-.tp-submit.short{background:#E24B4A;color:#fff}
-.tp-submit:hover{opacity:.88;transform:translateY(-1px)}
+.tp-order-summary{background:#111;border-radius:6px;padding:10px;margin-bottom:12px;font-size:10px}
+.tp-summary-row{display:flex;justify-content:space-between;padding:4px 0;color:#555}
+.tp-summary-row span:last-child{color:#888;font-weight:600}
+.tp-summary-row.highlight span:last-child{color:#00c47a}
+.tp-summary-row.warn span:last-child{color:#E24B4A}
 
-/* Positions & History */
-.tp-panel{background:#0a0a0a;border:1px solid #1a1a1a;border-radius:12px;overflow:hidden}
-.tp-panel-head{display:flex;border-bottom:1px solid #1a1a1a}
-.tp-panel-tab{flex:1;padding:14px;background:transparent;border:none;color:#555;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s}
-.tp-panel-tab:hover{color:#888}
-.tp-panel-tab.active{color:#fff;background:#111;border-bottom:2px solid #00c47a}
-.tp-panel-body{padding:16px;min-height:300px;max-height:500px;overflow-y:auto}
+.tp-submit-btn{width:100%;padding:14px;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s}
+.tp-submit-btn.long{background:linear-gradient(135deg,#00c47a,#00a866);color:#000}
+.tp-submit-btn.short{background:linear-gradient(135deg,#E24B4A,#c43a3a);color:#fff}
+.tp-submit-btn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,196,122,.3)}
+.tp-submit-btn:active{transform:translateY(0)}
 
-.tp-position{background:#111;border:1px solid #1a1a1a;border-radius:10px;padding:14px;margin-bottom:10px}
-.tp-position:last-child{margin-bottom:0}
-.tp-pos-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-.tp-pos-pair{font-size:14px;font-weight:700;color:#fff;display:flex;align-items:center;gap:8px}
-.tp-pos-side{font-size:9px;font-weight:700;padding:3px 8px;border-radius:4px}
-.tp-pos-side.long{background:#0a2a1a;color:#00c47a}
-.tp-pos-side.short{background:#2a0a0a;color:#E24B4A}
-.tp-pos-lev{font-size:9px;color:#555;background:#1a1a1a;padding:3px 6px;border-radius:4px}
-.tp-pos-pnl{font-size:16px;font-weight:800}
-.tp-pos-pnl.up{color:#00c47a}
-.tp-pos-pnl.down{color:#E24B4A}
-.tp-pos-info{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;font-size:10px;color:#555;margin-bottom:12px}
-.tp-pos-info span{color:#888}
-.tp-pos-close{width:100%;padding:10px;background:#1a1a1a;border:none;border-radius:6px;color:#888;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s}
-.tp-pos-close:hover{background:#E24B4A;color:#fff}
+/* Positions Panel */
+.tp-positions{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.tp-pos-tabs{display:flex;background:#000;border-bottom:1px solid #1a1a1a}
+.tp-pos-tab{flex:1;padding:10px;background:transparent;border:none;color:#555;font-size:10px;font-weight:700;cursor:pointer;transition:all .2s;border-bottom:2px solid transparent}
+.tp-pos-tab:hover{color:#888}
+.tp-pos-tab.active{color:#fff;border-bottom-color:#00c47a}
+.tp-pos-tab span{background:#1a1a1a;padding:2px 6px;border-radius:4px;margin-left:4px}
+.tp-pos-content{flex:1;overflow-y:auto;padding:8px}
 
-.tp-empty{text-align:center;padding:40px 20px;color:#333}
-.tp-empty-icon{font-size:32px;margin-bottom:10px}
+.tp-position-card{background:#111;border:1px solid #1a1a1a;border-radius:8px;padding:10px;margin-bottom:6px}
+.tp-pos-row1{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.tp-pos-symbol{display:flex;align-items:center;gap:6px}
+.tp-pos-symbol-name{font-size:13px;font-weight:700;color:#fff}
+.tp-pos-badge{font-size:8px;font-weight:700;padding:2px 6px;border-radius:3px}
+.tp-pos-badge.long{background:#0a2a1a;color:#00c47a}
+.tp-pos-badge.short{background:#2a0a0a;color:#E24B4A}
+.tp-pos-badge.lev{background:#1a1a1a;color:#555}
+.tp-pos-pnl{text-align:right}
+.tp-pos-pnl-value{font-size:14px;font-weight:800}
+.tp-pos-pnl-value.up{color:#00c47a}
+.tp-pos-pnl-value.down{color:#E24B4A}
+.tp-pos-pnl-percent{font-size:10px;color:#555}
+.tp-pos-row2{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:8px;font-size:9px}
+.tp-pos-stat{color:#555}
+.tp-pos-stat span{display:block;color:#888;font-weight:600;margin-top:2px}
+.tp-pos-actions{display:flex;gap:6px}
+.tp-pos-actions button{flex:1;padding:8px;background:#1a1a1a;border:none;border-radius:4px;color:#555;font-size:9px;font-weight:700;cursor:pointer;transition:all .15s}
+.tp-pos-actions button:hover{background:#222;color:#888}
+.tp-pos-actions button.close:hover{background:#E24B4A;color:#fff}
 
-.tp-history-item{display:flex;justify-content:space-between;align-items:center;padding:12px;background:#111;border-radius:8px;margin-bottom:8px}
-.tp-history-item:last-child{margin-bottom:0}
-.tp-hist-left{display:flex;align-items:center;gap:10px}
-.tp-hist-pair{font-size:12px;font-weight:700;color:#fff}
-.tp-hist-side{font-size:9px;font-weight:700;padding:2px 6px;border-radius:3px}
-.tp-hist-side.long{background:#0a2a1a;color:#00c47a}
-.tp-hist-side.short{background:#2a0a0a;color:#E24B4A}
-.tp-hist-right{text-align:right}
-.tp-hist-pnl{font-size:13px;font-weight:700}
-.tp-hist-pnl.up{color:#00c47a}
-.tp-hist-pnl.down{color:#E24B4A}
-.tp-hist-time{font-size:9px;color:#333}
+.tp-empty{text-align:center;padding:30px;color:#333}
+.tp-empty-icon{font-size:28px;margin-bottom:8px;opacity:.5}
+.tp-empty-text{font-size:11px}
+
+/* Pair Modal */
+#tp-pair-modal{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9800;display:none;align-items:center;justify-content:center}
+#tp-pair-modal.show{display:flex}
+.tp-pair-modal-content{background:#111;border:1px solid #1a1a1a;border-radius:12px;width:90%;max-width:500px;max-height:80vh;display:flex;flex-direction:column}
+.tp-pair-modal-header{display:flex;justify-content:space-between;align-items:center;padding:16px;border-bottom:1px solid #1a1a1a}
+.tp-pair-modal-title{font-size:14px;font-weight:700;color:#fff}
+.tp-pair-modal-close{background:none;border:none;color:#555;font-size:20px;cursor:pointer}
+.tp-pair-modal-close:hover{color:#fff}
+.tp-pair-search{padding:12px 16px;border-bottom:1px solid #1a1a1a}
+.tp-pair-search input{width:100%;padding:10px 12px;background:#0a0a0a;border:1px solid #1a1a1a;border-radius:6px;color:#fff;font-size:13px;outline:none;box-sizing:border-box}
+.tp-pair-search input:focus{border-color:#00c47a}
+.tp-pair-list{flex:1;overflow-y:auto;padding:8px}
+.tp-pair-item{display:flex;align-items:center;justify-content:space-between;padding:12px;border-radius:8px;cursor:pointer;transition:all .15s}
+.tp-pair-item:hover{background:#1a1a1a}
+.tp-pair-item.active{background:#0a2a1a}
+.tp-pair-item-left{display:flex;align-items:center;gap:10px}
+.tp-pair-item-icon{font-size:20px}
+.tp-pair-item-name{font-size:13px;font-weight:700;color:#fff}
+.tp-pair-item-full{font-size:10px;color:#555}
+.tp-pair-item-right{text-align:right}
+.tp-pair-item-price{font-size:12px;font-weight:700;color:#fff}
+.tp-pair-item-change{font-size:10px;font-weight:600}
+.tp-pair-item-change.up{color:#00c47a}
+.tp-pair-item-change.down{color:#E24B4A}
+
+/* Exchange Tabs in Modal */
+.tp-ex-tabs{display:flex;gap:4px;padding:0 16px 12px;border-bottom:1px solid #1a1a1a}
+.tp-ex-tabs button{padding:8px 16px;background:#0a0a0a;border:1px solid #1a1a1a;border-radius:6px;color:#555;font-size:10px;font-weight:700;cursor:pointer;transition:all .2s}
+.tp-ex-tabs button:hover{border-color:#333;color:#888}
+.tp-ex-tabs button.active{background:#1a1a1a;border-color:#333;color:#fff}
 
 body.t-lavender{--bg:#f0eef8;--panel:#fff;--bd:#d8d4f0;--bd2:#e4e0f4;--sf:#f8f6ff;--sf2:#f0eef8;--tx:#2a1a4a;--tx2:#8070b0;--tx3:#c0b0e0;--acc:#7050c0;--acc2:#5060e0;--mh:#4030a0;--mhc:#fff;--mhs:#c0b8f0;--inp:#f8f6ff;--btn:#f0eef8;--btno:#e0d8f8;--btonc:#7050c0;--tog:#fff;--togon:#4030a0;--togonc:#fff;--tabact:#4030a0;--tabactc:#fff;--wd-on:#e0d8f8;--wd-onc:#7050c0}
 
@@ -1581,167 +1640,182 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 
 <!-- PAPER TRADING PAGE -->
 <div id="trading-page">
-  <div class="tp-container">
-    <div class="tp-header">
-      <button class="tp-back" onclick="closeTradingPage()">← back to member area</button>
-      <div class="tp-title">⚡ Paper Trading <span>SIMULATION</span></div>
-      <div class="tp-balance">
-        <div class="tp-balance-label">Virtual Balance</div>
+  <!-- Top Bar -->
+  <div class="tp-topbar">
+    <div class="tp-topbar-left">
+      <button class="tp-back" onclick="closeTradingPage()">✕</button>
+      <div class="tp-logo">⚡ BATT <span>PAPER</span></div>
+      <div class="tp-pair-selector" onclick="tpShowPairModal()">
+        <span class="tp-pair-selector-icon" id="tp-pair-icon">🟠</span>
+        <div class="tp-pair-selector-info">
+          <div class="tp-pair-selector-name" id="tp-pair-name">BTC/USDT</div>
+          <div class="tp-pair-selector-ex" id="tp-pair-exchange">perpetual · binance</div>
+        </div>
+        <span class="tp-pair-selector-arrow">▼</span>
+      </div>
+      <div class="tp-price-display">
+        <div class="tp-price-main" id="tp-price-main">$69,420.50</div>
+        <div class="tp-price-change up" id="tp-price-change">+2.45%</div>
+        <div class="tp-price-details">
+          <div>24h High <span id="tp-high">$71,200</span></div>
+          <div>24h Low <span id="tp-low">$67,800</span></div>
+          <div>24h Vol <span id="tp-vol">$42.5B</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="tp-topbar-right">
+      <div class="tp-balance-box">
+        <div class="tp-balance-label">Portfolio Value</div>
         <div class="tp-balance-value" id="tp-balance">$10,000.00</div>
         <div class="tp-balance-pnl up" id="tp-pnl">+$0.00 (0.00%)</div>
       </div>
     </div>
+  </div>
 
-    <div class="tp-main">
-      <!-- Trade Form -->
-      <div class="tp-form">
-        <div class="tp-form-title">📝 Place Order</div>
-        
-        <!-- Exchange Tabs -->
-        <div class="tp-exchange-tabs">
-          <button class="tp-ex-tab active" onclick="tpSelectExchange('binance')" data-ex="binance">
-            <img src="https://cryptologos.cc/logos/binance-coin-bnb-logo.png" alt=""> Binance
-          </button>
-          <button class="tp-ex-tab" onclick="tpSelectExchange('bybit')" data-ex="bybit">
-            <img src="https://cryptologos.cc/logos/bybit-bit-logo.png" alt=""> Bybit
-          </button>
-          <button class="tp-ex-tab" onclick="tpSelectExchange('okx')" data-ex="okx">
-            <img src="https://cryptologos.cc/logos/okb-okb-logo.png" alt=""> OKX
-          </button>
+  <!-- Main Layout -->
+  <div class="tp-main">
+    <!-- Chart Area -->
+    <div class="tp-chart-area">
+      <div class="tp-chart-toolbar">
+        <div class="tp-chart-tf">
+          <button onclick="tpSetTimeframe('1m')">1m</button>
+          <button onclick="tpSetTimeframe('5m')">5m</button>
+          <button class="active" onclick="tpSetTimeframe('15m')">15m</button>
+          <button onclick="tpSetTimeframe('1h')">1H</button>
+          <button onclick="tpSetTimeframe('4h')">4H</button>
+          <button onclick="tpSetTimeframe('1d')">1D</button>
+        </div>
+        <div class="tp-chart-type">
+          <button class="active" onclick="tpSetChartType('candle')" title="Candles">📊</button>
+          <button onclick="tpSetChartType('line')" title="Line">📈</button>
+        </div>
+      </div>
+      <div class="tp-chart" id="tp-chart-container"></div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="tp-sidebar">
+      <!-- Order Form -->
+      <div class="tp-order-form">
+        <div class="tp-order-tabs">
+          <button class="tp-order-tab active" onclick="tpSetOrderType('market')">Market</button>
+          <button class="tp-order-tab" onclick="tpSetOrderType('limit')">Limit</button>
         </div>
 
-        <!-- Pair Selection -->
-        <div class="tp-pair">
-          <div class="tp-pair-label">Trading Pair</div>
-          <select class="tp-pair-select" id="tp-pair" onchange="tpUpdatePrice()">
-            <option value="BTCUSDT">BTC / USDT</option>
-            <option value="ETHUSDT">ETH / USDT</option>
-            <option value="SOLUSDT">SOL / USDT</option>
-            <option value="BNBUSDT">BNB / USDT</option>
-            <option value="XRPUSDT">XRP / USDT</option>
-            <option value="DOGEUSDT">DOGE / USDT</option>
-            <option value="ADAUSDT">ADA / USDT</option>
-            <option value="AVAXUSDT">AVAX / USDT</option>
-          </select>
-          <div class="tp-pair-price">
-            <div class="tp-pair-price-val" id="tp-current-price">$69,420.00</div>
-            <div class="tp-pair-price-chg up" id="tp-price-chg">▲ +2.45%</div>
+        <div class="tp-side-btns">
+          <button class="tp-side-btn long active" onclick="tpSelectSide('long')" id="tp-side-long">Long</button>
+          <button class="tp-side-btn short" onclick="tpSelectSide('short')" id="tp-side-short">Short</button>
+        </div>
+
+        <div class="tp-input-group" id="tp-limit-price-group" style="display:none">
+          <div class="tp-input-label">Limit Price</div>
+          <div class="tp-input-wrap">
+            <input type="number" class="tp-input" id="tp-limit-price" placeholder="0.00" oninput="tpCalculate()">
+            <span class="tp-input-suffix">USDT</span>
           </div>
         </div>
 
-        <!-- Side Selection -->
-        <div class="tp-side">
-          <button class="tp-side-btn long active" onclick="tpSelectSide('long')" id="tp-side-long">📈 LONG</button>
-          <button class="tp-side-btn short" onclick="tpSelectSide('short')" id="tp-side-short">📉 SHORT</button>
-        </div>
-
-        <!-- Size Input -->
-        <div class="tp-field">
-          <div class="tp-field-label">
-            Position Size (USDT)
-            <span id="tp-available">Available: $10,000</span>
+        <div class="tp-input-group">
+          <div class="tp-input-label">
+            Size
+            <span onclick="tpSetMaxSize()">Max</span>
           </div>
-          <input type="number" class="tp-field-input" id="tp-size" placeholder="100" value="100" oninput="tpCalculate()">
-        </div>
-
-        <!-- Leverage -->
-        <div class="tp-leverage">
-          <div class="tp-field-label">Leverage</div>
-          <div class="tp-lev-btns">
-            <button class="tp-lev-btn" onclick="tpSetLeverage(1)">1x</button>
-            <button class="tp-lev-btn" onclick="tpSetLeverage(2)">2x</button>
-            <button class="tp-lev-btn" onclick="tpSetLeverage(5)">5x</button>
-            <button class="tp-lev-btn active" onclick="tpSetLeverage(10)">10x</button>
-            <button class="tp-lev-btn" onclick="tpSetLeverage(20)">20x</button>
-            <button class="tp-lev-btn" onclick="tpSetLeverage(50)">50x</button>
-            <button class="tp-lev-btn" onclick="tpSetLeverage(100)">100x</button>
+          <div class="tp-input-wrap">
+            <input type="number" class="tp-input" id="tp-size" placeholder="100" value="100" oninput="tpCalculate()">
+            <span class="tp-input-suffix">USDT</span>
+            <div class="tp-input-btns">
+              <button onclick="tpAdjustSize(10)">+</button>
+              <button onclick="tpAdjustSize(-10)">−</button>
+            </div>
           </div>
         </div>
 
-        <!-- TP/SL -->
-        <div class="tp-field-row">
-          <div class="tp-field">
-            <div class="tp-field-label">Take Profit %</div>
-            <input type="number" class="tp-field-input" id="tp-tp" placeholder="10" value="10" oninput="tpCalculate()">
+        <div class="tp-leverage-row">
+          <span class="tp-leverage-label">Leverage</span>
+          <input type="range" class="tp-leverage-slider" id="tp-leverage-slider" min="1" max="100" value="10" oninput="tpSetLeverageSlider(this.value)">
+          <span class="tp-leverage-value" id="tp-leverage-value">10x</span>
+        </div>
+
+        <div class="tp-tpsl-row">
+          <div class="tp-input-group">
+            <div class="tp-input-label">Take Profit %</div>
+            <div class="tp-input-wrap">
+              <input type="number" class="tp-input" id="tp-tp" placeholder="10" value="10" oninput="tpCalculate()">
+              <span class="tp-input-suffix">%</span>
+            </div>
           </div>
-          <div class="tp-field">
-            <div class="tp-field-label">Stop Loss %</div>
-            <input type="number" class="tp-field-input" id="tp-sl" placeholder="5" value="5" oninput="tpCalculate()">
+          <div class="tp-input-group">
+            <div class="tp-input-label">Stop Loss %</div>
+            <div class="tp-input-wrap">
+              <input type="number" class="tp-input" id="tp-sl" placeholder="5" value="5" oninput="tpCalculate()">
+              <span class="tp-input-suffix">%</span>
+            </div>
           </div>
         </div>
 
-        <!-- Summary -->
-        <div class="tp-summary">
-          <div class="tp-summary-row"><span>Entry Price</span><span id="tp-sum-entry">$69,420.00</span></div>
+        <div class="tp-order-summary">
+          <div class="tp-summary-row"><span>Entry Price</span><span id="tp-sum-entry">$69,420.50</span></div>
           <div class="tp-summary-row"><span>Position Value</span><span id="tp-sum-value">$1,000.00</span></div>
-          <div class="tp-summary-row"><span>Liquidation Price</span><span id="tp-sum-liq">$62,478.00</span></div>
-          <div class="tp-summary-row"><span>Take Profit Price</span><span id="tp-sum-tp" style="color:#00c47a">$76,362.00</span></div>
-          <div class="tp-summary-row"><span>Stop Loss Price</span><span id="tp-sum-sl" style="color:#E24B4A">$65,949.00</span></div>
+          <div class="tp-summary-row"><span>Margin Required</span><span id="tp-sum-margin">$100.00</span></div>
+          <div class="tp-summary-row warn"><span>Liquidation</span><span id="tp-sum-liq">$62,478.45</span></div>
+          <div class="tp-summary-row highlight"><span>Take Profit</span><span id="tp-sum-tp">$76,362.55</span></div>
+          <div class="tp-summary-row warn"><span>Stop Loss</span><span id="tp-sum-sl">$65,949.48</span></div>
         </div>
 
-        <!-- Submit -->
-        <button class="tp-submit long" id="tp-submit" onclick="tpPlaceOrder()">
-          🚀 Open Long Position
+        <button class="tp-submit-btn long" id="tp-submit" onclick="tpPlaceOrder()">
+          Long BTC/USDT
         </button>
       </div>
 
       <!-- Positions Panel -->
-      <div class="tp-panel">
-        <div class="tp-panel-head">
-          <button class="tp-panel-tab active" onclick="tpShowTab('positions')" id="tp-tab-positions">📊 Open Positions <span id="tp-pos-count">(0)</span></button>
-          <button class="tp-panel-tab" onclick="tpShowTab('history')" id="tp-tab-history">📜 Trade History</button>
-          <button class="tp-panel-tab" onclick="tpShowTab('stats')" id="tp-tab-stats">📈 Statistics</button>
+      <div class="tp-positions">
+        <div class="tp-pos-tabs">
+          <button class="tp-pos-tab active" onclick="tpShowTab('positions')" id="tp-tab-positions">Positions <span id="tp-pos-count">0</span></button>
+          <button class="tp-pos-tab" onclick="tpShowTab('orders')" id="tp-tab-orders">Orders <span>0</span></button>
+          <button class="tp-pos-tab" onclick="tpShowTab('history')" id="tp-tab-history">History</button>
         </div>
-        
-        <!-- Positions -->
-        <div class="tp-panel-body" id="tp-positions">
+
+        <div class="tp-pos-content" id="tp-positions">
           <div class="tp-empty">
             <div class="tp-empty-icon">📭</div>
-            <div>No open positions</div>
-            <div style="font-size:10px;margin-top:4px;color:#222">Place your first trade to get started</div>
+            <div class="tp-empty-text">No open positions</div>
           </div>
         </div>
 
-        <!-- History -->
-        <div class="tp-panel-body" id="tp-history" style="display:none">
+        <div class="tp-pos-content" id="tp-orders" style="display:none">
           <div class="tp-empty">
             <div class="tp-empty-icon">📋</div>
-            <div>No trade history yet</div>
+            <div class="tp-empty-text">No pending orders</div>
           </div>
         </div>
 
-        <!-- Stats -->
-        <div class="tp-panel-body" id="tp-stats" style="display:none">
-          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px">
-            <div style="background:#111;border-radius:10px;padding:16px;text-align:center">
-              <div style="font-size:24px;font-weight:800;color:#fff" id="tp-stat-trades">0</div>
-              <div style="font-size:10px;color:#555;text-transform:uppercase">Total Trades</div>
-            </div>
-            <div style="background:#111;border-radius:10px;padding:16px;text-align:center">
-              <div style="font-size:24px;font-weight:800;color:#00c47a" id="tp-stat-winrate">0%</div>
-              <div style="font-size:10px;color:#555;text-transform:uppercase">Win Rate</div>
-            </div>
-            <div style="background:#111;border-radius:10px;padding:16px;text-align:center">
-              <div style="font-size:24px;font-weight:800;color:#00c47a" id="tp-stat-profit">$0</div>
-              <div style="font-size:10px;color:#555;text-transform:uppercase">Total Profit</div>
-            </div>
-            <div style="background:#111;border-radius:10px;padding:16px;text-align:center">
-              <div style="font-size:24px;font-weight:800;color:#E24B4A" id="tp-stat-loss">$0</div>
-              <div style="font-size:10px;color:#555;text-transform:uppercase">Total Loss</div>
-            </div>
-            <div style="background:#111;border-radius:10px;padding:16px;text-align:center">
-              <div style="font-size:24px;font-weight:800;color:#fff" id="tp-stat-best">$0</div>
-              <div style="font-size:10px;color:#555;text-transform:uppercase">Best Trade</div>
-            </div>
-            <div style="background:#111;border-radius:10px;padding:16px;text-align:center">
-              <div style="font-size:24px;font-weight:800;color:#fff" id="tp-stat-worst">$0</div>
-              <div style="font-size:10px;color:#555;text-transform:uppercase">Worst Trade</div>
-            </div>
+        <div class="tp-pos-content" id="tp-history" style="display:none">
+          <div class="tp-empty">
+            <div class="tp-empty-icon">📜</div>
+            <div class="tp-empty-text">No trade history</div>
           </div>
-          <button onclick="tpResetAccount()" style="width:100%;margin-top:20px;padding:12px;background:#1a1a1a;border:1px solid #222;border-radius:8px;color:#555;font-size:11px;font-weight:700;cursor:pointer">🔄 Reset Paper Account</button>
         </div>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- Pair Selection Modal -->
+<div id="tp-pair-modal">
+  <div class="tp-pair-modal-content">
+    <div class="tp-pair-modal-header">
+      <div class="tp-pair-modal-title">Select Trading Pair</div>
+      <button class="tp-pair-modal-close" onclick="tpHidePairModal()">✕</button>
+    </div>
+    <div class="tp-ex-tabs">
+      <button class="active" onclick="tpSelectExchange('binance')">Binance</button>
+      <button onclick="tpSelectExchange('bybit')">Bybit</button>
+      <button onclick="tpSelectExchange('okx')">OKX</button>
+    </div>
+    <div class="tp-pair-search">
+      <input type="text" placeholder="Search pairs..." id="tp-pair-search" oninput="tpFilterPairs(this.value)">
+    </div>
+    <div class="tp-pair-list" id="tp-pair-list"></div>
   </div>
 </div>
 
@@ -6336,16 +6410,36 @@ async function loadSharedPreset(shareCode){
 // ── PAPER TRADING SYSTEM ──
 var TP_STATE = {
   exchange: 'binance',
+  pair: 'BTCUSDT',
   side: 'long',
+  orderType: 'market',
   leverage: 10,
   balance: 10000,
   startBalance: 10000,
   positions: [],
   history: [],
-  prices: {}
+  prices: {},
+  timeframe: '15m',
+  chartType: 'candle'
 };
 
-// Load paper trading state from localStorage
+var TP_PAIRS = [
+  { symbol: 'BTCUSDT', name: 'Bitcoin', icon: '🟠', id: 'bitcoin' },
+  { symbol: 'ETHUSDT', name: 'Ethereum', icon: '🔷', id: 'ethereum' },
+  { symbol: 'SOLUSDT', name: 'Solana', icon: '🟣', id: 'solana' },
+  { symbol: 'BNBUSDT', name: 'BNB', icon: '🟡', id: 'binancecoin' },
+  { symbol: 'XRPUSDT', name: 'Ripple', icon: '⚪', id: 'ripple' },
+  { symbol: 'DOGEUSDT', name: 'Dogecoin', icon: '🐕', id: 'dogecoin' },
+  { symbol: 'ADAUSDT', name: 'Cardano', icon: '🔵', id: 'cardano' },
+  { symbol: 'AVAXUSDT', name: 'Avalanche', icon: '🔺', id: 'avalanche-2' },
+  { symbol: 'LINKUSDT', name: 'Chainlink', icon: '🔗', id: 'chainlink' },
+  { symbol: 'MATICUSDT', name: 'Polygon', icon: '💜', id: 'matic-network' }
+];
+
+var _tpChart = null;
+var _tpCandleSeries = null;
+
+// Load state
 function tpLoadState() {
   const saved = localStorage.getItem('tp_state');
   if (saved) {
@@ -6356,7 +6450,7 @@ function tpLoadState() {
   }
 }
 
-// Save paper trading state
+// Save state
 function tpSaveState() {
   localStorage.setItem('tp_state', JSON.stringify(TP_STATE));
 }
@@ -6370,13 +6464,14 @@ function openTradingPage() {
     page.classList.add('visible');
     l3.classList.remove('visible');
     tpFetchPrices();
+    tpInitChart();
     tpUpdateUI();
     tpRenderPositions();
     tpRenderHistory();
-    tpUpdateStats();
+    tpRenderPairList();
     // Start price updates
     if (!window._tpPriceInterval) {
-      window._tpPriceInterval = setInterval(tpFetchPrices, 10000);
+      window._tpPriceInterval = setInterval(tpFetchPrices, 5000);
     }
   }
 }
@@ -6395,104 +6490,290 @@ function closeTradingPage() {
   }
 }
 
+// Initialize chart using TradingView Lightweight Charts
+function tpInitChart() {
+  const container = document.getElementById('tp-chart-container');
+  if (!container || _tpChart) return;
+  
+  // Load TradingView Lightweight Charts
+  if (!window.LightweightCharts) {
+    const script = document.createElement('script');
+    script.src = 'https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js';
+    script.onload = () => tpCreateChart();
+    document.head.appendChild(script);
+  } else {
+    tpCreateChart();
+  }
+}
+
+function tpCreateChart() {
+  const container = document.getElementById('tp-chart-container');
+  if (!container) return;
+  
+  _tpChart = LightweightCharts.createChart(container, {
+    width: container.clientWidth,
+    height: container.clientHeight,
+    layout: {
+      background: { type: 'solid', color: '#0a0a0a' },
+      textColor: '#555',
+    },
+    grid: {
+      vertLines: { color: '#1a1a1a' },
+      horzLines: { color: '#1a1a1a' },
+    },
+    crosshair: {
+      mode: LightweightCharts.CrosshairMode.Normal,
+    },
+    rightPriceScale: {
+      borderColor: '#1a1a1a',
+    },
+    timeScale: {
+      borderColor: '#1a1a1a',
+      timeVisible: true,
+    },
+  });
+
+  _tpCandleSeries = _tpChart.addCandlestickSeries({
+    upColor: '#00c47a',
+    downColor: '#E24B4A',
+    borderDownColor: '#E24B4A',
+    borderUpColor: '#00c47a',
+    wickDownColor: '#E24B4A',
+    wickUpColor: '#00c47a',
+  });
+
+  // Generate sample data
+  tpUpdateChartData();
+
+  // Handle resize
+  window.addEventListener('resize', () => {
+    if (_tpChart && container) {
+      _tpChart.applyOptions({ width: container.clientWidth, height: container.clientHeight });
+    }
+  });
+}
+
+function tpUpdateChartData() {
+  if (!_tpCandleSeries) return;
+  
+  const price = TP_STATE.prices[TP_STATE.pair]?.price || 69000;
+  const data = [];
+  const now = Math.floor(Date.now() / 1000);
+  const interval = 60 * 15; // 15min
+  
+  // Generate 100 candles of sample data
+  let currentPrice = price * 0.95;
+  for (let i = 100; i >= 0; i--) {
+    const time = now - (i * interval);
+    const volatility = price * 0.002;
+    const open = currentPrice;
+    const close = open + (Math.random() - 0.48) * volatility * 2;
+    const high = Math.max(open, close) + Math.random() * volatility;
+    const low = Math.min(open, close) - Math.random() * volatility;
+    
+    data.push({ time, open, high, low, close });
+    currentPrice = close;
+  }
+  
+  _tpCandleSeries.setData(data);
+  _tpChart.timeScale().fitContent();
+}
+
 // Fetch live prices
 async function tpFetchPrices() {
   try {
-    const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,solana,binancecoin,ripple,dogecoin,cardano,avalanche-2&vs_currencies=usd&include_24hr_change=true');
+    const ids = TP_PAIRS.map(p => p.id).join(',');
+    const r = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true&include_24hr_high=true&include_24hr_low=true`);
     const d = await r.json();
-    TP_STATE.prices = {
-      BTCUSDT: { price: d.bitcoin?.usd || 69000, change: d.bitcoin?.usd_24h_change || 0 },
-      ETHUSDT: { price: d.ethereum?.usd || 3500, change: d.ethereum?.usd_24h_change || 0 },
-      SOLUSDT: { price: d.solana?.usd || 140, change: d.solana?.usd_24h_change || 0 },
-      BNBUSDT: { price: d.binancecoin?.usd || 600, change: d.binancecoin?.usd_24h_change || 0 },
-      XRPUSDT: { price: d.ripple?.usd || 0.5, change: d.ripple?.usd_24h_change || 0 },
-      DOGEUSDT: { price: d.dogecoin?.usd || 0.08, change: d.dogecoin?.usd_24h_change || 0 },
-      ADAUSDT: { price: d.cardano?.usd || 0.45, change: d.cardano?.usd_24h_change || 0 },
-      AVAXUSDT: { price: d['avalanche-2']?.usd || 35, change: d['avalanche-2']?.usd_24h_change || 0 }
-    };
-    tpUpdatePrice();
+    
+    TP_PAIRS.forEach(p => {
+      const data = d[p.id];
+      if (data) {
+        TP_STATE.prices[p.symbol] = {
+          price: data.usd || 0,
+          change: data.usd_24h_change || 0,
+          high: data.usd_24h_high || data.usd * 1.02,
+          low: data.usd_24h_low || data.usd * 0.98
+        };
+      }
+    });
+    
+    tpUpdatePriceDisplay();
     tpUpdatePositionsPnL();
+    tpRenderPairList();
   } catch (e) {
     console.error('Price fetch error:', e);
   }
 }
 
-// Update displayed price
-function tpUpdatePrice() {
-  const pair = document.getElementById('tp-pair')?.value || 'BTCUSDT';
-  const priceData = TP_STATE.prices[pair] || { price: 0, change: 0 };
-  const priceEl = document.getElementById('tp-current-price');
-  const chgEl = document.getElementById('tp-price-chg');
+// Update price display
+function tpUpdatePriceDisplay() {
+  const priceData = TP_STATE.prices[TP_STATE.pair] || { price: 0, change: 0 };
+  const pairInfo = TP_PAIRS.find(p => p.symbol === TP_STATE.pair) || TP_PAIRS[0];
+  
+  document.getElementById('tp-pair-icon').textContent = pairInfo.icon;
+  document.getElementById('tp-pair-name').textContent = TP_STATE.pair.replace('USDT', '/USDT');
+  document.getElementById('tp-pair-exchange').textContent = `perpetual · ${TP_STATE.exchange}`;
+  
+  const priceEl = document.getElementById('tp-price-main');
+  const changeEl = document.getElementById('tp-price-change');
   
   if (priceEl) priceEl.textContent = '$' + priceData.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  if (chgEl) {
+  if (changeEl) {
     const isUp = priceData.change >= 0;
-    chgEl.textContent = (isUp ? '▲ +' : '▼ ') + priceData.change.toFixed(2) + '%';
-    chgEl.className = 'tp-pair-price-chg ' + (isUp ? 'up' : 'down');
+    changeEl.textContent = (isUp ? '+' : '') + priceData.change.toFixed(2) + '%';
+    changeEl.className = 'tp-price-change ' + (isUp ? 'up' : 'down');
   }
+  
+  document.getElementById('tp-high').textContent = '$' + (priceData.high || 0).toLocaleString();
+  document.getElementById('tp-low').textContent = '$' + (priceData.low || 0).toLocaleString();
+  document.getElementById('tp-vol').textContent = '$' + ((priceData.price || 0) * 1000000).toLocaleString(undefined, { notation: 'compact' });
+  
   tpCalculate();
 }
 
-// Select exchange
+// Select pair
+function tpSelectPair(symbol) {
+  TP_STATE.pair = symbol;
+  tpHidePairModal();
+  tpUpdatePriceDisplay();
+  tpUpdateChartData();
+  tpSaveState();
+}
+
+// Pair modal
+function tpShowPairModal() {
+  document.getElementById('tp-pair-modal').classList.add('show');
+  tpRenderPairList();
+}
+
+function tpHidePairModal() {
+  document.getElementById('tp-pair-modal').classList.remove('show');
+}
+
+function tpRenderPairList(filter = '') {
+  const container = document.getElementById('tp-pair-list');
+  if (!container) return;
+  
+  const filtered = TP_PAIRS.filter(p => 
+    p.symbol.toLowerCase().includes(filter.toLowerCase()) ||
+    p.name.toLowerCase().includes(filter.toLowerCase())
+  );
+  
+  container.innerHTML = filtered.map(p => {
+    const priceData = TP_STATE.prices[p.symbol] || { price: 0, change: 0 };
+    const isUp = priceData.change >= 0;
+    const isActive = p.symbol === TP_STATE.pair;
+    
+    return `
+      <div class="tp-pair-item ${isActive ? 'active' : ''}" onclick="tpSelectPair('${p.symbol}')">
+        <div class="tp-pair-item-left">
+          <span class="tp-pair-item-icon">${p.icon}</span>
+          <div>
+            <div class="tp-pair-item-name">${p.symbol.replace('USDT', '')}</div>
+            <div class="tp-pair-item-full">${p.name}</div>
+          </div>
+        </div>
+        <div class="tp-pair-item-right">
+          <div class="tp-pair-item-price">$${priceData.price.toLocaleString()}</div>
+          <div class="tp-pair-item-change ${isUp ? 'up' : 'down'}">${isUp ? '+' : ''}${priceData.change.toFixed(2)}%</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function tpFilterPairs(query) {
+  tpRenderPairList(query);
+}
+
+// Exchange selection
 function tpSelectExchange(ex) {
   TP_STATE.exchange = ex;
-  document.querySelectorAll('.tp-ex-tab').forEach(t => t.classList.remove('active'));
-  document.querySelector(`.tp-ex-tab[data-ex="${ex}"]`)?.classList.add('active');
+  document.querySelectorAll('.tp-ex-tabs button').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('tp-pair-exchange').textContent = `perpetual · ${ex}`;
 }
 
-// Select side
+// Order type
+function tpSetOrderType(type) {
+  TP_STATE.orderType = type;
+  document.querySelectorAll('.tp-order-tab').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('tp-limit-price-group').style.display = type === 'limit' ? 'block' : 'none';
+}
+
+// Side selection
 function tpSelectSide(side) {
   TP_STATE.side = side;
-  document.getElementById('tp-side-long')?.classList.toggle('active', side === 'long');
-  document.getElementById('tp-side-short')?.classList.toggle('active', side === 'short');
+  document.getElementById('tp-side-long').classList.toggle('active', side === 'long');
+  document.getElementById('tp-side-short').classList.toggle('active', side === 'short');
+  
   const btn = document.getElementById('tp-submit');
   if (btn) {
-    btn.className = 'tp-submit ' + side;
-    btn.textContent = side === 'long' ? '🚀 Open Long Position' : '📉 Open Short Position';
+    btn.className = 'tp-submit-btn ' + side;
+    btn.textContent = `${side === 'long' ? 'Long' : 'Short'} ${TP_STATE.pair.replace('USDT', '/USDT')}`;
   }
   tpCalculate();
 }
 
-// Set leverage
-function tpSetLeverage(lev) {
-  TP_STATE.leverage = lev;
-  document.querySelectorAll('.tp-lev-btn').forEach(b => b.classList.remove('active'));
-  event.target.classList.add('active');
+// Leverage slider
+function tpSetLeverageSlider(val) {
+  TP_STATE.leverage = parseInt(val);
+  document.getElementById('tp-leverage-value').textContent = val + 'x';
+  tpCalculate();
+}
+
+// Adjust size
+function tpAdjustSize(delta) {
+  const input = document.getElementById('tp-size');
+  let val = parseFloat(input.value) || 0;
+  val = Math.max(0, val + delta);
+  input.value = val;
+  tpCalculate();
+}
+
+function tpSetMaxSize() {
+  document.getElementById('tp-size').value = Math.floor(TP_STATE.balance);
   tpCalculate();
 }
 
 // Calculate summary
 function tpCalculate() {
-  const pair = document.getElementById('tp-pair')?.value || 'BTCUSDT';
   const size = parseFloat(document.getElementById('tp-size')?.value) || 0;
   const tp = parseFloat(document.getElementById('tp-tp')?.value) || 10;
   const sl = parseFloat(document.getElementById('tp-sl')?.value) || 5;
-  const price = TP_STATE.prices[pair]?.price || 69000;
+  const priceData = TP_STATE.prices[TP_STATE.pair] || { price: 69000 };
+  const price = TP_STATE.orderType === 'limit' ? 
+    (parseFloat(document.getElementById('tp-limit-price')?.value) || priceData.price) : 
+    priceData.price;
   const lev = TP_STATE.leverage;
   const side = TP_STATE.side;
   
   const posValue = size * lev;
-  const liqMove = 100 / lev * 0.9; // ~90% of max
+  const margin = size;
+  const liqMove = 100 / lev * 0.9;
   const liqPrice = side === 'long' ? price * (1 - liqMove / 100) : price * (1 + liqMove / 100);
   const tpPrice = side === 'long' ? price * (1 + tp / 100) : price * (1 - tp / 100);
   const slPrice = side === 'long' ? price * (1 - sl / 100) : price * (1 + sl / 100);
   
-  document.getElementById('tp-sum-entry').textContent = '$' + price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  document.getElementById('tp-sum-value').textContent = '$' + posValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  document.getElementById('tp-sum-liq').textContent = '$' + liqPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  document.getElementById('tp-sum-tp').textContent = '$' + tpPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  document.getElementById('tp-sum-sl').textContent = '$' + slPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmt = (n) => '$' + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   
-  document.getElementById('tp-available').textContent = 'Available: $' + TP_STATE.balance.toLocaleString(undefined, { minimumFractionDigits: 2 });
+  document.getElementById('tp-sum-entry').textContent = fmt(price);
+  document.getElementById('tp-sum-value').textContent = fmt(posValue);
+  document.getElementById('tp-sum-margin').textContent = fmt(margin);
+  document.getElementById('tp-sum-liq').textContent = fmt(liqPrice);
+  document.getElementById('tp-sum-tp').textContent = fmt(tpPrice);
+  document.getElementById('tp-sum-sl').textContent = fmt(slPrice);
 }
 
 // Place order
 function tpPlaceOrder() {
-  const pair = document.getElementById('tp-pair')?.value || 'BTCUSDT';
   const size = parseFloat(document.getElementById('tp-size')?.value) || 0;
   const tp = parseFloat(document.getElementById('tp-tp')?.value) || 10;
   const sl = parseFloat(document.getElementById('tp-sl')?.value) || 5;
-  const price = TP_STATE.prices[pair]?.price || 69000;
+  const priceData = TP_STATE.prices[TP_STATE.pair] || { price: 69000 };
+  const price = priceData.price;
   
   if (size <= 0) {
     showToast('Enter a valid position size', 'error');
@@ -6509,7 +6790,7 @@ function tpPlaceOrder() {
   
   const position = {
     id: Date.now().toString(),
-    pair,
+    pair: TP_STATE.pair,
     side: TP_STATE.side,
     leverage: TP_STATE.leverage,
     size,
@@ -6525,7 +6806,7 @@ function tpPlaceOrder() {
   tpSaveState();
   tpUpdateUI();
   tpRenderPositions();
-  showToast(`Opened ${position.side.toUpperCase()} ${pair} @ $${price.toLocaleString()}`, 'success');
+  showToast(`Opened ${position.side.toUpperCase()} ${position.pair.replace('USDT','')} @ $${price.toLocaleString()}`, 'success');
 }
 
 // Close position
@@ -6537,34 +6818,21 @@ function tpClosePosition(id) {
   const currentPrice = TP_STATE.prices[pos.pair]?.price || pos.entryPrice;
   const pnl = tpCalcPnL(pos, currentPrice);
   
-  // Return margin + PnL
   TP_STATE.balance += pos.size + pnl;
-  
-  // Add to history
-  TP_STATE.history.unshift({
-    ...pos,
-    exitPrice: currentPrice,
-    pnl,
-    closedAt: Date.now()
-  });
-  
-  // Keep only last 50 trades
+  TP_STATE.history.unshift({ ...pos, exitPrice: currentPrice, pnl, closedAt: Date.now() });
   if (TP_STATE.history.length > 50) TP_STATE.history = TP_STATE.history.slice(0, 50);
-  
-  // Remove position
   TP_STATE.positions.splice(idx, 1);
   
   tpSaveState();
   tpUpdateUI();
   tpRenderPositions();
   tpRenderHistory();
-  tpUpdateStats();
   
   const pnlStr = pnl >= 0 ? '+$' + pnl.toFixed(2) : '-$' + Math.abs(pnl).toFixed(2);
-  showToast(`Closed ${pos.pair} | ${pnlStr}`, pnl >= 0 ? 'success' : 'error');
+  showToast(`Closed ${pos.pair.replace('USDT','')} | ${pnlStr}`, pnl >= 0 ? 'success' : 'error');
 }
 
-// Calculate PnL for a position
+// Calculate PnL
 function tpCalcPnL(pos, currentPrice) {
   const priceChange = (currentPrice - pos.entryPrice) / pos.entryPrice;
   const pnlPercent = pos.side === 'long' ? priceChange : -priceChange;
@@ -6576,36 +6844,27 @@ function tpUpdatePositionsPnL() {
   tpRenderPositions();
   tpUpdateUI();
   
-  // Check for TP/SL hits
-  TP_STATE.positions.forEach(pos => {
+  // Check TP/SL/Liquidation
+  [...TP_STATE.positions].forEach(pos => {
     const currentPrice = TP_STATE.prices[pos.pair]?.price || pos.entryPrice;
     const priceChange = ((currentPrice - pos.entryPrice) / pos.entryPrice) * 100;
     const effectiveChange = pos.side === 'long' ? priceChange : -priceChange;
     
-    // Check TP
     if (effectiveChange >= pos.tpPercent) {
-      showToast(`🎯 TP Hit! ${pos.pair}`, 'success');
+      showToast(`🎯 TP Hit! ${pos.pair.replace('USDT','')}`, 'success');
       tpClosePosition(pos.id);
-    }
-    // Check SL
-    else if (effectiveChange <= -pos.slPercent) {
-      showToast(`🛑 SL Hit! ${pos.pair}`, 'error');
+    } else if (effectiveChange <= -pos.slPercent) {
+      showToast(`🛑 SL Hit! ${pos.pair.replace('USDT','')}`, 'error');
       tpClosePosition(pos.id);
-    }
-    // Check liquidation
-    else if (effectiveChange <= -(100 / pos.leverage * 0.9)) {
-      showToast(`💥 Liquidated! ${pos.pair}`, 'error');
+    } else if (effectiveChange <= -(100 / pos.leverage * 0.9)) {
+      showToast(`💥 Liquidated! ${pos.pair.replace('USDT','')}`, 'error');
       tpClosePosition(pos.id);
     }
   });
 }
 
-// Update UI elements
+// Update UI
 function tpUpdateUI() {
-  const balEl = document.getElementById('tp-balance');
-  const pnlEl = document.getElementById('tp-pnl');
-  
-  // Calculate unrealized PnL
   let unrealizedPnL = 0;
   TP_STATE.positions.forEach(pos => {
     const currentPrice = TP_STATE.prices[pos.pair]?.price || pos.entryPrice;
@@ -6616,6 +6875,9 @@ function tpUpdateUI() {
   const totalPnL = totalEquity - TP_STATE.startBalance;
   const pnlPercent = (totalPnL / TP_STATE.startBalance) * 100;
   
+  const balEl = document.getElementById('tp-balance');
+  const pnlEl = document.getElementById('tp-pnl');
+  
   if (balEl) balEl.textContent = '$' + totalEquity.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   if (pnlEl) {
     const isUp = totalPnL >= 0;
@@ -6623,8 +6885,14 @@ function tpUpdateUI() {
     pnlEl.className = 'tp-balance-pnl ' + (isUp ? 'up' : 'down');
   }
   
-  document.getElementById('tp-pos-count').textContent = '(' + TP_STATE.positions.length + ')';
-  tpCalculate();
+  document.getElementById('tp-pos-count').textContent = TP_STATE.positions.length;
+  
+  // Update submit button
+  const btn = document.getElementById('tp-submit');
+  if (btn) {
+    btn.className = 'tp-submit-btn ' + TP_STATE.side;
+    btn.textContent = `${TP_STATE.side === 'long' ? 'Long' : 'Short'} ${TP_STATE.pair.replace('USDT', '/USDT')}`;
+  }
 }
 
 // Render positions
@@ -6633,7 +6901,7 @@ function tpRenderPositions() {
   if (!container) return;
   
   if (TP_STATE.positions.length === 0) {
-    container.innerHTML = `<div class="tp-empty"><div class="tp-empty-icon">📭</div><div>No open positions</div><div style="font-size:10px;margin-top:4px;color:#222">Place your first trade to get started</div></div>`;
+    container.innerHTML = `<div class="tp-empty"><div class="tp-empty-icon">📭</div><div class="tp-empty-text">No open positions</div></div>`;
     return;
   }
   
@@ -6642,25 +6910,31 @@ function tpRenderPositions() {
     const pnl = tpCalcPnL(pos, currentPrice);
     const pnlPercent = (pnl / pos.size) * 100;
     const isUp = pnl >= 0;
+    const liqMove = 100 / pos.leverage * 0.9;
+    const liqPrice = pos.side === 'long' ? pos.entryPrice * (1 - liqMove / 100) : pos.entryPrice * (1 + liqMove / 100);
     
     return `
-      <div class="tp-position">
-        <div class="tp-pos-head">
-          <div class="tp-pos-pair">
-            ${pos.pair.replace('USDT', '')}
-            <span class="tp-pos-side ${pos.side}">${pos.side.toUpperCase()}</span>
-            <span class="tp-pos-lev">${pos.leverage}x</span>
+      <div class="tp-position-card">
+        <div class="tp-pos-row1">
+          <div class="tp-pos-symbol">
+            <span class="tp-pos-symbol-name">${pos.pair.replace('USDT', '')}/USDT</span>
+            <span class="tp-pos-badge ${pos.side}">${pos.side.toUpperCase()}</span>
+            <span class="tp-pos-badge lev">${pos.leverage}x</span>
           </div>
-          <div class="tp-pos-pnl ${isUp ? 'up' : 'down'}">
-            ${isUp ? '+' : ''}$${pnl.toFixed(2)} (${isUp ? '+' : ''}${pnlPercent.toFixed(2)}%)
+          <div class="tp-pos-pnl">
+            <div class="tp-pos-pnl-value ${isUp ? 'up' : 'down'}">${isUp ? '+' : ''}$${pnl.toFixed(2)}</div>
+            <div class="tp-pos-pnl-percent">${isUp ? '+' : ''}${pnlPercent.toFixed(2)}%</div>
           </div>
         </div>
-        <div class="tp-pos-info">
-          <div>Entry: <span>$${pos.entryPrice.toLocaleString()}</span></div>
-          <div>Current: <span>$${currentPrice.toLocaleString()}</span></div>
-          <div>Size: <span>$${pos.size}</span></div>
+        <div class="tp-pos-row2">
+          <div class="tp-pos-stat">Size<span>$${pos.size}</span></div>
+          <div class="tp-pos-stat">Entry<span>$${pos.entryPrice.toLocaleString()}</span></div>
+          <div class="tp-pos-stat">Mark<span>$${currentPrice.toLocaleString()}</span></div>
+          <div class="tp-pos-stat">Liq<span style="color:#E24B4A">$${liqPrice.toLocaleString()}</span></div>
         </div>
-        <button class="tp-pos-close" onclick="tpClosePosition('${pos.id}')">Close Position</button>
+        <div class="tp-pos-actions">
+          <button onclick="tpClosePosition('${pos.id}')" class="close">Close Position</button>
+        </div>
       </div>
     `;
   }).join('');
@@ -6672,74 +6946,69 @@ function tpRenderHistory() {
   if (!container) return;
   
   if (TP_STATE.history.length === 0) {
-    container.innerHTML = `<div class="tp-empty"><div class="tp-empty-icon">📋</div><div>No trade history yet</div></div>`;
+    container.innerHTML = `<div class="tp-empty"><div class="tp-empty-icon">📜</div><div class="tp-empty-text">No trade history</div></div>`;
     return;
   }
   
-  container.innerHTML = TP_STATE.history.map(h => {
+  container.innerHTML = TP_STATE.history.slice(0, 20).map(h => {
     const isUp = h.pnl >= 0;
     const time = new Date(h.closedAt).toLocaleString();
     return `
-      <div class="tp-history-item">
-        <div class="tp-hist-left">
-          <span class="tp-hist-pair">${h.pair.replace('USDT', '')}</span>
-          <span class="tp-hist-side ${h.side}">${h.side.toUpperCase()} ${h.leverage}x</span>
-        </div>
-        <div class="tp-hist-right">
-          <div class="tp-hist-pnl ${isUp ? 'up' : 'down'}">${isUp ? '+' : ''}$${h.pnl.toFixed(2)}</div>
-          <div class="tp-hist-time">${time}</div>
+      <div class="tp-position-card" style="padding:8px 10px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div class="tp-pos-symbol">
+            <span class="tp-pos-symbol-name" style="font-size:12px">${h.pair.replace('USDT','')}</span>
+            <span class="tp-pos-badge ${h.side}">${h.side.toUpperCase()}</span>
+            <span class="tp-pos-badge lev">${h.leverage}x</span>
+          </div>
+          <div style="text-align:right">
+            <div class="tp-pos-pnl-value ${isUp ? 'up' : 'down'}" style="font-size:13px">${isUp ? '+' : ''}$${h.pnl.toFixed(2)}</div>
+            <div style="font-size:9px;color:#333">${time}</div>
+          </div>
         </div>
       </div>
     `;
   }).join('');
 }
 
-// Update stats
-function tpUpdateStats() {
-  const trades = TP_STATE.history.length;
-  const wins = TP_STATE.history.filter(h => h.pnl > 0).length;
-  const winrate = trades > 0 ? (wins / trades) * 100 : 0;
-  const totalProfit = TP_STATE.history.filter(h => h.pnl > 0).reduce((a, h) => a + h.pnl, 0);
-  const totalLoss = Math.abs(TP_STATE.history.filter(h => h.pnl < 0).reduce((a, h) => a + h.pnl, 0));
-  const best = TP_STATE.history.length > 0 ? Math.max(...TP_STATE.history.map(h => h.pnl)) : 0;
-  const worst = TP_STATE.history.length > 0 ? Math.min(...TP_STATE.history.map(h => h.pnl)) : 0;
-  
-  document.getElementById('tp-stat-trades').textContent = trades;
-  document.getElementById('tp-stat-winrate').textContent = winrate.toFixed(1) + '%';
-  document.getElementById('tp-stat-profit').textContent = '$' + totalProfit.toFixed(2);
-  document.getElementById('tp-stat-loss').textContent = '$' + totalLoss.toFixed(2);
-  document.getElementById('tp-stat-best').textContent = '$' + best.toFixed(2);
-  document.getElementById('tp-stat-worst').textContent = '$' + worst.toFixed(2);
-}
-
 // Show tab
 function tpShowTab(tab) {
-  document.querySelectorAll('.tp-panel-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tp-pos-tab').forEach(t => t.classList.remove('active'));
   document.getElementById('tp-tab-' + tab)?.classList.add('active');
   
   document.getElementById('tp-positions').style.display = tab === 'positions' ? 'block' : 'none';
+  document.getElementById('tp-orders').style.display = tab === 'orders' ? 'block' : 'none';
   document.getElementById('tp-history').style.display = tab === 'history' ? 'block' : 'none';
-  document.getElementById('tp-stats').style.display = tab === 'stats' ? 'block' : 'none';
+}
+
+// Chart controls
+function tpSetTimeframe(tf) {
+  TP_STATE.timeframe = tf;
+  document.querySelectorAll('.tp-chart-tf button').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  tpUpdateChartData();
+}
+
+function tpSetChartType(type) {
+  TP_STATE.chartType = type;
+  document.querySelectorAll('.tp-chart-type button').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
 }
 
 // Reset account
 function tpResetAccount() {
-  if (!confirm('Reset your paper trading account? All positions and history will be cleared.')) return;
+  if (!confirm('Reset paper account? All positions and history will be cleared.')) return;
   TP_STATE = {
-    exchange: 'binance',
-    side: 'long',
-    leverage: 10,
+    ...TP_STATE,
     balance: 10000,
     startBalance: 10000,
     positions: [],
-    history: [],
-    prices: TP_STATE.prices
+    history: []
   };
   tpSaveState();
   tpUpdateUI();
   tpRenderPositions();
   tpRenderHistory();
-  tpUpdateStats();
   showToast('Paper account reset!', 'success');
 }
 
