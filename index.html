@@ -4579,6 +4579,22 @@ function authForceLogout(){
   if(aiFab){aiFab.style.opacity='0';aiFab.style.pointerEvents='none';}
   // reset Google button
   resetGoogleBtn();
+  // reset login form
+  const loginBtn=document.getElementById('auth-login-btn');
+  if(loginBtn){loginBtn.disabled=false;loginBtn.textContent='login';}
+  const regBtn=document.getElementById('auth-reg-btn');
+  if(regBtn){regBtn.disabled=false;regBtn.textContent='create account';}
+  const loginErr=document.getElementById('auth-login-err');
+  if(loginErr) loginErr.textContent='';
+  const regErr=document.getElementById('auth-reg-err');
+  if(regErr) regErr.textContent='';
+  // clear form inputs
+  const loginInput=document.getElementById('auth-login-input');
+  if(loginInput) loginInput.value='';
+  const passInput=document.getElementById('auth-pass-input');
+  if(passInput) passInput.value='';
+  // show login tab
+  authShowTab('login');
   // show auth layer again
   const al=document.getElementById('auth-layer');
   al.classList.remove('hidden','out');
