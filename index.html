@@ -2,7 +2,14 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#000000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BATT">
+<meta name="description" content="Bet all the time, bet with style - Trading projection dashboard">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%23000' width='100' height='100' rx='20'/><text y='65' x='50' text-anchor='middle' font-size='50' fill='%2300c47a'>📊</text></svg>">
 <title>bet all the time, bet with style</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -638,9 +645,59 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 .back-to-member:hover{background:#0d0d0d;border-color:#00c47a}
 .back-to-member:active{cursor:grabbing}
 .back-to-member.visible{opacity:1;pointer-events:all}
+
+/* ── TOAST NOTIFICATIONS ── */
+#toast-container{position:fixed;bottom:24px;right:24px;z-index:99999;display:flex;flex-direction:column;gap:10px;pointer-events:none}
+.toast{padding:14px 20px;background:#111;border:0.5px solid #222;border-radius:12px;color:#fff;font-size:12px;font-weight:500;display:flex;align-items:center;gap:10px;pointer-events:all;animation:toastIn .3s ease;box-shadow:0 8px 32px rgba(0,0,0,.4);max-width:320px}
+.toast.success{border-color:#004d30;background:#0a1a10}
+.toast.success::before{content:'✓';color:#00c47a;font-size:14px;font-weight:700}
+.toast.error{border-color:#4d0000;background:#1a0a0a}
+.toast.error::before{content:'✕';color:#E24B4A;font-size:14px;font-weight:700}
+.toast.info{border-color:#004d4d;background:#0a1a1a}
+.toast.info::before{content:'ℹ';color:#00c4c4;font-size:14px;font-weight:700}
+.toast.out{animation:toastOut .3s ease forwards}
+@keyframes toastIn{from{opacity:0;transform:translateX(100%)}to{opacity:1;transform:translateX(0)}}
+@keyframes toastOut{from{opacity:1;transform:translateX(0)}to{opacity:0;transform:translateX(100%)}}
+
+/* ── KEYBOARD SHORTCUTS HINT ── */
+.kbd-hint{position:fixed;bottom:24px;left:24px;z-index:9000;display:flex;gap:12px;opacity:0;transition:opacity .3s;pointer-events:none}
+.kbd-hint.visible{opacity:1}
+.kbd{display:inline-flex;align-items:center;gap:4px;font-size:9px;color:#333}
+.kbd kbd{background:#1a1a1a;border:0.5px solid #222;border-radius:4px;padding:2px 6px;font-family:inherit;font-size:8px;color:#555}
+
+/* ── LOADING SKELETON ── */
+.skeleton{background:linear-gradient(90deg,#1a1a1a 25%,#222 50%,#1a1a1a 75%);background-size:200% 100%;animation:shimmer 1.5s infinite}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+/* ── QUICK STATS ── */
+.l3-stats{display:flex;gap:12px;margin-bottom:28px;flex-wrap:wrap}
+.l3-stat{background:#0d0d0d;border:0.5px solid #1a1a1a;border-radius:10px;padding:14px 18px;min-width:120px;flex:1}
+.l3-stat-value{font-size:20px;font-weight:800;color:#00c47a;margin-bottom:2px}
+.l3-stat-label{font-size:9px;color:#444;text-transform:uppercase;letter-spacing:.06em}
+.l3-stat-sub{font-size:9px;color:#333;margin-top:4px}
+
+/* ── AVATAR WITH IMAGE ── */
+.l3-avatar{width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#00c47a,#00a060);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#000;text-transform:uppercase;overflow:hidden}
+.l3-avatar img{width:100%;height:100%;object-fit:cover}
+
+/* ── SYNC STATUS ── */
+.l3-sync-status{font-size:9px;color:#333;margin-top:4px;text-align:center}
+
+/* ── COMING SOON CARDS ── */
+.l3-card-soon{opacity:0.5;cursor:pointer}
+.l3-card-soon:hover{opacity:0.7;transform:none;box-shadow:none;border-color:#1a1a1a}
 </style>
 </head>
 <body class="t-light">
+<!-- TOAST NOTIFICATIONS -->
+<div id="toast-container"></div>
+
+<!-- KEYBOARD SHORTCUTS HINT (shown in dashboard) -->
+<div class="kbd-hint" id="kbd-hint">
+  <span class="kbd"><kbd>Ctrl</kbd>+<kbd>S</kbd> sync</span>
+  <span class="kbd"><kbd>Esc</kbd> back</span>
+</div>
+
 <!-- MEMBER PANEL OVERLAY -->
 <div id="member-overlay" onclick="memberClose()"></div>
 
@@ -783,15 +840,35 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
           <p id="l3-email">user@email.com</p>
         </div>
       </div>
-      <div class="l3-actions">
-        <button class="l3-btn l3-btn-sync" onclick="authSave()">↑ sync</button>
-        <button class="l3-btn l3-btn-logout" onclick="authLogout()">logout</button>
+      <div class="l3-actions" style="flex-direction:column;align-items:flex-end;gap:4px">
+        <div style="display:flex;gap:10px">
+          <button class="l3-btn l3-btn-sync" id="l3-sync-btn" onclick="authSaveWithToast()">↑ sync</button>
+          <button class="l3-btn l3-btn-logout" onclick="authLogout()">logout</button>
+        </div>
+        <div class="l3-sync-status" id="l3-sync-status">never synced</div>
       </div>
     </div>
 
     <div class="l3-welcome">
       <h1>welcome back,<br><span id="l3-welcome-name">trader</span></h1>
       <p>your personal trading hub — explore features below</p>
+    </div>
+
+    <!-- QUICK STATS -->
+    <div class="l3-stats">
+      <div class="l3-stat">
+        <div class="l3-stat-value" id="l3-stat-presets">0</div>
+        <div class="l3-stat-label">saved presets</div>
+      </div>
+      <div class="l3-stat">
+        <div class="l3-stat-value" id="l3-stat-days">0</div>
+        <div class="l3-stat-label">days active</div>
+      </div>
+      <div class="l3-stat">
+        <div class="l3-stat-value" id="l3-stat-syncs">0</div>
+        <div class="l3-stat-label">total syncs</div>
+        <div class="l3-stat-sub" id="l3-stat-syncs-sub"></div>
+      </div>
     </div>
 
     <div class="l3-section-title">📦 tools & features</div>
@@ -814,19 +891,19 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
         <h3>Account</h3>
         <p>View your profile, manage cloud sync, and account settings.</p>
       </div>
-      <div class="l3-card" style="opacity:0.5;cursor:not-allowed" onclick="alert('Coming soon!')">
+      <div class="l3-card l3-card-soon" onclick="showToast('Coming soon! Stay tuned.','info')">
         <span class="l3-card-badge soon">soon</span>
         <div class="l3-card-icon">📈</div>
         <h3>Trade Journal</h3>
         <p>Log your real trades, track performance, and analyze your win rate over time.</p>
       </div>
-      <div class="l3-card" style="opacity:0.5;cursor:not-allowed" onclick="alert('Coming soon!')">
+      <div class="l3-card l3-card-soon" onclick="showToast('Coming soon! Stay tuned.','info')">
         <span class="l3-card-badge soon">soon</span>
         <div class="l3-card-icon">🎯</div>
         <h3>Risk Calculator</h3>
         <p>Quick position sizing tool — calculate risk per trade based on your account and stop loss.</p>
       </div>
-      <div class="l3-card" style="opacity:0.5;cursor:not-allowed" onclick="alert('Coming soon!')">
+      <div class="l3-card l3-card-soon" onclick="showToast('Coming soon! Stay tuned.','info')">
         <span class="l3-card-badge soon">soon</span>
         <div class="l3-card-icon">📚</div>
         <h3>Learning Hub</h3>
@@ -3581,10 +3658,12 @@ function launchApp(){
   if(window._attachAiFabDrag) window._attachAiFabDrag();
   document.documentElement.style.overflow='auto';
   document.body.style.overflow='auto';
-  // show back button only for logged-in users
+  // show back button and keyboard hints only for logged-in users
   if(AUTH_TOKEN){
     const backBtn=document.getElementById('back-to-member');
     if(backBtn) backBtn.classList.add('visible');
+    const kbdHint=document.getElementById('kbd-hint');
+    if(kbdHint) setTimeout(()=>{kbdHint.classList.add('visible');},2000);
   }
   l2.classList.add('out');
   setTimeout(()=>{l2.classList.add('hidden');showGuidePopup();},900);
@@ -3651,6 +3730,8 @@ function authOnSuccess(d){
       });
     }catch(e){console.warn('data merge error',e);}
   }
+  // show welcome toast
+  showToast('Welcome back, '+(d.user?.username||'trader')+'!','success');
   // hide auth, show layer3 (member area)
   const al=document.getElementById('auth-layer');
   al.style.opacity='0';
@@ -3690,7 +3771,7 @@ async function authGoogleLogin(){
                 headers:{'Authorization':'Bearer '+response.access_token}
               });
               const userData=await userRes.json();
-              await sendGoogleToWorker(userData.id,userData.email,userData.name);
+              await sendGoogleToWorker(userData.id,userData.email,userData.name,userData.picture);
             }
           }
         }).requestAccessToken();
@@ -3706,10 +3787,10 @@ async function authGoogleLogin(){
 async function handleGoogleCredential(response){
   // Decode JWT to get user info
   const payload=JSON.parse(atob(response.credential.split('.')[1]));
-  await sendGoogleToWorker(payload.sub,payload.email,payload.name);
+  await sendGoogleToWorker(payload.sub,payload.email,payload.name,payload.picture);
 }
 
-async function sendGoogleToWorker(google_id,email,name){
+async function sendGoogleToWorker(google_id,email,name,picture){
   try{
     const res=await fetch(AUTH_URL+'/auth/google',{
       method:'POST',
@@ -3719,17 +3800,17 @@ async function sendGoogleToWorker(google_id,email,name){
     const data=await res.json();
     if(data.ok&&data.token){
       AUTH_TOKEN=data.token;
-      AUTH_USER=data.user;  // <-- THIS WAS MISSING!
+      // add picture to user object
+      AUTH_USER=data.user ? {...data.user, picture:picture} : {email,name,picture};
       localStorage.setItem('batt_token',data.token);
-      if(data.user){
-        localStorage.setItem('wz_user',JSON.stringify(data.user));
-      }
+      localStorage.setItem('wz_user',JSON.stringify(AUTH_USER));
       // show user bar
       const ub=document.getElementById('auth-user-bar');
       const ul=document.getElementById('auth-username-lbl');
       if(ub)ub.classList.remove('hidden');
       if(ul)ul.textContent='@'+(data.user?.username||email.split('@')[0]);
       // hide auth layer, go to layer 3 (member area)
+      showToast('Welcome back, '+(data.user?.username||name||email.split('@')[0])+'!','success');
       const al=document.getElementById('auth-layer');
       if(al){al.style.opacity='0';setTimeout(()=>{al.classList.add('hidden');goLayer3();},500);}
     }else{
@@ -3790,12 +3871,15 @@ async function authLogout(){
     fetch(AUTH_URL+'/auth/logout',{method:'POST',headers:{'Authorization':'Bearer '+AUTH_TOKEN}}).catch(()=>{});
   }
   authForceLogout();
+  showToast('Logged out successfully','info');
 }
 
 function authForceLogout(){
   AUTH_TOKEN=null; AUTH_USER=null;
   localStorage.removeItem('batt_token');
   localStorage.removeItem('wz_user');
+  localStorage.removeItem('wz_sync_count');
+  localStorage.removeItem('wz_last_sync');
   // hide user bar
   const ub=document.getElementById('auth-user-bar');
   if(ub) ub.classList.add('hidden');
@@ -3808,6 +3892,9 @@ function authForceLogout(){
   // hide back button
   const backBtn=document.getElementById('back-to-member');
   if(backBtn) backBtn.classList.remove('visible');
+  // hide keyboard hints
+  const kbdHint=document.getElementById('kbd-hint');
+  if(kbdHint) kbdHint.classList.remove('visible');
   // hide AI fab
   const aiFab=document.getElementById('ai-fab');
   if(aiFab){aiFab.style.opacity='0';aiFab.style.pointerEvents='none';}
@@ -3818,6 +3905,122 @@ function authForceLogout(){
   al.classList.remove('hidden','out');
   al.style.opacity='1';
 }
+
+// ── TOAST NOTIFICATIONS ──
+function showToast(message, type='info', duration=3500){
+  const container=document.getElementById('toast-container');
+  if(!container) return;
+  const toast=document.createElement('div');
+  toast.className='toast '+type;
+  toast.innerHTML='<span>'+message+'</span>';
+  container.appendChild(toast);
+  setTimeout(()=>{
+    toast.classList.add('out');
+    setTimeout(()=>toast.remove(),300);
+  },duration);
+}
+
+// ── SYNC WITH TOAST ──
+async function authSaveWithToast(){
+  if(!AUTH_TOKEN){showToast('Please log in first to sync','error');return;}
+  const btn=document.getElementById('l3-sync-btn');
+  if(btn){btn.textContent='syncing...';btn.disabled=true;}
+  try{
+    const snapshot={};
+    ['36','q',...CUSTOM_TABS.map(t=>t.id)].forEach(id=>{
+      if(!S[id])return;
+      const s=S[id];
+      snapshot[id]={...s,ZM:[...s.ZM]};
+    });
+    const r=await fetch(AUTH_URL+'/data/save',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+AUTH_TOKEN},
+      body:JSON.stringify({data:snapshot})
+    });
+    const d=await r.json();
+    if(d.ok){
+      // increment sync count
+      let syncCount=parseInt(localStorage.getItem('wz_sync_count')||'0')+1;
+      localStorage.setItem('wz_sync_count',syncCount);
+      localStorage.setItem('wz_last_sync',Date.now());
+      updateMemberStats();
+      if(btn){btn.textContent='✓ synced';setTimeout(()=>{btn.textContent='↑ sync';btn.disabled=false;},1500);}
+      showToast('Synced to cloud successfully!','success');
+    } else {
+      if(btn){btn.textContent='↑ sync';btn.disabled=false;}
+      showToast(d.error||'Sync failed','error');
+      if(d.error==='Unauthorized — please log in') authForceLogout();
+    }
+  }catch(e){
+    if(btn){btn.textContent='↑ sync';btn.disabled=false;}
+    showToast('Connection failed — check your internet','error');
+  }
+}
+
+// ── UPDATE MEMBER AREA STATS ──
+function updateMemberStats(){
+  // preset count
+  const presetCount=document.getElementById('l3-stat-presets');
+  if(presetCount){
+    try{
+      const presets=JSON.parse(localStorage.getItem('wz_presets')||'[]');
+      presetCount.textContent=presets.length;
+    }catch(e){presetCount.textContent='0';}
+  }
+  // days active
+  const daysEl=document.getElementById('l3-stat-days');
+  if(daysEl && AUTH_USER && AUTH_USER.created_at){
+    const created=new Date(AUTH_USER.created_at);
+    const now=new Date();
+    const days=Math.floor((now-created)/(1000*60*60*24))+1;
+    daysEl.textContent=days;
+  }
+  // sync count
+  const syncsEl=document.getElementById('l3-stat-syncs');
+  const syncsSub=document.getElementById('l3-stat-syncs-sub');
+  if(syncsEl){
+    syncsEl.textContent=localStorage.getItem('wz_sync_count')||'0';
+  }
+  // last sync
+  const syncStatus=document.getElementById('l3-sync-status');
+  if(syncStatus){
+    const lastSync=localStorage.getItem('wz_last_sync');
+    if(lastSync){
+      const diff=Date.now()-parseInt(lastSync);
+      const mins=Math.floor(diff/60000);
+      const hours=Math.floor(diff/3600000);
+      const days=Math.floor(diff/86400000);
+      if(mins<1) syncStatus.textContent='synced just now';
+      else if(mins<60) syncStatus.textContent='synced '+mins+' min ago';
+      else if(hours<24) syncStatus.textContent='synced '+hours+' hr ago';
+      else syncStatus.textContent='synced '+days+' days ago';
+    }else{
+      syncStatus.textContent='never synced';
+    }
+  }
+}
+
+// ── KEYBOARD SHORTCUTS ──
+document.addEventListener('keydown',function(e){
+  // Ctrl+S or Cmd+S = sync
+  if((e.ctrlKey||e.metaKey)&&e.key==='s'){
+    e.preventDefault();
+    if(AUTH_TOKEN){
+      authSaveWithToast();
+    }else{
+      authSave();
+    }
+  }
+  // Esc = back to member area (only when in dashboard)
+  if(e.key==='Escape'){
+    const app=document.querySelector('.app');
+    const backBtn=document.getElementById('back-to-member');
+    if(app && backBtn && backBtn.classList.contains('visible')){
+      e.preventDefault();
+      backToMemberArea();
+    }
+  }
+});
 
 // ── LAYER 3: MEMBER AREA NAVIGATION ──
 function goLayer3(){
@@ -3832,11 +4035,21 @@ function goLayer3(){
     const email=document.getElementById('l3-email');
     const welcomeName=document.getElementById('l3-welcome-name');
     const displayName = user.username || (user.email ? user.email.split('@')[0] : 'user');
-    if(avatar) avatar.textContent = displayName[0].toUpperCase();
+    // show Google avatar if available
+    if(avatar){
+      if(user.picture){
+        avatar.innerHTML='<img src="'+user.picture+'" alt="'+displayName+'">';
+      }else{
+        avatar.innerHTML='';
+        avatar.textContent = displayName[0].toUpperCase();
+      }
+    }
     if(username) username.textContent = '@' + displayName;
     if(email) email.textContent = user.email || '';
     if(welcomeName) welcomeName.textContent = displayName;
   }
+  // update stats
+  updateMemberStats();
   // hide layer2 if visible
   const l2=document.getElementById('layer2');
   if(l2){l2.classList.add('hidden');l2.style.opacity='0';}
@@ -3863,6 +4076,9 @@ function backToMemberArea(){
   // hide back button
   const backBtn=document.getElementById('back-to-member');
   if(backBtn) backBtn.classList.remove('visible');
+  // hide keyboard hints
+  const kbdHint=document.getElementById('kbd-hint');
+  if(kbdHint) kbdHint.classList.remove('visible');
   // hide AI fab
   const aiFab=document.getElementById('ai-fab');
   if(aiFab){aiFab.style.opacity='0';aiFab.style.pointerEvents='none';}
