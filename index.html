@@ -4215,7 +4215,15 @@ function buildAssessment(months, s){
   // wipe state — funny assess bar
   if(IS_WIPED){
     const _lbl=LANG==='id';
-    const wipeFunny2=[
+    const fmVal = s.NOT/s.LEV/s.P*100;
+    const isFmError = fmVal > 100;
+    const wipeFunny2= isFmError ? [
+      ['risk score','🚫 INVALID','can\'t even start'],['FM%',fmVal.toFixed(0)+'%','margin > capital'],
+      ['leverage',gs().LEV+'×','need more'],['avg monthly','n/a','position rejected'],
+      ['CAGR','math.exe stopped','fix FM% first'],['lifespan','0ms','exchange says no'],
+      ['net seq','denied','increase lev or capital'],['verdict','fix FM% first','margin exceeds account'],
+      ['fees','$0','no trades possible'],
+    ] : [
       ['risk score','💀 EXTREME','broke math'],['liq%','0.0%','instant death'],
       ['leverage',gs().LEV+'×','the culprit'],['avg monthly','fictional','reduce notional'],
       ['CAGR','lmao','fix setup first'],['lifespan','0ms','one tick = dead'],
@@ -4421,7 +4429,18 @@ function buildAssessment(months, s){
 function buildAssessmentCards(months, s){
   // wipe state — funny cards
   if(IS_WIPED){
-    const wipeFunny=[
+    const fmVal = s.NOT/s.LEV/s.P*100;
+    const isFmError = fmVal > 100;
+    const wipeFunny= isFmError ? [
+      ['risk score',   '🚫 invalid',       'position rejected'],
+      ['FM%',          fmVal.toFixed(0)+'%', 'margin > capital'],
+      ['leverage',     s.LEV+'×',          'need higher lev'],
+      ['avg monthly',  'n/a',              'can\'t even start'],
+      ['3yr CAGR',     'error 404',        'fix FM% first'],
+      ['lifespan',     '0 seconds',        'exchange says no'],
+      ['net seq',      'denied',           'increase lev or cap'],
+      ['verdict',      'fix FM% ≤100%',    'margin exceeds account'],
+    ] : [
       ['risk score',   '💀 infinite',      'broke the universe'],
       ['liq% buffer',  '0.0%',             'any move = instant wipe'],
       ['leverage',     s.LEV+'×',          'the murder weapon'],
@@ -4860,9 +4879,11 @@ function renderTbl(months){
       const wdVal=s.WD[mo.m]||0;
       // Wipe state: show error row instead of calculated values
       if(IS_WIPED){
+        const fmVal = s.NOT/s.LEV/s.P*100;
+        const isFmError = fmVal > 100;
         h+=`<tr class="wipe-row">
           <td>${getML(mo.m)}</td>
-          <td colspan="10" style="font-size:10px;letter-spacing:.02em">💸 ${lbl_w?'setup tidak valid — liq% < 1%, tidak ada nilai yang bisa dihitung':'invalid setup — liq% < 1%, no values can be calculated'}</td>
+          <td colspan="10" style="font-size:10px;letter-spacing:.02em">${isFmError?'🚫':'💸'} ${lbl_w?(isFmError?'setup tidak valid — FM% > 100%, posisi tidak bisa dibuka':'setup tidak valid — liq% < 1%, tidak ada nilai yang bisa dihitung'):(isFmError?'invalid setup — FM% > 100%, position cannot be opened':'invalid setup — liq% < 1%, no values can be calculated')}</td>
         </tr>`;
         return;
       }
@@ -4943,7 +4964,9 @@ function renderTbl(months){
       const ll=actTr.length?actTr[actTr.length-1].liq:0;
       const wdVal=s.WD[mo.m]||0;
       if(IS_WIPED){
-        h+=`<tr class="wipe-row"><td style="text-align:left">${getML(mo.m)}</td><td colspan="12">💸 ${lbl_w?'setup tidak valid — liq% < 1%':'invalid setup — liq% < 1%'}</td></tr>`;
+        const fmVal = s.NOT/s.LEV/s.P*100;
+        const isFmError = fmVal > 100;
+        h+=`<tr class="wipe-row"><td style="text-align:left">${getML(mo.m)}</td><td colspan="12">${isFmError?'🚫':'💸'} ${lbl_w?(isFmError?'setup tidak valid — FM% > 100%':'setup tidak valid — liq% < 1%'):(isFmError?'invalid setup — FM% > 100%':'invalid setup — liq% < 1%')}</td></tr>`;
         return;
       }
       if(mo.bust){
@@ -7731,6 +7754,12 @@ async function loadSharedPreset(shareCode){
       document.body.className=snapshot._meta.theme;
     }
     
+    // Restore notional link state
+    if(snapshot._meta&&typeof snapshot._meta.notLinked==='boolean'){
+      NOT_LINKED=snapshot._meta.notLinked;
+      localStorage.setItem('batt_not_linked',NOT_LINKED?'true':'false');
+    }
+    
     // Re-render
     if(typeof renderTabBar==='function') renderTabBar();
     if(typeof syncControls==='function') syncControls();
@@ -10261,6 +10290,11 @@ document.getElementById('shortcuts-panel')?.addEventListener('click', (e) => {
 var projectionChart = null;
 
 function openProjectionChart() {
+  // Don't open if in wipe state
+  if (IS_WIPED) {
+    showToast('Fix setup errors first', 'error');
+    return;
+  }
   const wrap = document.getElementById('projection-chart-wrap');
   wrap.classList.add('show');
   renderProjectionChart();
@@ -10458,6 +10492,11 @@ function renderCompareColumn(colNum, name, data) {
 
 // ── MONTE CARLO SIMULATION ──
 function openMonteCarlo() {
+  // Don't run if in wipe state
+  if (IS_WIPED) {
+    showToast('Fix setup errors first', 'error');
+    return;
+  }
   showToast('Monte Carlo: Running 1000 simulations...', 'info');
   trackPowerUser('monte_carlo');
   
@@ -10509,6 +10548,11 @@ function openMonteCarlo() {
 
 // ── RISK HEATMAP ──
 function openRiskHeatmap() {
+  // Don't open if in wipe state
+  if (IS_WIPED) {
+    showToast('Fix setup errors first', 'error');
+    return;
+  }
   trackPowerUser('risk_heatmap');
   
   const tabId = document.querySelector('.tab-btn.on')?.dataset?.tab || '36';
