@@ -1731,14 +1731,14 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
       <div class="l3-card" onclick="openDashboard()">
         <span class="l3-card-badge live">live</span>
         <div class="l3-card-icon">📊</div>
-        <h3>Risk Calculator</h3>
-        <p>Plan your trades, calculate liquidation levels, and project 36-month portfolio growth. Your preparation tool before trading.</p>
+        <h3>Dashboard Cockpit</h3>
+        <p>Your command center for preparation. Calculate risk, plan positions, and project portfolio growth before you trade.</p>
       </div>
       <div class="l3-card" onclick="openTradingPage()">
         <span class="l3-card-badge live">live</span>
         <div class="l3-card-icon">⚡</div>
-        <h3>Practice Arena</h3>
-        <p>Test strategies with real Binance data. Paper trade, track positions, and build confidence — zero risk involved.</p>
+        <h3>Trade Panel</h3>
+        <p>Execute and practice with real market data. Chart analysis, order management, and skill building — all in one place.</p>
       </div>
       <div class="l3-card l3-card-soon" onclick="showToast('Coming soon! Stay tuned.','info')">
         <span class="l3-card-badge soon">soon</span>
@@ -1755,8 +1755,8 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
       <div class="l3-card l3-card-soon" onclick="showToast('Coming soon! Stay tuned.','info')">
         <span class="l3-card-badge soon">soon</span>
         <div class="l3-card-icon">🤝</div>
-        <h3>Find Your Style</h3>
-        <p>Everyone trades differently. Explore approaches with our community and discover what clicks for you.</p>
+        <h3>Bet With Us</h3>
+        <p>We're building something together. Share ideas, connect with like-minded traders, and help shape how this platform grows.</p>
       </div>
     </div>
 
@@ -1771,11 +1771,11 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
           <button onclick="l3AiSetLang('id')">ID</button>
         </div>
       </div>
-      <div class="l3-ai-desc" id="l3-ai-desc">I know everything about this site — from the Risk Calculator to Practice Arena. Ask me anything!</div>
+      <div class="l3-ai-desc" id="l3-ai-desc">I know everything about this site — from the Dashboard Cockpit to Trade Panel. Ask me anything!</div>
       <div class="l3-ai-chips" id="l3-ai-chips">
         <button onclick="l3AiAsk('what')">What can I do here?</button>
-        <button onclick="l3AiAsk('risk')">How does the Risk Calculator work?</button>
-        <button onclick="l3AiAsk('practice')">Tell me about Practice Arena</button>
+        <button onclick="l3AiAsk('risk')">How does the Dashboard Cockpit work?</button>
+        <button onclick="l3AiAsk('practice')">Tell me about Trade Panel</button>
         <button onclick="l3AiAsk('presets')">How do presets work?</button>
       </div>
       <div class="l3-ai-response" id="l3-ai-response"></div>
@@ -2056,9 +2056,6 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
     <div class="tp-pair-list" id="tp-pair-list"></div>
   </div>
 </div>
-
-<!-- BACK TO MEMBER AREA BUTTON (shown when in dashboard) -->
-<button class="back-to-member" id="back-to-member" onclick="backToMemberArea()">← member area</button>
 
 <!-- LAYER 1 - philosophy -->
 <div id="layer1" onclick="goAuth()">
@@ -5632,30 +5629,30 @@ var L3_AI_LANG = 'en';
 
 var L3_AI_RESPONSES = {
   en: {
-    what: "Welcome to BATT! Here's what you can do:\n\n📊 <b>Risk Calculator</b> — Plan your trades, set position sizes, calculate liquidation levels, and project your portfolio growth over 36 months.\n\n⚡ <b>Practice Arena</b> — Paper trade with real Binance market data. Test strategies, track positions, and build confidence without risking real money.\n\n💾 <b>Presets</b> — Save your calculator configurations and load them anytime. Share presets with friends too!\n\n📈 <b>Trade Journal</b> (coming soon) — Log and analyze your real trades.\n\n🤝 <b>Find Your Style</b> (coming soon) — Discover trading approaches that match your personality.",
-    risk: "The <b>Risk Calculator</b> is your preparation tool before trading.\n\n• Set your starting capital and position size\n• Configure up to 10 trade slots with target % and frequency\n• See liquidation levels for each trade\n• Project your portfolio growth over 36 months\n• Toggle between Leverage and Spot modes\n• Use quarter view for detailed monthly breakdowns\n\nThe calculator uses notional compounding — each trade's profit adds to your next trade's base. It's all about planning before you execute!",
-    practice: "The <b>Practice Arena</b> lets you paper trade with real market data.\n\n• Real-time prices from Binance API\n• Live order book with clickable prices\n• Place market & limit orders (Spot or Perpetual)\n• Track open positions with live P&L\n• Set Take Profit & Stop Loss\n• View your trade history and stats\n• Reset anytime to start fresh\n\nIt's the perfect sandbox to test strategies before using real money.",
-    presets: "Presets let you save your Risk Calculator configurations.\n\n• Click the 💾 button on the right side of the dashboard\n• Name your preset and save it to the cloud\n• Load any preset with one click\n• Share presets with friends via link or QR code\n• Each preset stores: capital, position size, trade slots, theme, and mode\n\nYour presets sync across devices when you're logged in!"
+    what: "Welcome to BATT! Here's what you can do:\n\n📊 <b>Dashboard Cockpit</b> — Your command center. Plan trades, set position sizes, calculate liquidation levels, and project portfolio growth over 36 months.\n\n⚡ <b>Trade Panel</b> — Your all-in-one trading workspace. Practice with simulations, connect via API for live execution, and sharpen your edge with real market data.\n\n💾 <b>Presets</b> — Save your cockpit configurations and load them anytime. Share presets with friends too!\n\n📈 <b>Trade Journal</b> (coming soon) — Log and analyze your real trades.\n\n🤝 <b>Bet With Us</b> (coming soon) — We're building this together. A partnership space to share ideas and shape how this platform grows.",
+    cockpit: "The <b>Dashboard Cockpit</b> is your command center for preparation.\n\n• Set your starting capital and position size\n• Configure up to 10 trade slots with target % and frequency\n• See liquidation levels for each trade\n• Project your portfolio growth over 36 months\n• Toggle between Leverage and Spot modes\n• Use quarter view for detailed monthly breakdowns\n\nThe cockpit uses notional compounding — each trade's profit adds to your next trade's base. It's all about planning before you execute!",
+    trade: "The <b>Trade Panel</b> is your complete trading workspace.\n\n• Real-time prices from Binance API\n• Live order book with clickable prices\n• Place market & limit orders (Spot or Perpetual)\n• Track open positions with live P&L\n• Set Take Profit & Stop Loss\n• View your trade history and stats\n\nPractice with paper trading, or connect your API for real execution. Build your skills, test strategies, and trade with confidence.",
+    presets: "Presets let you save your Dashboard Cockpit configurations.\n\n• Click the 💾 button on the right side of the cockpit\n• Name your preset and save it to the cloud\n• Load any preset with one click\n• Share presets with friends via link or QR code\n• Each preset stores: capital, position size, trade slots, theme, and mode\n\nYour presets sync across devices when you're logged in!"
   },
   id: {
-    what: "Selamat datang di BATT! Ini yang bisa kamu lakukan:\n\n📊 <b>Risk Calculator</b> — Rencanakan trade, atur position size, hitung level likuidasi, dan proyeksikan pertumbuhan portfolio selama 36 bulan.\n\n⚡ <b>Practice Arena</b> — Paper trading dengan data Binance real-time. Tes strategi, tracking posisi, bangun kepercayaan diri tanpa risiko uang asli.\n\n💾 <b>Presets</b> — Simpan konfigurasi kalkulator dan load kapan saja. Bisa share preset ke teman juga!\n\n📈 <b>Trade Journal</b> (segera hadir) — Catat dan analisis trade aslimu.\n\n🤝 <b>Find Your Style</b> (segera hadir) — Temukan gaya trading yang cocok dengan kepribadianmu.",
-    risk: "<b>Risk Calculator</b> adalah tool persiapan sebelum trading.\n\n• Atur modal awal dan position size\n• Konfigurasi hingga 10 trade slot dengan target % dan frekuensi\n• Lihat level likuidasi untuk setiap trade\n• Proyeksikan pertumbuhan portfolio 36 bulan\n• Toggle antara mode Leverage dan Spot\n• Gunakan quarter view untuk breakdown bulanan detail\n\nKalkulator ini pakai notional compounding — profit setiap trade ditambahkan ke base trade berikutnya. Semua tentang persiapan!",
-    practice: "<b>Practice Arena</b> memungkinkan kamu paper trading dengan data market real.\n\n• Harga real-time dari Binance API\n• Order book live dengan harga yang bisa diklik\n• Buat market & limit order (Spot atau Perpetual)\n• Tracking posisi terbuka dengan P&L live\n• Atur Take Profit & Stop Loss\n• Lihat history trade dan statistik\n• Reset kapan saja untuk mulai fresh\n\nSandbox sempurna untuk tes strategi sebelum pakai uang asli.",
-    presets: "Presets memungkinkan kamu menyimpan konfigurasi Risk Calculator.\n\n• Klik tombol 💾 di sisi kanan dashboard\n• Beri nama preset dan simpan ke cloud\n• Load preset manapun dengan satu klik\n• Share preset ke teman via link atau QR code\n• Setiap preset menyimpan: modal, position size, trade slots, tema, dan mode\n\nPreset-mu sync antar device saat login!"
+    what: "Selamat datang di BATT! Ini yang bisa kamu lakukan:\n\n📊 <b>Dashboard Cockpit</b> — Pusat komando kamu. Rencanakan trade, atur position size, hitung level likuidasi, dan proyeksikan pertumbuhan portfolio 36 bulan.\n\n⚡ <b>Trade Panel</b> — Workspace trading lengkap. Latihan dengan simulasi, koneksikan API untuk eksekusi real, dan asah kemampuanmu dengan data market real.\n\n💾 <b>Presets</b> — Simpan konfigurasi cockpit dan load kapan saja. Bisa share preset ke teman juga!\n\n📈 <b>Trade Journal</b> (segera hadir) — Catat dan analisis trade aslimu.\n\n🤝 <b>Bet With Us</b> (segera hadir) — Kita membangun ini bersama. Ruang partnership untuk berbagi ide dan membentuk platform ini.",
+    cockpit: "<b>Dashboard Cockpit</b> adalah pusat komando untuk persiapan.\n\n• Atur modal awal dan position size\n• Konfigurasi hingga 10 trade slot dengan target % dan frekuensi\n• Lihat level likuidasi untuk setiap trade\n• Proyeksikan pertumbuhan portfolio 36 bulan\n• Toggle antara mode Leverage dan Spot\n• Gunakan quarter view untuk breakdown bulanan detail\n\nCockpit ini pakai notional compounding — profit setiap trade ditambahkan ke base trade berikutnya. Semua tentang persiapan!",
+    trade: "<b>Trade Panel</b> adalah workspace trading lengkapmu.\n\n• Harga real-time dari Binance API\n• Order book live dengan harga yang bisa diklik\n• Buat market & limit order (Spot atau Perpetual)\n• Tracking posisi terbuka dengan P&L live\n• Atur Take Profit & Stop Loss\n• Lihat history trade dan statistik\n\nLatihan dengan paper trading, atau koneksikan API untuk eksekusi real. Bangun skill, tes strategi, dan trade dengan percaya diri.",
+    presets: "Presets memungkinkan kamu menyimpan konfigurasi Dashboard Cockpit.\n\n• Klik tombol 💾 di sisi kanan cockpit\n• Beri nama preset dan simpan ke cloud\n• Load preset manapun dengan satu klik\n• Share preset ke teman via link atau QR code\n• Setiap preset menyimpan: modal, position size, trade slots, tema, dan mode\n\nPreset-mu sync antar device saat login!"
   }
 };
 
 var L3_AI_CHIPS = {
   en: {
     what: "What can I do here?",
-    risk: "How does the Risk Calculator work?",
-    practice: "Tell me about Practice Arena",
+    cockpit: "How does Dashboard Cockpit work?",
+    trade: "Tell me about Trade Panel",
     presets: "How do presets work?"
   },
   id: {
     what: "Apa yang bisa saya lakukan?",
-    risk: "Bagaimana Risk Calculator bekerja?",
-    practice: "Ceritakan tentang Practice Arena",
+    cockpit: "Bagaimana Dashboard Cockpit bekerja?",
+    trade: "Ceritakan tentang Trade Panel",
     presets: "Bagaimana cara kerja presets?"
   }
 };
@@ -5668,8 +5665,8 @@ function l3AiSetLang(lang){
   const desc = document.getElementById('l3-ai-desc');
   if(desc){
     desc.textContent = lang === 'id' 
-      ? 'Saya tahu semua tentang situs ini — dari Risk Calculator sampai Practice Arena. Tanya apa saja!'
-      : "I know everything about this site — from the Risk Calculator to Practice Arena. Ask me anything!";
+      ? 'Saya tahu semua tentang situs ini — dari Dashboard Cockpit sampai Trade Panel. Tanya apa saja!'
+      : "I know everything about this site — from the Dashboard Cockpit to Trade Panel. Ask me anything!";
   }
   
   // Update chips
