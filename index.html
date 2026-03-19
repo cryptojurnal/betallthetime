@@ -3882,6 +3882,8 @@ function softUpdate(){
   }
   // patch table only
   renderTbl(months);
+  // update notional comp row (actual margin, fm%, liq%)
+  updComp();
 }
 
 function onWdInline(m,v){
