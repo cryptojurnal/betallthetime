@@ -1,21 +1,42 @@
 {
   "name": "Bet All The Time, Bet With Style",
   "short_name": "BATT",
-  "description": "Trading projection dashboard for crypto traders",
-  "start_url": "/",
+  "description": "Professional crypto trading projection dashboard by @cryptojurnal",
+  "start_url": "/?source=pwa",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#00c47a",
   "orientation": "any",
+  "scope": "/",
+  "lang": "en",
   "icons": [
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect fill='%23000' width='512' height='512' rx='100'/><text y='340' x='256' text-anchor='middle' font-size='280' fill='%2300c47a'>📊</text></svg>",
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect fill='%23000' width='192' height='192' rx='32'/%3E%3Ctext y='130' x='96' text-anchor='middle' font-size='100' fill='%2300c47a'%3E📊%3C/text%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect fill='%23000' width='512' height='512' rx='100'/%3E%3Ctext y='340' x='256' text-anchor='middle' font-size='280' fill='%2300c47a'%3E📊%3C/text%3E%3C/svg%3E",
       "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "any maskable"
     }
   ],
-  "categories": ["finance", "productivity"],
-  "screenshots": [],
-  "prefer_related_applications": false
+  "categories": ["finance", "productivity", "utilities"],
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "Open trading dashboard",
+      "url": "/?action=dashboard"
+    },
+    {
+      "name": "Presets",
+      "short_name": "Presets", 
+      "description": "View saved presets",
+      "url": "/?action=presets"
+    }
+  ]
 }
