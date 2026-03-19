@@ -3775,7 +3775,9 @@ function updComp(){
   const liq=isSpot?999:s.P/s.NOT*100;
   const ratio=isSpot?1:s.NOT/s.P;
   document.getElementById('c-am').textContent=isSpot?'n/a':fmt(am);
-  document.getElementById('c-fm').textContent=isSpot?'100%':fm.toFixed(1)+'%';
+  const fmEl=document.getElementById('c-fm');
+  fmEl.textContent=isSpot?'100%':fm.toFixed(1)+'%';
+  fmEl.style.color=(!isSpot&&fm>100)?'#E24B4A':(fm>80?'#EF9F27':'');
   const el=document.getElementById('c-lq');
   el.textContent=isSpot?'n/a':liq.toFixed(1)+'%';
   if(!isSpot)el.style.color=lc(liq);else el.style.color='var(--tx3)';
@@ -3809,7 +3811,8 @@ function softUpdate(){
   const _months_pre=sim();
   const _newBust=!!_months_pre.find(r=>r.bust);
   const _liqT1=gs().P/gs().NOT*100;
-  const _newWiped=(!gs().SPOT)&&(_liqT1<1||!isFinite(_liqT1));
+  const _fm=gs().NOT/gs().LEV/gs().P*100;
+  const _newWiped=(!gs().SPOT)&&(_liqT1<1||!isFinite(_liqT1)||_fm>100);
   if(_newWiped!==IS_WIPED||_newBust!==!!bustMonth){render();return;}
   const s=gs();
   const isQ=isQTab(TAB);
@@ -4553,9 +4556,11 @@ function render(){
   const liqT1=s.P/s.NOT*100;
   const rc=document.getElementById('right-content');
 
-  // ── WIPE GUARD: liq% < 1 means setup is catastrophically broken ──
+  // ── WIPE GUARD: liq% < 1 OR fm% > 100% means setup is invalid ──
   // Keep full layout visible but replace every value with wipe error state
-  IS_WIPED = (!s.SPOT) && (liqT1 < 1 || !isFinite(liqT1));
+  const fm = s.SPOT ? 100 : (s.NOT / s.LEV / s.P * 100);
+  const fmExceeded = (!s.SPOT) && (fm > 100);
+  IS_WIPED = (!s.SPOT) && (liqT1 < 1 || !isFinite(liqT1) || fmExceeded);
 
   const months=sim();
   bustMonth=months.find(r=>r.bust)||null;
@@ -4580,28 +4585,46 @@ function render(){
   const WIPE_MSGS = [
     ['your CAGR',      'you broke math',        'impressive wrongness'],
     ['total return',   'negative infinity',      'congrats on that'],
-    ['end account',    'the void',               'Rp0 · nothing left'],
-    ['total banked',   'your dreams',            'safely in the trash'],
     ['combined NW',    'thoughts & prayers',     'account + regrets'],
+    ['total banked',   'your dreams',            'safely in the trash'],
+    ['end account',    'the void',               'Rp0 · nothing left'],
+    ['₿ equivalent',   '0.0000 ₿',               'not even satoshis'],
     ['$1M milestone',  'next life maybe',        'keep manifesting'],
     ['avg monthly',    'lmao',                   'not like this'],
     ['net seq result', 'skill issue',            'wins: 0 · losses: all'],
     ['liq%',           'instant',                'any move wipes you'],
     ['fees paid',      'the only real number',   'at least this worked'],
+    ['1yr return',     '−100%',                  'speedrun to zero'],
+  ];
+  const FM_MSGS = [
+    ['your CAGR',      'math.exe stopped',       'can\'t even start'],
+    ['total return',   'error 404',              'position not found'],
+    ['combined NW',    'your ambition',          'exceeds your wallet'],
+    ['total banked',   'nothing yet',            'can\'t trade air'],
+    ['end account',    'n/a',                    'position rejected'],
+    ['₿ equivalent',   '??? ₿',                  'exchange says no'],
+    ['$1M milestone',  'login first',            'with valid margin'],
+    ['avg monthly',    'bro chill',              'fix the setup first'],
+    ['net seq result', 'position denied',        'margin > capital'],
+    ['FM%',            fm.toFixed(0)+'%',        'need ≤100% to trade'],
+    ['fees paid',      '$0',                     'no trades possible'],
+    ['1yr return',     'n/a',                    'can\'t open position'],
   ];
   const BUST_MSGS = [
-    ['your CAGR',      'you went all-in',   'bold strategy'],
-    ['total return',   'ate the seed money',      'impressive'],
-    ['end account',    '$0.00',                   'gone. reduced to atoms'],
+    ['your CAGR',      'you went all-in',        'bold strategy'],
+    ['total return',   'ate the seed money',     'impressive'],
+    ['combined NW',    'your personality',       'priceless, apparently'],
     ['total banked',   fmt(bustMonth?bustMonth.gAF:0), 'all you had left'],
-    ['combined NW',    'your personality',        'priceless, apparently'],
-    ['$1M milestone',  'deleted',                 'try again sweetheart'],
-    ['avg monthly',    'one month wonder',        'then the cliff'],
-    ['net seq result', 'technically a record',    'worst withdrawal ever'],
+    ['end account',    '$0.00',                  'gone. reduced to atoms'],
+    ['₿ equivalent',   '0.0000 ₿',               'dust in the wind'],
+    ['$1M milestone',  'deleted',                'try again sweetheart'],
+    ['avg monthly',    'one month wonder',       'then the cliff'],
+    ['net seq result', 'technically a record',   'worst withdrawal ever'],
     [s.SPOT?'mode':'liq%', s.SPOT?'◈ spot · no liq':'not the problem rn', s.SPOT?'wd still busted you':'withdrawal did this'],
     ['fees paid',      fmt(months.filter(r=>!r.isZ&&!r.bust).reduce((a,r)=>a+(r.feePaid||0),0)), 'before the chaos'],
+    ['1yr return',     'n/a',                    'didn\'t make it that far'],
   ];
-  const errMsgs = IS_WIPED ? WIPE_MSGS : (IS_BUST ? BUST_MSGS : null);
+  const errMsgs = fmExceeded ? FM_MSGS : (IS_WIPED ? WIPE_MSGS : (IS_BUST ? BUST_MSGS : null));
   let mh='<div class="metrics">';
   if(errMsgs){
     mh+=errMsgs.map(([lbl,val,sub])=>`<div class="mc"><div class="mll">${lbl}</div><div class="mvv" style="color:#E24B4A;font-size:11px">${val}</div><div class="ms" style="color:#E24B4A;opacity:.7">${sub}</div></div>`).join('');
@@ -4657,10 +4680,14 @@ function render(){
     </div>
   </div>`:'';
   const wipeBanner=IS_WIPED?`<div class="wipe-banner">
-    <span class="wipe-banner-icon">💸</span>
+    <span class="wipe-banner-icon">${fmExceeded?'🚫':'💸'}</span>
     <div>
-      <div class="wipe-banner-msg">${lbl_w?'SETUP GAGAL TOTAL — liq% < 1%: notional melebihi akun, tidak ada buffer. Setiap pergerakan market melikuidasi seketika.':'SETUP CRITICALLY FAILED — liq% < 1%: notional exceeds account, zero buffer. Any market move causes instant liquidation.'}</div>
-      <div class="wipe-banner-fix">${lbl_w?'Perbaiki: kurangi notional atau tambah modal hingga liq% ≥ 40%':'Fix: reduce notional or increase capital until liq% ≥ 40%'}</div>
+      <div class="wipe-banner-msg">${fmExceeded
+        ?(lbl_w?'SETUP TIDAK VALID — FM% > 100%: margin yang dibutuhkan melebihi modal Anda. Posisi ini tidak bisa dibuka.':'SETUP INVALID — FM% > 100%: margin required exceeds your capital. This position cannot be opened.')
+        :(lbl_w?'SETUP GAGAL TOTAL — liq% < 1%: notional melebihi akun, tidak ada buffer. Setiap pergerakan market melikuidasi seketika.':'SETUP CRITICALLY FAILED — liq% < 1%: notional exceeds account, zero buffer. Any market move causes instant liquidation.')}</div>
+      <div class="wipe-banner-fix">${fmExceeded
+        ?(lbl_w?'Perbaiki: kurangi notional, tambah leverage, atau tambah modal hingga FM% ≤ 100%':'Fix: reduce notional, increase leverage, or increase capital until FM% ≤ 100%')
+        :(lbl_w?'Perbaiki: kurangi notional atau tambah modal hingga liq% ≥ 40%':'Fix: reduce notional or increase capital until liq% ≥ 40%')}</div>
     </div>
   </div>`:'';
   const noteText=s.SPOT
