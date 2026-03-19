@@ -181,7 +181,7 @@ body.t-forest{--bg:#0a0f08;--panel:#0e1409;--bd:#1a2410;--bd2:#18200e;--sf:#1118
 body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e1008;--sf2:#180e06;--tx:#f0c090;--tx2:#906030;--tx3:#503020;--acc:#f08030;--acc2:#e06020;--mh:#601808;--mhc:#f0c090;--mhs:#300c04;--inp:#1e1008;--btn:#1e1008;--btno:#301808;--btonc:#f08030;--tog:#1e1008;--togon:#f08030;--togonc:#fff;--tabact:#f08030;--tabactc:#fff;--wd-on:#301808;--wd-onc:#f08030}
 body.t-lavender{--bg:#f0eef8;--panel:#fff;--bd:#d8d4f0;--bd2:#e4e0f4;--sf:#f8f6ff;--sf2:#f0eef8;--tx:#2a1a4a;--tx2:#8070b0;--tx3:#c0b0e0;--acc:#7050c0;--acc2:#5060e0;--mh:#4030a0;--mhc:#fff;--mhs:#c0b8f0;--inp:#f8f6ff;--btn:#f0eef8;--btno:#e0d8f8;--btonc:#7050c0;--tog:#fff;--togon:#4030a0;--togonc:#fff;--tabact:#4030a0;--tabactc:#fff;--wd-on:#e0d8f8;--wd-onc:#7050c0}
 
-.app{display:flex;height:100vh;overflow:hidden;background:#000;color:var(--tx);opacity:0}
+.app{display:flex;height:100%;overflow:hidden;background:#000;color:var(--tx);opacity:0}
 .panel-left.collapsed{width:36px!important;min-width:36px!important;overflow:hidden}
 .panel-left.collapsed .pl-body{display:none}
 .collapse-btn{position:absolute;top:50%;transform:translateY(-50%);right:-16px;width:16px;height:48px;border-radius:0 6px 6px 0;background:var(--acc);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;z-index:10;transition:all .2s;box-shadow:2px 0 8px rgba(0,0,0,.2);writing-mode:horizontal-tb}
@@ -507,22 +507,43 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 .panel-left.collapsed .panel-left-edge{width:100%;opacity:.07;background:var(--acc)}
 
 
-/* ── MEMBER PANEL ── */
-#member-panel{position:fixed;top:0;right:0;width:360px;height:100vh;background:#0a0a0a;border-left:0.5px solid #1a1a1a;z-index:9500;transform:translateX(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;overflow:hidden}
-#member-panel.open{transform:translateX(0)}
-#member-overlay{position:fixed;inset:0;z-index:9499;background:rgba(0,0,0,.5);backdrop-filter:blur(2px);opacity:0;pointer-events:none;transition:opacity .35s}
-#member-overlay.open{opacity:1;pointer-events:all}
-.mp-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:0.5px solid #1a1a1a;flex-shrink:0}
-.mp-user{display:flex;flex-direction:column;gap:2px}
-.mp-username{font-size:14px;font-weight:700;color:#fff}
-.mp-email{font-size:10px;color:#444}
-.mp-close{background:none;border:none;color:#333;font-size:18px;cursor:pointer;padding:0;transition:color .2s;line-height:1}
-.mp-close:hover{color:#fff}
-.mp-tabs{display:flex;border-bottom:0.5px solid #1a1a1a;flex-shrink:0}
-.mp-tab{flex:1;padding:10px;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border:none;background:transparent;color:#333;cursor:pointer;transition:all .2s;border-bottom:2px solid transparent}
-.mp-tab.on{color:#00c47a;border-bottom-color:#00c47a}
-.mp-body{flex:1;overflow-y:auto;scrollbar-width:none}
-.mp-body::-webkit-scrollbar{display:none}
+/* ── MEMBER AREA PAGE ── */
+#member-area{position:fixed;inset:0;z-index:9498;display:flex;background:#050505;opacity:0;pointer-events:none;transition:opacity .4s}
+#member-area.open{opacity:1;pointer-events:all}
+#member-area.hidden{display:none}
+/* sidebar nav */
+.ma-sidebar{width:220px;min-width:220px;background:#0a0a0a;border-right:0.5px solid #111;display:flex;flex-direction:column;height:100vh;flex-shrink:0}
+.ma-logo{padding:20px 18px 16px;border-bottom:0.5px solid #111}
+.ma-logo-title{font-size:13px;font-weight:900;color:#fff;line-height:1.2;letter-spacing:-.02em}
+.ma-logo-title span{color:#00c47a}
+.ma-logo-sub{font-size:9px;color:#333;margin-top:3px;letter-spacing:.04em}
+.ma-user-row{padding:12px 18px;border-bottom:0.5px solid #111;display:flex;align-items:center;gap:10px}
+.ma-avatar{width:32px;height:32px;border-radius:50%;background:#00c47a;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#000;flex-shrink:0}
+.ma-user-info{flex:1;min-width:0}
+.ma-uname{font-size:11px;font-weight:700;color:#e0e0e0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ma-uemail{font-size:9px;color:#333;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ma-nav{flex:1;padding:10px 0;overflow-y:auto;scrollbar-width:none}
+.ma-nav-item{display:flex;align-items:center;gap:10px;padding:10px 18px;font-size:11px;font-weight:600;color:#333;cursor:pointer;border:none;background:transparent;width:100%;text-align:left;transition:all .2s;border-left:2px solid transparent;letter-spacing:.02em}
+.ma-nav-item:hover{color:#888;background:#0d0d0d}
+.ma-nav-item.on{color:#00c47a;background:#0a1a10;border-left-color:#00c47a}
+.ma-nav-icon{font-size:14px;width:18px;text-align:center;flex-shrink:0}
+.ma-nav-badge{margin-left:auto;font-size:8px;background:#1a3a1a;color:#00c47a;padding:1px 5px;border-radius:8px;font-weight:700}
+.ma-nav-bottom{padding:12px 0;border-top:0.5px solid #111}
+.ma-logout-btn{display:flex;align-items:center;gap:10px;padding:10px 18px;font-size:11px;font-weight:600;color:#333;cursor:pointer;border:none;background:transparent;width:100%;text-align:left;transition:color .2s}
+.ma-logout-btn:hover{color:#E24B4A}
+/* main content */
+.ma-content{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative}
+.ma-topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 18px;border-bottom:0.5px solid #111;background:#0a0a0a;flex-shrink:0;min-height:44px}
+.ma-page-title{font-size:12px;font-weight:700;color:#e0e0e0;letter-spacing:.02em}
+.ma-page-sub{font-size:9px;color:#333;margin-top:1px}
+.ma-view{flex:1;overflow:hidden;position:relative}
+/* dashboard inside member area */
+#ma-dashboard-view{position:absolute;inset:0}
+#ma-dashboard-view .app{height:100%}
+/* presets view */
+#ma-presets-view{position:absolute;inset:0;overflow-y:auto;padding:20px;scrollbar-width:thin;display:none}
+/* account view */
+#ma-account-view{position:absolute;inset:0;overflow-y:auto;padding:20px;scrollbar-width:thin;display:none}
 /* presets tab */
 .mp-section{padding:14px 18px}
 .mp-sec-title{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#333;margin-bottom:10px}
@@ -598,212 +619,65 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 </style>
 </head>
 <body class="t-light">
-<!-- MEMBER PANEL OVERLAY -->
-<div id="member-overlay" onclick="memberClose()"></div>
-
-<!-- MEMBER PANEL -->
-<div id="member-panel">
-  <div class="mp-head">
-    <div class="mp-user">
-      <div class="mp-username" id="mp-username">@user</div>
-      <div class="mp-email" id="mp-email">guest</div>
+<!-- MEMBER AREA PAGE -->
+<div id="member-area" class="hidden">
+  <!-- SIDEBAR -->
+  <div class="ma-sidebar">
+    <div class="ma-logo">
+      <div class="ma-logo-title">bet all the time<br>bet with <span>style</span></div>
+      <div class="ma-logo-sub">member area</div>
     </div>
-    <button class="mp-close" onclick="memberClose()">✕</button>
-  </div>
-  <div class="mp-tabs">
-    <button class="mp-tab on" id="mp-tab-presets" onclick="memberShowTab('presets')">📋 presets</button>
-    <button class="mp-tab" id="mp-tab-account" onclick="memberShowTab('account')">👤 account</button>
+    <div class="ma-user-row">
+      <div class="ma-avatar" id="ma-avatar">?</div>
+      <div class="ma-user-info">
+        <div class="ma-uname" id="ma-uname">loading...</div>
+        <div class="ma-uemail" id="ma-uemail"></div>
+      </div>
+    </div>
+    <nav class="ma-nav">
+      <button class="ma-nav-item on" id="ma-nav-dashboard" onclick="maShowView('dashboard')">
+        <span class="ma-nav-icon">📊</span> dashboard
+      </button>
+      <button class="ma-nav-item" id="ma-nav-presets" onclick="maShowView('presets')">
+        <span class="ma-nav-icon">📋</span> presets
+        <span class="ma-nav-badge" id="ma-preset-badge" style="display:none">0</span>
+      </button>
+      <button class="ma-nav-item" id="ma-nav-account" onclick="maShowView('account')">
+        <span class="ma-nav-icon">👤</span> account
+      </button>
+      <div style="padding:16px 18px 6px;font-size:8px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#1a1a1a">coming soon</div>
+      <button class="ma-nav-item" style="opacity:.3;cursor:not-allowed" disabled>
+        <span class="ma-nav-icon">📈</span> journal
+      </button>
+      <button class="ma-nav-item" style="opacity:.3;cursor:not-allowed" disabled>
+        <span class="ma-nav-icon">🏆</span> leaderboard
+      </button>
+    </nav>
+    <div class="ma-nav-bottom">
+      <button class="ma-logout-btn" onclick="authLogout()">
+        <span style="font-size:14px">↩</span> logout
+      </button>
+    </div>
   </div>
 
-  <div class="mp-body" id="mp-body">
-    <!-- PRESETS TAB -->
-    <div id="mp-presets-tab">
-      <div class="mp-section">
-        <button class="mp-save-btn" onclick="presetSaveModal()">
-          <span>+</span> save current dashboard as preset
-        </button>
-        <div class="mp-sec-title">saved presets <span id="mp-preset-count" style="color:#333"></span></div>
-        <div id="mp-preset-list"><div class="mp-empty"><div class="mp-empty-icon">📋</div>no presets yet<br>save your current setup to access it anytime</div></div>
+  <!-- MAIN CONTENT -->
+  <div class="ma-content">
+    <!-- TOP BAR -->
+    <div class="ma-topbar">
+      <div>
+        <div class="ma-page-title" id="ma-page-title">dashboard</div>
+        <div class="ma-page-sub" id="ma-page-sub">your trading projection tool</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <button onclick="authSave()" style="font-size:9px;padding:4px 10px;background:#0a2a1a;border:0.5px solid #00c47a;color:#00c47a;border-radius:5px;cursor:pointer;font-weight:700;transition:all .2s" title="sync to cloud">↑ sync</button>
+        <span id="ma-sync-label" style="font-size:9px;color:#222">never synced</span>
       </div>
     </div>
 
-    <!-- ACCOUNT TAB -->
-    <div id="mp-account-tab" style="display:none">
-      <div class="mp-section">
-        <div class="mp-sec-title">account info</div>
-        <div style="background:#111;border:0.5px solid #1a1a1a;border-radius:8px;padding:14px;margin-bottom:12px">
-          <div style="font-size:10px;color:#444;margin-bottom:3px">username</div>
-          <div style="font-size:13px;font-weight:700;color:#e0e0e0" id="mp-acc-username">—</div>
-          <div style="font-size:10px;color:#444;margin-top:10px;margin-bottom:3px">email</div>
-          <div style="font-size:12px;color:#888" id="mp-acc-email">—</div>
-          <div style="font-size:10px;color:#444;margin-top:10px;margin-bottom:3px">member since</div>
-          <div style="font-size:11px;color:#555" id="mp-acc-since">—</div>
-        </div>
-        <div class="mp-sec-title" style="margin-top:16px">cloud sync</div>
-        <div style="background:#111;border:0.5px solid #1a1a1a;border-radius:8px;padding:14px;margin-bottom:12px">
-          <div style="font-size:10px;color:#444;margin-bottom:8px">sync your entire dashboard state to the cloud — load it from any device after login</div>
-          <button class="mp-save-btn" onclick="authSave()" style="margin-bottom:0">↑ sync to cloud now</button>
-          <div style="font-size:9px;color:#333;margin-top:6px;text-align:center" id="mp-last-sync">never synced</div>
-        </div>
-        <div class="mp-sec-title" style="margin-top:16px;color:#E24B4A">danger zone</div>
-        <button onclick="authLogout()" style="width:100%;padding:9px;background:transparent;border:0.5px solid #2a0a0a;border-radius:7px;color:#E24B4A;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s" onmouseover="this.style.background='#1a0a0a'" onmouseout="this.style.background='transparent'">logout</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- SAVE PRESET MODAL -->
-<div id="preset-save-modal">
-  <div class="psm-box">
-    <div class="psm-title">💾 save as preset</div>
-    <div class="psm-field">
-      <label>preset name</label>
-      <input id="psm-name" type="text" placeholder="e.g. BTC scalp 5× leverage" maxlength="50">
-    </div>
-    <div class="psm-field">
-      <label>description (optional)</label>
-      <textarea id="psm-desc" placeholder="notes about this setup..."></textarea>
-    </div>
-    <div style="font-size:9px;color:#333;margin-bottom:12px">saves: all tabs · capital · leverage · notional · trades · labels · spot/leverage mode · fees · withdrawals · zero months</div>
-    <div class="psm-row">
-      <button class="psm-cancel" onclick="presetSaveModalClose()">cancel</button>
-      <button class="psm-confirm" id="psm-confirm-btn" onclick="presetSaveConfirm()">save preset</button>
-    </div>
-    <div style="font-size:10px;color:#E24B4A;margin-top:8px;min-height:14px" id="psm-err"></div>
-  </div>
-</div>
-
-<!-- AUTH LAYER -->
-<div id="auth-layer" class="hidden" style="opacity:0;transition:opacity .5s ease">
-  <div class="auth-box">
-    <div class="auth-logo">bet all the time<br>bet with <span>style</span></div>
-    <div class="auth-tab-row">
-      <button class="auth-tab on" id="auth-tab-login" onclick="authShowTab('login')">login</button>
-      <button class="auth-tab" id="auth-tab-register" onclick="authShowTab('register')">register</button>
-    </div>
-    <!-- LOGIN -->
-    <div id="auth-login-form">
-      <div class="auth-field">
-        <label>email or username</label>
-        <input type="text" id="auth-login-input" placeholder="your@email.com or username" autocomplete="username">
-      </div>
-      <div class="auth-field">
-        <label>password</label>
-        <input type="password" id="auth-pass-input" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')authLogin()">
-      </div>
-      <div class="auth-err" id="auth-login-err"></div>
-      <button class="auth-submit" id="auth-login-btn" onclick="authLogin()">login</button>
-    </div>
-    <!-- REGISTER -->
-    <div id="auth-register-form" style="display:none">
-      <div class="auth-field">
-        <label>email</label>
-        <input type="email" id="auth-reg-email" placeholder="your@email.com" autocomplete="email">
-      </div>
-      <div class="auth-field">
-        <label>username</label>
-        <input type="text" id="auth-reg-user" placeholder="cooltrader99" autocomplete="username">
-      </div>
-      <div class="auth-field">
-        <label>password</label>
-        <input type="password" id="auth-reg-pass" placeholder="min 6 characters" autocomplete="new-password" onkeydown="if(event.key==='Enter')authRegister()">
-      </div>
-      <div class="auth-err" id="auth-reg-err"></div>
-      <button class="auth-submit" id="auth-reg-btn" onclick="authRegister()">create account</button>
-    </div>
-    <div class="auth-divider"></div>
-    <button class="auth-google" onclick="authGoogleLogin()">
-      <svg width="16" height="16" viewBox="0 0 24 24" style="margin-right:8px;flex-shrink:0"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-      continue with google
-    </button>
-    <div class="auth-divider"></div>
-    <button class="auth-guest" onclick="authGuest()">continue without account →</button>
-    <div style="font-size:9px;color:#222;text-align:center;margin-top:10px">your data syncs across devices when logged in</div>
-  </div>
-</div>
-<!-- user bar shown after login -->
-<div class="auth-user-bar hidden" id="auth-user-bar" onclick="memberOpen()">
-  <span id="auth-username-lbl">@user</span>
-  <button class="auth-sync-btn" onclick="event.stopPropagation();authSave()" title="sync to cloud">↑ sync</button>
-  <button class="auth-sync-btn" onclick="event.stopPropagation();authLogout()" title="logout" style="color:#E24B4A">✕</button>
-</div>
-
-<!-- LAYER 1 - philosophy -->
-<div id="layer1" onclick="goAuth()">
-  <div class="intro-quote">
-    <blockquote>"a trading philosophy is something that cannot just be transferred from one person to another; it's something that you have to acquire yourself through time and effort."</blockquote>
-    <cite>— Richard Driehaus, legendary money manager</cite>
-  </div>
-  <div class="intro-hint">
-    <div class="bubble-wrap"><div class="bubble"></div><div class="bubble"></div><div class="bubble"></div></div>
-    <span class="hint-text">click anywhere to continue</span>
-    <div class="bubble-wrap"><div class="bubble"></div><div class="bubble"></div><div class="bubble"></div></div>
-  </div>
-</div>
-<!-- LAYER 2 - intro + disclaimer -->
-<div id="layer2" class="hidden" style="opacity:0;transition:opacity .9s ease">
-  <div class="layer2-content">
-
-    <div style="position:relative;opacity:0;animation:fadeUp .8s ease .4s forwards;width:100%">
-      <!-- credit centered above the box -->
-      <div class="l2-credit" style="text-align:center;margin-bottom:10px;font-size:11px;letter-spacing:.07em">created by <a href="https://t.me/CryptoJurnal" target="_blank">@cryptojurnal ↗</a></div>
-      <div class="l2-disclaimer" style="padding:20px 40px 20px">
-        <div style="font-size:11px;font-weight:700;color:#EF9F27;letter-spacing:.06em;text-transform:uppercase;margin-bottom:14px">⚠ risk disclosure</div>
-
-        <div style="margin-bottom:12px;padding-bottom:12px;border-bottom:0.5px solid #1e1e1e">
-          <span style="color:#888;font-weight:600">this is a projection tool, not financial advice.</span><span style="color:#555"> all numbers are estimates based on your inputs. real trading results will differ — markets are unpredictable, execution is imperfect, and discipline varies.</span>
-          <div style="color:#555;font-size:11px;margin-top:8px">works in both <span style="color:#5BB0FF;font-weight:600">leverage</span> and <span style="color:#5DC96A;font-weight:600">spot</span> mode — but neither predicts what will actually happen.</div>
-        </div>
-
-        <div style="margin-bottom:12px;padding-bottom:12px;border-bottom:0.5px solid #1e1e1e;display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <div>
-            <div style="font-size:10px;color:#EF9F27;font-weight:600;margin-bottom:4px">what is calculated ✓</div>
-            <div style="font-size:11px;color:#555;line-height:1.7">· compounding returns<br>· liq% buffer (cross margin)<br>· trade fees (maker/taker)<br>· funding fees<br>· net P&L after fees</div>
-          </div>
-          <div>
-            <div style="font-size:10px;color:#A32D2D;font-weight:600;margin-bottom:4px">what is not calculated ✗</div>
-            <div style="font-size:11px;color:#555;line-height:1.7">· slippage & spread<br>· partial fills<br>· execution delays<br>· isolated margin liq<br>· emotional decisions</div>
-          </div>
-        </div>
-
-        <div style="font-size:11px;color:#555;line-height:1.7">
-          <span style="color:#EF9F27;font-weight:600">cross margin only.</span> liq% formula assumes cross margin. isolated margin behaves differently and these numbers won't apply.<br><br>
-          <span style="color:#888;font-weight:600">the bet is yours.</span> this tool helps you prepare and stress-test your setup — gains and losses from actual trading are entirely your own responsibility.
-        </div>
-      </div>
-    </div>
-
-    <button class="launch-btn" onclick="launchApp()" style="margin-top:-4px">launch the app</button>
-
-  </div>
-</div>
-<!-- BLUR PANELS (4 sides surrounding guide tab cutout) -->
-<div id="bl-top" class="bl-panel"></div>
-<div id="bl-bot" class="bl-panel"></div>
-<div id="bl-lft" class="bl-panel"></div>
-<div id="bl-rgt" class="bl-panel"></div>
-<!-- GUIDE TAB SPOTLIGHT RING -->
-<div id="guide-spotlight"></div>
-<!-- SVG ARROW from popup to guide tab -->
-<svg id="popup-arrow-svg" xmlns="http://www.w3.org/2000/svg">
-  <path d=""/>
-  <polygon points=""/>
-</svg>
-<!-- FIND ME HERE label -->
-<div id="find-me-label" style="position:fixed;z-index:8890;display:none;opacity:0;transition:opacity .4s .5s;pointer-events:none">
-  <span id="find-me-txt" style="font-size:11px;font-weight:800;color:#fff;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;text-shadow:0 0 8px #00c47a,0 0 16px #00c47a">find me here</span>
-  <span class="fmh-dot"></span><span class="fmh-dot"></span><span class="fmh-dot"></span>
-</div>
-<!-- GUIDE POPUP (centered) -->
-<div id="guide-popup">
-  <div class="popup-box">
-    <div class="popup-title">📖 start with the guide book</div>
-    <div class="popup-body">the guide book walks you through how everything works — liq%, fees, trade slots, risk scores, and more. a good read before diving in.<br><br>and if you ever have questions along the way, <b>Kira</b> 🤖 is always there — your built-in assistant who knows this dashboard inside out.</div>
-    <div class="popup-hint">↙ the guide book tab is highlighted below</div>
-    <button class="popup-ok" onclick="dismissPopup()">okay, let me explore</button>
-  </div>
-</div>
-
+    <!-- VIEWS -->
+    <div class="ma-view">
+      <!-- DASHBOARD VIEW -->
+      <div id="ma-dashboard-view" style="position:absolute;inset:0">
 <div class="app">
 
 <!-- LEFT PANEL -->
@@ -1061,6 +935,202 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 </div>
 
 </div>
+</div>
+
+      <!-- PRESETS VIEW -->
+      <div id="ma-presets-view" style="position:absolute;inset:0;overflow-y:auto;padding:24px;display:none;background:#050505">
+        <div style="max-width:700px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+            <div>
+              <div style="font-size:16px;font-weight:700;color:#e0e0e0">saved presets</div>
+              <div style="font-size:10px;color:#333;margin-top:3px">each preset saves your entire dashboard — all tabs, settings, labels, everything</div>
+            </div>
+            <button class="mp-save-btn" onclick="presetSaveModal()" style="width:auto;margin:0;padding:9px 16px">+ save current</button>
+          </div>
+          <div id="mp-preset-list"><div class="mp-empty"><div class="mp-empty-icon">📋</div>no presets yet<br><span style="font-size:9px;color:#222">save your current dashboard setup to access it anytime</span></div></div>
+        </div>
+      </div>
+
+      <!-- ACCOUNT VIEW -->
+      <div id="ma-account-view" style="position:absolute;inset:0;overflow-y:auto;padding:24px;display:none;background:#050505">
+        <div style="max-width:480px">
+          <div style="font-size:16px;font-weight:700;color:#e0e0e0;margin-bottom:20px">account</div>
+          <div style="background:#0a0a0a;border:0.5px solid #111;border-radius:10px;padding:20px;margin-bottom:16px">
+            <div style="font-size:9px;color:#333;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px">username</div>
+            <div style="font-size:16px;font-weight:700;color:#e0e0e0;margin-bottom:14px" id="mp-acc-username">—</div>
+            <div style="font-size:9px;color:#333;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px">email</div>
+            <div style="font-size:13px;color:#666;margin-bottom:14px" id="mp-acc-email">—</div>
+            <div style="font-size:9px;color:#333;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px">member since</div>
+            <div style="font-size:12px;color:#444" id="mp-acc-since">—</div>
+          </div>
+          <div style="background:#0a0a0a;border:0.5px solid #111;border-radius:10px;padding:20px;margin-bottom:16px">
+            <div style="font-size:12px;font-weight:700;color:#e0e0e0;margin-bottom:6px">cloud sync</div>
+            <div style="font-size:10px;color:#333;margin-bottom:12px">sync your entire dashboard state to the cloud — load it from any device after login</div>
+            <button class="mp-save-btn" onclick="authSave()" style="margin-bottom:8px">↑ sync to cloud now</button>
+            <div style="font-size:9px;color:#222;text-align:center" id="mp-last-sync">never synced</div>
+          </div>
+          <div style="background:#0a0505;border:0.5px solid #1a0505;border-radius:10px;padding:20px">
+            <div style="font-size:12px;font-weight:700;color:#E24B4A;margin-bottom:12px">danger zone</div>
+            <button onclick="authLogout()" style="width:100%;padding:10px;background:transparent;border:0.5px solid #2a0a0a;border-radius:7px;color:#E24B4A;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s">logout of account</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SAVE PRESET MODAL -->
+<div id="preset-save-modal">
+  <div class="psm-box">
+    <div class="psm-title">💾 save as preset</div>
+    <div class="psm-field">
+      <label>preset name</label>
+      <input id="psm-name" type="text" placeholder="e.g. BTC scalp 5× leverage" maxlength="50">
+    </div>
+    <div class="psm-field">
+      <label>description (optional)</label>
+      <textarea id="psm-desc" placeholder="notes about this setup..."></textarea>
+    </div>
+    <div style="font-size:9px;color:#333;margin-bottom:12px">saves: all tabs · capital · leverage · notional · trades · labels · spot/leverage mode · fees · withdrawals · zero months</div>
+    <div class="psm-row">
+      <button class="psm-cancel" onclick="presetSaveModalClose()">cancel</button>
+      <button class="psm-confirm" id="psm-confirm-btn" onclick="presetSaveConfirm()">save preset</button>
+    </div>
+    <div style="font-size:10px;color:#E24B4A;margin-top:8px;min-height:14px" id="psm-err"></div>
+  </div>
+</div>
+
+<!-- AUTH LAYER -->
+<div id="auth-layer" class="hidden" style="opacity:0;transition:opacity .5s ease">
+  <div class="auth-box">
+    <div class="auth-logo">bet all the time<br>bet with <span>style</span></div>
+    <div class="auth-tab-row">
+      <button class="auth-tab on" id="auth-tab-login" onclick="authShowTab('login')">login</button>
+      <button class="auth-tab" id="auth-tab-register" onclick="authShowTab('register')">register</button>
+    </div>
+    <!-- LOGIN -->
+    <div id="auth-login-form">
+      <div class="auth-field">
+        <label>email or username</label>
+        <input type="text" id="auth-login-input" placeholder="your@email.com or username" autocomplete="username">
+      </div>
+      <div class="auth-field">
+        <label>password</label>
+        <input type="password" id="auth-pass-input" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')authLogin()">
+      </div>
+      <div class="auth-err" id="auth-login-err"></div>
+      <button class="auth-submit" id="auth-login-btn" onclick="authLogin()">login</button>
+    </div>
+    <!-- REGISTER -->
+    <div id="auth-register-form" style="display:none">
+      <div class="auth-field">
+        <label>email</label>
+        <input type="email" id="auth-reg-email" placeholder="your@email.com" autocomplete="email">
+      </div>
+      <div class="auth-field">
+        <label>username</label>
+        <input type="text" id="auth-reg-user" placeholder="cooltrader99" autocomplete="username">
+      </div>
+      <div class="auth-field">
+        <label>password</label>
+        <input type="password" id="auth-reg-pass" placeholder="min 6 characters" autocomplete="new-password" onkeydown="if(event.key==='Enter')authRegister()">
+      </div>
+      <div class="auth-err" id="auth-reg-err"></div>
+      <button class="auth-submit" id="auth-reg-btn" onclick="authRegister()">create account</button>
+    </div>
+    <div class="auth-divider"></div>
+    <button class="auth-google" onclick="authGoogleLogin()">
+      <svg width="16" height="16" viewBox="0 0 24 24" style="margin-right:8px;flex-shrink:0"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      continue with google
+    </button>
+    <div class="auth-divider"></div>
+    <button class="auth-guest" onclick="authGuest()">continue without account →</button>
+    <div style="font-size:9px;color:#222;text-align:center;margin-top:10px">your data syncs across devices when logged in</div>
+  </div>
+</div>
+<!-- user bar shown after login -->
+<div class="auth-user-bar hidden" id="auth-user-bar" onclick="maShowView('account')">
+  <span id="auth-username-lbl">@user</span>
+  <button class="auth-sync-btn" onclick="event.stopPropagation();authSave()" title="sync to cloud">↑ sync</button>
+  <button class="auth-sync-btn" onclick="event.stopPropagation();authLogout()" title="logout" style="color:#E24B4A">✕</button>
+</div>
+
+<!-- LAYER 1 - philosophy -->
+<div id="layer1" onclick="goAuth()">
+  <div class="intro-quote">
+    <blockquote>"a trading philosophy is something that cannot just be transferred from one person to another; it's something that you have to acquire yourself through time and effort."</blockquote>
+    <cite>— Richard Driehaus, legendary money manager</cite>
+  </div>
+  <div class="intro-hint">
+    <div class="bubble-wrap"><div class="bubble"></div><div class="bubble"></div><div class="bubble"></div></div>
+    <span class="hint-text">click anywhere to continue</span>
+    <div class="bubble-wrap"><div class="bubble"></div><div class="bubble"></div><div class="bubble"></div></div>
+  </div>
+</div>
+<!-- LAYER 2 - intro + disclaimer -->
+<div id="layer2" class="hidden" style="opacity:0;transition:opacity .9s ease">
+  <div class="layer2-content">
+
+    <div style="position:relative;opacity:0;animation:fadeUp .8s ease .4s forwards;width:100%">
+      <!-- credit centered above the box -->
+      <div class="l2-credit" style="text-align:center;margin-bottom:10px;font-size:11px;letter-spacing:.07em">created by <a href="https://t.me/CryptoJurnal" target="_blank">@cryptojurnal ↗</a></div>
+      <div class="l2-disclaimer" style="padding:20px 40px 20px">
+        <div style="font-size:11px;font-weight:700;color:#EF9F27;letter-spacing:.06em;text-transform:uppercase;margin-bottom:14px">⚠ risk disclosure</div>
+
+        <div style="margin-bottom:12px;padding-bottom:12px;border-bottom:0.5px solid #1e1e1e">
+          <span style="color:#888;font-weight:600">this is a projection tool, not financial advice.</span><span style="color:#555"> all numbers are estimates based on your inputs. real trading results will differ — markets are unpredictable, execution is imperfect, and discipline varies.</span>
+          <div style="color:#555;font-size:11px;margin-top:8px">works in both <span style="color:#5BB0FF;font-weight:600">leverage</span> and <span style="color:#5DC96A;font-weight:600">spot</span> mode — but neither predicts what will actually happen.</div>
+        </div>
+
+        <div style="margin-bottom:12px;padding-bottom:12px;border-bottom:0.5px solid #1e1e1e;display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div>
+            <div style="font-size:10px;color:#EF9F27;font-weight:600;margin-bottom:4px">what is calculated ✓</div>
+            <div style="font-size:11px;color:#555;line-height:1.7">· compounding returns<br>· liq% buffer (cross margin)<br>· trade fees (maker/taker)<br>· funding fees<br>· net P&L after fees</div>
+          </div>
+          <div>
+            <div style="font-size:10px;color:#A32D2D;font-weight:600;margin-bottom:4px">what is not calculated ✗</div>
+            <div style="font-size:11px;color:#555;line-height:1.7">· slippage & spread<br>· partial fills<br>· execution delays<br>· isolated margin liq<br>· emotional decisions</div>
+          </div>
+        </div>
+
+        <div style="font-size:11px;color:#555;line-height:1.7">
+          <span style="color:#EF9F27;font-weight:600">cross margin only.</span> liq% formula assumes cross margin. isolated margin behaves differently and these numbers won't apply.<br><br>
+          <span style="color:#888;font-weight:600">the bet is yours.</span> this tool helps you prepare and stress-test your setup — gains and losses from actual trading are entirely your own responsibility.
+        </div>
+      </div>
+    </div>
+
+    <button class="launch-btn" onclick="launchApp()" style="margin-top:-4px">launch the app</button>
+
+  </div>
+</div>
+<!-- BLUR PANELS (4 sides surrounding guide tab cutout) -->
+<div id="bl-top" class="bl-panel"></div>
+<div id="bl-bot" class="bl-panel"></div>
+<div id="bl-lft" class="bl-panel"></div>
+<div id="bl-rgt" class="bl-panel"></div>
+<!-- GUIDE TAB SPOTLIGHT RING -->
+<div id="guide-spotlight"></div>
+<!-- SVG ARROW from popup to guide tab -->
+<svg id="popup-arrow-svg" xmlns="http://www.w3.org/2000/svg">
+  <path d=""/>
+  <polygon points=""/>
+</svg>
+<!-- FIND ME HERE label -->
+<div id="find-me-label" style="position:fixed;z-index:8890;display:none;opacity:0;transition:opacity .4s .5s;pointer-events:none">
+  <span id="find-me-txt" style="font-size:11px;font-weight:800;color:#fff;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;text-shadow:0 0 8px #00c47a,0 0 16px #00c47a">find me here</span>
+  <span class="fmh-dot"></span><span class="fmh-dot"></span><span class="fmh-dot"></span>
+</div>
+<!-- GUIDE POPUP (centered) -->
+<div id="guide-popup">
+  <div class="popup-box">
+    <div class="popup-title">📖 start with the guide book</div>
+    <div class="popup-body">the guide book walks you through how everything works — liq%, fees, trade slots, risk scores, and more. a good read before diving in.<br><br>and if you ever have questions along the way, <b>Kira</b> 🤖 is always there — your built-in assistant who knows this dashboard inside out.</div>
+    <div class="popup-hint">↙ the guide book tab is highlighted below</div>
+    <button class="popup-ok" onclick="dismissPopup()">okay, let me explore</button>
+  </div>
+</div>
+
 
 <script>
 let IDR=16700,IDR_LAST_UPDATE='';
