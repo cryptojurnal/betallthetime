@@ -6948,6 +6948,8 @@ function tpSelectPair(symbol) {
   tpHidePairModal();
   tpUpdatePriceDisplay();
   tpUpdateChartData();
+  tpUpdateSubmitButton(); // Update button with new pair name
+  tpFetchOrderBook(); // Fetch order book for new pair
   tpSaveState();
 }
 
@@ -7263,12 +7265,8 @@ function tpUpdateUI() {
   
   document.getElementById('tp-pos-count').textContent = TP_STATE.positions.length;
   
-  // Update submit button
-  const btn = document.getElementById('tp-submit');
-  if (btn) {
-    btn.className = 'tp-submit-btn ' + TP_STATE.side;
-    btn.textContent = `${TP_STATE.side === 'long' ? 'Long' : 'Short'} ${TP_STATE.pair.replace('USDT', '/USDT')}`;
-  }
+  // Update submit button using the proper function
+  tpUpdateSubmitButton();
 }
 
 // Render positions
@@ -7615,7 +7613,7 @@ function tpResetAccount() {
 function tpSetMarketType(type) {
   TP_STATE.marketType = type;
   document.querySelectorAll('.tp-market-type button').forEach(b => b.classList.remove('active'));
-  event.target.classList.add('active');
+  if (event && event.target) event.target.classList.add('active');
   
   const isSpot = type === 'spot';
   const leverageRow = document.getElementById('tp-leverage-row');
@@ -7645,8 +7643,32 @@ function tpSetMarketType(type) {
   // Update exchange label
   document.getElementById('tp-pair-exchange').textContent = `${isSpot ? 'spot' : 'perpetual'} · ${TP_STATE.exchange}`;
   
+  // Update submit button text
+  tpUpdateSubmitButton();
+  
   tpCalculate();
   tpSaveState();
+}
+
+// Update submit button based on mode and side
+function tpUpdateSubmitButton() {
+  const btn = document.getElementById('tp-submit');
+  if (!btn) return;
+  
+  const isSpot = TP_STATE.marketType === 'spot';
+  const side = TP_STATE.side;
+  const pairShort = TP_STATE.pair.replace('USDT', '');
+  
+  if (isSpot) {
+    // Spot mode: Buy or Sell
+    const isBuy = side === 'long' || side === 'buy';
+    btn.className = 'tp-submit-btn ' + (isBuy ? 'long' : 'short');
+    btn.textContent = isBuy ? `Buy ${pairShort}` : `Sell ${pairShort}`;
+  } else {
+    // Perpetual mode: Long or Short
+    btn.className = 'tp-submit-btn ' + side;
+    btn.textContent = `${side === 'long' ? 'Long' : 'Short'} ${pairShort}/USDT`;
+  }
 }
 
 // Order type with stop order support
@@ -7855,18 +7877,8 @@ tpSelectSide = function(side) {
   document.getElementById('tp-side-long').classList.toggle('active', side === 'long');
   document.getElementById('tp-side-short').classList.toggle('active', side === 'short');
   
-  const btn = document.getElementById('tp-submit');
-  const isSpot = TP_STATE.marketType === 'spot';
-  const pairShort = TP_STATE.pair.replace('USDT', '');
-  
-  if (btn) {
-    btn.className = 'tp-submit-btn ' + side;
-    if (isSpot) {
-      btn.textContent = side === 'long' ? `Buy ${pairShort}` : `Sell ${pairShort}`;
-    } else {
-      btn.textContent = `${side === 'long' ? 'Long' : 'Short'} ${pairShort}/USDT`;
-    }
-  }
+  // Update submit button
+  tpUpdateSubmitButton();
   tpCalculate();
 };
 
