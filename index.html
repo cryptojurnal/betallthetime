@@ -277,6 +277,17 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
 .export-opt-text h4{font-size:12px;font-weight:700;color:#e0e0e0;margin:0 0 2px}
 .export-opt-text p{font-size:10px;color:#555;margin:0}
 .export-close{width:100%;padding:10px;background:transparent;border:1px solid #222;border-radius:8px;color:#555;font-size:11px;font-weight:700;cursor:pointer}
+
+/* ── ACTIVITY LOG ── */
+.activity-item{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border-bottom:0.5px solid #1a1a1a;transition:background .15s}
+.activity-item:last-child{border-bottom:none}
+.activity-item:hover{background:#0a0a0a}
+.activity-icon{font-size:18px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:#111;border-radius:8px;flex-shrink:0}
+.activity-content{flex:1;min-width:0}
+.activity-title{font-size:12px;font-weight:600;color:#e0e0e0;margin-bottom:2px}
+.activity-meta{font-size:10px;color:#444;display:flex;flex-wrap:wrap;gap:6px}
+.activity-time{font-size:10px;color:#333;text-align:right;flex-shrink:0}
+.activity-empty{padding:30px 20px;text-align:center;color:#333;font-size:11px}
 body.t-lavender{--bg:#f0eef8;--panel:#fff;--bd:#d8d4f0;--bd2:#e4e0f4;--sf:#f8f6ff;--sf2:#f0eef8;--tx:#2a1a4a;--tx2:#8070b0;--tx3:#c0b0e0;--acc:#7050c0;--acc2:#5060e0;--mh:#4030a0;--mhc:#fff;--mhs:#c0b8f0;--inp:#f8f6ff;--btn:#f0eef8;--btno:#e0d8f8;--btonc:#7050c0;--tog:#fff;--togon:#4030a0;--togonc:#fff;--tabact:#4030a0;--tabactc:#fff;--wd-on:#e0d8f8;--wd-onc:#7050c0}
 
 .app{display:flex;height:100vh;overflow:hidden;background:#000;color:var(--tx);opacity:0}
@@ -1107,6 +1118,24 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
             </label>
           </div>
           <button onclick="clearAllPresets()" style="width:100%;padding:10px;background:transparent;border:0.5px solid #222;border-radius:6px;color:#555;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='#555';this.style.color='#888'" onmouseout="this.style.borderColor='#222';this.style.color='#555'">🗑️ clear all presets</button>
+        </div>
+      </div>
+
+      <!-- ACTIVITY LOG -->
+      <div class="acc-section">
+        <div class="acc-sec-title">📜 activity log</div>
+        <div class="acc-card" style="padding:0;overflow:hidden">
+          <div id="activity-log-list" style="max-height:300px;overflow-y:auto">
+            <div class="activity-loading" style="padding:20px;text-align:center">
+              <div class="skeleton" style="height:40px;margin-bottom:8px;border-radius:6px"></div>
+              <div class="skeleton" style="height:40px;margin-bottom:8px;border-radius:6px"></div>
+              <div class="skeleton" style="height:40px;border-radius:6px"></div>
+            </div>
+          </div>
+          <div style="padding:10px;border-top:0.5px solid #1a1a1a;text-align:center">
+            <button onclick="loadMoreActivity()" id="activity-load-more" style="background:none;border:none;color:#555;font-size:10px;cursor:pointer;display:none">load more</button>
+            <span id="activity-end-msg" style="font-size:10px;color:#333;display:none">that's everything</span>
+          </div>
         </div>
       </div>
 
@@ -4258,6 +4287,10 @@ function authOnSuccess(d){
   // show welcome toast
   const isNewUser=d.is_new||false;
   showToast(isNewUser?'Welcome to BATT! 🎉':'Welcome back, '+(d.user?.username||'trader')+'!','success');
+  // log activity
+  setTimeout(()=>{
+    if(typeof logActivity==='function') logActivity(isNewUser?'register':'login',{});
+  },1000);
   // hide auth, show layer3 (member area)
   const al=document.getElementById('auth-layer');
   al.style.opacity='0';
@@ -4488,6 +4521,7 @@ async function authSaveWithToast(){
       updateMemberStats();
       if(btn){btn.textContent='✓ synced';setTimeout(()=>{btn.textContent='↑ sync';btn.disabled=false;},1500);}
       showToast('Synced to cloud successfully!','success');
+      if(typeof logActivity==='function') logActivity('sync',{tabs:Object.keys(snapshot).length});
     } else {
       if(btn){btn.textContent='↑ sync';btn.disabled=false;}
       showToast(d.error||'Sync failed','error');
@@ -4625,6 +4659,7 @@ async function presetSaveConfirm(){
       presetRenderList();
       updateMemberStats();
       showToast('Preset "'+name+'" saved to cloud!','success');
+      if(typeof logActivity==='function') logActivity('preset_save',{name});
     }else{
       errEl.textContent=d.error||'Failed to save';
     }
@@ -4791,6 +4826,7 @@ async function presetLoad(id){
     }
     
     showToast('Preset "'+preset.name+'" loaded!','success');
+    if(typeof logActivity==='function') logActivity('preset_load',{name:preset.name});
   }catch(e){
     showToast('Connection failed','error');
   }
@@ -4811,6 +4847,7 @@ async function presetDelete(id,name){
       presetRenderList();
       updateMemberStats();
       showToast('Preset deleted','info');
+      if(typeof logActivity==='function') logActivity('preset_delete',{name});
     }else{
       showToast(d.error||'Failed to delete','error');
     }
@@ -4834,6 +4871,7 @@ async function presetRename(id,currentName){
     if(d.ok){
       presetRenderList();
       showToast('Preset renamed','success');
+      if(typeof logActivity==='function') logActivity('preset_rename',{name:newName.trim()});
     }else{
       showToast(d.error||'Failed to rename','error');
     }
@@ -4959,6 +4997,9 @@ async function loadAccountPage(){
   if(prefLang) prefLang.value=prefs.lang||'en';
   // Apply member theme
   if(prefs.ma_theme) applyMemberTheme(prefs.ma_theme);
+  
+  // Load activity log
+  if(typeof loadActivityLog==='function') loadActivityLog(true);
 }
 
 function savePref(key,value){
@@ -5050,6 +5091,7 @@ async function changePassword(){
       msgEl.textContent='Password updated!';
       document.getElementById('acc-old-pass').value='';
       document.getElementById('acc-new-pass').value='';
+      if(typeof logActivity==='function') logActivity('password_change',{});
     }else{
       msgEl.style.color='#E24B4A';
       msgEl.textContent=d.error||'Failed to update';
@@ -5086,6 +5128,7 @@ function exportAllData(){
   URL.revokeObjectURL(url);
   
   showToast('Data exported!','success');
+  if(typeof logActivity==='function') logActivity('export',{format:'json'});
 }
 
 function importData(event){
@@ -5133,6 +5176,7 @@ function importData(event){
       if(typeof render==='function') render();
       
       showToast('Data imported successfully!','success');
+      if(typeof logActivity==='function') logActivity('import',{});
       memberClose();
       
     }catch(err){
@@ -5440,6 +5484,7 @@ async function captureAndDownload(){
     link.href=canvas.toDataURL('image/png');
     link.click();
     showToast('Image saved!','success');
+    if(typeof logActivity==='function') logActivity('export',{format:'png'});
   }catch(e){
     showToast('Export failed','error');
     console.error(e);
@@ -5503,6 +5548,7 @@ async function generatePDF(){
     
     doc.save('batt-report-'+new Date().toISOString().split('T')[0]+'.pdf');
     showToast('PDF saved!','success');
+    if(typeof logActivity==='function') logActivity('export',{format:'pdf'});
   }catch(e){
     showToast('PDF generation failed','error');
     console.error(e);
@@ -5516,6 +5562,153 @@ function exportAsJSON(){
   }else{
     showToast('Export not available','error');
   }
+}
+
+// ── ACTIVITY LOG ──
+var _activityOffset=0;
+var _activityLoading=false;
+
+const ACTIVITY_ICONS={
+  'login':'🔐',
+  'logout':'🚪',
+  'register':'🎉',
+  'preset_save':'💾',
+  'preset_delete':'🗑️',
+  'preset_load':'📂',
+  'preset_rename':'✏️',
+  'sync':'☁️',
+  'export':'📤',
+  'import':'📥',
+  'password_change':'🔑',
+  'settings_change':'⚙️',
+  'google_link':'🔗'
+};
+
+const ACTIVITY_TITLES={
+  'login':'Logged in',
+  'logout':'Logged out',
+  'register':'Account created',
+  'preset_save':'Saved preset',
+  'preset_delete':'Deleted preset',
+  'preset_load':'Loaded preset',
+  'preset_rename':'Renamed preset',
+  'sync':'Cloud sync',
+  'export':'Exported data',
+  'import':'Imported data',
+  'password_change':'Password changed',
+  'settings_change':'Settings updated',
+  'google_link':'Google connected'
+};
+
+function formatActivityTime(ts){
+  const now=Date.now();
+  const diff=now-ts;
+  const mins=Math.floor(diff/60000);
+  const hours=Math.floor(diff/3600000);
+  const days=Math.floor(diff/86400000);
+  
+  if(mins<1) return 'just now';
+  if(mins<60) return mins+'m ago';
+  if(hours<24) return hours+'h ago';
+  if(days<7) return days+'d ago';
+  return new Date(ts).toLocaleDateString();
+}
+
+async function loadActivityLog(reset=false){
+  if(_activityLoading)return;
+  if(reset) _activityOffset=0;
+  
+  _activityLoading=true;
+  const list=document.getElementById('activity-log-list');
+  const loadMore=document.getElementById('activity-load-more');
+  const endMsg=document.getElementById('activity-end-msg');
+  
+  if(!list)return;
+  
+  if(reset){
+    list.innerHTML='<div style="padding:20px;text-align:center"><div class="skeleton" style="height:40px;margin-bottom:8px;border-radius:6px"></div><div class="skeleton" style="height:40px;margin-bottom:8px;border-radius:6px"></div><div class="skeleton" style="height:40px;border-radius:6px"></div></div>';
+  }
+  
+  try{
+    const r=await fetch(AUTH_URL+'/activity/list?offset='+_activityOffset+'&limit=10',{
+      headers:{'Authorization':'Bearer '+AUTH_TOKEN}
+    });
+    const d=await r.json();
+    
+    if(d.ok){
+      if(reset) list.innerHTML='';
+      
+      if(d.activities.length===0&&_activityOffset===0){
+        list.innerHTML='<div class="activity-empty">No activity yet.<br>Start using the dashboard!</div>';
+        if(loadMore) loadMore.style.display='none';
+        if(endMsg) endMsg.style.display='none';
+      }else{
+        d.activities.forEach(a=>{
+          const icon=ACTIVITY_ICONS[a.action]||'📋';
+          const title=ACTIVITY_TITLES[a.action]||a.action;
+          let details='';
+          try{
+            const det=JSON.parse(a.details||'{}');
+            if(det.name) details=det.name;
+            if(det.browser) details=(details?details+' · ':'')+det.browser;
+            if(det.format) details=(details?details+' · ':'')+det.format.toUpperCase();
+          }catch(e){}
+          
+          list.innerHTML+=`<div class="activity-item">
+            <div class="activity-icon">${icon}</div>
+            <div class="activity-content">
+              <div class="activity-title">${title}</div>
+              ${details?`<div class="activity-meta">${details}</div>`:''}
+            </div>
+            <div class="activity-time">${formatActivityTime(a.created_at)}</div>
+          </div>`;
+        });
+        
+        _activityOffset+=d.activities.length;
+        
+        if(d.has_more){
+          if(loadMore){loadMore.style.display='inline';loadMore.textContent='load more';}
+          if(endMsg) endMsg.style.display='none';
+        }else{
+          if(loadMore) loadMore.style.display='none';
+          if(endMsg&&_activityOffset>0) endMsg.style.display='inline';
+        }
+      }
+    }
+  }catch(e){
+    console.error('Activity load error:',e);
+    if(reset) list.innerHTML='<div class="activity-empty">Failed to load activity</div>';
+  }
+  
+  _activityLoading=false;
+}
+
+function loadMoreActivity(){
+  const btn=document.getElementById('activity-load-more');
+  if(btn) btn.textContent='loading...';
+  loadActivityLog(false);
+}
+
+async function logActivity(action,details={}){
+  if(!AUTH_TOKEN)return;
+  try{
+    // Get browser info
+    const ua=navigator.userAgent;
+    let browser='Unknown';
+    if(ua.includes('Chrome')) browser='Chrome';
+    else if(ua.includes('Firefox')) browser='Firefox';
+    else if(ua.includes('Safari')) browser='Safari';
+    else if(ua.includes('Edge')) browser='Edge';
+    
+    details.browser=browser;
+    details.platform=navigator.platform||'Unknown';
+    
+    await fetch(AUTH_URL+'/activity/log',{
+      method:'POST',
+      headers:{'Authorization':'Bearer '+AUTH_TOKEN,'Content-Type':'application/json'},
+      body:JSON.stringify({action,details})
+    });
+  }catch(e){/* silent fail */}
 }
 
 // ── LIVE CRYPTO PRICES ──
