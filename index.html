@@ -389,12 +389,12 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
 .tp-balance-pnl.down{color:#E24B4A}
 
 /* Main Layout */
-.tp-main{display:flex;flex:1;overflow:hidden}
-.tp-chart-section{flex:1;display:flex;flex-direction:column}
-.tp-chart-area{flex:1;display:flex;border-right:1px solid #1a1a1a}
-.tp-chart-wrap{flex:1;display:flex;flex-direction:column}
-.tp-orderbook{width:200px;background:#0a0a0a;border-left:1px solid #1a1a1a;display:flex;flex-direction:column}
-.tp-sidebar{width:320px;display:flex;flex-direction:column;background:#0a0a0a;flex-shrink:0}
+.tp-main{display:flex;flex:1;overflow:hidden;min-height:0}
+.tp-chart-section{flex:1;display:flex;flex-direction:column;min-height:0}
+.tp-chart-area{flex:1;display:flex;border-right:1px solid #1a1a1a;min-height:0}
+.tp-chart-wrap{flex:1;display:flex;flex-direction:column;min-height:0}
+.tp-orderbook{width:200px;background:#0a0a0a;border-left:1px solid #1a1a1a;display:flex;flex-direction:column;min-height:0}
+.tp-sidebar{width:320px;display:flex;flex-direction:column;background:#0a0a0a;flex-shrink:0;min-height:0;overflow:hidden}
 @media(max-width:1200px){.tp-orderbook{width:160px}}
 @media(max-width:1100px){.tp-sidebar{width:280px}}
 @media(max-width:900px){
@@ -486,7 +486,7 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
 #tp-chart-container{flex:1;width:100%;min-height:250px}
 
 /* Order Form */
-.tp-order-form{padding:12px;border-bottom:1px solid #1a1a1a;overflow-y:auto}
+.tp-order-form{padding:12px;border-bottom:1px solid #1a1a1a;overflow-y:auto;flex-shrink:0;max-height:50%}
 .tp-order-tabs{display:flex;gap:4px;margin-bottom:12px}
 .tp-order-tab{flex:1;padding:10px;background:#111;border:none;color:#555;font-size:11px;font-weight:700;cursor:pointer;border-radius:6px;transition:all .2s}
 .tp-order-tab:hover{color:#888}
@@ -534,17 +534,17 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
 .tp-submit-btn:active{transform:translateY(0)}
 
 /* Positions Panel */
-.tp-positions{flex:1;display:flex;flex-direction:column;overflow:hidden}
-.tp-pos-tabs{display:flex;background:#000;border-bottom:1px solid #1a1a1a}
-.tp-pos-tab{flex:1;padding:10px;background:transparent;border:none;color:#555;font-size:10px;font-weight:700;cursor:pointer;transition:all .2s;border-bottom:2px solid transparent}
+.tp-positions{flex:1;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+.tp-pos-tabs{display:flex;background:#000;border-bottom:1px solid #1a1a1a;flex-shrink:0}
+.tp-pos-tab{flex:1;padding:10px;background:transparent;border:none;color:#555;font-size:10px;font-weight:700;cursor:pointer;transition:all .2s;border-bottom:2px solid transparent;white-space:nowrap}
 .tp-pos-tab:hover{color:#888}
 .tp-pos-tab.active{color:#fff;border-bottom-color:#00c47a}
 .tp-pos-tab span{background:#1a1a1a;padding:2px 6px;border-radius:4px;margin-left:4px}
-.tp-pos-content{flex:1;overflow-y:auto;padding:8px}
+.tp-pos-content{flex:1;overflow-y:auto;padding:8px;min-height:0}
 
 .tp-position-card{background:#111;border:1px solid #1a1a1a;border-radius:8px;padding:10px;margin-bottom:6px}
 .tp-pos-row1{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-.tp-pos-symbol{display:flex;align-items:center;gap:6px}
+.tp-pos-symbol{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .tp-pos-symbol-name{font-size:13px;font-weight:700;color:#fff}
 .tp-pos-badge{font-size:8px;font-weight:700;padding:2px 6px;border-radius:3px}
 .tp-pos-badge.long{background:#0a2a1a;color:#00c47a}
@@ -555,12 +555,13 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
 .tp-pos-pnl-value.up{color:#00c47a}
 .tp-pos-pnl-value.down{color:#E24B4A}
 .tp-pos-pnl-percent{font-size:10px;color:#555}
-.tp-pos-row2{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:8px;font-size:9px}
+.tp-pos-row2{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:8px;font-size:9px}
 .tp-pos-stat{color:#555}
 .tp-pos-stat span{display:block;color:#888;font-weight:600;margin-top:2px}
-.tp-pos-actions{display:flex;gap:6px}
-.tp-pos-actions button{flex:1;padding:8px;background:#1a1a1a;border:none;border-radius:4px;color:#555;font-size:9px;font-weight:700;cursor:pointer;transition:all .15s}
+.tp-pos-actions{display:flex;gap:4px;flex-wrap:wrap}
+.tp-pos-actions button{flex:1;min-width:40px;padding:6px 8px;background:#1a1a1a;border:none;border-radius:4px;color:#555;font-size:9px;font-weight:700;cursor:pointer;transition:all .15s}
 .tp-pos-actions button:hover{background:#222;color:#888}
+.tp-pos-actions button.close{flex:2}
 .tp-pos-actions button.close:hover{background:#E24B4A;color:#fff}
 
 .tp-empty{text-align:center;padding:30px;color:#333}
@@ -7295,12 +7296,25 @@ function tpRenderPositions() {
   const container = document.getElementById('tp-positions');
   if (!container) return;
   
-  if (TP_STATE.positions.length === 0) {
-    container.innerHTML = `<div class="tp-empty"><div class="tp-empty-icon">📭</div><div class="tp-empty-text">No open positions</div></div>`;
+  const currentMode = TP_STATE.marketType;
+  
+  // Filter positions by current market type
+  const filteredPositions = TP_STATE.positions.filter(pos => {
+    const posIsSpot = pos.marketType === 'spot' || pos.leverage === 1;
+    return currentMode === 'spot' ? posIsSpot : !posIsSpot;
+  });
+  
+  // Update position count for current mode only
+  const countEl = document.getElementById('tp-pos-count');
+  if (countEl) countEl.textContent = filteredPositions.length;
+  
+  if (filteredPositions.length === 0) {
+    const modeLabel = currentMode === 'spot' ? 'Spot' : 'Perpetual';
+    container.innerHTML = `<div class="tp-empty"><div class="tp-empty-icon">📭</div><div class="tp-empty-text">No ${modeLabel} positions</div></div>`;
     return;
   }
   
-  container.innerHTML = TP_STATE.positions.map(pos => {
+  container.innerHTML = filteredPositions.map(pos => {
     const currentPrice = TP_STATE.prices[pos.pair]?.price || pos.entryPrice;
     const pnl = tpCalcPnL(pos, currentPrice);
     const pnlPercent = (pnl / pos.size) * 100;
@@ -7425,21 +7439,36 @@ function tpRenderHistory() {
   const container = document.getElementById('tp-history');
   if (!container) return;
   
-  if (TP_STATE.history.length === 0) {
-    container.innerHTML = `<div class="tp-empty"><div class="tp-empty-icon">📜</div><div class="tp-empty-text">No trade history</div></div>`;
+  const currentMode = TP_STATE.marketType;
+  
+  // Filter history by current market type
+  const filteredHistory = TP_STATE.history.filter(h => {
+    const hIsSpot = h.marketType === 'spot' || h.leverage === 1;
+    return currentMode === 'spot' ? hIsSpot : !hIsSpot;
+  });
+  
+  if (filteredHistory.length === 0) {
+    const modeLabel = currentMode === 'spot' ? 'Spot' : 'Perpetual';
+    container.innerHTML = `<div class="tp-empty"><div class="tp-empty-icon">📜</div><div class="tp-empty-text">No ${modeLabel} trade history</div></div>`;
     return;
   }
   
-  container.innerHTML = TP_STATE.history.slice(0, 20).map(h => {
+  container.innerHTML = filteredHistory.slice(0, 20).map(h => {
     const isUp = h.pnl >= 0;
     const time = new Date(h.closedAt).toLocaleString();
+    const isSpot = h.marketType === 'spot' || h.leverage === 1;
+    
     return `
       <div class="tp-position-card" style="padding:8px 10px">
         <div style="display:flex;justify-content:space-between;align-items:center">
           <div class="tp-pos-symbol">
             <span class="tp-pos-symbol-name" style="font-size:12px">${h.pair.replace('USDT','')}</span>
-            <span class="tp-pos-badge ${h.side}">${h.side.toUpperCase()}</span>
-            <span class="tp-pos-badge lev">${h.leverage}x</span>
+            ${isSpot ? 
+              `<span class="tp-pos-badge" style="background:#1a2a1a;color:#8ac">SPOT</span>` :
+              `<span class="tp-pos-badge ${h.side}">${h.side.toUpperCase()}</span>
+               <span class="tp-pos-badge lev">${h.leverage}x</span>`
+            }
+            ${h.partial ? `<span class="tp-pos-badge" style="background:#1a1a2a;color:#88f">PARTIAL</span>` : ''}
           </div>
           <div style="text-align:right">
             <div class="tp-pos-pnl-value ${isUp ? 'up' : 'down'}" style="font-size:13px">${isUp ? '+' : ''}$${h.pnl.toFixed(2)}</div>
@@ -7666,6 +7695,10 @@ function tpSetMarketType(type) {
   
   // Update submit button text
   tpUpdateSubmitButton();
+  
+  // Re-render positions filtered by market type
+  tpRenderPositions();
+  tpRenderHistory();
   
   tpCalculate();
   tpSaveState();
