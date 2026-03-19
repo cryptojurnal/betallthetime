@@ -630,10 +630,14 @@ body.t-lavender{--bg:#f0eef8;--panel:#fff;--bd:#d8d4f0;--bd2:#e4e0f4;--sf:#f8f6f
 /* PRESETS PANEL (collapsible right) */
 .panel-presets{width:0;min-width:0;background:var(--panel);border-left:0.5px solid var(--bd);flex-shrink:0;transition:width .3s ease,min-width .3s ease;display:flex;flex-direction:column;position:relative;overflow:visible}
 .panel-presets.open{width:280px;min-width:280px}
-.panel-presets-toggle{position:fixed;right:0;top:50%;transform:translateY(-50%);width:32px;height:70px;background:var(--panel);border:1px solid var(--bd);border-right:none;border-radius:10px 0 0 10px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--tx2);transition:all .2s;z-index:100;box-shadow:-2px 0 8px rgba(0,0,0,0.15);opacity:0;pointer-events:none}
+.panel-presets-toggle{position:fixed;right:0;top:50%;transform:translateY(-50%);width:36px;height:80px;background:linear-gradient(135deg,var(--acc2),var(--acc));border:none;border-radius:12px 0 0 12px;cursor:grab;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;font-size:14px;color:#000;transition:all .2s;z-index:100;box-shadow:-3px 0 16px rgba(0,0,0,0.25);opacity:0;pointer-events:none;user-select:none;touch-action:none}
 .panel-presets-toggle.visible{opacity:1;pointer-events:all}
-.panel-presets-toggle:hover{background:var(--sf);color:var(--acc2);width:36px}
+.panel-presets-toggle:hover{width:42px;box-shadow:-4px 0 20px rgba(0,0,0,0.35)}
+.panel-presets-toggle.dragging{cursor:grabbing;box-shadow:-6px 0 24px rgba(0,0,0,0.45);transform:translateY(-50%) scale(1.05)}
+.panel-presets-toggle::after{content:'💾';font-size:16px}
+.panel-presets-toggle::before{content:'';position:absolute;left:8px;top:50%;transform:translateY(-50%);width:4px;height:24px;background:rgba(0,0,0,0.2);border-radius:2px}
 .panel-presets.open .panel-presets-toggle{right:280px}
+.panel-presets-toggle-hint{font-size:7px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;writing-mode:vertical-rl;text-orientation:mixed;opacity:0.7}
 .pp-inner{width:280px;min-width:280px;display:flex;flex-direction:column;height:100%;overflow:hidden;opacity:0;transition:opacity .2s}
 .panel-presets.open .pp-inner{opacity:1}
 .pp-head{padding:12px 14px;border-bottom:0.5px solid var(--bd2);display:flex;align-items:center;justify-content:space-between}
@@ -1336,30 +1340,6 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 <div class="kbd-hint" id="kbd-hint">
   <span class="kbd"><kbd>Ctrl</kbd>+<kbd>S</kbd> sync</span>
   <span class="kbd"><kbd>Esc</kbd> back</span>
-</div>
-
-<!-- MEMBER PANEL OVERLAY -->
-<div id="member-overlay" onclick="memberClose()"></div>
-
-<!-- MEMBER PANEL (Presets only) -->
-<div id="member-panel">
-  <div class="mp-head">
-    <div class="mp-user">
-      <div style="font-size:14px;font-weight:700;color:#fff">💾 Presets</div>
-      <div class="mp-email" id="mp-email">saved configurations</div>
-    </div>
-    <button class="mp-close" onclick="memberClose()">✕</button>
-  </div>
-
-  <div class="mp-body" id="mp-body">
-    <div class="mp-section">
-      <button class="mp-save-btn" onclick="presetSaveModal()">
-        <span>+</span> save current dashboard as preset
-      </button>
-      <div class="mp-sec-title">saved presets <span id="mp-preset-count" style="color:#333"></span></div>
-      <div id="mp-preset-list"><div class="mp-empty"><div class="mp-empty-icon">📋</div>no presets yet<br>save your setup from the dashboard</div></div>
-    </div>
-  </div>
 </div>
 
 <!-- ACCOUNT PAGE (separate full-page overlay) -->
@@ -2359,7 +2339,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 
 <!-- PRESETS PANEL (collapsible right) -->
 <div class="panel-presets" id="panel-presets">
-  <button class="panel-presets-toggle" id="presets-toggle-btn" onclick="togglePresetsPanel()" title="Presets">💾</button>
+  <button class="panel-presets-toggle" id="presets-toggle-btn" title="Presets - Drag to move"></button>
   <div class="pp-inner">
     <div class="pp-head">
       <h3>💾 Presets</h3>
@@ -5549,30 +5529,20 @@ async function presetRename(id,currentName){
 
 // render preset list when member panel opens
 function memberOpen(){
-  const overlay=document.getElementById('member-overlay');
-  const panel=document.getElementById('member-panel');
-  if(overlay)overlay.classList.add('open');
-  if(panel)panel.classList.add('open');
-  // update user info
-  if(AUTH_USER){
-    const u=document.getElementById('mp-username');
-    const e=document.getElementById('mp-email');
-    const au=document.getElementById('mp-acc-username');
-    const ae=document.getElementById('mp-acc-email');
-    if(u)u.textContent='@'+(AUTH_USER.username||'user');
-    if(e)e.textContent=AUTH_USER.email||'';
-    if(au)au.textContent=AUTH_USER.username||'—';
-    if(ae)ae.textContent=AUTH_USER.email||'—';
+  // Toggle the main presets panel instead of the duplicate member-panel
+  const presetsPanel = document.querySelector('.panel-presets');
+  if(presetsPanel){
+    presetsPanel.classList.toggle('open');
+    // Also update preset list
+    if(presetsPanel.classList.contains('open') && typeof presetRenderList === 'function'){
+      presetRenderList();
+    }
   }
-  // render presets
-  presetRenderList();
 }
 
 function memberClose(){
-  const overlay=document.getElementById('member-overlay');
-  const panel=document.getElementById('member-panel');
-  if(overlay)overlay.classList.remove('open');
-  if(panel)panel.classList.remove('open');
+  const presetsPanel = document.querySelector('.panel-presets');
+  if(presetsPanel) presetsPanel.classList.remove('open');
 }
 
 // ── ACCOUNT PAGE FUNCTIONS ──
@@ -6683,6 +6653,14 @@ function closeTradingPage() {
   if (page) {
     page.classList.remove('visible');
     l3.classList.add('visible');
+    
+    // Show floating elements again
+    const userBar = document.getElementById('auth-user-bar');
+    const aiFab = document.getElementById('ai-fab');
+    const presetsToggle = document.querySelector('.panel-presets-toggle');
+    if (userBar && AUTH_TOKEN) userBar.style.display = '';
+    if (aiFab) aiFab.style.display = '';
+    if (presetsToggle && AUTH_TOKEN) presetsToggle.style.display = '';
   }
   if (window._tpPriceInterval) {
     clearInterval(window._tpPriceInterval);
@@ -7905,6 +7883,15 @@ openTradingPage = function() {
   if (page) {
     page.classList.add('visible');
     l3.classList.remove('visible');
+    
+    // Hide floating elements that interfere with trading UI
+    const userBar = document.getElementById('auth-user-bar');
+    const aiFab = document.getElementById('ai-fab');
+    const presetsToggle = document.querySelector('.panel-presets-toggle');
+    if (userBar) userBar.style.display = 'none';
+    if (aiFab) aiFab.style.display = 'none';
+    if (presetsToggle) presetsToggle.style.display = 'none';
+    
     tpFetchPrices();
     tpInitChart();
     tpUpdateUI();
@@ -8686,6 +8673,64 @@ window.addEventListener('resize',function(){
       if(b2&&(e.target===b2||b2.contains(e.target)))onDown(e);
     },{passive:false});
   });
+})();
+
+// ── PRESETS TOGGLE DRAG TO REPOSITION (vertical only) ──
+(function(){
+  var toggle, startY, startTop, dragging=false, hasDragged=false;
+  var _rafId=null, _lastY=0;
+  
+  function onDown(e){
+    toggle=document.getElementById('presets-toggle-btn');
+    if(!toggle || !toggle.classList.contains('visible'))return;
+    var pt=e.touches?e.touches[0]:e;
+    startY=pt.clientY;
+    startTop=toggle.offsetTop || (window.innerHeight/2 - toggle.offsetHeight/2);
+    dragging=true;
+    hasDragged=false;
+    toggle.classList.add('dragging');
+    e.preventDefault();
+  }
+  
+  function onMove(e){
+    if(!dragging || !toggle)return;
+    var pt=e.touches?e.touches[0]:e;
+    var deltaY=pt.clientY-startY;
+    if(Math.abs(deltaY)<5)return;
+    hasDragged=true;
+    var H=window.innerHeight;
+    var toggleH=toggle.offsetHeight;
+    _lastY=Math.max(20,Math.min(startTop+deltaY, H-toggleH-20));
+    if(!_rafId) _rafId=requestAnimationFrame(function(){
+      if(toggle){
+        toggle.style.top=_lastY+'px';
+        toggle.style.transform='none';
+      }
+      _rafId=null;
+    });
+    e.preventDefault();
+  }
+  
+  function onUp(e){
+    if(!dragging)return;
+    dragging=false;
+    if(toggle)toggle.classList.remove('dragging');
+    // If not dragged, treat as click
+    if(!hasDragged && toggle){
+      togglePresetsPanel();
+    }
+  }
+  
+  document.addEventListener('mousedown',function(e){
+    if(e.target.id==='presets-toggle-btn')onDown(e);
+  });
+  document.addEventListener('touchstart',function(e){
+    if(e.target.id==='presets-toggle-btn')onDown(e);
+  },{passive:false});
+  document.addEventListener('mousemove',onMove);
+  document.addEventListener('touchmove',onMove,{passive:false});
+  document.addEventListener('mouseup',onUp);
+  document.addEventListener('touchend',onUp);
 })();
 
 function aiSetLang(lang){
