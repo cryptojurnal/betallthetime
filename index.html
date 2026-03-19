@@ -244,6 +244,39 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
 .price-card-change.down{color:#E24B4A}
 .price-card-change .arrow{font-size:8px}
 .prices-loading .price-card{background:linear-gradient(90deg,#0d0d0d 25%,#1a1a1a 50%,#0d0d0d 75%);background-size:200% 100%;animation:skeleton-pulse 1.5s ease-in-out infinite}
+
+/* ── ONBOARDING TOUR ── */
+#onboarding-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:99990;display:none;align-items:center;justify-content:center}
+#onboarding-overlay.show{display:flex}
+.onboarding-modal{background:#111;border:1px solid #1a1a1a;border-radius:16px;padding:28px;max-width:400px;width:90%;text-align:center;animation:fadeInUp .3s ease}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.onboarding-step{display:none}
+.onboarding-step.active{display:block}
+.onboarding-icon{font-size:48px;margin-bottom:16px}
+.onboarding-title{font-size:18px;font-weight:800;color:#fff;margin-bottom:8px}
+.onboarding-desc{font-size:12px;color:#888;line-height:1.6;margin-bottom:20px}
+.onboarding-dots{display:flex;justify-content:center;gap:6px;margin-bottom:20px}
+.onboarding-dot{width:8px;height:8px;border-radius:50%;background:#333;transition:all .2s}
+.onboarding-dot.active{background:#00c47a;width:20px;border-radius:4px}
+.onboarding-btns{display:flex;gap:10px;justify-content:center}
+.onboarding-btn{padding:10px 20px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s}
+.onboarding-btn.skip{background:transparent;border:1px solid #333;color:#555}
+.onboarding-btn.skip:hover{border-color:#555;color:#888}
+.onboarding-btn.next{background:#00c47a;border:none;color:#000}
+.onboarding-btn.next:hover{opacity:.88}
+
+/* ── EXPORT MODAL ── */
+#export-modal{position:fixed;inset:0;background:rgba(0,0,0,.8);backdrop-filter:blur(4px);z-index:99995;display:none;align-items:center;justify-content:center}
+#export-modal.show{display:flex}
+.export-box{background:#111;border:1px solid #1a1a1a;border-radius:12px;padding:24px;max-width:320px;width:90%}
+.export-title{font-size:14px;font-weight:700;color:#fff;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.export-options{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.export-opt{display:flex;align-items:center;gap:12px;padding:12px;background:#0a0a0a;border:1px solid #1a1a1a;border-radius:8px;cursor:pointer;transition:all .2s}
+.export-opt:hover{border-color:#00c47a}
+.export-opt-icon{font-size:24px}
+.export-opt-text h4{font-size:12px;font-weight:700;color:#e0e0e0;margin:0 0 2px}
+.export-opt-text p{font-size:10px;color:#555;margin:0}
+.export-close{width:100%;padding:10px;background:transparent;border:1px solid #222;border-radius:8px;color:#555;font-size:11px;font-weight:700;cursor:pointer}
 body.t-lavender{--bg:#f0eef8;--panel:#fff;--bd:#d8d4f0;--bd2:#e4e0f4;--sf:#f8f6ff;--sf2:#f0eef8;--tx:#2a1a4a;--tx2:#8070b0;--tx3:#c0b0e0;--acc:#7050c0;--acc2:#5060e0;--mh:#4030a0;--mhc:#fff;--mhs:#c0b8f0;--inp:#f8f6ff;--btn:#f0eef8;--btno:#e0d8f8;--btonc:#7050c0;--tog:#fff;--togon:#4030a0;--togonc:#fff;--tabact:#4030a0;--tabactc:#fff;--wd-on:#e0d8f8;--wd-onc:#7050c0}
 
 .app{display:flex;height:100vh;overflow:hidden;background:#000;color:var(--tx);opacity:0}
@@ -841,6 +874,85 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
   <button class="pwa-install-btn" onclick="pwaInstall()">Install</button>
   <button class="pwa-close-btn" onclick="pwaCloseBanner()">✕</button>
 </div>
+
+<!-- ONBOARDING TOUR -->
+<div id="onboarding-overlay">
+  <div class="onboarding-modal">
+    <div class="onboarding-step active" data-step="1">
+      <div class="onboarding-icon">👋</div>
+      <div class="onboarding-title">Welcome to BATT!</div>
+      <div class="onboarding-desc">Your personal crypto trading projection dashboard. Let's take a quick tour to help you get started.</div>
+    </div>
+    <div class="onboarding-step" data-step="2">
+      <div class="onboarding-icon">📊</div>
+      <div class="onboarding-title">Trading Dashboard</div>
+      <div class="onboarding-desc">Simulate trades, calculate liquidation percentages, and project your account growth over 36 months. Your main planning tool.</div>
+    </div>
+    <div class="onboarding-step" data-step="3">
+      <div class="onboarding-icon">💾</div>
+      <div class="onboarding-title">Save Your Setups</div>
+      <div class="onboarding-desc">Create presets to save your configurations. Access them anytime from the presets panel inside the dashboard.</div>
+    </div>
+    <div class="onboarding-step" data-step="4">
+      <div class="onboarding-icon">☁️</div>
+      <div class="onboarding-title">Cloud Sync</div>
+      <div class="onboarding-desc">Your data syncs to the cloud automatically. Access your dashboard from any device after logging in.</div>
+    </div>
+    <div class="onboarding-step" data-step="5">
+      <div class="onboarding-icon">🤖</div>
+      <div class="onboarding-title">Meet Kira</div>
+      <div class="onboarding-desc">Your AI assistant is always ready to help! Look for the chat bubble in the dashboard. Ask anything about trading concepts.</div>
+    </div>
+    <div class="onboarding-step" data-step="6">
+      <div class="onboarding-icon">🚀</div>
+      <div class="onboarding-title">You're Ready!</div>
+      <div class="onboarding-desc">That's it! Explore the dashboard and start planning your trading journey. Good luck, trader!</div>
+    </div>
+    <div class="onboarding-dots">
+      <div class="onboarding-dot active" data-dot="1"></div>
+      <div class="onboarding-dot" data-dot="2"></div>
+      <div class="onboarding-dot" data-dot="3"></div>
+      <div class="onboarding-dot" data-dot="4"></div>
+      <div class="onboarding-dot" data-dot="5"></div>
+      <div class="onboarding-dot" data-dot="6"></div>
+    </div>
+    <div class="onboarding-btns">
+      <button class="onboarding-btn skip" onclick="onboardingClose()">Skip</button>
+      <button class="onboarding-btn next" id="onboarding-next-btn" onclick="onboardingNext()">Next</button>
+    </div>
+  </div>
+</div>
+
+<!-- EXPORT MODAL -->
+<div id="export-modal">
+  <div class="export-box">
+    <div class="export-title">📤 Export Dashboard</div>
+    <div class="export-options">
+      <div class="export-opt" onclick="exportAsImage()">
+        <span class="export-opt-icon">🖼️</span>
+        <div class="export-opt-text">
+          <h4>Export as Image</h4>
+          <p>Save dashboard as PNG screenshot</p>
+        </div>
+      </div>
+      <div class="export-opt" onclick="exportAsPDF()">
+        <span class="export-opt-icon">📄</span>
+        <div class="export-opt-text">
+          <h4>Export as PDF</h4>
+          <p>Generate PDF report</p>
+        </div>
+      </div>
+      <div class="export-opt" onclick="exportAsJSON()">
+        <span class="export-opt-icon">💾</span>
+        <div class="export-opt-text">
+          <h4>Export Data</h4>
+          <p>Download JSON backup file</p>
+        </div>
+      </div>
+    </div>
+    <button class="export-close" onclick="exportModalClose()">Cancel</button>
+  </div>
+</div>
 <!-- TOAST NOTIFICATIONS -->
 <div id="toast-container"></div>
 
@@ -1053,6 +1165,47 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
       </div>
       <div class="auth-err" id="auth-login-err"></div>
       <button class="auth-submit" id="auth-login-btn" onclick="authLogin()">login</button>
+      <div style="text-align:center;margin-top:10px">
+        <button onclick="authShowForgot()" style="background:none;border:none;color:#555;font-size:11px;cursor:pointer;text-decoration:underline">forgot password?</button>
+      </div>
+    </div>
+    <!-- FORGOT PASSWORD -->
+    <div id="auth-forgot-form" style="display:none">
+      <div style="text-align:center;margin-bottom:16px">
+        <div style="font-size:28px;margin-bottom:8px">🔑</div>
+        <div style="font-size:13px;color:#e0e0e0;font-weight:600">Reset your password</div>
+        <div style="font-size:10px;color:#555">Enter your email to receive a reset code</div>
+      </div>
+      <div class="auth-field">
+        <label>email</label>
+        <input type="email" id="auth-forgot-email" placeholder="your@email.com" autocomplete="email">
+      </div>
+      <div class="auth-err" id="auth-forgot-err"></div>
+      <button class="auth-submit" id="auth-forgot-btn" onclick="authForgotSend()">send reset code</button>
+      <div style="text-align:center;margin-top:10px">
+        <button onclick="authShowTab('login')" style="background:none;border:none;color:#555;font-size:11px;cursor:pointer">← back to login</button>
+      </div>
+    </div>
+    <!-- RESET PASSWORD (after code) -->
+    <div id="auth-reset-form" style="display:none">
+      <div style="text-align:center;margin-bottom:16px">
+        <div style="font-size:28px;margin-bottom:8px">✉️</div>
+        <div style="font-size:13px;color:#e0e0e0;font-weight:600">Check your email</div>
+        <div style="font-size:10px;color:#555">Enter the 6-digit code we sent you</div>
+      </div>
+      <div class="auth-field">
+        <label>reset code</label>
+        <input type="text" id="auth-reset-code" placeholder="123456" maxlength="6" style="text-align:center;letter-spacing:8px;font-size:18px;font-weight:700">
+      </div>
+      <div class="auth-field">
+        <label>new password</label>
+        <input type="password" id="auth-reset-pass" placeholder="min 6 characters" autocomplete="new-password">
+      </div>
+      <div class="auth-err" id="auth-reset-err"></div>
+      <button class="auth-submit" id="auth-reset-btn" onclick="authResetPassword()">reset password</button>
+      <div style="text-align:center;margin-top:10px">
+        <button onclick="authShowTab('login')" style="background:none;border:none;color:#555;font-size:11px;cursor:pointer">← back to login</button>
+      </div>
     </div>
     <!-- REGISTER -->
     <div id="auth-register-form" style="display:none">
@@ -1513,7 +1666,8 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 
   <!-- SAVE AS PRESET BUTTON -->
   <div style="padding:12px 10px;border-top:0.5px solid var(--bd2);margin-top:8px">
-    <button onclick="presetSaveModal()" style="width:100%;padding:10px;background:var(--acc2);color:#000;border:none;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.04em;display:flex;align-items:center;justify-content:center;gap:6px;transition:opacity .2s" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">💾 save as preset</button>
+    <button onclick="presetSaveModal()" style="width:100%;padding:10px;background:var(--acc2);color:#000;border:none;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.04em;display:flex;align-items:center;justify-content:center;gap:6px;transition:opacity .2s;margin-bottom:8px" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">💾 save as preset</button>
+    <button onclick="exportModalOpen()" style="width:100%;padding:8px;background:transparent;border:1px solid var(--bd2);color:var(--tx2);border-radius:8px;font-size:10px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .2s" onmouseover="this.style.borderColor='var(--acc2)';this.style.color='var(--acc2)'" onmouseout="this.style.borderColor='var(--bd2)';this.style.color='var(--tx2)'">📤 export dashboard</button>
     <div style="font-size:8px;color:var(--tx3);text-align:center;margin-top:6px">saves everything to cloud • access from any device</div>
   </div>
 
@@ -3983,8 +4137,72 @@ let AUTH_USER  = null;
 function authShowTab(tab){
   document.getElementById('auth-login-form').style.display   = tab==='login'    ? '' : 'none';
   document.getElementById('auth-register-form').style.display = tab==='register' ? '' : 'none';
+  document.getElementById('auth-forgot-form').style.display  = tab==='forgot'   ? '' : 'none';
+  document.getElementById('auth-reset-form').style.display   = tab==='reset'    ? '' : 'none';
   document.getElementById('auth-tab-login').classList.toggle('on',    tab==='login');
   document.getElementById('auth-tab-register').classList.toggle('on', tab==='register');
+}
+
+function authShowForgot(){
+  authShowTab('forgot');
+  document.getElementById('auth-forgot-email').value='';
+  document.getElementById('auth-forgot-err').textContent='';
+}
+
+var _resetEmail='';
+async function authForgotSend(){
+  const btn=document.getElementById('auth-forgot-btn');
+  const err=document.getElementById('auth-forgot-err');
+  const email=document.getElementById('auth-forgot-email').value.trim();
+  
+  if(!email){err.textContent='Enter your email';return;}
+  
+  btn.disabled=true;btn.textContent='sending...';err.textContent='';
+  
+  try{
+    const r=await fetch(AUTH_URL+'/auth/forgot-password',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email})
+    });
+    const d=await r.json();
+    if(d.ok){
+      _resetEmail=email;
+      authShowTab('reset');
+      showToast('Code sent! Check your email','success');
+    }else{
+      err.textContent=d.error||'Failed to send';
+    }
+  }catch(e){err.textContent='Connection failed';}
+  btn.disabled=false;btn.textContent='send reset code';
+}
+
+async function authResetPassword(){
+  const btn=document.getElementById('auth-reset-btn');
+  const err=document.getElementById('auth-reset-err');
+  const code=document.getElementById('auth-reset-code').value.trim();
+  const pass=document.getElementById('auth-reset-pass').value;
+  
+  if(!code||code.length!==6){err.textContent='Enter 6-digit code';return;}
+  if(!pass||pass.length<6){err.textContent='Password min 6 characters';return;}
+  
+  btn.disabled=true;btn.textContent='resetting...';err.textContent='';
+  
+  try{
+    const r=await fetch(AUTH_URL+'/auth/reset-password',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email:_resetEmail,code,new_password:pass})
+    });
+    const d=await r.json();
+    if(d.ok){
+      showToast('Password reset! Please login','success');
+      authShowTab('login');
+    }else{
+      err.textContent=d.error||'Invalid code';
+    }
+  }catch(e){err.textContent='Connection failed';}
+  btn.disabled=false;btn.textContent='reset password';
 }
 
 async function authLogin(){
@@ -4038,13 +4256,18 @@ function authOnSuccess(d){
     }catch(e){console.warn('data merge error',e);}
   }
   // show welcome toast
-  showToast('Welcome back, '+(d.user?.username||'trader')+'!','success');
+  const isNewUser=d.is_new||false;
+  showToast(isNewUser?'Welcome to BATT! 🎉':'Welcome back, '+(d.user?.username||'trader')+'!','success');
   // hide auth, show layer3 (member area)
   const al=document.getElementById('auth-layer');
   al.style.opacity='0';
   setTimeout(()=>{
     al.classList.add('hidden');
     goLayer3();
+    // show onboarding for new users
+    if(isNewUser||!localStorage.getItem('onboarding_done')){
+      setTimeout(()=>onboardingShow(),800);
+    }
   },500);
   // show user bar
   const ub=document.getElementById('auth-user-bar');
@@ -5141,6 +5364,158 @@ function pwaCloseBanner(){
   const banner=document.getElementById('pwa-install-banner');
   if(banner) banner.classList.remove('show');
   localStorage.setItem('pwa_dismissed','1');
+}
+
+// ── ONBOARDING TOUR ──
+var _onboardingStep=1;
+function onboardingShow(){
+  if(localStorage.getItem('onboarding_done'))return;
+  const overlay=document.getElementById('onboarding-overlay');
+  if(overlay){
+    overlay.classList.add('show');
+    _onboardingStep=1;
+    onboardingUpdateStep();
+  }
+}
+function onboardingClose(){
+  const overlay=document.getElementById('onboarding-overlay');
+  if(overlay) overlay.classList.remove('show');
+  localStorage.setItem('onboarding_done','1');
+}
+function onboardingNext(){
+  if(_onboardingStep>=6){
+    onboardingClose();
+    return;
+  }
+  _onboardingStep++;
+  onboardingUpdateStep();
+}
+function onboardingUpdateStep(){
+  document.querySelectorAll('.onboarding-step').forEach(s=>{
+    s.classList.toggle('active',parseInt(s.dataset.step)===_onboardingStep);
+  });
+  document.querySelectorAll('.onboarding-dot').forEach(d=>{
+    d.classList.toggle('active',parseInt(d.dataset.dot)===_onboardingStep);
+  });
+  const btn=document.getElementById('onboarding-next-btn');
+  if(btn) btn.textContent=_onboardingStep>=6?'Get Started':'Next';
+}
+
+// ── EXPORT FUNCTIONS ──
+function exportModalOpen(){
+  const modal=document.getElementById('export-modal');
+  if(modal) modal.classList.add('show');
+}
+function exportModalClose(){
+  const modal=document.getElementById('export-modal');
+  if(modal) modal.classList.remove('show');
+}
+async function exportAsImage(){
+  showToast('Preparing screenshot...','info',2000);
+  exportModalClose();
+  
+  // Use html2canvas (load dynamically)
+  if(!window.html2canvas){
+    const script=document.createElement('script');
+    script.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+    script.onload=()=>captureAndDownload();
+    document.head.appendChild(script);
+  }else{
+    captureAndDownload();
+  }
+}
+async function captureAndDownload(){
+  try{
+    const content=document.getElementById('right-content');
+    if(!content){showToast('Nothing to export','error');return;}
+    
+    const canvas=await html2canvas(content,{
+      backgroundColor:'#0d0d0d',
+      scale:2,
+      useCORS:true
+    });
+    
+    const link=document.createElement('a');
+    link.download='batt-dashboard-'+new Date().toISOString().split('T')[0]+'.png';
+    link.href=canvas.toDataURL('image/png');
+    link.click();
+    showToast('Image saved!','success');
+  }catch(e){
+    showToast('Export failed','error');
+    console.error(e);
+  }
+}
+async function exportAsPDF(){
+  showToast('Generating PDF...','info',2000);
+  exportModalClose();
+  
+  // Load jsPDF dynamically
+  if(!window.jspdf){
+    const script=document.createElement('script');
+    script.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+    script.onload=()=>generatePDF();
+    document.head.appendChild(script);
+  }else{
+    generatePDF();
+  }
+}
+async function generatePDF(){
+  try{
+    const {jsPDF}=window.jspdf;
+    const doc=new jsPDF('p','mm','a4');
+    
+    // Header
+    doc.setFillColor(0,0,0);
+    doc.rect(0,0,210,30,'F');
+    doc.setTextColor(0,196,122);
+    doc.setFontSize(18);
+    doc.text('Bet All The Time, Bet With Style',105,15,{align:'center'});
+    doc.setFontSize(10);
+    doc.setTextColor(100,100,100);
+    doc.text('Trading Projection Report - '+new Date().toLocaleDateString(),105,22,{align:'center'});
+    
+    // Get current state
+    const tab=typeof activeTab!=='undefined'?activeTab:'36';
+    const state=S&&S[tab]?S[tab]:null;
+    
+    if(state){
+      doc.setTextColor(0,0,0);
+      doc.setFontSize(12);
+      let y=40;
+      
+      doc.text('Configuration',15,y);y+=8;
+      doc.setFontSize(10);
+      doc.text('Capital: $'+Number(state.CAP||0).toLocaleString(),20,y);y+=6;
+      doc.text('Leverage: '+state.LEV+'x',20,y);y+=6;
+      doc.text('Notional: $'+Number(state.NOT||0).toLocaleString(),20,y);y+=6;
+      doc.text('Mode: '+(state.isSpot?'Spot':'Leverage'),20,y);y+=10;
+      
+      doc.setFontSize(12);
+      doc.text('Risk Metrics',15,y);y+=8;
+      doc.setFontSize(10);
+      const liq=state.NOT>0?((state.CAP/state.NOT)*100).toFixed(2):'0';
+      doc.text('Liquidation %: '+liq+'%',20,y);y+=6;
+      
+      doc.setFontSize(8);
+      doc.setTextColor(150,150,150);
+      doc.text('Generated by BATT - betallthetime.fun',105,285,{align:'center'});
+    }
+    
+    doc.save('batt-report-'+new Date().toISOString().split('T')[0]+'.pdf');
+    showToast('PDF saved!','success');
+  }catch(e){
+    showToast('PDF generation failed','error');
+    console.error(e);
+  }
+}
+function exportAsJSON(){
+  exportModalClose();
+  // Reuse existing exportAllData function
+  if(typeof exportAllData==='function'){
+    exportAllData();
+  }else{
+    showToast('Export not available','error');
+  }
 }
 
 // ── LIVE CRYPTO PRICES ──
