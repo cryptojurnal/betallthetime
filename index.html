@@ -288,6 +288,52 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
 .activity-meta{font-size:10px;color:#444;display:flex;flex-wrap:wrap;gap:6px}
 .activity-time{font-size:10px;color:#333;text-align:right;flex-shrink:0}
 .activity-empty{padding:30px 20px;text-align:center;color:#333;font-size:11px}
+
+/* ── ACHIEVEMENTS/BADGES ── */
+.badges-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:10px;padding:14px}
+.badge-item{display:flex;flex-direction:column;align-items:center;padding:12px 8px;background:#0a0a0a;border:1px solid #1a1a1a;border-radius:10px;transition:all .2s;position:relative}
+.badge-item.locked{opacity:.4;filter:grayscale(1)}
+.badge-item.unlocked{border-color:#004d30;background:linear-gradient(135deg,#0a1a10 0%,#0a0a0a 100%)}
+.badge-item.unlocked:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,196,122,0.15)}
+.badge-icon{font-size:28px;margin-bottom:6px}
+.badge-name{font-size:9px;font-weight:700;color:#888;text-align:center;line-height:1.2}
+.badge-item.unlocked .badge-name{color:#e0e0e0}
+.badge-item.locked .badge-icon{filter:grayscale(1)}
+.badge-date{font-size:8px;color:#333;margin-top:4px}
+.badge-item.unlocked .badge-date{color:#00c47a}
+.badge-new{position:absolute;top:-4px;right:-4px;width:16px;height:16px;background:#00c47a;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;color:#000;font-weight:700;animation:badgePulse 1s ease infinite}
+@keyframes badgePulse{0%,100%{transform:scale(1)}50%{transform:scale(1.15)}}
+.badges-summary{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:0.5px solid #1a1a1a}
+.badges-count{font-size:11px;color:#888}
+.badges-count span{color:#00c47a;font-weight:700}
+
+/* ── PRESET SHARING ── */
+#share-modal{position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(4px);z-index:99996;display:none;align-items:center;justify-content:center}
+#share-modal.show{display:flex}
+.share-box{background:#111;border:1px solid #1a1a1a;border-radius:12px;padding:24px;max-width:380px;width:90%}
+.share-title{font-size:14px;font-weight:700;color:#fff;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.share-subtitle{font-size:10px;color:#555;margin-bottom:16px}
+.share-link-box{display:flex;gap:8px;margin-bottom:16px}
+.share-link-input{flex:1;padding:10px 12px;background:#0a0a0a;border:1px solid #222;border-radius:8px;color:#e0e0e0;font-size:11px;font-family:monospace}
+.share-copy-btn{padding:10px 16px;background:#00c47a;border:none;border-radius:8px;color:#000;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap}
+.share-copy-btn:hover{opacity:.88}
+.share-qr{text-align:center;margin-bottom:16px}
+.share-qr canvas{border-radius:8px;background:#fff;padding:8px}
+.share-info{font-size:10px;color:#444;text-align:center;margin-bottom:16px;line-height:1.5}
+.share-close{width:100%;padding:10px;background:transparent;border:1px solid #222;border-radius:8px;color:#555;font-size:11px;font-weight:700;cursor:pointer}
+
+/* ── PUSH NOTIFICATION PROMPT ── */
+#push-prompt{position:fixed;bottom:70px;right:20px;background:#111;border:1px solid #1a1a1a;border-radius:12px;padding:16px;max-width:280px;box-shadow:0 8px 32px rgba(0,0,0,.4);z-index:99980;display:none;animation:slideInRight .3s ease}
+#push-prompt.show{display:block}
+@keyframes slideInRight{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+.push-prompt-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.push-prompt-icon{font-size:24px}
+.push-prompt-title{font-size:13px;font-weight:700;color:#fff}
+.push-prompt-text{font-size:11px;color:#888;line-height:1.5;margin-bottom:14px}
+.push-prompt-btns{display:flex;gap:8px}
+.push-prompt-btn{flex:1;padding:10px;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s}
+.push-prompt-btn.later{background:transparent;border:1px solid #222;color:#555}
+.push-prompt-btn.enable{background:#00c47a;border:none;color:#000}
 body.t-lavender{--bg:#f0eef8;--panel:#fff;--bd:#d8d4f0;--bd2:#e4e0f4;--sf:#f8f6ff;--sf2:#f0eef8;--tx:#2a1a4a;--tx2:#8070b0;--tx3:#c0b0e0;--acc:#7050c0;--acc2:#5060e0;--mh:#4030a0;--mhc:#fff;--mhs:#c0b8f0;--inp:#f8f6ff;--btn:#f0eef8;--btno:#e0d8f8;--btonc:#7050c0;--tog:#fff;--togon:#4030a0;--togonc:#fff;--tabact:#4030a0;--tabactc:#fff;--wd-on:#e0d8f8;--wd-onc:#7050c0}
 
 .app{display:flex;height:100vh;overflow:hidden;background:#000;color:var(--tx);opacity:0}
@@ -964,6 +1010,40 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
     <button class="export-close" onclick="exportModalClose()">Cancel</button>
   </div>
 </div>
+
+<!-- SHARE PRESET MODAL -->
+<div id="share-modal">
+  <div class="share-box">
+    <div class="share-title">🔗 Share Preset</div>
+    <div class="share-subtitle" id="share-preset-name">—</div>
+    <div class="share-link-box">
+      <input type="text" class="share-link-input" id="share-link-input" readonly>
+      <button class="share-copy-btn" onclick="copyShareLink()">Copy</button>
+    </div>
+    <div class="share-qr" id="share-qr"></div>
+    <div class="share-info">
+      Anyone with this link can view and import your preset.<br>
+      The link is valid for 30 days.
+    </div>
+    <button class="share-close" onclick="shareModalClose()">Close</button>
+  </div>
+</div>
+
+<!-- PUSH NOTIFICATION PROMPT -->
+<div id="push-prompt">
+  <div class="push-prompt-head">
+    <span class="push-prompt-icon">🔔</span>
+    <span class="push-prompt-title">Enable Notifications?</span>
+  </div>
+  <div class="push-prompt-text">
+    Get notified about price alerts, sync confirmations, and new features.
+  </div>
+  <div class="push-prompt-btns">
+    <button class="push-prompt-btn later" onclick="pushPromptLater()">Later</button>
+    <button class="push-prompt-btn enable" onclick="pushPromptEnable()">Enable</button>
+  </div>
+</div>
+
 <!-- TOAST NOTIFICATIONS -->
 <div id="toast-container"></div>
 
@@ -1040,6 +1120,20 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
           <div class="acc-stat-card">
             <div class="acc-stat-value" id="acc-stat-days">0</div>
             <div class="acc-stat-label">days</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACHIEVEMENTS -->
+      <div class="acc-section">
+        <div class="acc-sec-title">🏆 achievements</div>
+        <div class="acc-card" style="padding:0;overflow:hidden">
+          <div class="badges-summary">
+            <span class="badges-count"><span id="badges-unlocked">0</span> / <span id="badges-total">10</span> unlocked</span>
+            <span style="font-size:10px;color:#333">tap to see details</span>
+          </div>
+          <div class="badges-grid" id="badges-grid">
+            <!-- Badges rendered by JS -->
           </div>
         </div>
       </div>
@@ -4660,6 +4754,7 @@ async function presetSaveConfirm(){
       updateMemberStats();
       showToast('Preset "'+name+'" saved to cloud!','success');
       if(typeof logActivity==='function') logActivity('preset_save',{name});
+      if(typeof incrementBadgeCounter==='function') incrementBadgeCounter('wz_badge_presets');
     }else{
       errEl.textContent=d.error||'Failed to save';
     }
@@ -4726,7 +4821,8 @@ async function presetRenderList(){
           <div class="pp-card-head">
             <button class="pp-card-name" onclick="presetLoad('${p.id}')">${escHtml(p.name)}</button>
             <div class="pp-card-actions">
-              <button class="pp-card-btn" onclick="presetRename('${p.id}','${escHtml(p.name)}')">✏️</button>
+              <button class="pp-card-btn" onclick="sharePreset('${p.id}','${escHtml(p.name)}')" title="Share">🔗</button>
+              <button class="pp-card-btn" onclick="presetRename('${p.id}','${escHtml(p.name)}')" title="Rename">✏️</button>
               <button class="pp-card-btn load" onclick="presetLoad('${p.id}')">load</button>
               <button class="pp-card-btn del" onclick="presetDelete('${p.id}','${escHtml(p.name)}')">✕</button>
             </div>
@@ -5000,6 +5096,9 @@ async function loadAccountPage(){
   
   // Load activity log
   if(typeof loadActivityLog==='function') loadActivityLog(true);
+  
+  // Render badges
+  if(typeof renderBadges==='function') renderBadges();
 }
 
 function savePref(key,value){
@@ -5129,6 +5228,8 @@ function exportAllData(){
   
   showToast('Data exported!','success');
   if(typeof logActivity==='function') logActivity('export',{format:'json'});
+  localStorage.setItem('wz_badge_export','1');
+  if(typeof checkBadges==='function') checkBadges();
 }
 
 function importData(event){
@@ -5689,6 +5790,330 @@ function loadMoreActivity(){
   loadActivityLog(false);
 }
 
+// ── ACHIEVEMENTS/BADGES ──
+const BADGES=[
+  {id:'first_steps',icon:'🌱',name:'First Steps',desc:'Complete onboarding',check:()=>localStorage.getItem('onboarding_done')},
+  {id:'saver',icon:'💾',name:'Saver',desc:'Save your first preset',check:()=>parseInt(localStorage.getItem('wz_badge_presets')||'0')>=1},
+  {id:'power_user',icon:'📊',name:'Power User',desc:'Create 10+ presets',check:()=>parseInt(localStorage.getItem('wz_badge_presets')||'0')>=10},
+  {id:'cloud_sync',icon:'☁️',name:'Cloud Sync',desc:'Sync to cloud',check:()=>parseInt(localStorage.getItem('wz_sync_count')||'0')>=1},
+  {id:'cloud_master',icon:'🌩️',name:'Cloud Master',desc:'Sync 50 times',check:()=>parseInt(localStorage.getItem('wz_sync_count')||'0')>=50},
+  {id:'exporter',icon:'📤',name:'Exporter',desc:'Export your data',check:()=>localStorage.getItem('wz_badge_export')},
+  {id:'night_owl',icon:'🌙',name:'Night Owl',desc:'Use after midnight',check:()=>localStorage.getItem('wz_badge_night')},
+  {id:'early_bird',icon:'🐦',name:'Early Bird',desc:'Use before 6am',check:()=>localStorage.getItem('wz_badge_early')},
+  {id:'week_streak',icon:'🔥',name:'On Fire',desc:'7-day login streak',check:()=>parseInt(localStorage.getItem('wz_badge_streak')||'0')>=7},
+  {id:'sharer',icon:'🔗',name:'Sharer',desc:'Share a preset',check:()=>localStorage.getItem('wz_badge_share')}
+];
+
+function checkTimeBadges(){
+  const hour=new Date().getHours();
+  if(hour>=0&&hour<5) localStorage.setItem('wz_badge_night','1');
+  if(hour>=4&&hour<6) localStorage.setItem('wz_badge_early','1');
+}
+
+function checkLoginStreak(){
+  const today=new Date().toDateString();
+  const lastLogin=localStorage.getItem('wz_last_login_date');
+  let streak=parseInt(localStorage.getItem('wz_badge_streak')||'0');
+  
+  if(lastLogin){
+    const lastDate=new Date(lastLogin);
+    const diff=Math.floor((new Date(today)-lastDate)/(1000*60*60*24));
+    if(diff===1) streak++;
+    else if(diff>1) streak=1;
+  }else{
+    streak=1;
+  }
+  
+  localStorage.setItem('wz_last_login_date',today);
+  localStorage.setItem('wz_badge_streak',streak);
+}
+
+function renderBadges(){
+  const grid=document.getElementById('badges-grid');
+  const unlockedEl=document.getElementById('badges-unlocked');
+  const totalEl=document.getElementById('badges-total');
+  if(!grid)return;
+  
+  checkTimeBadges();
+  
+  let unlocked=0;
+  const newBadges=JSON.parse(localStorage.getItem('wz_new_badges')||'[]');
+  
+  grid.innerHTML=BADGES.map(b=>{
+    const isUnlocked=b.check();
+    if(isUnlocked) unlocked++;
+    const isNew=newBadges.includes(b.id);
+    const unlockedDate=localStorage.getItem('wz_badge_date_'+b.id);
+    
+    return `<div class="badge-item ${isUnlocked?'unlocked':'locked'}" title="${b.desc}" onclick="showBadgeInfo('${b.id}','${b.name}','${b.desc}',${isUnlocked})">
+      ${isNew?'<span class="badge-new">!</span>':''}
+      <span class="badge-icon">${b.icon}</span>
+      <span class="badge-name">${b.name}</span>
+      ${isUnlocked&&unlockedDate?`<span class="badge-date">${new Date(parseInt(unlockedDate)).toLocaleDateString()}</span>`:''}
+    </div>`;
+  }).join('');
+  
+  if(unlockedEl) unlockedEl.textContent=unlocked;
+  if(totalEl) totalEl.textContent=BADGES.length;
+  
+  // Clear new badges indicator after viewing
+  localStorage.setItem('wz_new_badges','[]');
+}
+
+function unlockBadge(badgeId){
+  const badge=BADGES.find(b=>b.id===badgeId);
+  if(!badge||!badge.check())return;
+  
+  const dateKey='wz_badge_date_'+badgeId;
+  if(localStorage.getItem(dateKey))return; // Already unlocked
+  
+  localStorage.setItem(dateKey,Date.now());
+  
+  // Mark as new
+  const newBadges=JSON.parse(localStorage.getItem('wz_new_badges')||'[]');
+  if(!newBadges.includes(badgeId)){
+    newBadges.push(badgeId);
+    localStorage.setItem('wz_new_badges',JSON.stringify(newBadges));
+  }
+  
+  showToast('🏆 Badge unlocked: '+badge.name,'success',4000);
+}
+
+function checkBadges(){
+  BADGES.forEach(b=>{
+    if(b.check()&&!localStorage.getItem('wz_badge_date_'+b.id)){
+      unlockBadge(b.id);
+    }
+  });
+}
+
+function showBadgeInfo(id,name,desc,unlocked){
+  const badge=BADGES.find(b=>b.id===id);
+  const status=unlocked?'✅ Unlocked':'🔒 Locked';
+  const date=localStorage.getItem('wz_badge_date_'+id);
+  const dateStr=date?'\nUnlocked: '+new Date(parseInt(date)).toLocaleDateString():'';
+  alert(badge.icon+' '+name+'\n\n'+desc+'\n\n'+status+dateStr);
+}
+
+function incrementBadgeCounter(key){
+  const count=parseInt(localStorage.getItem(key)||'0')+1;
+  localStorage.setItem(key,count);
+  setTimeout(checkBadges,100);
+}
+
+// ── PRESET SHARING ──
+var _sharePresetId=null;
+
+async function sharePreset(id,name){
+  if(!AUTH_TOKEN){showToast('Please log in','error');return;}
+  
+  _sharePresetId=id;
+  
+  const modal=document.getElementById('share-modal');
+  const nameEl=document.getElementById('share-preset-name');
+  const linkInput=document.getElementById('share-link-input');
+  const qrEl=document.getElementById('share-qr');
+  
+  if(nameEl) nameEl.textContent=name;
+  if(linkInput) linkInput.value='Generating link...';
+  if(qrEl) qrEl.innerHTML='';
+  if(modal) modal.classList.add('show');
+  
+  try{
+    const r=await fetch(AUTH_URL+'/presets/share',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+AUTH_TOKEN},
+      body:JSON.stringify({id})
+    });
+    const d=await r.json();
+    
+    if(d.ok&&d.share_code){
+      const shareUrl='https://betallthetime.fun/?p='+d.share_code;
+      if(linkInput) linkInput.value=shareUrl;
+      
+      // Generate QR code
+      if(typeof QRCode!=='undefined'&&qrEl){
+        qrEl.innerHTML='';
+        new QRCode(qrEl,{text:shareUrl,width:120,height:120,colorDark:'#000',colorLight:'#fff'});
+      }else if(qrEl){
+        // Load QR library
+        const script=document.createElement('script');
+        script.src='https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+        script.onload=()=>{
+          new QRCode(qrEl,{text:shareUrl,width:120,height:120,colorDark:'#000',colorLight:'#fff'});
+        };
+        document.head.appendChild(script);
+      }
+      
+      // Badge
+      localStorage.setItem('wz_badge_share','1');
+      checkBadges();
+      if(typeof logActivity==='function') logActivity('preset_share',{name});
+    }else{
+      if(linkInput) linkInput.value='Failed to generate link';
+    }
+  }catch(e){
+    if(linkInput) linkInput.value='Connection failed';
+  }
+}
+
+function shareModalClose(){
+  const modal=document.getElementById('share-modal');
+  if(modal) modal.classList.remove('show');
+  _sharePresetId=null;
+}
+
+function copyShareLink(){
+  const input=document.getElementById('share-link-input');
+  if(!input||!input.value||input.value.includes('...')||input.value.includes('Failed'))return;
+  
+  navigator.clipboard.writeText(input.value).then(()=>{
+    showToast('Link copied!','success');
+  }).catch(()=>{
+    input.select();
+    document.execCommand('copy');
+    showToast('Link copied!','success');
+  });
+}
+
+async function loadSharedPreset(shareCode){
+  showToast('Loading shared preset...','info',2000);
+  
+  try{
+    const r=await fetch(AUTH_URL+'/presets/shared?code='+shareCode);
+    const d=await r.json();
+    
+    if(!d.ok||!d.preset){
+      showToast(d.error||'Preset not found or expired','error');
+      return;
+    }
+    
+    const preset=d.preset;
+    
+    if(!confirm('Import preset "'+preset.name+'" from '+preset.username+'?'))return;
+    
+    const snapshot=preset.snapshot;
+    
+    // Restore custom tabs
+    if(snapshot._meta&&snapshot._meta.customTabs){
+      CUSTOM_TABS.length=0;
+      snapshot._meta.customTabs.forEach(t=>CUSTOM_TABS.push(t));
+    }
+    
+    // Restore state
+    Object.keys(snapshot).forEach(tabId=>{
+      if(tabId==='_meta')return;
+      if(!S[tabId])S[tabId]=mkState();
+      Object.assign(S[tabId],snapshot[tabId]);
+      if(snapshot[tabId].ZM) S[tabId].ZM=new Set(snapshot[tabId].ZM);
+    });
+    
+    // Restore theme
+    if(snapshot._meta&&snapshot._meta.theme){
+      document.body.className=snapshot._meta.theme;
+    }
+    
+    // Re-render
+    if(typeof renderTabBar==='function') renderTabBar();
+    if(typeof syncControls==='function') syncControls();
+    if(typeof render==='function') render();
+    
+    showToast('Preset "'+preset.name+'" imported!','success');
+    
+    // Go to dashboard
+    const l1=document.getElementById('layer1');
+    const al=document.getElementById('auth-layer');
+    if(l1) l1.classList.add('hidden');
+    if(al) al.classList.add('hidden');
+    goLayer2();
+    
+  }catch(e){
+    showToast('Connection failed','error');
+  }
+}
+
+// ── PUSH NOTIFICATIONS ──
+var _pushRegistration=null;
+
+function pushPromptShow(){
+  if(!('Notification' in window)||!('serviceWorker' in navigator))return;
+  if(Notification.permission==='granted'||Notification.permission==='denied')return;
+  if(localStorage.getItem('push_prompted'))return;
+  
+  setTimeout(()=>{
+    const prompt=document.getElementById('push-prompt');
+    if(prompt) prompt.classList.add('show');
+  },5000);
+}
+
+function pushPromptLater(){
+  const prompt=document.getElementById('push-prompt');
+  if(prompt) prompt.classList.remove('show');
+  localStorage.setItem('push_prompted',Date.now());
+}
+
+async function pushPromptEnable(){
+  const prompt=document.getElementById('push-prompt');
+  if(prompt) prompt.classList.remove('show');
+  localStorage.setItem('push_prompted',Date.now());
+  
+  try{
+    const permission=await Notification.requestPermission();
+    if(permission==='granted'){
+      showToast('Notifications enabled!','success');
+      subscribeToPush();
+    }else{
+      showToast('Notifications blocked','info');
+    }
+  }catch(e){
+    showToast('Could not enable notifications','error');
+  }
+}
+
+async function subscribeToPush(){
+  if(!('serviceWorker' in navigator))return;
+  
+  try{
+    const reg=await navigator.serviceWorker.ready;
+    _pushRegistration=reg;
+    
+    // For now, just local notifications
+    // Full push requires VAPID keys + backend
+    console.log('Push ready');
+  }catch(e){
+    console.error('Push subscription failed:',e);
+  }
+}
+
+function sendLocalNotification(title,body,url='/'){
+  if(Notification.permission!=='granted')return;
+  
+  const options={
+    body,
+    icon:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%23000" width="100" height="100" rx="20"/><text y="65" x="50" text-anchor="middle" font-size="50" fill="%2300c47a">📊</text></svg>',
+    badge:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%23000" width="100" height="100" rx="20"/><text y="65" x="50" text-anchor="middle" font-size="50" fill="%2300c47a">📊</text></svg>',
+    vibrate:[100,50,100],
+    data:{url}
+  };
+  
+  if(_pushRegistration){
+    _pushRegistration.showNotification(title,options);
+  }else{
+    new Notification(title,options);
+  }
+}
+
+// Check for shared preset in URL on load
+function checkSharedPresetUrl(){
+  const params=new URLSearchParams(window.location.search);
+  const shareCode=params.get('p');
+  if(shareCode){
+    // Clean URL
+    window.history.replaceState({},'',window.location.pathname);
+    loadSharedPreset(shareCode);
+  }
+}
+
 async function logActivity(action,details={}){
   if(!AUTH_TOKEN)return;
   try{
@@ -5754,10 +6179,16 @@ async function fetchLivePrices(){
 
 // run on DOMContentLoaded
 document.addEventListener('DOMContentLoaded', async ()=>{
+  // Check for shared preset in URL
+  if(typeof checkSharedPresetUrl==='function') checkSharedPresetUrl();
+  
   // Fetch live prices
   fetchLivePrices();
   // Refresh prices every 60 seconds
   setInterval(fetchLivePrices,60000);
+  
+  // Check login streak
+  if(typeof checkLoginStreak==='function') checkLoginStreak();
   
   const restored = await authRestoreSession();
   if(restored){
@@ -5767,6 +6198,12 @@ document.addEventListener('DOMContentLoaded', async ()=>{
     const l1=document.getElementById('layer1');
     if(l1){l1.classList.add('hidden');}
     goLayer3();
+    
+    // Show push notification prompt after login
+    if(typeof pushPromptShow==='function') pushPromptShow();
+    
+    // Check badges
+    if(typeof checkBadges==='function') checkBadges();
   }
   // if not restored — layer1 shows first (default), auth appears after click
 });
