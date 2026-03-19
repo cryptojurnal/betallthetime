@@ -5441,7 +5441,7 @@ function showConfirm(options){
     if(options.input){
       input.style.display = 'block';
       input.placeholder = options.inputPlaceholder || '';
-      input.value = '';
+      input.value = options.inputValue || '';
       _confirmInputRequired = options.inputRequired || false;
     } else {
       input.style.display = 'none';
@@ -5456,7 +5456,7 @@ function showConfirm(options){
     
     // Show modal
     overlay.classList.add('visible');
-    if(options.input) setTimeout(()=>input.focus(),100);
+    if(options.input) setTimeout(()=>{input.focus();input.select();},100);
     
     // Handle cancel
     const handleCancel = ()=>{
@@ -5953,8 +5953,21 @@ async function presetDelete(id,name){
 
 async function presetRename(id,currentName){
   if(!AUTH_TOKEN){showToast('Please log in','error');return;}
-  const newName=prompt('Rename preset:',currentName);
-  if(!newName||newName.trim()===currentName)return;
+  
+  const newName = await showConfirm({
+    icon: '✏️',
+    type: 'info',
+    title: 'Rename Preset',
+    message: 'Enter a new name for this preset.',
+    input: true,
+    inputValue: currentName,
+    inputPlaceholder: 'Preset name',
+    inputRequired: true,
+    confirmText: 'Rename',
+    cancelText: 'Cancel'
+  });
+  
+  if(!newName || newName.trim() === currentName) return;
   
   try{
     const r=await fetch(AUTH_URL+'/presets/rename',{
@@ -8187,18 +8200,38 @@ function tpPartialClose(id, percent) {
 }
 
 // Edit position TP/SL
-function tpEditPosition(id) {
+async function tpEditPosition(id) {
   const pos = TP_STATE.positions.find(p => p.id === id);
   if (!pos) return;
   
-  const newTp = prompt(`Take Profit % (current: ${pos.tpPercent}%)`, pos.tpPercent);
-  if (newTp === null) return;
+  const newTp = await showConfirm({
+    icon: '🎯',
+    type: 'info',
+    title: 'Set Take Profit',
+    message: 'Enter take profit percentage for <strong>' + pos.pair.replace('USDT','') + '</strong>',
+    input: true,
+    inputValue: pos.tpPercent.toString(),
+    inputPlaceholder: 'e.g. 5',
+    confirmText: 'Next',
+    cancelText: 'Cancel'
+  });
+  if (newTp === false) return;
   
-  const newSl = prompt(`Stop Loss % (current: ${pos.slPercent}%)`, pos.slPercent);
-  if (newSl === null) return;
+  const newSl = await showConfirm({
+    icon: '🛡️',
+    type: 'warning',
+    title: 'Set Stop Loss',
+    message: 'Enter stop loss percentage for <strong>' + pos.pair.replace('USDT','') + '</strong>',
+    input: true,
+    inputValue: pos.slPercent.toString(),
+    inputPlaceholder: 'e.g. 3',
+    confirmText: 'Save',
+    cancelText: 'Cancel'
+  });
+  if (newSl === false) return;
   
-  pos.tpPercent = parseFloat(newTp) || 0;
-  pos.slPercent = parseFloat(newSl) || 0;
+  pos.tpPercent = parseFloat(newTp) || pos.tpPercent || 0;
+  pos.slPercent = parseFloat(newSl) || pos.slPercent || 0;
   
   tpSaveState();
   tpRenderPositions();
