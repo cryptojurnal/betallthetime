@@ -397,7 +397,46 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
 .tp-sidebar{width:320px;display:flex;flex-direction:column;background:#0a0a0a;flex-shrink:0}
 @media(max-width:1200px){.tp-orderbook{width:160px}}
 @media(max-width:1100px){.tp-sidebar{width:280px}}
-@media(max-width:900px){.tp-main{flex-direction:column}.tp-sidebar{width:100%;max-height:50vh}.tp-chart-area{border-right:none;border-bottom:1px solid #1a1a1a}.tp-orderbook{display:none}}
+@media(max-width:900px){
+  .tp-main{flex-direction:column}
+  .tp-chart-section{min-height:300px}
+  .tp-sidebar{width:100%;max-height:none;flex:1}
+  .tp-chart-area{border-right:none;border-bottom:1px solid #1a1a1a;min-height:250px}
+  .tp-orderbook{display:none}
+  .tp-topbar{flex-wrap:wrap;gap:8px;padding:10px}
+  .tp-topbar-left{width:100%;justify-content:space-between}
+  .tp-topbar-right{width:100%}
+  .tp-balance-box{width:100%;text-align:center}
+  .tp-price-display{flex-wrap:wrap;gap:6px}
+  .tp-price-details{width:100%;justify-content:center}
+  .tp-pair-selector{flex:1}
+  .tp-order-form{max-height:none}
+  .tp-positions{min-height:200px}
+  .tp-pos-tabs{overflow-x:auto;flex-wrap:nowrap}
+  .tp-pos-tab{white-space:nowrap;flex-shrink:0}
+  .tp-stats-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:480px){
+  .tp-topbar{padding:8px}
+  .tp-logo{font-size:13px}
+  .tp-pair-selector{padding:6px 10px}
+  .tp-pair-selector-name{font-size:12px}
+  .tp-price-main{font-size:18px}
+  .tp-price-change{font-size:10px;padding:3px 8px}
+  .tp-chart-tf button{padding:4px 6px;font-size:9px}
+  .tp-chart-indicators button{padding:3px 6px;font-size:8px}
+  .tp-order-tabs{gap:2px}
+  .tp-order-tab{padding:8px 4px;font-size:10px}
+  .tp-side-btns{gap:4px}
+  .tp-side-btn{padding:10px;font-size:11px}
+  .tp-input{font-size:12px;padding:8px 10px}
+  .tp-submit-btn{padding:12px;font-size:12px}
+  .tp-pos-row2{grid-template-columns:repeat(2,1fr);gap:6px}
+  .tp-pos-actions button{padding:6px 8px;font-size:8px}
+  .tp-stats-grid{gap:4px}
+  .tp-stat-box{padding:8px}
+  .tp-stat-value{font-size:14px}
+}
 
 /* Order Book */
 .tp-ob-header{padding:8px 10px;border-bottom:1px solid #1a1a1a;font-size:10px;font-weight:700;color:#555;text-transform:uppercase;display:flex;justify-content:space-between}
@@ -407,17 +446,18 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
 .tp-ob-asks{justify-content:flex-end}
 .tp-ob-spread{padding:6px 10px;background:#111;text-align:center;font-size:10px;color:#555;border-top:1px solid #1a1a1a;border-bottom:1px solid #1a1a1a}
 .tp-ob-spread span{color:#888;font-weight:600}
-.tp-ob-row{display:flex;justify-content:space-between;padding:2px 10px;font-size:10px;font-family:monospace;position:relative}
+.tp-ob-row{display:flex;justify-content:space-between;padding:3px 10px;font-size:10px;font-family:monospace;position:relative;cursor:pointer;transition:background .1s}
+.tp-ob-row:hover{background:rgba(255,255,255,0.05)}
 .tp-ob-row.ask{color:#E24B4A}
 .tp-ob-row.bid{color:#00c47a}
-.tp-ob-row .price{flex:1}
+.tp-ob-row .price{flex:1;font-weight:600}
 .tp-ob-row .size{flex:1;text-align:right;color:#555}
-.tp-ob-row .depth{position:absolute;right:0;top:0;bottom:0;opacity:0.15}
+.tp-ob-row .depth{position:absolute;right:0;top:0;bottom:0;opacity:0.15;transition:width .3s}
 .tp-ob-row.ask .depth{background:#E24B4A}
 .tp-ob-row.bid .depth{background:#00c47a}
-.tp-ob-mid{padding:8px 10px;background:#111;text-align:center;border-top:1px solid #1a1a1a;border-bottom:1px solid #1a1a1a}
-.tp-ob-mid-price{font-size:14px;font-weight:800;color:#fff}
-.tp-ob-mid-change{font-size:9px;margin-top:2px}
+.tp-ob-mid{padding:10px;background:#111;text-align:center;border-top:1px solid #1a1a1a;border-bottom:1px solid #1a1a1a}
+.tp-ob-mid-price{font-size:16px;font-weight:800;color:#fff}
+.tp-ob-mid-change{font-size:10px;margin-top:2px}
 .tp-ob-mid-change.up{color:#00c47a}
 .tp-ob-mid-change.down{color:#E24B4A}
 
@@ -430,19 +470,23 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
 
 /* Chart */
 .tp-chart{flex:1;background:#0a0a0a;position:relative;min-height:300px}
-.tp-chart-toolbar{display:flex;align-items:center;gap:8px;padding:8px 12px;background:#000;border-bottom:1px solid #1a1a1a}
+.tp-chart-toolbar{display:flex;align-items:center;gap:8px;padding:8px 12px;background:#000;border-bottom:1px solid #1a1a1a;flex-wrap:wrap}
 .tp-chart-tf{display:flex;gap:2px}
 .tp-chart-tf button{padding:6px 10px;background:transparent;border:none;color:#555;font-size:10px;font-weight:700;cursor:pointer;border-radius:4px;transition:all .15s}
 .tp-chart-tf button:hover{background:#111;color:#888}
 .tp-chart-tf button.active{background:#1a1a1a;color:#fff}
+.tp-chart-indicators{display:flex;gap:2px;margin-left:8px}
+.tp-chart-indicators button{padding:4px 8px;background:#111;border:1px solid #1a1a1a;border-radius:4px;color:#555;font-size:9px;font-weight:600;cursor:pointer;transition:all .15s}
+.tp-chart-indicators button:hover{border-color:#333;color:#888}
+.tp-chart-indicators button.active{background:#5b7fff;border-color:#5b7fff;color:#fff}
 .tp-chart-type{display:flex;gap:2px;margin-left:auto}
 .tp-chart-type button{padding:6px 10px;background:transparent;border:none;color:#555;font-size:12px;cursor:pointer;border-radius:4px;transition:all .15s}
 .tp-chart-type button:hover{background:#111;color:#888}
 .tp-chart-type button.active{background:#1a1a1a;color:#fff}
-#tp-chart-container{flex:1;width:100%}
+#tp-chart-container{flex:1;width:100%;min-height:250px}
 
 /* Order Form */
-.tp-order-form{padding:12px;border-bottom:1px solid #1a1a1a}
+.tp-order-form{padding:12px;border-bottom:1px solid #1a1a1a;overflow-y:auto}
 .tp-order-tabs{display:flex;gap:4px;margin-bottom:12px}
 .tp-order-tab{flex:1;padding:10px;background:#111;border:none;color:#555;font-size:11px;font-weight:700;cursor:pointer;border-radius:6px;transition:all .2s}
 .tp-order-tab:hover{color:#888}
@@ -522,6 +566,18 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
 .tp-empty{text-align:center;padding:30px;color:#333}
 .tp-empty-icon{font-size:28px;margin-bottom:8px;opacity:.5}
 .tp-empty-text{font-size:11px}
+
+/* Stats Panel */
+.tp-stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:12px}
+.tp-stat-box{background:#111;border:1px solid #1a1a1a;border-radius:8px;padding:10px;text-align:center}
+.tp-stat-value{font-size:16px;font-weight:800;color:#fff}
+.tp-stat-value.up{color:#00c47a}
+.tp-stat-value.down{color:#E24B4A}
+.tp-stat-label{font-size:9px;color:#555;text-transform:uppercase;margin-top:4px}
+.tp-pnl-chart{background:#111;border:1px solid #1a1a1a;border-radius:8px;padding:10px;margin-bottom:12px}
+.tp-pnl-chart-title{font-size:10px;color:#555;text-transform:uppercase;margin-bottom:8px}
+.tp-reset-btn{width:100%;padding:10px;background:#1a1a1a;border:1px solid #222;border-radius:6px;color:#555;font-size:10px;font-weight:700;cursor:pointer;transition:all .15s}
+.tp-reset-btn:hover{background:#2a1a1a;color:#E24B4A;border-color:#E24B4A}
 
 /* Pair Modal */
 #tp-pair-modal{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9800;display:none;align-items:center;justify-content:center}
@@ -1746,6 +1802,10 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
               <button onclick="tpSetTimeframe('4h')">4H</button>
               <button onclick="tpSetTimeframe('1d')">1D</button>
             </div>
+            <div class="tp-chart-indicators">
+              <button class="active" onclick="tpToggleIndicator('ema', this)">EMA</button>
+              <button onclick="tpToggleIndicator('volume', this)">VOL</button>
+            </div>
             <div class="tp-chart-type">
               <button class="active" onclick="tpSetChartType('candle')" title="Candles">📊</button>
               <button onclick="tpSetChartType('line')" title="Line">📈</button>
@@ -1865,6 +1925,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
           <button class="tp-pos-tab active" onclick="tpShowTab('positions')" id="tp-tab-positions">Positions <span id="tp-pos-count">0</span></button>
           <button class="tp-pos-tab" onclick="tpShowTab('orders')" id="tp-tab-orders">Orders <span id="tp-orders-count">0</span></button>
           <button class="tp-pos-tab" onclick="tpShowTab('history')" id="tp-tab-history">History</button>
+          <button class="tp-pos-tab" onclick="tpShowTab('stats')" id="tp-tab-stats">Stats</button>
         </div>
 
         <div class="tp-pos-content" id="tp-positions">
@@ -1886,6 +1947,48 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
             <div class="tp-empty-icon">📜</div>
             <div class="tp-empty-text">No trade history</div>
           </div>
+        </div>
+
+        <div class="tp-pos-content" id="tp-stats" style="display:none">
+          <div class="tp-stats-grid">
+            <div class="tp-stat-box">
+              <div class="tp-stat-value" id="tp-stat-total-trades">0</div>
+              <div class="tp-stat-label">Total Trades</div>
+            </div>
+            <div class="tp-stat-box">
+              <div class="tp-stat-value up" id="tp-stat-win-rate">0%</div>
+              <div class="tp-stat-label">Win Rate</div>
+            </div>
+            <div class="tp-stat-box">
+              <div class="tp-stat-value up" id="tp-stat-total-profit">$0</div>
+              <div class="tp-stat-label">Total Profit</div>
+            </div>
+            <div class="tp-stat-box">
+              <div class="tp-stat-value down" id="tp-stat-total-loss">$0</div>
+              <div class="tp-stat-label">Total Loss</div>
+            </div>
+            <div class="tp-stat-box">
+              <div class="tp-stat-value" id="tp-stat-best-trade">$0</div>
+              <div class="tp-stat-label">Best Trade</div>
+            </div>
+            <div class="tp-stat-box">
+              <div class="tp-stat-value" id="tp-stat-worst-trade">$0</div>
+              <div class="tp-stat-label">Worst Trade</div>
+            </div>
+            <div class="tp-stat-box">
+              <div class="tp-stat-value" id="tp-stat-avg-win">$0</div>
+              <div class="tp-stat-label">Avg Win</div>
+            </div>
+            <div class="tp-stat-box">
+              <div class="tp-stat-value" id="tp-stat-avg-loss">$0</div>
+              <div class="tp-stat-label">Avg Loss</div>
+            </div>
+          </div>
+          <div class="tp-pnl-chart">
+            <div class="tp-pnl-chart-title">Cumulative PnL</div>
+            <canvas id="tp-pnl-canvas" height="120"></canvas>
+          </div>
+          <button onclick="tpResetAccount()" class="tp-reset-btn">Reset Paper Account</button>
         </div>
       </div>
     </div>
@@ -6600,6 +6703,9 @@ function tpInitChart() {
   }
 }
 
+var _tpVolumeSeries = null;
+var _tpEMASeries = null;
+
 function tpCreateChart() {
   const container = document.getElementById('tp-chart-container');
   if (!container) return;
@@ -6612,21 +6718,26 @@ function tpCreateChart() {
       textColor: '#555',
     },
     grid: {
-      vertLines: { color: '#1a1a1a' },
-      horzLines: { color: '#1a1a1a' },
+      vertLines: { color: '#141414' },
+      horzLines: { color: '#141414' },
     },
     crosshair: {
       mode: LightweightCharts.CrosshairMode.Normal,
+      vertLine: { color: '#333', labelBackgroundColor: '#1a1a1a' },
+      horzLine: { color: '#333', labelBackgroundColor: '#1a1a1a' },
     },
     rightPriceScale: {
       borderColor: '#1a1a1a',
+      scaleMargins: { top: 0.1, bottom: 0.2 },
     },
     timeScale: {
       borderColor: '#1a1a1a',
       timeVisible: true,
+      secondsVisible: false,
     },
   });
 
+  // Candlestick series
   _tpCandleSeries = _tpChart.addCandlestickSeries({
     upColor: '#00c47a',
     downColor: '#E24B4A',
@@ -6636,26 +6747,124 @@ function tpCreateChart() {
     wickUpColor: '#00c47a',
   });
 
-  // Generate sample data
-  tpUpdateChartData();
+  // Volume series
+  _tpVolumeSeries = _tpChart.addHistogramSeries({
+    color: '#26a69a',
+    priceFormat: { type: 'volume' },
+    priceScaleId: '',
+    scaleMargins: { top: 0.85, bottom: 0 },
+  });
+
+  // EMA line (optional indicator)
+  _tpEMASeries = _tpChart.addLineSeries({
+    color: '#5b7fff',
+    lineWidth: 1,
+    priceLineVisible: false,
+    lastValueVisible: false,
+  });
+
+  // Fetch real candle data
+  tpFetchCandleData();
 
   // Handle resize
-  window.addEventListener('resize', () => {
+  const resizeObserver = new ResizeObserver(() => {
     if (_tpChart && container) {
       _tpChart.applyOptions({ width: container.clientWidth, height: container.clientHeight });
     }
   });
+  resizeObserver.observe(container);
+
+  // Subscribe to crosshair for price display
+  _tpChart.subscribeCrosshairMove((param) => {
+    if (param.time && param.seriesData) {
+      const candle = param.seriesData.get(_tpCandleSeries);
+      if (candle) {
+        updateChartTooltip(candle);
+      }
+    }
+  });
 }
 
-function tpUpdateChartData() {
+function updateChartTooltip(candle) {
+  // Could add a tooltip element here if needed
+}
+
+// Get Binance symbol from our pair
+function getBinanceSymbol(pair) {
+  return pair; // Already in Binance format (BTCUSDT)
+}
+
+// Get timeframe interval for Binance
+function getTimeframeInterval(tf) {
+  const map = { '1m': '1m', '5m': '5m', '15m': '15m', '1h': '1h', '4h': '4h', '1d': '1d' };
+  return map[tf] || '15m';
+}
+
+// Fetch real candle data from Binance
+async function tpFetchCandleData() {
   if (!_tpCandleSeries) return;
   
+  const symbol = getBinanceSymbol(TP_STATE.pair);
+  const interval = getTimeframeInterval(TP_STATE.timeframe);
+  
+  try {
+    const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=200`;
+    const response = await fetch(url);
+    const data = await response.json();
+    
+    if (!Array.isArray(data)) {
+      console.error('Invalid candle data');
+      tpGenerateSampleData();
+      return;
+    }
+    
+    const candles = data.map(d => ({
+      time: Math.floor(d[0] / 1000),
+      open: parseFloat(d[1]),
+      high: parseFloat(d[2]),
+      low: parseFloat(d[3]),
+      close: parseFloat(d[4]),
+    }));
+    
+    const volumes = data.map(d => ({
+      time: Math.floor(d[0] / 1000),
+      value: parseFloat(d[5]),
+      color: parseFloat(d[4]) >= parseFloat(d[1]) ? 'rgba(0,196,122,0.3)' : 'rgba(226,75,74,0.3)',
+    }));
+    
+    // Calculate EMA 20
+    const ema = calculateEMA(candles.map(c => c.close), 20);
+    const emaData = candles.slice(19).map((c, i) => ({ time: c.time, value: ema[i] }));
+    
+    _tpCandleSeries.setData(candles);
+    _tpVolumeSeries.setData(volumes);
+    _tpEMASeries.setData(emaData);
+    _tpChart.timeScale().fitContent();
+    
+  } catch (e) {
+    console.error('Failed to fetch candles:', e);
+    tpGenerateSampleData();
+  }
+}
+
+// Calculate EMA
+function calculateEMA(prices, period) {
+  const k = 2 / (period + 1);
+  const ema = [prices.slice(0, period).reduce((a, b) => a + b, 0) / period];
+  for (let i = period; i < prices.length; i++) {
+    ema.push(prices[i] * k + ema[ema.length - 1] * (1 - k));
+  }
+  return ema;
+}
+
+// Fallback sample data
+function tpGenerateSampleData() {
   const price = TP_STATE.prices[TP_STATE.pair]?.price || 69000;
   const data = [];
+  const volumes = [];
   const now = Math.floor(Date.now() / 1000);
-  const interval = 60 * 15; // 15min
+  const interval = 60 * 15;
   
-  // Generate 100 candles of sample data
   let currentPrice = price * 0.95;
   for (let i = 100; i >= 0; i--) {
     const time = now - (i * interval);
@@ -6664,13 +6873,20 @@ function tpUpdateChartData() {
     const close = open + (Math.random() - 0.48) * volatility * 2;
     const high = Math.max(open, close) + Math.random() * volatility;
     const low = Math.min(open, close) - Math.random() * volatility;
+    const volume = Math.random() * 1000 + 100;
     
     data.push({ time, open, high, low, close });
+    volumes.push({ time, value: volume, color: close >= open ? 'rgba(0,196,122,0.3)' : 'rgba(226,75,74,0.3)' });
     currentPrice = close;
   }
   
   _tpCandleSeries.setData(data);
+  _tpVolumeSeries.setData(volumes);
   _tpChart.timeScale().fitContent();
+}
+
+function tpUpdateChartData() {
+  tpFetchCandleData();
 }
 
 // Fetch live prices
@@ -7073,13 +7289,15 @@ function tpRenderPositions() {
     const isSpot = pos.marketType === 'spot' || pos.leverage === 1;
     const liqMove = 100 / pos.leverage * 0.9;
     const liqPrice = pos.side === 'long' ? pos.entryPrice * (1 - liqMove / 100) : pos.entryPrice * (1 + liqMove / 100);
+    const tpPrice = pos.side === 'long' ? pos.entryPrice * (1 + pos.tpPercent / 100) : pos.entryPrice * (1 - pos.tpPercent / 100);
+    const slPrice = pos.side === 'long' ? pos.entryPrice * (1 - pos.slPercent / 100) : pos.entryPrice * (1 + pos.slPercent / 100);
     
     // Calculate holdings for spot
     const holdings = isSpot ? (pos.size / pos.entryPrice) : null;
     const currentValue = isSpot ? (holdings * currentPrice) : null;
     
     return `
-      <div class="tp-position-card">
+      <div class="tp-position-card" data-id="${pos.id}">
         <div class="tp-pos-row1">
           <div class="tp-pos-symbol">
             <span class="tp-pos-symbol-name">${pos.pair.replace('USDT', '')}/USDT</span>
@@ -7107,12 +7325,80 @@ function tpRenderPositions() {
             <div class="tp-pos-stat">Liq<span style="color:#E24B4A">$${liqPrice.toLocaleString()}</span></div>
           `}
         </div>
+        ${!isSpot && (pos.tpPercent || pos.slPercent) ? `
+        <div class="tp-pos-row2" style="margin-top:6px;padding-top:6px;border-top:1px solid #1a1a1a">
+          <div class="tp-pos-stat">TP<span style="color:#00c47a">${pos.tpPercent}% ($${tpPrice.toLocaleString()})</span></div>
+          <div class="tp-pos-stat">SL<span style="color:#E24B4A">${pos.slPercent}% ($${slPrice.toLocaleString()})</span></div>
+        </div>
+        ` : ''}
         <div class="tp-pos-actions">
-          <button onclick="tpClosePosition('${pos.id}')" class="close">${isSpot ? 'Sell' : 'Close Position'}</button>
+          ${!isSpot ? `
+            <button onclick="tpPartialClose('${pos.id}', 25)">25%</button>
+            <button onclick="tpPartialClose('${pos.id}', 50)">50%</button>
+            <button onclick="tpPartialClose('${pos.id}', 75)">75%</button>
+            <button onclick="tpEditPosition('${pos.id}')">Edit</button>
+          ` : ''}
+          <button onclick="tpClosePosition('${pos.id}')" class="close">${isSpot ? 'Sell All' : 'Close'}</button>
         </div>
       </div>
     `;
   }).join('');
+}
+
+// Partial close position
+function tpPartialClose(id, percent) {
+  const idx = TP_STATE.positions.findIndex(p => p.id === id);
+  if (idx === -1) return;
+  
+  const pos = TP_STATE.positions[idx];
+  const currentPrice = TP_STATE.prices[pos.pair]?.price || pos.entryPrice;
+  const closeSize = pos.size * (percent / 100);
+  const closePnl = tpCalcPnL({ ...pos, size: closeSize }, currentPrice);
+  
+  // Return partial margin + PnL
+  TP_STATE.balance += closeSize + closePnl;
+  
+  // Reduce position size
+  pos.size -= closeSize;
+  
+  // Add to history
+  TP_STATE.history.unshift({
+    ...pos,
+    size: closeSize,
+    exitPrice: currentPrice,
+    pnl: closePnl,
+    closedAt: Date.now(),
+    partial: true
+  });
+  
+  if (TP_STATE.history.length > 50) TP_STATE.history = TP_STATE.history.slice(0, 50);
+  
+  tpSaveState();
+  tpUpdateUI();
+  tpRenderPositions();
+  tpRenderHistory();
+  
+  const pnlStr = closePnl >= 0 ? '+$' + closePnl.toFixed(2) : '-$' + Math.abs(closePnl).toFixed(2);
+  showToast(`Closed ${percent}% of ${pos.pair.replace('USDT','')} | ${pnlStr}`, closePnl >= 0 ? 'success' : 'error');
+}
+
+// Edit position TP/SL
+function tpEditPosition(id) {
+  const pos = TP_STATE.positions.find(p => p.id === id);
+  if (!pos) return;
+  
+  const newTp = prompt(`Take Profit % (current: ${pos.tpPercent}%)`, pos.tpPercent);
+  if (newTp === null) return;
+  
+  const newSl = prompt(`Stop Loss % (current: ${pos.slPercent}%)`, pos.slPercent);
+  if (newSl === null) return;
+  
+  pos.tpPercent = parseFloat(newTp) || 0;
+  pos.slPercent = parseFloat(newSl) || 0;
+  
+  tpSaveState();
+  tpRenderPositions();
+  showToast(`Updated TP/SL for ${pos.pair.replace('USDT','')}`, 'success');
 }
 
 // Render history
@@ -7154,6 +7440,123 @@ function tpShowTab(tab) {
   document.getElementById('tp-positions').style.display = tab === 'positions' ? 'block' : 'none';
   document.getElementById('tp-orders').style.display = tab === 'orders' ? 'block' : 'none';
   document.getElementById('tp-history').style.display = tab === 'history' ? 'block' : 'none';
+  document.getElementById('tp-stats').style.display = tab === 'stats' ? 'block' : 'none';
+  
+  if (tab === 'stats') {
+    tpUpdateStats();
+  }
+}
+
+// Update stats panel
+function tpUpdateStats() {
+  const history = TP_STATE.history;
+  const totalTrades = history.length;
+  const wins = history.filter(h => h.pnl > 0);
+  const losses = history.filter(h => h.pnl < 0);
+  const winRate = totalTrades > 0 ? (wins.length / totalTrades) * 100 : 0;
+  const totalProfit = wins.reduce((a, h) => a + h.pnl, 0);
+  const totalLoss = Math.abs(losses.reduce((a, h) => a + h.pnl, 0));
+  const bestTrade = history.length > 0 ? Math.max(...history.map(h => h.pnl)) : 0;
+  const worstTrade = history.length > 0 ? Math.min(...history.map(h => h.pnl)) : 0;
+  const avgWin = wins.length > 0 ? totalProfit / wins.length : 0;
+  const avgLoss = losses.length > 0 ? totalLoss / losses.length : 0;
+  
+  document.getElementById('tp-stat-total-trades').textContent = totalTrades;
+  
+  const winRateEl = document.getElementById('tp-stat-win-rate');
+  winRateEl.textContent = winRate.toFixed(1) + '%';
+  winRateEl.className = 'tp-stat-value ' + (winRate >= 50 ? 'up' : 'down');
+  
+  document.getElementById('tp-stat-total-profit').textContent = '+$' + totalProfit.toFixed(2);
+  document.getElementById('tp-stat-total-loss').textContent = '-$' + totalLoss.toFixed(2);
+  
+  const bestEl = document.getElementById('tp-stat-best-trade');
+  bestEl.textContent = (bestTrade >= 0 ? '+' : '') + '$' + bestTrade.toFixed(2);
+  bestEl.className = 'tp-stat-value ' + (bestTrade >= 0 ? 'up' : 'down');
+  
+  const worstEl = document.getElementById('tp-stat-worst-trade');
+  worstEl.textContent = (worstTrade >= 0 ? '+' : '') + '$' + worstTrade.toFixed(2);
+  worstEl.className = 'tp-stat-value ' + (worstTrade >= 0 ? 'up' : 'down');
+  
+  document.getElementById('tp-stat-avg-win').textContent = '+$' + avgWin.toFixed(2);
+  document.getElementById('tp-stat-avg-loss').textContent = '-$' + avgLoss.toFixed(2);
+  
+  // Draw PnL chart
+  tpDrawPnLChart();
+}
+
+// Draw cumulative PnL chart
+function tpDrawPnLChart() {
+  const canvas = document.getElementById('tp-pnl-canvas');
+  if (!canvas) return;
+  
+  const ctx = canvas.getContext('2d');
+  const width = canvas.parentElement.clientWidth - 20;
+  const height = 100;
+  canvas.width = width;
+  canvas.height = height;
+  
+  ctx.clearRect(0, 0, width, height);
+  
+  const history = [...TP_STATE.history].reverse(); // Oldest first
+  if (history.length < 2) {
+    ctx.fillStyle = '#333';
+    ctx.font = '11px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Need at least 2 trades', width / 2, height / 2);
+    return;
+  }
+  
+  // Calculate cumulative PnL
+  let cumPnl = [0];
+  let running = 0;
+  history.forEach(h => {
+    running += h.pnl;
+    cumPnl.push(running);
+  });
+  
+  const maxPnl = Math.max(...cumPnl);
+  const minPnl = Math.min(...cumPnl);
+  const range = maxPnl - minPnl || 1;
+  const padding = 10;
+  
+  // Draw zero line
+  const zeroY = height - padding - ((0 - minPnl) / range) * (height - padding * 2);
+  ctx.strokeStyle = '#333';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([3, 3]);
+  ctx.beginPath();
+  ctx.moveTo(0, zeroY);
+  ctx.lineTo(width, zeroY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+  
+  // Draw PnL line
+  ctx.strokeStyle = cumPnl[cumPnl.length - 1] >= 0 ? '#00c47a' : '#E24B4A';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  
+  cumPnl.forEach((pnl, i) => {
+    const x = (i / (cumPnl.length - 1)) * (width - padding * 2) + padding;
+    const y = height - padding - ((pnl - minPnl) / range) * (height - padding * 2);
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+  
+  // Fill area
+  ctx.lineTo(width - padding, zeroY);
+  ctx.lineTo(padding, zeroY);
+  ctx.closePath();
+  ctx.fillStyle = cumPnl[cumPnl.length - 1] >= 0 ? 'rgba(0,196,122,0.1)' : 'rgba(226,75,74,0.1)';
+  ctx.fill();
+  
+  // Draw current value
+  const lastPnl = cumPnl[cumPnl.length - 1];
+  ctx.fillStyle = lastPnl >= 0 ? '#00c47a' : '#E24B4A';
+  ctx.font = 'bold 12px sans-serif';
+  ctx.textAlign = 'right';
+  ctx.fillText((lastPnl >= 0 ? '+' : '') + '$' + lastPnl.toFixed(2), width - padding, 15);
 }
 
 // Chart controls
@@ -7168,6 +7571,26 @@ function tpSetChartType(type) {
   TP_STATE.chartType = type;
   document.querySelectorAll('.tp-chart-type button').forEach(b => b.classList.remove('active'));
   event.target.classList.add('active');
+  
+  // Toggle between candlestick and line chart
+  if (_tpCandleSeries && _tpChart) {
+    _tpCandleSeries.applyOptions({
+      visible: type === 'candle'
+    });
+  }
+}
+
+// Toggle indicators
+function tpToggleIndicator(indicator, btn) {
+  btn.classList.toggle('active');
+  const isActive = btn.classList.contains('active');
+  
+  if (indicator === 'ema' && _tpEMASeries) {
+    _tpEMASeries.applyOptions({ visible: isActive });
+  }
+  if (indicator === 'volume' && _tpVolumeSeries) {
+    _tpVolumeSeries.applyOptions({ visible: isActive });
+  }
 }
 
 // Reset account
@@ -7237,6 +7660,100 @@ function tpSetOrderType(type) {
 }
 
 // Generate and render order book
+// Click order book row to fill price
+function tpFillPrice(price) {
+  // Switch to limit order
+  TP_STATE.orderType = 'limit';
+  document.querySelectorAll('.tp-order-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tp-order-tab')[1]?.classList.add('active'); // Limit tab
+  document.getElementById('tp-limit-price-group').style.display = 'block';
+  document.getElementById('tp-limit-price').value = price.toFixed(2);
+  tpCalculate();
+  showToast(`Price set to $${price.toFixed(2)}`, 'info');
+}
+
+// Fetch real order book from Binance
+async function tpFetchOrderBook() {
+  try {
+    const symbol = TP_STATE.pair;
+    const url = `https://api.binance.com/api/v3/depth?symbol=${symbol}&limit=10`;
+    const response = await fetch(url);
+    const data = await response.json();
+    
+    if (data.asks && data.bids) {
+      tpRenderOrderBookData(data.asks, data.bids);
+    }
+  } catch (e) {
+    // Fallback to simulated data
+    tpRenderOrderBook();
+  }
+}
+
+function tpRenderOrderBookData(asks, bids) {
+  const asksContainer = document.getElementById('tp-ob-asks');
+  const bidsContainer = document.getElementById('tp-ob-bids');
+  const priceEl = document.getElementById('tp-ob-price');
+  const changeEl = document.getElementById('tp-ob-change');
+  const spreadEl = document.getElementById('tp-ob-spread');
+  
+  if (!asksContainer || !bidsContainer) return;
+  
+  const priceData = TP_STATE.prices[TP_STATE.pair] || { price: 69000, change: 0 };
+  const change = priceData.change;
+  
+  // Calculate max size for depth visualization
+  const allSizes = [...asks, ...bids].map(o => parseFloat(o[1]));
+  const maxSize = Math.max(...allSizes);
+  
+  // Take top 8 asks (reversed - lowest at bottom)
+  const topAsks = asks.slice(0, 8).reverse();
+  asksContainer.innerHTML = topAsks.map(a => {
+    const price = parseFloat(a[0]);
+    const size = parseFloat(a[1]);
+    const depth = (size / maxSize) * 100;
+    return `
+      <div class="tp-ob-row ask" onclick="tpFillPrice(${price})" title="Click to set limit price">
+        <span class="price">${price.toFixed(2)}</span>
+        <span class="size">${size.toFixed(4)}</span>
+        <div class="depth" style="width:${depth}%"></div>
+      </div>
+    `;
+  }).join('');
+  
+  // Top 8 bids
+  const topBids = bids.slice(0, 8);
+  bidsContainer.innerHTML = topBids.map(b => {
+    const price = parseFloat(b[0]);
+    const size = parseFloat(b[1]);
+    const depth = (size / maxSize) * 100;
+    return `
+      <div class="tp-ob-row bid" onclick="tpFillPrice(${price})" title="Click to set limit price">
+        <span class="price">${price.toFixed(2)}</span>
+        <span class="size">${size.toFixed(4)}</span>
+        <div class="depth" style="width:${depth}%"></div>
+      </div>
+    `;
+  }).join('');
+  
+  // Mid price (average of best bid/ask)
+  const bestAsk = parseFloat(asks[0]?.[0] || 0);
+  const bestBid = parseFloat(bids[0]?.[0] || 0);
+  const midPrice = (bestAsk + bestBid) / 2;
+  const spread = bestAsk - bestBid;
+  
+  if (priceEl) priceEl.textContent = '$' + midPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (changeEl) {
+    const isUp = change >= 0;
+    changeEl.textContent = (isUp ? '+' : '') + change.toFixed(2) + '%';
+    changeEl.className = 'tp-ob-mid-change ' + (isUp ? 'up' : 'down');
+  }
+  
+  if (spreadEl) {
+    const spreadPercent = ((spread / midPrice) * 100).toFixed(4);
+    spreadEl.textContent = `$${spread.toFixed(2)} (${spreadPercent}%)`;
+  }
+}
+
 function tpRenderOrderBook() {
   const asksContainer = document.getElementById('tp-ob-asks');
   const bidsContainer = document.getElementById('tp-ob-bids');
@@ -7266,7 +7783,7 @@ function tpRenderOrderBook() {
   
   // Render asks (reversed so lowest ask is at bottom)
   asksContainer.innerHTML = asks.reverse().map(a => `
-    <div class="tp-ob-row ask">
+    <div class="tp-ob-row ask" onclick="tpFillPrice(${a.price})" title="Click to set limit price">
       <span class="price">${a.price.toFixed(2)}</span>
       <span class="size">${a.size}</span>
       <div class="depth" style="width:${a.depth}%"></div>
@@ -7275,7 +7792,7 @@ function tpRenderOrderBook() {
   
   // Render bids
   bidsContainer.innerHTML = bids.map(b => `
-    <div class="tp-ob-row bid">
+    <div class="tp-ob-row bid" onclick="tpFillPrice(${b.price})" title="Click to set limit price">
       <span class="price">${b.price.toFixed(2)}</span>
       <span class="size">${b.size}</span>
       <div class="depth" style="width:${b.depth}%"></div>
@@ -7313,7 +7830,7 @@ openTradingPage = function() {
     tpRenderPositions();
     tpRenderHistory();
     tpRenderPairList();
-    tpRenderOrderBook();
+    tpFetchOrderBook(); // Fetch real order book
     
     // Apply market type settings
     tpSetMarketType(TP_STATE.marketType);
@@ -7325,7 +7842,7 @@ openTradingPage = function() {
     if (!window._tpPriceInterval) {
       window._tpPriceInterval = setInterval(() => {
         tpFetchPrices();
-        tpRenderOrderBook();
+        tpFetchOrderBook(); // Fetch real order book
       }, 5000);
     }
   }
