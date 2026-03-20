@@ -1004,9 +1004,9 @@ body.t-lavender{--bg:#f0eef8;--panel:#fff;--bd:#d8d4f0;--bd2:#e4e0f4;--sf:#f8f6f
 #ai-irow{display:flex;gap:6px;padding:9px 12px 11px;border-top:0.5px solid var(--bd2);flex-shrink:0}
 #ai-inp{flex:1;border:0.5px solid var(--bd2);border-radius:8px;background:var(--inp);color:var(--tx);font-size:11px;padding:7px 10px;resize:none;outline:none;font-family:inherit;line-height:1.4;max-height:80px}
 #ai-inp:focus{border-color:var(--acc2)}
-#ai-sbtn{background:var(--acc2);color:#fff;border:none;border-radius:8px;padding:7px 13px;cursor:pointer;font-size:14px;flex-shrink:0;transition:opacity .2s;line-height:1}
-#ai-sbtn:hover{opacity:.85}
-#ai-sbtn:disabled{opacity:.35;cursor:default}
+#ai-send{background:var(--acc2);color:#fff;border:none;border-radius:8px;padding:7px 13px;cursor:pointer;font-size:14px;flex-shrink:0;transition:opacity .2s;line-height:1}
+#ai-send:hover{opacity:.85}
+#ai-send:disabled{opacity:.35;cursor:default}
 
 /* theme picker */
 .theme-row{display:flex;gap:4px;padding:6px 10px;border-bottom:0.5px solid var(--bd2);align-items:center;flex-wrap:wrap}
@@ -9829,7 +9829,7 @@ function aiKey(e){
 
 async function aiSend(){
   var inp=document.getElementById('ai-inp');
-  var btn=document.getElementById('ai-sbtn');
+  var btn=document.getElementById('ai-send');
   var q=(inp.value||'').trim();
   if(!q||btn.disabled)return;
   inp.value='';
