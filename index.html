@@ -4111,6 +4111,17 @@ function softUpdate(){
     metricsEl.innerHTML=mh;
   }
 
+  // patch note text (setup summary)
+  const noteEl=document.querySelector('.note');
+  if(noteEl && !IS_WIPED){
+    const noteText=s.SPOT
+      ?(LANG==='id'
+        ?`◈ mode spot · akun ${fmt(s.P)} · posisi = modal penuh · tanpa leverage · tanpa likuidasi · biaya: ${s.FEE.method} ${s.FEE.method==='maker'?s.FEE.maker:s.FEE.taker}% × 2 per trade · ${actTr}/10 trade ${t('active')} · kpi scale ${s.KPI.toFixed(2)}×`
+        :`◈ spot mode · acct ${fmt(s.P)} · position = full capital · no leverage · no liquidation · fee: ${s.FEE.method} ${s.FEE.method==='maker'?s.FEE.maker:s.FEE.taker}% × 2 per trade · ${actTr}/10 ${t('trades')} ${t('active')} · kpi scale ${s.KPI.toFixed(2)}×`)
+      :`${t('note_setup')}: acct ${fmt(s.P)} · notional t1 ${fmt(s.NOT)} (${(s.NOT/s.P).toFixed(2)}× acct) · ${t('note_margin')} ${fmt(s.NOT/s.LEV)} ${t('note_at')} ${s.LEV}× lev · liq t1 = ${liqT1.toFixed(1)}% (${t('note_liq',liqT1.toFixed(0))}) · ${actTr}/10 ${t('trades')} ${t('active')} · kpi scale ${s.KPI.toFixed(2)}× · ${t('note_wd')}`;
+    noteEl.textContent=noteText;
+  }
+
   // patch assess-side cards (36-month) or quarter assess bar
   if(!isQ){
     const aside=document.getElementById('assess-side');
@@ -4902,7 +4913,7 @@ function render(){
       <div class="mc"><div class="mll">${t('avg_lbl')}</div><div class="mvv">${avgPct.toFixed(1)}%</div><div class="ms">${t('per_active_month')}</div></div>
       <div class="mc"><div class="mll">₿ equivalent</div><div class="mvv" style="color:#f7931a">${endBalanceBTC.toFixed(4)}</div><div class="ms">Q3 acct · @ $${btcPrice.toLocaleString()}</div></div>
       <div class="mc"><div class="mll">${t('seq_net_lbl')}</div><div class="mvv" style="color:${mp>=0?'#1D9E75':'#E24B4A'}">${mp>0?'+':''}${mp.toFixed(1)}%</div><div class="ms">${wins}W / ${losses}L · ${actTr} ${t('active_trades')}</div></div>
-      <div class="mc"><div class="mll">total fees paid</div><div class="mvv" style="color:#E24B4A">−${fmt(totalFeesPaid)}</div><div class="ms">trade + funding · 3mo</div></div>
+      <div class="mc"><div class="mll">total fees paid</div><div class="mvv" style="color:#E24B4A">−${fmt(totalFeesPaid)}</div><div class="ms">${s.SPOT?'trade only · spot':'trade + funding · 3mo'}</div></div>
       <div class="mc placeholder"></div>
       <div class="mc placeholder"></div>
       <div class="mc placeholder"></div>
