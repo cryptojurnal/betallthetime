@@ -4559,10 +4559,15 @@ function toggleSec(id){
 }
 function _syncTradeToggleLeft(){
   const leftPanel=document.getElementById('left-panel');
+  const tradePanel=document.getElementById('trade-panel');
   const tradeToggle=document.getElementById('trade-panel-toggle');
   if(!tradeToggle) return;
   const leftOpen = leftPanel && !leftPanel.classList.contains('collapsed');
-  tradeToggle.style.left = leftOpen ? '224px' : '0px';
+  const tradeOpen = tradePanel && !tradePanel.classList.contains('collapsed');
+  // trade toggle sits at right edge of: left panel (if open) + trade panel (if open)
+  const leftW = leftOpen ? 224 : 0;
+  const tradeW = tradeOpen ? 224 : 0;
+  tradeToggle.style.left = (leftW + tradeW) + 'px';
 }
 
 function togglePanel(){
@@ -4596,6 +4601,7 @@ function toggleTradePanel(){
   panel.classList.toggle('collapsed');
   const isCollapsed=panel.classList.contains('collapsed');
   if(toggle) toggle.classList.toggle('expanded', !isCollapsed);
+  setTimeout(_syncTradeToggleLeft, 10);
   setTimeout(()=>{
     if(ch){ if(ch._errorPulse){clearInterval(ch._errorPulse);ch._errorPulse=null;} ch.resize(); _applyChartErrorStyle(); }
   },280);
@@ -5969,6 +5975,8 @@ function launchApp(){
   window.RISK_SHOWN = true;
   // always default to leverage mode
   if(typeof setSpotMode==='function') setSpotMode(false);
+  // sync trade toggle position
+  setTimeout(_syncTradeToggleLeft, 500);
   const app=document.querySelector('.app');
   if(app) app.style.opacity='1';
   const fab=document.getElementById('ai-fab');
