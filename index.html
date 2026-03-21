@@ -4602,7 +4602,7 @@ function toggleTradePanel(){
   const toggle=document.getElementById('trade-panel-toggle');
   panel.classList.toggle('collapsed');
   const isCollapsed=panel.classList.contains('collapsed');
-  // don't use .expanded on trade toggle — _syncTradeToggleLeft owns the left position
+  // _syncTradeToggleLeft owns left position, not .expanded
   setTimeout(_syncTradeToggleLeft, 10);
   setTimeout(()=>{
     if(ch){ if(ch._errorPulse){clearInterval(ch._errorPulse);ch._errorPulse=null;} ch.resize(); _applyChartErrorStyle(); }
@@ -12654,9 +12654,9 @@ function _battToken(){
   catch(e){ return localStorage.getItem('batt_token') || null; }
 }
 
-// ── ROUTING: title only, no history manipulation ──
-// We never push/replace history entries — the SPA manages its own UI state.
-// Browser back/forward will simply leave/return to the site naturally.
+// ── ROUTER ──
+var _battInAppNav = false;
+
 function battNav(page){
   var titles = {
     'member':  'BATT · Member Area',
@@ -12667,11 +12667,60 @@ function battNav(page){
     'auth':    'BATT · Login',
   };
   document.title = titles[page] || 'bet all the time, bet with style';
+  try{
+    var hash = '#' + page;
+    var cur = (window.location.hash||'').replace('#','');
+    if(cur === page) return;
+    _battInAppNav = true;
+    history.pushState({batt:page}, '', hash);
+    _battInAppNav = false;
+  }catch(e){ _battInAppNav = false; }
 }
 function battSetRoute(page){ battNav(page); }
 function battSetTitle(page){ battNav(page); }
 
-// no popstate listener — we don't manage history at all
+window.addEventListener('popstate', function(){
+  if(_battInAppNav) return;
+  var hash = (window.location.hash||'').replace('#','');
+  var titles = {'member':'BATT · Member Area','cockpit':'BATT · Cockpit','trade':'BATT · Trade Panel','account':'BATT · Account','about':'BATT · About CJ'};
+  if(titles[hash]) document.title = titles[hash];
+
+  var account = document.getElementById('account-page');
+  var trading = document.getElementById('trading-page');
+  var about   = document.getElementById('about-cj-page');
+  var l3      = document.getElementById('layer3');
+  var app     = document.querySelector('.app');
+
+  if(hash === 'member'){
+    if(account) account.classList.remove('visible');
+    if(trading){ trading.classList.remove('visible'); trading.style.opacity=''; trading.style.transform=''; }
+    if(about){ about.style.display='none'; about.style.opacity='0'; about.classList.remove('acj-visible'); }
+    if(app) app.style.opacity='0';
+    document.body.style.overflow='auto';
+    if(l3){ l3.classList.remove('hidden'); requestAnimationFrame(function(){ l3.classList.add('visible'); }); }
+    if(typeof mbnSetActive==='function') mbnSetActive('member');
+  } else if(hash === 'cockpit'){
+    if(account) account.classList.remove('visible');
+    if(trading) trading.classList.remove('visible');
+    if(about){ about.style.display='none'; about.style.opacity='0'; about.classList.remove('acj-visible'); }
+    if(l3){ l3.classList.remove('visible'); setTimeout(function(){ l3.classList.add('hidden'); },300); }
+    document.body.style.overflow='hidden';
+    if(app){ app.style.opacity='1'; app.style.transform=''; }
+    if(typeof mbnSetActive==='function') mbnSetActive('cockpit');
+  } else if(hash === 'account'){
+    if(account){ account.classList.add('visible'); if(typeof loadAccountPage==='function') loadAccountPage(); }
+    document.body.style.overflow='auto';
+    if(typeof mbnSetActive==='function') mbnSetActive('account');
+  } else if(hash === 'trade'){
+    if(trading){ trading.style.opacity=''; trading.style.transform=''; trading.classList.add('visible'); }
+    if(l3) l3.classList.remove('visible');
+    document.body.style.overflow='auto';
+    if(typeof mbnSetActive==='function') mbnSetActive('trade');
+  } else if(hash === 'about'){
+    if(about){ about.style.display='block'; requestAnimationFrame(function(){ about.style.opacity='1'; about.classList.add('acj-visible'); }); }
+    document.body.style.overflow='auto';
+  }
+});
 
 // ── GUEST / AUTH VISIBILITY HELPERS ──
 function battUpdateGuestUI(){
