@@ -69,7 +69,18 @@ function goAuth(){
   },900);
 }
 
-// goLayer2 and launchApp defined in main script block below
+function goLayer2(){
+  const l2=document.getElementById('layer2');
+  if(l2){
+    l2.classList.remove('hidden','out');
+    l2.style.opacity='0';
+    // always reset launch button so it's clickable
+    const lb=l2.querySelector('.launch-btn');
+    if(lb){ lb.style.pointerEvents=''; lb.disabled=false; }
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{l2.style.opacity='1';}));
+  }
+}
+// launchApp is defined in main script block
 
 function showGuidePopup(){
   const p=document.getElementById('guide-popup');
@@ -1261,7 +1272,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 .l2-disclaimer{font-size:13px;color:#444;line-height:1.9;opacity:0;animation:fadeUp .8s ease .9s forwards;border:0.5px solid #1a1a1a;border-radius:10px;padding:20px 24px;text-align:left}
 .l2-disclaimer strong{color:#888}
 .l2-disclaimer .warn{color:#EF9F27;font-weight:600}
-.launch-btn{opacity:1;background:transparent;border:1.5px solid #00c47a;color:#00c47a;font-size:14px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:16px 56px;border-radius:4px;cursor:pointer;transition:all .25s}
+.launch-btn{opacity:0;animation:fadeUp .8s ease 1.6s forwards;background:transparent;border:1.5px solid #00c47a;color:#00c47a;font-size:14px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:16px 56px;border-radius:4px;cursor:pointer;transition:all .25s}
 .launch-btn:hover{background:#00c47a;color:#000}
 @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
 
@@ -5948,28 +5959,20 @@ render();
 function goLayer2(){
   const l1=document.getElementById('layer1');
   const l2=document.getElementById('layer2');
-  // reset launch button — force it always visible and clickable
-  const lb=l2?l2.querySelector('.launch-btn'):null;
-  if(lb){
-    lb.style.cssText='opacity:1;pointer-events:auto;animation:none;transform:none;disabled:false';
-    lb.disabled=false;
-  }
-  if(l2) l2.style.pointerEvents='';
+  // If coming from layer1, animate it out first
   if(l1 && !l1.classList.contains('hidden')){
     l1.classList.add('out');
     setTimeout(()=>{
       l1.classList.add('hidden');
-      if(l2){l2.classList.remove('hidden','out');requestAnimationFrame(()=>requestAnimationFrame(()=>{l2.style.opacity='1';}));}
+      if(l2){l2.classList.remove('hidden');requestAnimationFrame(()=>requestAnimationFrame(()=>{l2.style.opacity='1';}));}
     },900);
   } else {
-    if(l2){l2.classList.remove('hidden','out');requestAnimationFrame(()=>requestAnimationFrame(()=>{l2.style.opacity='1';}));}
+    // Coming from layer3 or elsewhere, just show layer2
+    if(l2){l2.classList.remove('hidden');requestAnimationFrame(()=>requestAnimationFrame(()=>{l2.style.opacity='1';}));}
   }
 }
 function launchApp(){
-  const l2=document.getElementById('layer2');
-  if(!l2) return;
-  // force layer2 hidden immediately — no lingering state
-  l2.style.pointerEvents='none';
+  const l2=document.getElementById('layer2');if(!l2)return;
   // mark risk disclosure as shown for this session
   window.RISK_SHOWN = true;
   // always default to leverage mode
