@@ -12646,8 +12646,17 @@ body.t-light .acj-hero-badge{background:rgba(24,95,165,.08);border-color:rgba(24
 
 <script>
 // ── ROUTER ──
-var _battInAppNav = false;
+// Title-only — no history manipulation. See battNav() below.
 
+// safe token reader across script blocks
+function _battToken(){
+  try{ return (typeof AUTH_TOKEN!=='undefined' ? AUTH_TOKEN : null) || localStorage.getItem('batt_token') || null; }
+  catch(e){ return localStorage.getItem('batt_token') || null; }
+}
+
+// ── ROUTING: title only, no history manipulation ──
+// We never push/replace history entries — the SPA manages its own UI state.
+// Browser back/forward will simply leave/return to the site naturally.
 function battNav(page){
   var titles = {
     'member':  'BATT · Member Area',
@@ -12658,61 +12667,11 @@ function battNav(page){
     'auth':    'BATT · Login',
   };
   document.title = titles[page] || 'bet all the time, bet with style';
-  try{
-    var hash = '#' + page;
-    var cur = (window.location.hash||'').replace('#','');
-    if(cur === page) return; // already here, don't push
-    _battInAppNav = true;
-    // all pages push — cockpit included, but battNav guards against duplicate pushes
-    history.pushState({batt:page}, '', hash);
-    _battInAppNav = false;
-  }catch(e){ _battInAppNav = false; }
 }
 function battSetRoute(page){ battNav(page); }
 function battSetTitle(page){ battNav(page); }
 
-// popstate — browser back/forward only, never fires for our own pushState
-window.addEventListener('popstate', function(e){
-  if(_battInAppNav) return;
-  var hash = (window.location.hash||'').replace('#','');
-
-  var account = document.getElementById('account-page');
-  var trading = document.getElementById('trading-page');
-  var about   = document.getElementById('about-cj-page');
-  var l3      = document.getElementById('layer3');
-  var app     = document.querySelector('.app');
-
-  if(hash === 'member'){
-    if(account) account.classList.remove('visible');
-    if(trading){ trading.classList.remove('visible'); trading.style.opacity=''; trading.style.transform=''; }
-    if(about){ about.style.display='none'; about.style.opacity='0'; about.classList.remove('acj-visible'); }
-    if(app) app.style.opacity='0';
-    document.body.style.overflow='auto';
-    if(l3){ l3.classList.remove('hidden'); requestAnimationFrame(function(){ l3.classList.add('visible'); }); }
-    if(typeof mbnSetActive==='function') mbnSetActive('member');
-  } else if(hash === 'cockpit'){
-    if(account) account.classList.remove('visible');
-    if(trading) trading.classList.remove('visible');
-    if(about){ about.style.display='none'; about.style.opacity='0'; about.classList.remove('acj-visible'); }
-    if(l3){ l3.classList.remove('visible'); setTimeout(function(){ l3.classList.add('hidden'); },300); }
-    document.body.style.overflow='hidden';
-    if(app){ app.style.opacity='1'; app.style.transform=''; }
-    if(typeof mbnSetActive==='function') mbnSetActive('cockpit');
-  } else if(hash === 'account'){
-    if(account){ account.classList.add('visible'); if(typeof loadAccountPage==='function') loadAccountPage(); }
-    document.body.style.overflow='auto';
-    if(typeof mbnSetActive==='function') mbnSetActive('account');
-  } else if(hash === 'trade'){
-    if(trading){ trading.style.opacity=''; trading.style.transform=''; trading.classList.add('visible'); }
-    if(l3) l3.classList.remove('visible');
-    document.body.style.overflow='auto';
-    if(typeof mbnSetActive==='function') mbnSetActive('trade');
-  } else if(hash === 'about'){
-    if(about){ about.style.display='block'; requestAnimationFrame(function(){ about.style.opacity='1'; about.classList.add('acj-visible'); }); }
-    document.body.style.overflow='auto';
-  }
-  // for any unknown hash — do nothing, let current UI stay
-});
+// no popstate listener — we don't manage history at all
 
 // ── GUEST / AUTH VISIBILITY HELPERS ──
 function battUpdateGuestUI(){
