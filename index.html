@@ -5949,31 +5949,31 @@ function goLayer2(){
   const l1=document.getElementById('layer1');
   const l2=document.getElementById('layer2');
   if(!l2) return;
-  // fully reset layer2 — clear ALL inline styles that may have been set
-  l2.classList.remove('hidden','out');
-  l2.style.display='';
-  l2.style.opacity='';
-  l2.style.pointerEvents='';
-  l2.style.transform='';
   // reset launch button
   const lb=l2.querySelector('.launch-btn');
-  if(lb){ lb.disabled=false; lb.style.cssText=''; }
+  if(lb){ lb.disabled=false; lb.style.opacity=''; lb.style.pointerEvents=''; }
+  // clear blocking inline styles but start opacity at 0 for transition
+  l2.classList.remove('hidden','out');
+  l2.style.pointerEvents='';
+  l2.style.transform='';
+  l2.style.opacity='0';
   if(l1 && !l1.classList.contains('hidden')){
     l1.classList.add('out');
     setTimeout(()=>{
       l1.classList.add('hidden');
-      requestAnimationFrame(()=>requestAnimationFrame(()=>{ l2.style.opacity='1'; }));
+      setTimeout(()=>{ l2.style.opacity='1'; }, 50);
     },900);
   } else {
-    requestAnimationFrame(()=>requestAnimationFrame(()=>{ l2.style.opacity='1'; }));
+    setTimeout(()=>{ l2.style.opacity='1'; }, 50);
   }
 }
 function launchApp(){
   const l2=document.getElementById('layer2');
   if(!l2) return;
-  // disable button to prevent double-tap, don't block whole layer
+  // prevent double-tap
   const lb=l2.querySelector('.launch-btn');
-  if(lb){ lb.disabled=true; lb.style.opacity='0.5'; }
+  if(lb && lb.disabled) return;
+  if(lb){ lb.disabled=true; }
   // mark risk disclosure as shown for this session
   window.RISK_SHOWN = true;
   // always default to leverage mode
@@ -6002,11 +6002,12 @@ function launchApp(){
     if(presetsBtn) presetsBtn.classList.add('visible');
   }
   document.body.style.overflow='hidden';
-  // update guest UI (login button + spot switch visibility)
+  // update guest UI
   if(typeof battUpdateGuestUI==='function') battUpdateGuestUI();
   l2.classList.add('out');
-  setTimeout(()=>{l2.classList.add('hidden');showGuidePopup();},900);
+  setTimeout(()=>{ l2.classList.add('hidden'); showGuidePopup(); },900);
 }
+
 </script>
 <script>
 // ── AUTH SYSTEM ──
