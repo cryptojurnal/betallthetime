@@ -423,7 +423,7 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
 .pt-head{padding:12px 12px 4px;border-bottom:0.5px solid var(--bd2)}
 
 /* trade panel toggle button — mirrors panel-left-toggle exactly but different color + position */
-.panel-trade-toggle{position:fixed;left:0;top:40%;transform:translateY(-50%);width:42px;height:90px;background:linear-gradient(135deg,#7c5cbf,#5b3fa0);border:none;border-radius:0 14px 14px 0;cursor:grab;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px;font-size:14px;color:#fff;transition:opacity .4s ease .3s, width .25s cubic-bezier(.4,0,.2,1), box-shadow .25s cubic-bezier(.4,0,.2,1);z-index:100;box-shadow:4px 0 20px rgba(0,0,0,0.3);opacity:0;pointer-events:none;user-select:none;touch-action:none;overflow:hidden}
+.panel-trade-toggle{position:fixed;left:0;top:40%;transform:translateY(-50%);width:42px;height:90px;background:linear-gradient(135deg,#7c5cbf,#5b3fa0);border:none;border-radius:0 14px 14px 0;cursor:grab;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px;font-size:14px;color:#fff;transition:opacity .4s ease .3s, left .3s ease, width .25s cubic-bezier(.4,0,.2,1), box-shadow .25s cubic-bezier(.4,0,.2,1);z-index:100;box-shadow:4px 0 20px rgba(0,0,0,0.3);opacity:0;pointer-events:none;user-select:none;touch-action:none;overflow:hidden}
 .panel-trade-toggle.visible{opacity:1;pointer-events:all}
 .panel-trade-toggle.expanded{left:224px;animation:none}
 .panel-trade-toggle:hover{width:52px;box-shadow:6px 0 28px rgba(0,0,0,0.4)}
@@ -933,7 +933,7 @@ body.t-lavender{--bg:#f0eef8;--panel:#fff;--bd:#d8d4f0;--bd2:#e4e0f4;--sf:#f8f6f
 .panel-left::-webkit-scrollbar{display:none}
 
 /* ── TRADE SLOTS PANEL (mirrors left panel) ── */
-.panel-trade-toggle{position:fixed;left:0;top:calc(50% + 56px);transform:translateY(-50%);width:42px;height:90px;background:linear-gradient(135deg,var(--acc2),#008855);border:none;border-radius:0 14px 14px 0;cursor:grab;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px;font-size:14px;color:#fff;transition:opacity .4s ease .3s, width .25s cubic-bezier(.4,0,.2,1), box-shadow .25s cubic-bezier(.4,0,.2,1);z-index:100;box-shadow:4px 0 20px rgba(0,0,0,0.3);opacity:0;pointer-events:none;user-select:none;touch-action:none;overflow:hidden}
+.panel-trade-toggle{position:fixed;left:0;top:calc(50% + 56px);transform:translateY(-50%);width:42px;height:90px;background:linear-gradient(135deg,var(--acc2),#008855);border:none;border-radius:0 14px 14px 0;cursor:grab;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px;font-size:14px;color:#fff;transition:opacity .4s ease .3s, left .3s ease, width .25s cubic-bezier(.4,0,.2,1), box-shadow .25s cubic-bezier(.4,0,.2,1);z-index:100;box-shadow:4px 0 20px rgba(0,0,0,0.3);opacity:0;pointer-events:none;user-select:none;touch-action:none;overflow:hidden}
 .panel-trade-toggle.visible{opacity:1;pointer-events:all}
 .panel-trade-toggle.expanded{left:224px;animation:none}
 .panel-trade-toggle:hover{width:52px;box-shadow:6px 0 28px rgba(0,0,0,0.4)}
@@ -4557,40 +4557,35 @@ function toggleSec(id){
   const collapsed=body.classList.toggle('collapsed');
   if(arrow)arrow.style.transform=collapsed?'rotate(-90deg)':'rotate(0deg)';
 }
+function _syncTradeToggleLeft(){
+  const leftPanel=document.getElementById('left-panel');
+  const tradeToggle=document.getElementById('trade-panel-toggle');
+  if(!tradeToggle) return;
+  const leftOpen = leftPanel && !leftPanel.classList.contains('collapsed');
+  tradeToggle.style.left = leftOpen ? '224px' : '0px';
+}
+
 function togglePanel(){
   const panel=document.getElementById('left-panel');
   const btn=document.getElementById('collapse-btn');
   const toggle=document.getElementById('left-panel-toggle');
-  const tradeToggle=document.getElementById('trade-panel-toggle');
   const isCollapsed=panel.classList.contains('collapsed');
-
   if(isCollapsed){
-    // expanding — remove collapsed first so transition runs
     panel.style.overflow='hidden';
     panel.classList.remove('collapsed');
     if(btn) btn.textContent='‹';
     if(toggle) toggle.classList.add('expanded');
-    // also push trade toggle right so it doesn't overlap
-    if(tradeToggle) tradeToggle.classList.add('expanded');
-    // after transition completes restore scroll
     setTimeout(()=>{ panel.style.overflow=''; },380);
   } else {
-    // collapsing
     if(toggle) toggle.classList.remove('expanded');
     if(btn) btn.textContent='›';
     panel.classList.add('collapsed');
-    // restore trade toggle position only if trade panel itself is also collapsed
-    const tradePanel=document.getElementById('trade-panel');
-    if(tradeToggle && tradePanel && tradePanel.classList.contains('collapsed')){
-      tradeToggle.classList.remove('expanded');
-    }
   }
-
+  setTimeout(_syncTradeToggleLeft, 10);
   setTimeout(()=>{
     if(ch){
       if(ch._errorPulse){clearInterval(ch._errorPulse);ch._errorPulse=null;}
-      ch.resize();
-      _applyChartErrorStyle();
+      ch.resize(); _applyChartErrorStyle();
     }
   },380);
 }
@@ -4600,7 +4595,8 @@ function toggleTradePanel(){
   const toggle=document.getElementById('trade-panel-toggle');
   panel.classList.toggle('collapsed');
   const isCollapsed=panel.classList.contains('collapsed');
-    setTimeout(()=>{
+  if(toggle) toggle.classList.toggle('expanded', !isCollapsed);
+  setTimeout(()=>{
     if(ch){ if(ch._errorPulse){clearInterval(ch._errorPulse);ch._errorPulse=null;} ch.resize(); _applyChartErrorStyle(); }
   },280);
 }
