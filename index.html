@@ -70,7 +70,14 @@ function goAuth(){
 
 function goLayer2(){
   const l2=document.getElementById('layer2');
-  if(l2){l2.classList.remove('hidden');requestAnimationFrame(()=>requestAnimationFrame(()=>{l2.style.opacity='1';}));}
+  if(l2){
+    l2.classList.remove('hidden','out');
+    l2.style.opacity='0';
+    // always reset launch button so it's clickable
+    const lb=l2.querySelector('.launch-btn');
+    if(lb){ lb.style.pointerEvents=''; lb.disabled=false; }
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{l2.style.opacity='1';}));
+  }
 }
 function launchApp(){
   const l2=document.getElementById('layer2');if(!l2)return;
@@ -79,7 +86,7 @@ function launchApp(){
   if(app) app.style.opacity='1';
   // show presets toggle if logged in
   const presetsBtn=document.getElementById('presets-toggle-btn');
-  if(presetsBtn && AUTH_TOKEN) presetsBtn.classList.add('visible');
+  if(presetsBtn && (localStorage.getItem('batt_token'))) presetsBtn.classList.add('visible');
   l2.classList.add('out');
   setTimeout(()=>{l2.classList.add('hidden');showGuidePopup();},900);
 }
@@ -890,19 +897,20 @@ body.t-lavender{--bg:#f0eef8;--panel:#fff;--bd:#d8d4f0;--bd2:#e4e0f4;--sf:#f8f6f
 .app{display:flex;height:100vh;overflow:hidden;background:#000;color:var(--tx);opacity:0}
 .panel-left.collapsed{width:0!important;min-width:0!important;overflow:hidden;border:none}
 .panel-left.collapsed .pl-body{display:none}
-.panel-left-toggle{position:fixed;left:0;top:50%;transform:translateY(-50%);width:42px;height:90px;background:linear-gradient(135deg,var(--acc),#1D9E75);border:none;border-radius:0 14px 14px 0;cursor:grab;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px;font-size:14px;color:#fff;transition:all .25s cubic-bezier(.4,0,.2,1);z-index:100;box-shadow:4px 0 20px rgba(0,0,0,0.3);opacity:0;pointer-events:none;user-select:none;touch-action:none;overflow:hidden}
+.panel-left-toggle{position:fixed;left:0;top:50%;transform:translateY(-50%);width:42px;height:90px;background:linear-gradient(135deg,var(--acc),#1D9E75);border:none;border-radius:0 14px 14px 0;cursor:grab;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px;font-size:14px;color:#fff;transition:opacity .4s ease .3s, width .25s cubic-bezier(.4,0,.2,1), box-shadow .25s cubic-bezier(.4,0,.2,1);z-index:100;box-shadow:4px 0 20px rgba(0,0,0,0.3);opacity:0;pointer-events:none;user-select:none;touch-action:none;overflow:hidden}
 .panel-left-toggle.visible{opacity:1;pointer-events:all;animation:togglePulseLeft 2s ease-in-out infinite}
 .panel-left-toggle.expanded{left:224px;animation:none}
 .panel-left-toggle:hover{width:52px;box-shadow:6px 0 28px rgba(0,0,0,0.4);animation:none}
 .panel-left-toggle.dragging{cursor:grabbing;box-shadow:8px 0 32px rgba(0,0,0,0.5);transform:translateY(-50%) scale(1.08);animation:none}
-.panel-left-toggle-icon{font-size:22px;animation:bounceIconLeft 1.5s ease-in-out infinite}
+.panel-left-toggle-icon{font-size:22px}
 .panel-left-toggle.expanded .panel-left-toggle-icon{animation:none}
 .panel-left-toggle-label{font-size:8px;font-weight:800;letter-spacing:0.5px;text-transform:uppercase;writing-mode:vertical-rl;text-orientation:mixed;margin-top:4px}
 .panel-left-toggle::before{content:'';position:absolute;right:6px;top:50%;transform:translateY(-50%);width:4px;height:28px;background:rgba(255,255,255,0.2);border-radius:2px}
 @keyframes togglePulseLeft{0%,100%{box-shadow:4px 0 20px rgba(0,0,0,0.3)}50%{box-shadow:4px 0 30px rgba(29,158,117,0.5)}}
 @keyframes bounceIconLeft{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
 .panel-left{position:relative}
-.panel-left{width:224px;min-width:224px;background:var(--panel);border-right:0.5px solid var(--bd);overflow-y:auto;overflow-x:hidden;flex-shrink:0;transition:background .25s,border-color .25s,width .3s ease,min-width .3s ease;scrollbar-width:thin}
+.panel-left{width:224px;min-width:224px;background:var(--panel);border-right:0.5px solid var(--bd);overflow-y:auto;overflow-x:hidden;flex-shrink:0;transition:background .25s,border-color .25s,width .3s ease,min-width .3s ease;scrollbar-width:none}
+.panel-left::-webkit-scrollbar{display:none}
 .panel-right{flex:1;overflow-y:auto;background:var(--bg);padding:14px;transition:background .25s;min-width:0;scrollbar-width:none}
 .panel-right::-webkit-scrollbar{display:none}
 
@@ -913,7 +921,7 @@ body.t-lavender{--bg:#f0eef8;--panel:#fff;--bd:#d8d4f0;--bd2:#e4e0f4;--sf:#f8f6f
 .panel-presets-toggle.visible{opacity:1;pointer-events:all;animation:togglePulse 2s ease-in-out infinite}
 .panel-presets-toggle:hover{width:52px;box-shadow:-6px 0 28px rgba(0,0,0,0.4);animation:none}
 .panel-presets-toggle.dragging{cursor:grabbing;box-shadow:-8px 0 32px rgba(0,0,0,0.5);transform:translateY(-50%) scale(1.08);animation:none}
-.panel-presets-toggle-icon{font-size:22px;animation:bounceIcon 1.5s ease-in-out infinite}
+.panel-presets-toggle-icon{font-size:22px}
 .panel-presets-toggle-label{font-size:8px;font-weight:800;letter-spacing:0.5px;text-transform:uppercase;writing-mode:vertical-rl;text-orientation:mixed;margin-top:4px}
 .panel-presets-toggle::before{content:'';position:absolute;left:6px;top:50%;transform:translateY(-50%);width:4px;height:28px;background:rgba(0,0,0,0.15);border-radius:2px}
 .panel-presets.open .panel-presets-toggle{right:320px;animation:none}
@@ -2146,6 +2154,15 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 
 <!-- guest login button — shown only for guests in cockpit -->
 <button id="guest-login-btn" onclick="guestGoLogin()" style="display:none;position:fixed;top:10px;right:16px;z-index:9998;padding:6px 14px;background:#111;border:1px solid #333;border-radius:20px;color:#888;font-size:10px;font-weight:700;cursor:pointer;transition:all .2s;font-family:inherit" onmouseover="this.style.borderColor='#00c47a';this.style.color='#00c47a'" onmouseout="this.style.borderColor='#333';this.style.color='#888'">↑ login / register</button>
+
+<!-- guest mode banner -->
+<div id="guest-mode-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9990;background:linear-gradient(90deg,#0a0a0a,#111);border-top:1px solid #1a1a1a;padding:8px 16px;align-items:center;justify-content:space-between;gap:12px;">
+  <div style="display:flex;align-items:center;gap:8px">
+    <span style="font-size:11px;background:#1a1a0a;border:1px solid #3a3a10;color:#EF9F27;padding:2px 8px;border-radius:4px;font-weight:700;letter-spacing:.04em">GUEST</span>
+    <span style="font-size:10px;color:#555">you're in guest mode — presets, sync & spot switch require an account</span>
+  </div>
+  <button onclick="guestGoLogin()" style="font-size:10px;font-weight:700;padding:6px 14px;background:#00c47a;color:#000;border:none;border-radius:6px;cursor:pointer;white-space:nowrap;font-family:inherit;transition:opacity .2s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">login / register →</button>
+</div>
 
 <!-- LAYER 3 - MEMBER AREA -->
 <div id="layer3" class="hidden">
@@ -4337,6 +4354,22 @@ function onFeeExchangeChange(ex){
 }
 
 function setSpotMode(isSpot){
+  // guest intercept — show login prompt instead of switching
+  if(!(localStorage.getItem('batt_token')) && window.BATT_GUEST){
+    if(typeof showConfirm==='function'){
+      showConfirm({
+        icon:'🔐',
+        type:'info',
+        title:'login required',
+        message:'spot / leverage mode switching is available for registered users. create a free account to unlock this and other features.',
+        confirmText:'login / register',
+        cancelText:'stay as guest'
+      }).then(function(ok){ if(ok) guestGoLogin(); });
+    } else {
+      showToast('login or register to switch modes','info');
+    }
+    return;
+  }
   const s=gs();
   // remember previous leverage when switching to spot
   if(isSpot && !s.SPOT) s._prevLEV=s.LEV;
@@ -5694,7 +5727,7 @@ function launchApp(){
   const leftToggle=document.getElementById('left-panel-toggle');
   if(leftToggle) leftToggle.classList.add('visible');
   // show back button, keyboard hints, and presets toggle for logged-in users
-  if(AUTH_TOKEN){
+  if(localStorage.getItem('batt_token')){
     const backBtn=document.getElementById('back-to-member');
     if(backBtn) backBtn.style.display='flex';
     const kbdHint=document.getElementById('kbd-hint');
@@ -5949,9 +5982,13 @@ function authGuest(){
   al.style.opacity='0';
   setTimeout(()=>{
     al.classList.add('hidden');
-    // hide spot switch for guests
-    const spotSwitcher=document.getElementById('spot-mode-switcher');
-    if(spotSwitcher) spotSwitcher.style.display='none';
+    window.BATT_GUEST=true;
+    // ensure layer2 is properly reset so launch btn works on re-entry
+    const l2=document.getElementById('layer2');
+    if(l2){
+      l2.classList.remove('hidden','out');
+      l2.style.opacity='0';
+    }
     goLayer2();
   },500);
 }
@@ -12295,6 +12332,12 @@ var BATT_ROUTES = {
   'about':   { title: 'BATT · About CJ' },
 };
 
+// safe token reader — works across script blocks regardless of let/var scoping
+function _battToken(){
+  try{ return (typeof AUTH_TOKEN!=='undefined' ? AUTH_TOKEN : null) || localStorage.getItem('batt_token') || null; }
+  catch(e){ return localStorage.getItem('batt_token') || null; }
+}
+
 function battSetRoute(hash){
   var route = BATT_ROUTES[hash] || BATT_ROUTES[''];
   document.title = route.title;
@@ -12315,22 +12358,23 @@ window.addEventListener('popstate', function(e){
 
 // silent version — does NOT call battSetRoute (avoids push loop)
 function battHandleHashSilent(hash){
+  var tok=_battToken();
   document.title = (BATT_ROUTES[hash] || BATT_ROUTES['']).title;
   switch(hash){
     case 'cockpit':
-      if(AUTH_TOKEN){ _openDashboardUI(); } else { _showAuthUI(); }
+      if(tok){ _openDashboardUI(); } else { _showAuthUI(); }
       break;
     case 'trade':
-      if(AUTH_TOKEN){ _openTradingUI(); } else { _showAuthUI(); }
+      if(tok){ _openTradingUI(); } else { _showAuthUI(); }
       break;
     case 'account':
-      if(AUTH_TOKEN){ _openAccountUI(); } else { _showAuthUI(); }
+      if(tok){ _openAccountUI(); } else { _showAuthUI(); }
       break;
     case 'about':
       _openAboutUI();
       break;
     case 'member':
-      if(AUTH_TOKEN){ _showMemberUI(); } else { _showAuthUI(); }
+      if(tok){ _showMemberUI(); } else { _showAuthUI(); }
       break;
     case 'auth':
       _showAuthUI();
@@ -12343,12 +12387,37 @@ function battHandleHashSilent(hash){
 
 // ── UI-only helpers (no history push) ──
 function _showAuthUI(){
-  var al=document.getElementById('auth-layer');
-  var l1=document.getElementById('layer1');
+  // hide everything that could be on top
+  var app=document.querySelector('.app');
+  if(app){ app.style.opacity='0'; app.style.pointerEvents='none'; }
   var l3=document.getElementById('layer3');
-  if(l3) l3.classList.remove('visible');
-  if(l1) l1.classList.add('hidden');
-  if(al){ al.classList.remove('hidden'); requestAnimationFrame(()=>requestAnimationFrame(()=>{al.style.opacity='1';})); }
+  if(l3){ l3.classList.remove('visible'); }
+  var l1=document.getElementById('layer1');
+  if(l1){ l1.classList.add('hidden'); }
+  var leftToggle=document.getElementById('left-panel-toggle');
+  if(leftToggle) leftToggle.classList.remove('visible');
+  var presetsBtn=document.getElementById('presets-toggle-btn');
+  if(presetsBtn) presetsBtn.classList.remove('visible');
+  var backBtn=document.getElementById('back-to-member');
+  if(backBtn){ backBtn.style.display='none'; }
+  var guestBtn=document.getElementById('guest-login-btn');
+  if(guestBtn) guestBtn.style.display='none';
+  var guestBanner=document.getElementById('guest-mode-banner');
+  if(guestBanner) guestBanner.style.display='none';
+  var tp=document.getElementById('trading-page');
+  if(tp){ tp.classList.remove('visible'); tp.style.opacity=''; tp.style.transform=''; tp.style.transition=''; }
+  var accPage=document.getElementById('account-page');
+  if(accPage) accPage.classList.remove('visible');
+  var aboutPage=document.getElementById('about-cj-page');
+  if(aboutPage){ aboutPage.style.display='none'; aboutPage.style.opacity='0'; aboutPage.classList.remove('acj-visible'); }
+  // show auth — remove BOTH hidden AND out classes
+  var al=document.getElementById('auth-layer');
+  if(al){
+    al.classList.remove('hidden','out');
+    al.style.opacity='0';
+    al.style.pointerEvents='';
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{ al.style.opacity='1'; }));
+  }
 }
 function _showMemberUI(){
   var al=document.getElementById('auth-layer');
@@ -12367,17 +12436,44 @@ function _openDashboardUI(){
   var l3=document.getElementById('layer3');
   if(l3){ l3.classList.remove('visible'); setTimeout(()=>l3.classList.add('hidden'),500); }
   var app=document.querySelector('.app');
-  if(app){ app.style.opacity='1'; app.style.transform=''; }
-  if(AUTH_TOKEN){
+  if(app){ app.style.opacity='1'; app.style.transform=''; app.style.pointerEvents=''; }
+  if(_battToken()){
     var backBtn=document.getElementById('back-to-member');
     if(backBtn) backBtn.style.display='flex';
+    var presetsBtn=document.getElementById('presets-toggle-btn');
+    if(presetsBtn){ presetsBtn.classList.remove('visible'); requestAnimationFrame(()=>presetsBtn.classList.add('visible')); }
+    var leftToggle=document.getElementById('left-panel-toggle');
+    if(leftToggle) leftToggle.classList.add('visible');
+    var fab=document.getElementById('ai-fab');
+    if(fab){ fab.style.opacity='1'; fab.style.transform=''; fab.style.pointerEvents='all'; }
   }
 }
 function _openTradingUI(){
   var l3=document.getElementById('layer3');
   var page=document.getElementById('trading-page');
-  if(page) page.classList.add('visible');
-  if(l3) l3.classList.remove('visible');
+  if(page){
+    // clear any lingering inline styles left by closeTradingPage fade-out
+    page.style.transition='';
+    page.style.opacity='';
+    page.style.transform='';
+    page.classList.add('visible');
+    if(l3) l3.classList.remove('visible');
+    // reset chart guard so tpInitChart reinitializes
+    if(window._tpChart){
+      try{ window._tpChart.remove(); }catch(e){}
+      window._tpChart=null;
+    }
+    if(typeof tpLoadState==='function') tpLoadState();
+    if(typeof tpFetchPrices==='function') tpFetchPrices();
+    if(typeof tpInitChart==='function') tpInitChart();
+    if(typeof tpUpdateUI==='function') tpUpdateUI();
+    if(typeof tpRenderPositions==='function') tpRenderPositions();
+    if(typeof tpRenderHistory==='function') tpRenderHistory();
+    if(typeof tpRenderPairList==='function') tpRenderPairList();
+    if(!window._tpPriceInterval && typeof tpFetchPrices==='function'){
+      window._tpPriceInterval=setInterval(tpFetchPrices,5000);
+    }
+  }
 }
 function _openAccountUI(){
   var page=document.getElementById('account-page');
@@ -12393,30 +12489,44 @@ function _openAboutUI(){
 
 // ── GUEST / AUTH VISIBILITY HELPERS ──
 function battUpdateGuestUI(){
+  var tok=_battToken();
   var guestBtn=document.getElementById('guest-login-btn');
   var spotSwitcher=document.getElementById('spot-mode-switcher');
-  if(AUTH_TOKEN){
-    // logged in — hide guest button, show spot switch
+  var guestBanner=document.getElementById('guest-mode-banner');
+
+  if(tok){
     if(guestBtn) guestBtn.style.display='none';
+    if(guestBanner) guestBanner.style.display='none';
     if(spotSwitcher) spotSwitcher.style.display='';
+    var msw=document.getElementById('spot-mode-switcher');
+    if(msw) msw.removeAttribute('data-guest');
   } else {
-    // guest — show login button, hide spot switch
     if(guestBtn) guestBtn.style.display='block';
-    if(spotSwitcher) spotSwitcher.style.display='none';
+    if(guestBanner) guestBanner.style.display='flex';
+    if(spotSwitcher){
+      spotSwitcher.style.display='';
+      spotSwitcher.setAttribute('data-guest','1');
+    }
   }
 }
 
 function guestGoLogin(){
-  // hide cockpit guest button
+  window.BATT_GUEST=false;
+  // hide guest UI
   var guestBtn=document.getElementById('guest-login-btn');
+  var guestBanner=document.getElementById('guest-mode-banner');
   if(guestBtn) guestBtn.style.display='none';
-  // hide app
+  if(guestBanner) guestBanner.style.display='none';
+  // fade out app
   var app=document.querySelector('.app');
-  if(app){ app.style.opacity='0'; }
+  if(app){ app.style.transition='opacity 0.4s ease'; app.style.opacity='0'; }
+  // reset layer2 so launch btn works if they come back as guest again
+  var l2=document.getElementById('layer2');
+  if(l2){ l2.classList.add('hidden'); l2.classList.remove('out'); l2.style.opacity='0'; }
   // show auth
   battSetRoute('auth');
   var al=document.getElementById('auth-layer');
-  if(al){ al.classList.remove('hidden'); requestAnimationFrame(()=>requestAnimationFrame(()=>{al.style.opacity='1';})); }
+  if(al){ al.classList.remove('hidden'); al.style.opacity='0'; requestAnimationFrame(()=>requestAnimationFrame(()=>{al.style.opacity='1';})); }
 }
 
 // ── ABOUT CJ PAGE ──
@@ -12455,11 +12565,12 @@ async function initL3MenuVisibility(){
   // always hide first — server decides
   wrap.style.display='none';
   _cjFeatureAllowed = false;
-  if(!AUTH_TOKEN) return;
+  var tok=_battToken();
+  if(!tok) return;
   try{
     var res=await fetch(AUTH_URL+'/auth/check-feature',{
       method:'GET',
-      headers:{'Authorization':'Bearer '+AUTH_TOKEN}
+      headers:{'Authorization':'Bearer '+tok}
     });
     var data=await res.json();
     if(data.allowed===true){
