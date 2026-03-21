@@ -53,6 +53,7 @@ window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change',e=>{
 </script>
 <script>
 function goAuth(){
+  battSetRoute('auth');
   const l1=document.getElementById('layer1');if(!l1)return;
   const al=document.getElementById('auth-layer');
   // fade layer1 out
@@ -2316,7 +2317,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
     <div class="tp-chart-section">
       <!-- Back Button + Market Type Toggle Row -->
       <div class="tp-controls-row">
-        <button class="tp-back-btn" onclick="closeTradingPage()">← back to member area</button>
+        <button class="tp-back-btn" onclick="closeTradingPage()">← back</button>
         <div class="tp-market-type">
           <button class="active" onclick="tpSetMarketType('spot')">Spot</button>
           <button class="perp" onclick="tpSetMarketType('perpetual')">Perpetual</button>
@@ -5038,7 +5039,7 @@ function render(){
   const topBody=mh+(wipeBanner||bustBanner)+`<div class="note" style="${IS_WIPED?'border-color:#E24B4A;background:#FCEBEB':''}">${IS_WIPED?'':noteText}</div>`+chartH+(isQ?assessH:'');
   rc.innerHTML=`<div class="top-panel" id="top-panel">
     <div style="display:flex;align-items:stretch;gap:0;width:100%;margin-bottom:6px">
-      <button id="back-to-member" class="spot-badge back" onclick="backToMemberArea()">← member area<span class="spot-badge-sub">go back</span></button>
+      <button id="back-to-member" class="spot-badge back" onclick="backToMemberArea()">← back<span class="spot-badge-sub">member area</span></button>
       <button class="top-panel-toggle" onclick="toggleTopPanel()" style="flex:1;margin-bottom:0"><span class="tp-dots"><span class="tp-dot"></span><span class="tp-dot"></span><span class="tp-dot"></span></span><span class="tp-arrow">▾</span> <span id="tp-lbl">hide overview</span> <span class="tp-arrow" style="transform:none">▾</span><span class="tp-dots"><span class="tp-dot"></span><span class="tp-dot"></span><span class="tp-dot"></span></span></button>
       <span id="spot-badge" class="spot-badge ${s.SPOT?'spot':'lev'}" style="margin:0;margin-right:8px;border-left:none;align-self:stretch;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:0 6px 6px 0">${s.SPOT?'◈ spot dashboard':'⚡ leverage dashboard'}<span class="spot-badge-sub">current mode</span></span>
     </div>
@@ -6741,6 +6742,7 @@ function l3AiAsk(topic){
 
 // ── ACCOUNT PAGE FUNCTIONS ──
 function openAccountPage(){
+  battSetRoute('account');
   const page=document.getElementById('account-page');
   if(page){
     page.classList.add('visible');
@@ -6749,6 +6751,7 @@ function openAccountPage(){
 }
 
 function closeAccountPage(){
+  battSetRoute('member');
   const page=document.getElementById('account-page');
   if(page) page.classList.remove('visible');
 }
@@ -7291,6 +7294,7 @@ async function deleteAccount(){
 
 // ── LAYER 3: MEMBER AREA NAVIGATION ──
 function goLayer3(){
+  battSetRoute('member');
   // Ensure AI fab is hidden in member area
   const aiFab=document.getElementById('ai-fab');
   if(aiFab){aiFab.style.opacity='0';aiFab.style.pointerEvents='none';}
@@ -7345,6 +7349,7 @@ function goLayer3(){
 var RISK_SHOWN = false;
 
 function openDashboard(){
+  battSetRoute('cockpit');
   // hide layer3 with smooth fade
   const l3=document.getElementById('layer3');
   if(l3){l3.classList.remove('visible');setTimeout(()=>{l3.classList.add('hidden');},500);}
@@ -7392,6 +7397,7 @@ function openDashboard(){
 }
 
 function backToMemberArea(){
+  battSetRoute('member');
   // Smooth fade out dashboard with pro easing
   const app=document.querySelector('.app');
   if(app){
@@ -8102,6 +8108,7 @@ function tpSaveState() {
 
 // Open trading page
 function openTradingPage() {
+  battSetRoute('trade');
   tpLoadState();
   const page = document.getElementById('trading-page');
   const l3 = document.getElementById('layer3');
@@ -8121,8 +8128,8 @@ function openTradingPage() {
   }
 }
 
-// Close trading page
 function closeTradingPage() {
+  battSetRoute('member');
   const page = document.getElementById('trading-page');
   const l3 = document.getElementById('layer3');
   if (page) {
@@ -12259,9 +12266,66 @@ body.t-light .acj-hero-badge{background:rgba(24,95,165,.08);border-color:rgba(24
 </style>
 
 <script>
+// ── HASH ROUTER ──
+var BATT_ROUTES = {
+  '':        { title: 'bet all the time, bet with style' },
+  'auth':    { title: 'BATT · Login' },
+  'member':  { title: 'BATT · Member Area' },
+  'cockpit': { title: 'BATT · Cockpit' },
+  'trade':   { title: 'BATT · Trade Panel' },
+  'account': { title: 'BATT · Account' },
+  'about':   { title: 'BATT · About CJ' },
+};
+
+function battSetRoute(hash){
+  var route = BATT_ROUTES[hash] || BATT_ROUTES[''];
+  // update tab title
+  document.title = route.title;
+  // push history entry so browser back works
+  var newHash = hash ? '#' + hash : window.location.pathname;
+  if(window.location.hash !== (hash ? '#'+hash : ''))
+    history.pushState({ batt: hash }, route.title, hash ? '#'+hash : window.location.pathname.split('#')[0]);
+}
+
+// handle browser back/forward
+window.addEventListener('popstate', function(e){
+  var hash = (window.location.hash || '').replace('#','');
+  battHandleHash(hash);
+});
+
+function battHandleHash(hash){
+  // figure out what's currently visible and close it, then open the right page
+  switch(hash){
+    case 'cockpit':
+      // only if logged in
+      if(AUTH_TOKEN){ openDashboard(); } else { battSetRoute('auth'); }
+      break;
+    case 'trade':
+      if(AUTH_TOKEN){ openTradingPage(); } else { battSetRoute('auth'); }
+      break;
+    case 'account':
+      if(AUTH_TOKEN){ openAccountPage(); } else { battSetRoute('auth'); }
+      break;
+    case 'about':
+      openAboutCJ();
+      break;
+    case 'member':
+      if(AUTH_TOKEN){ backToMemberArea(); } else { battSetRoute('auth'); }
+      break;
+    case 'auth':
+      goAuth();
+      break;
+    default:
+      // root — just update title
+      document.title = BATT_ROUTES[''].title;
+      break;
+  }
+}
+
 // ── ABOUT CJ PAGE ──
 function openAboutCJ(){
   closeL3Menu();
+  battSetRoute('about');
   var p=document.getElementById('about-cj-page');
   if(!p)return;
   p.style.display='block';
@@ -12275,6 +12339,7 @@ function openAboutCJ(){
 }
 
 function closeAboutCJ(){
+  battSetRoute('member');
   var p=document.getElementById('about-cj-page');
   if(!p)return;
   p.style.opacity='0';
