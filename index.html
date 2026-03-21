@@ -12646,17 +12646,7 @@ body.t-light .acj-hero-badge{background:rgba(24,95,165,.08);border-color:rgba(24
 
 <script>
 // ── ROUTER ──
-// Simple: update title + URL hash on navigation. Browser back/forward only closes overlay pages.
-
-var BATT_TITLES = {
-  '':        'bet all the time, bet with style',
-  'auth':    'BATT · Login',
-  'member':  'BATT · Member Area',
-  'cockpit': 'BATT · Cockpit',
-  'trade':   'BATT · Trade Panel',
-  'account': 'BATT · Account',
-  'about':   'BATT · About CJ',
-};
+// Title-only — no history manipulation. See battNav() below.
 
 // safe token reader across script blocks
 function _battToken(){
@@ -12664,72 +12654,24 @@ function _battToken(){
   catch(e){ return localStorage.getItem('batt_token') || null; }
 }
 
-var _battInAppNav = false; // flag: in-app button click, not browser back/forward
-
-// pages that should replace rather than push (they're not destinations you "go back to")
-var _battReplacePages = {'cockpit':true,'member':true};
-
+// ── ROUTING: title only, no history manipulation ──
+// We never push/replace history entries — the SPA manages its own UI state.
+// Browser back/forward will simply leave/return to the site naturally.
 function battNav(page){
-  document.title = BATT_TITLES[page] || 'bet all the time, bet with style';
-  try{
-    var hash = page ? '#'+page : window.location.pathname;
-    var currentHash = (window.location.hash||'').replace('#','');
-    if(currentHash !== page){
-      _battInAppNav = true;
-      if(_battReplacePages[page]){
-        history.replaceState({batt:page}, document.title, hash);
-      } else {
-        history.pushState({batt:page}, document.title, hash);
-      }
-      _battInAppNav = false;
-    }
-  }catch(e){ _battInAppNav = false; }
+  var titles = {
+    'member':  'BATT · Member Area',
+    'cockpit': 'BATT · Cockpit',
+    'trade':   'BATT · Trade Panel',
+    'account': 'BATT · Account',
+    'about':   'BATT · About CJ',
+    'auth':    'BATT · Login',
+  };
+  document.title = titles[page] || 'bet all the time, bet with style';
 }
 function battSetRoute(page){ battNav(page); }
 function battSetTitle(page){ battNav(page); }
 
-// browser back/forward — ONLY fires for actual browser back/forward, not in-app clicks
-window.addEventListener('popstate', function(){
-  if(_battInAppNav) return; // skip — triggered by our own pushState, not user
-  var hash = (window.location.hash||'').replace('#','');
-  document.title = BATT_TITLES[hash] || BATT_TITLES[''];
-
-  // close any overlay page that shouldn't be visible for this hash
-  var account = document.getElementById('account-page');
-  var trading = document.getElementById('trading-page');
-  var about   = document.getElementById('about-cj-page');
-  var l3      = document.getElementById('layer3');
-  var app     = document.querySelector('.app');
-
-  if(hash === 'member'){
-    // close overlays, show member area
-    if(account){ account.classList.remove('visible'); }
-    if(trading){ trading.classList.remove('visible'); trading.style.opacity=''; trading.style.transform=''; trading.style.transition=''; }
-    if(about){ about.style.display='none'; about.style.opacity='0'; about.classList.remove('acj-visible'); }
-    if(app){ app.style.opacity='0'; }
-    document.body.style.overflow='auto';
-    if(l3){ l3.classList.remove('hidden'); requestAnimationFrame(function(){ requestAnimationFrame(function(){ l3.classList.add('visible'); }); }); }
-  } else if(hash === 'cockpit'){
-    // show cockpit
-    if(account){ account.classList.remove('visible'); }
-    if(trading){ trading.classList.remove('visible'); }
-    if(about){ about.style.display='none'; about.style.opacity='0'; about.classList.remove('acj-visible'); }
-    if(l3){ l3.classList.remove('visible'); setTimeout(function(){ l3.classList.add('hidden'); }, 300); }
-    document.body.style.overflow='hidden';
-    if(app){ app.style.opacity='1'; app.style.transform=''; app.style.pointerEvents=''; }
-  } else if(hash === 'account'){
-    if(account){ account.classList.add('visible'); if(typeof loadAccountPage==='function') loadAccountPage(); }
-    document.body.style.overflow='auto';
-  } else if(hash === 'trade'){
-    if(trading){ trading.style.transition=''; trading.style.opacity=''; trading.style.transform=''; trading.classList.add('visible'); }
-    if(l3){ l3.classList.remove('visible'); }
-    document.body.style.overflow='auto';
-  } else if(hash === 'about'){
-    if(about){ about.style.display='block'; requestAnimationFrame(function(){ requestAnimationFrame(function(){ about.style.opacity='1'; about.classList.add('acj-visible'); }); }); }
-    document.body.style.overflow='auto';
-  }
-  // 'auth' and '' — do nothing, let existing state stay
-});
+// no popstate listener — we don't manage history at all
 
 // ── GUEST / AUTH VISIBILITY HELPERS ──
 function battUpdateGuestUI(){
