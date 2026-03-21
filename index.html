@@ -2869,28 +2869,54 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 
   <div class="divider"></div>
 
-  <!-- trade targets -->
+  <!-- global mode + trade slots -->
   <div class="sec-head" data-sec="sec-trd" style="--arrow-rot:-90deg" onclick="toggleSec('sec-trd')">
     <div class="seclbl">trade slots</div>
     <span class="sec-toggle">▾</span>
   </div>
   <div class="sec-body collapsed" id="sec-trd">
-  <div class="sec">
-    <div style="font-size:9px;color:var(--tx3);margin-bottom:4px">target% or freq = 0 → skip</div>
-    <div class="tg-header">
-      <div class="tg-hl">#</div>
-      <div class="tg-hl">tgt%</div>
-      <div class="tg-hl">freq</div>
+
+    <!-- global mode toggle row -->
+    <div style="display:flex;align-items:center;gap:6px;padding:8px 10px 4px">
+      <span style="font-size:9px;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;font-weight:700">global mode</span>
+      <button id="global-toggle" onclick="toggleGlobal()" style="font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;border:0.5px solid var(--acc2);background:var(--btno);color:var(--acc2);cursor:pointer">● on</button>
+      <span style="font-size:9px;color:var(--tx3)">off = per-month</span>
     </div>
-    <div id="tg"></div>
-    <div class="act-count" id="act-count"><span>10</span> active</div>
-  </div>
-  <div style="display:flex;align-items:center;gap:6px;padding:3px 10px 0">
-    <span style="font-size:9px;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;font-weight:700">global mode</span>
-    <button id="global-toggle" onclick="toggleGlobal()" style="font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;border:0.5px solid var(--acc2);background:var(--btno);color:var(--acc2);cursor:pointer">● on</button>
-    <span style="font-size:9px;color:var(--tx3)">off = per-month</span>
-  </div>
-  <button class="save-btn" id="save-trades" onclick="saveSection('trades')" style="margin-bottom:2px">💾 save trades</button>
+
+    <!-- global slots (shown when global mode ON) -->
+    <div id="sec-trd-global">
+      <div class="sec">
+        <div style="font-size:9px;color:var(--tx3);margin-bottom:4px">target% or freq = 0 → skip</div>
+        <div class="tg-header">
+          <div class="tg-hl">#</div>
+          <div class="tg-hl">tgt%</div>
+          <div class="tg-hl">freq</div>
+        </div>
+        <div id="tg"></div>
+        <div class="act-count" id="act-count"><span>10</span> active</div>
+      </div>
+      <button class="save-btn" id="save-trades" onclick="saveSection('trades')" style="margin-bottom:2px">💾 save trades</button>
+    </div>
+
+    <!-- quick-apply tool (shown when global mode OFF) -->
+    <div id="sec-trd-permonth" style="display:none">
+      <div class="sec" style="padding-top:4px">
+        <div style="font-size:9px;color:var(--tx3);margin-bottom:8px;line-height:1.5">per-month mode — each month has its own slots.<br>edit directly in the table, or use quick-apply below.</div>
+        <div style="font-size:9px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">⚡ quick apply to month</div>
+        <div style="display:flex;align-items:center;gap:4px;margin-bottom:6px">
+          <span style="font-size:9px;color:var(--tx3);white-space:nowrap">month</span>
+          <input type="number" id="qa-month" min="1" max="36" step="1" placeholder="e.g. 24" style="width:48px;padding:3px 5px;font-size:10px;font-weight:700;text-align:center;border:0.5px solid var(--bd2);border-radius:4px;background:var(--inp);color:var(--tx)">
+        </div>
+        <div style="font-size:9px;color:var(--tx3);margin-bottom:4px">set all 10 slots (leave blank = keep existing)</div>
+        <div id="qa-slots"></div>
+        <div style="display:flex;gap:6px;margin-top:8px">
+          <button onclick="qaApply()" style="flex:1;padding:6px;background:var(--acc2);color:#000;border:none;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;transition:opacity .2s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">apply →</button>
+          <button onclick="qaClear()" style="padding:6px 10px;background:transparent;border:0.5px solid var(--bd2);color:var(--tx2);border-radius:6px;font-size:9px;cursor:pointer">clear</button>
+        </div>
+        <div id="qa-msg" style="font-size:9px;min-height:14px;margin-top:6px;text-align:center"></div>
+      </div>
+    </div>
+
   </div><!-- /sec-trd -->
 
   <!-- SAVE AS PRESET BUTTON -->
@@ -4474,12 +4500,79 @@ function toggleZeroMonth(m){
 function toggleGlobal(){
   GLOBAL_MODE=!GLOBAL_MODE;
   const btn=document.getElementById('global-toggle');
-  const tg=document.getElementById('tg');
-  const actc=document.getElementById('act-count');
-  const saveT=document.getElementById('save-trades');
-  if(btn){btn.textContent=GLOBAL_MODE?'● on':'○ off';btn.style.borderColor=GLOBAL_MODE?'var(--acc2)':'var(--tx3)';btn.style.color=GLOBAL_MODE?'var(--acc2)':'var(--tx3)';}
-  [tg,actc,saveT].forEach(el=>{if(el){el.style.opacity=GLOBAL_MODE?'1':'0.35';el.style.pointerEvents=GLOBAL_MODE?'':'none';}});
+  const globalPanel=document.getElementById('sec-trd-global');
+  const perMonthPanel=document.getElementById('sec-trd-permonth');
+  if(btn){
+    btn.textContent=GLOBAL_MODE?'● on':'○ off';
+    btn.style.borderColor=GLOBAL_MODE?'var(--acc2)':'var(--tx3)';
+    btn.style.color=GLOBAL_MODE?'var(--acc2)':'var(--tx3)';
+  }
+  if(globalPanel) globalPanel.style.display=GLOBAL_MODE?'':'none';
+  if(perMonthPanel) perMonthPanel.style.display=GLOBAL_MODE?'none':'';
+  if(!GLOBAL_MODE) qaInitSlots();
   render();
+}
+
+// ── QUICK APPLY ──
+function qaInitSlots(){
+  const el=document.getElementById('qa-slots');
+  if(!el) return;
+  const s=gs();
+  let h='';
+  for(let i=0;i<10;i++){
+    h+=`<div style="display:grid;grid-template-columns:16px 1fr 1fr;gap:3px;margin-bottom:3px;align-items:center">
+      <span style="font-size:8px;color:var(--tx3);text-align:center">${i+1}</span>
+      <input type="number" id="qa-bt-${i}" placeholder="tgt%" step="0.1" style="padding:2px 4px;font-size:9px;text-align:center;border:0.5px solid var(--bd2);border-radius:3px;background:var(--inp);color:var(--acc);font-weight:700;width:100%">
+      <input type="number" id="qa-fr-${i}" placeholder="freq" step="1" min="0" max="20" style="padding:2px 4px;font-size:9px;text-align:center;border:0.5px solid var(--acc2);border-radius:3px;background:var(--inp);color:var(--acc2);font-weight:700;width:100%">
+    </div>`;
+  }
+  el.innerHTML=h;
+}
+
+function qaApply(){
+  const monthEl=document.getElementById('qa-month');
+  const msg=document.getElementById('qa-msg');
+  const m=parseInt(monthEl?.value);
+  const s=gs();
+  const maxM=TAB==='q'?3:36;
+  if(!m||m<1||m>maxM){
+    if(msg){msg.textContent=`enter a valid month (1–${maxM})`;msg.style.color='#E24B4A';}
+    return;
+  }
+  // init month state if not exists
+  if(!s.MT[m]) s.MT[m]={bt:[...s.BT],fr:[...s.FR]};
+  let changed=0;
+  for(let i=0;i<10;i++){
+    const btEl=document.getElementById(`qa-bt-${i}`);
+    const frEl=document.getElementById(`qa-fr-${i}`);
+    const btVal=btEl?.value.trim();
+    const frVal=frEl?.value.trim();
+    if(btVal!==''){s.MT[m].bt[i]=parseFloat(btVal)||0;changed++;}
+    if(frVal!==''){s.MT[m].fr[i]=parseInt(frVal)||0;changed++;}
+  }
+  if(changed===0){
+    if(msg){msg.textContent='nothing to apply — fill in at least one slot';msg.style.color='var(--tx3)';}
+    return;
+  }
+  render();
+  if(msg){
+    msg.textContent=`✓ applied to m${m}`;
+    msg.style.color='var(--acc2)';
+    setTimeout(()=>{if(msg)msg.textContent='';},2500);
+  }
+}
+
+function qaClear(){
+  for(let i=0;i<10;i++){
+    const bt=document.getElementById(`qa-bt-${i}`);
+    const fr=document.getElementById(`qa-fr-${i}`);
+    if(bt) bt.value='';
+    if(fr) fr.value='';
+  }
+  const monthEl=document.getElementById('qa-month');
+  if(monthEl) monthEl.value='';
+  const msg=document.getElementById('qa-msg');
+  if(msg) msg.textContent='';
 }
 function getMonthTrades(m){
   const s=gs();
@@ -5714,6 +5807,8 @@ function launchApp(){
   const l2=document.getElementById('layer2');if(!l2)return;
   // mark risk disclosure as shown for this session
   window.RISK_SHOWN = true;
+  // always default to leverage mode
+  if(typeof setSpotMode==='function') setSpotMode(false);
   const app=document.querySelector('.app');
   if(app) app.style.opacity='1';
   const fab=document.getElementById('ai-fab');
@@ -5982,6 +6077,8 @@ function authGuest(){
   setTimeout(()=>{
     al.classList.add('hidden');
     window.BATT_GUEST=true;
+    // always start in leverage mode
+    if(typeof setSpotMode==='function') setSpotMode(false);
     // ensure layer2 is properly reset so launch btn works on re-entry
     const l2=document.getElementById('layer2');
     if(l2){
@@ -6031,6 +6128,8 @@ async function authLogout(){
 
 function authForceLogout(){
   AUTH_TOKEN=null; AUTH_USER=null;
+  // reset to leverage mode on logout — deferred so state is ready
+  setTimeout(()=>{ if(typeof setSpotMode==='function') try{setSpotMode(false);}catch(e){} },100);
   localStorage.removeItem('batt_token');
   localStorage.removeItem('wz_user');
   localStorage.removeItem('wz_sync_count');
@@ -7399,11 +7498,8 @@ var RISK_SHOWN = false;
 function openDashboard(){
   document.body.style.overflow='hidden';
   battNav('cockpit');
-  // hide layer3 with smooth fade
   const l3=document.getElementById('layer3');
   if(l3){l3.classList.remove('visible');setTimeout(()=>{l3.classList.add('hidden');},500);}
-  
-  // skip risk disclosure if already shown this session
   if(RISK_SHOWN){
     setTimeout(()=>{
       const app=document.querySelector('.app');
@@ -7411,47 +7507,41 @@ function openDashboard(){
         app.style.transition='opacity 0.5s cubic-bezier(0.4,0,0.2,1), transform 0.5s cubic-bezier(0.4,0,0.2,1)';
         app.style.transform='scale(0.98) translateY(-10px)';
         app.style.opacity='0';
-        requestAnimationFrame(()=>{
-          app.style.opacity='1';
-          app.style.transform='scale(1) translateY(0)';
-        });
+        requestAnimationFrame(()=>{ app.style.opacity='1'; app.style.transform='scale(1) translateY(0)'; });
       }
-      // restore AI fab — clear all inline styles first then re-show
+      // restore AI fab
       const fab=document.getElementById('ai-fab');
       if(fab){
+        fab.style.display='';
         fab.style.transition='none';
-        fab.style.transform='scale(0.8) translateY(20px)';
         fab.style.opacity='0';
+        fab.style.transform='scale(0.8) translateY(20px)';
         fab.style.pointerEvents='none';
-        requestAnimationFrame(()=>{
-          fab.style.transition='opacity 0.4s cubic-bezier(0.4,0,0.2,1), transform 0.4s cubic-bezier(0.4,0,0.2,1)';
-          requestAnimationFrame(()=>{
-            fab.style.opacity='1';
-            fab.style.transform='scale(1) translateY(0)';
-            fab.style.pointerEvents='all';
-          });
-        });
+        setTimeout(()=>{
+          fab.style.transition='opacity 0.4s ease, transform 0.4s ease';
+          fab.style.opacity='1';
+          fab.style.transform='scale(1) translateY(0)';
+          fab.style.pointerEvents='all';
+        },120);
       }
-      // Show left panel toggle
+      // left panel toggle
       const leftToggle=document.getElementById('left-panel-toggle');
       if(leftToggle) leftToggle.classList.add('visible');
-      if(AUTH_TOKEN){
+      // use localStorage — works across all script blocks
+      if(localStorage.getItem('batt_token')){
         const backBtn=document.getElementById('back-to-member');
         if(backBtn) backBtn.style.display='flex';
         const kbdHint=document.getElementById('kbd-hint');
         if(kbdHint) setTimeout(()=>{kbdHint.classList.add('visible');},500);
-        // restore presets toggle — remove and re-add visible to force reflow
         const presetsBtn=document.getElementById('presets-toggle-btn');
         if(presetsBtn){
           presetsBtn.classList.remove('visible');
-          requestAnimationFrame(()=>presetsBtn.classList.add('visible'));
+          setTimeout(()=>presetsBtn.classList.add('visible'),50);
         }
       }
-      // update guest UI
       if(typeof battUpdateGuestUI==='function') battUpdateGuestUI();
     },400);
   } else {
-    // show layer2 (risk disclosure) first time
     setTimeout(()=>{goLayer2();},400);
   }
 }
