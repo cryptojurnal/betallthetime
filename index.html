@@ -12666,13 +12666,21 @@ function _battToken(){
 
 var _battInAppNav = false; // flag: in-app button click, not browser back/forward
 
+// pages that should replace rather than push (they're not destinations you "go back to")
+var _battReplacePages = {'cockpit':true,'member':true};
+
 function battNav(page){
   document.title = BATT_TITLES[page] || 'bet all the time, bet with style';
   try{
     var hash = page ? '#'+page : window.location.pathname;
-    if((window.location.hash||'').replace('#','') !== page){
+    var currentHash = (window.location.hash||'').replace('#','');
+    if(currentHash !== page){
       _battInAppNav = true;
-      history.pushState({batt:page}, document.title, hash);
+      if(_battReplacePages[page]){
+        history.replaceState({batt:page}, document.title, hash);
+      } else {
+        history.pushState({batt:page}, document.title, hash);
+      }
       _battInAppNav = false;
     }
   }catch(e){ _battInAppNav = false; }
