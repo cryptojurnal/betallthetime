@@ -80,31 +80,24 @@ function goLayer2(){
     requestAnimationFrame(()=>requestAnimationFrame(()=>{l2.style.opacity='1';}));
   }
 }
-function launchApp(){
-  const l2=document.getElementById('layer2');if(!l2)return;
-  // snap dashboard visible immediately
-  const app=document.querySelector('.app');
-  if(app) app.style.opacity='1';
-  // show presets toggle if logged in
-  const presetsBtn=document.getElementById('presets-toggle-btn');
-  if(presetsBtn && (localStorage.getItem('batt_token'))) presetsBtn.classList.add('visible');
-  l2.classList.add('out');
-  setTimeout(()=>{l2.classList.add('hidden');showGuidePopup();},900);
-}
+// launchApp is defined in main script block
 
 function showGuidePopup(){
   const p=document.getElementById('guide-popup');
   if(!p) return;
+  // hide guest banner during guide popup so it doesn't interfere with spotlight positioning
+  const guestBanner=document.getElementById('guest-mode-banner');
+  if(guestBanner) guestBanner.style.display='none';
   // freeze scroll while popup is showing
   document.body.style.overflow='hidden';
   const pr=document.querySelector('.panel-right');
   if(pr) pr.style.overflow='hidden';
+  // delay longer to let layout fully settle before spotlight positioning
   setTimeout(()=>{
     p.classList.add('visible');
     _spotlightGuideTab();
-    // recalculate on window resize
     window.addEventListener('resize',_onPopupResize);
-  },400);
+  },600);
 }
 
 function _spotlightGuideTab(){
@@ -194,10 +187,15 @@ function dismissPopup(){
   const sl=document.getElementById('guide-spotlight');
   const svg=document.getElementById('popup-arrow-svg');
   const lbl=document.getElementById('find-me-label');
-  // restore scroll
-  document.body.style.overflow='auto';
+  // cockpit needs overflow hidden — restore it
+  document.body.style.overflow='hidden';
   const pr=document.querySelector('.panel-right');
   if(pr) pr.style.overflow='';
+  // restore guest banner if in guest mode
+  if(window.BATT_GUEST){
+    const guestBanner=document.getElementById('guest-mode-banner');
+    if(guestBanner) guestBanner.style.display='flex';
+  }
   // remove resize listener
   window.removeEventListener('resize',_onPopupResize);
   if(p){p.classList.remove('visible');setTimeout(()=>p.style.display='none',400);}
@@ -913,20 +911,18 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
 body.t-lavender{--bg:#f0eef8;--panel:#fff;--bd:#d8d4f0;--bd2:#e4e0f4;--sf:#f8f6ff;--sf2:#f0eef8;--tx:#2a1a4a;--tx2:#8070b0;--tx3:#c0b0e0;--acc:#7050c0;--acc2:#5060e0;--mh:#4030a0;--mhc:#fff;--mhs:#c0b8f0;--inp:#f8f6ff;--btn:#f0eef8;--btno:#e0d8f8;--btonc:#7050c0;--tog:#fff;--togon:#4030a0;--togonc:#fff;--tabact:#4030a0;--tabactc:#fff;--wd-on:#e0d8f8;--wd-onc:#7050c0}
 
 .app{display:flex;height:100vh;overflow:hidden;background:#000;color:var(--tx);opacity:0;}
-.panel-left.collapsed{width:0!important;min-width:0!important;overflow:hidden;border:none}
+.panel-left.collapsed{width:0!important;min-width:0!important;border:none}
 .panel-left.collapsed .pl-body{display:none}
-.panel-left-toggle{position:fixed;left:0;top:50%;transform:translateY(-50%);width:42px;height:90px;background:linear-gradient(135deg,var(--acc),#1D9E75);border:none;border-radius:0 14px 14px 0;cursor:grab;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px;font-size:14px;color:#fff;transition:opacity .4s ease .3s, width .25s cubic-bezier(.4,0,.2,1), box-shadow .25s cubic-bezier(.4,0,.2,1);z-index:100;box-shadow:4px 0 20px rgba(0,0,0,0.3);opacity:0;pointer-events:none;user-select:none;touch-action:none;overflow:hidden}
-.panel-left-toggle.visible{opacity:1;pointer-events:all;animation:togglePulseLeft 2s ease-in-out infinite}
-.panel-left-toggle.expanded{left:224px;animation:none}
-.panel-left-toggle:hover{width:52px;box-shadow:6px 0 28px rgba(0,0,0,0.4);animation:none}
-.panel-left-toggle.dragging{cursor:grabbing;box-shadow:8px 0 32px rgba(0,0,0,0.5);transform:translateY(-50%) scale(1.08);animation:none}
+.panel-left.collapsed .panel-left-toggle{opacity:1;pointer-events:all}
+.panel-left-toggle{position:absolute;right:-42px;top:50%;transform:translateY(-50%);width:42px;height:90px;background:linear-gradient(135deg,var(--acc),#1D9E75);border:none;border-radius:0 14px 14px 0;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px;font-size:14px;color:#fff;transition:opacity .4s ease .3s, right .3s cubic-bezier(.4,0,.2,1), width .2s ease, box-shadow .2s ease;z-index:100;box-shadow:4px 0 20px rgba(0,0,0,0.3);opacity:0;pointer-events:none;user-select:none;overflow:hidden}
+.panel-left-toggle.visible{opacity:1;pointer-events:all}
+.panel-left-toggle:hover{width:52px;box-shadow:6px 0 28px rgba(0,0,0,0.4)}
 .panel-left-toggle-icon{font-size:22px}
-.panel-left-toggle.expanded .panel-left-toggle-icon{animation:none}
 .panel-left-toggle-label{font-size:8px;font-weight:800;letter-spacing:0.5px;text-transform:uppercase;writing-mode:vertical-rl;text-orientation:mixed;margin-top:4px}
 .panel-left-toggle::before{content:'';position:absolute;right:6px;top:50%;transform:translateY(-50%);width:4px;height:28px;background:rgba(255,255,255,0.2);border-radius:2px}
 @keyframes togglePulseLeft{0%,100%{box-shadow:4px 0 20px rgba(0,0,0,0.3)}50%{box-shadow:4px 0 30px rgba(29,158,117,0.5)}}
 @keyframes bounceIconLeft{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
-.panel-left{position:relative}
+.panel-left{position:relative;overflow:visible}
 .panel-left{width:224px;min-width:224px;background:var(--panel);border-right:0.5px solid var(--bd);overflow-y:auto;overflow-x:hidden;flex-shrink:0;transition:background .25s,border-color .25s,width .3s ease,min-width .3s ease;scrollbar-width:none}
 .panel-left::-webkit-scrollbar{display:none}
 
@@ -951,15 +947,12 @@ body.t-lavender{--bg:#f0eef8;--panel:#fff;--bd:#d8d4f0;--bd2:#e4e0f4;--sf:#f8f6f
 /* PRESETS PANEL (collapsible right) */
 .panel-presets{width:0;min-width:0;background:var(--panel);border-left:0.5px solid var(--bd);flex-shrink:0;transition:width .35s cubic-bezier(0.4,0,0.2,1),min-width .35s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column;position:relative;overflow:visible}
 .panel-presets.open{width:320px;min-width:320px}
-.panel-presets-toggle{position:fixed;right:0;top:50%;transform:translateY(-50%);width:42px;height:90px;background:linear-gradient(135deg,var(--acc2),var(--acc));border:none;border-radius:14px 0 0 14px;cursor:grab;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px;font-size:14px;color:#000;transition:all .25s cubic-bezier(.4,0,.2,1);z-index:100;box-shadow:-4px 0 20px rgba(0,0,0,0.3);opacity:0;pointer-events:none;user-select:none;touch-action:none;overflow:hidden}
-.panel-presets-toggle.visible{opacity:1;pointer-events:all;animation:togglePulse 2s ease-in-out infinite}
-.panel-presets-toggle:hover{width:52px;box-shadow:-6px 0 28px rgba(0,0,0,0.4);animation:none}
-.panel-presets-toggle.dragging{cursor:grabbing;box-shadow:-8px 0 32px rgba(0,0,0,0.5);transform:translateY(-50%) scale(1.08);animation:none}
+.panel-presets-toggle{position:absolute;left:-42px;top:50%;transform:translateY(-50%);width:42px;height:90px;background:linear-gradient(135deg,var(--acc2),var(--acc));border:none;border-radius:14px 0 0 14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px;font-size:14px;color:#000;transition:opacity .25s ease, width .2s ease, box-shadow .2s ease;z-index:100;box-shadow:-4px 0 20px rgba(0,0,0,0.3);opacity:0;pointer-events:none;user-select:none;overflow:hidden}
+.panel-presets-toggle.visible{opacity:1;pointer-events:all}
+.panel-presets-toggle:hover{width:52px;box-shadow:-6px 0 28px rgba(0,0,0,0.4)}
 .panel-presets-toggle-icon{font-size:22px}
 .panel-presets-toggle-label{font-size:8px;font-weight:800;letter-spacing:0.5px;text-transform:uppercase;writing-mode:vertical-rl;text-orientation:mixed;margin-top:4px}
 .panel-presets-toggle::before{content:'';position:absolute;left:6px;top:50%;transform:translateY(-50%);width:4px;height:28px;background:rgba(0,0,0,0.15);border-radius:2px}
-.panel-presets.open .panel-presets-toggle{right:320px;animation:none}
-.panel-presets.open .panel-presets-toggle-icon{animation:none}
 @keyframes togglePulse{0%,100%{box-shadow:-4px 0 20px rgba(0,0,0,0.3)}50%{box-shadow:-4px 0 30px rgba(0,196,122,0.5)}}
 @keyframes bounceIcon{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
 .pp-inner{width:320px;min-width:320px;display:flex;flex-direction:column;height:100%;overflow:hidden;opacity:0;transition:opacity .2s}
@@ -2710,14 +2703,12 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 
 <div class="app">
 
-<!-- LEFT PANEL TOGGLE (outside panel for proper visibility) -->
-<button class="panel-left-toggle" id="left-panel-toggle" title="Controls - Drag to move">
-  <span class="panel-left-toggle-icon">⚙️</span>
-  <span class="panel-left-toggle-label">CTRL</span>
-</button>
-
-<!-- LEFT PANEL -->
-<div class="panel-left collapsed" id="left-panel">
+<!-- LEFT PANEL — toggle is inside for absolute positioning -->
+<div class="panel-left collapsed" id="left-panel" style="position:relative;overflow:visible">
+  <button class="panel-left-toggle" id="left-panel-toggle" title="Controls" onclick="togglePanel()">
+    <span class="panel-left-toggle-icon">⚙️</span>
+    <span class="panel-left-toggle-label">CTRL</span>
+  </button>
   <div class="pl-body">
   <div class="pl-head">
     <h1 style="font-size:18px;font-weight:900;line-height:1.2;letter-spacing:-.02em;color:var(--tx)">bet all the time<br><span style="font-size:18px;font-weight:900">bet with style</span></h1>
@@ -3020,8 +3011,8 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 </div>
 
 <!-- PRESETS PANEL (collapsible right) -->
-<div class="panel-presets" id="panel-presets">
-  <button class="panel-presets-toggle" id="presets-toggle-btn" title="Presets - Drag to move">
+<div class="panel-presets" id="panel-presets" style="position:relative;overflow:visible">
+  <button class="panel-presets-toggle" id="presets-toggle-btn" title="Presets" onclick="togglePresetsPanel()">
     <span class="panel-presets-toggle-icon">💾</span>
     <span class="panel-presets-toggle-label">SAVE</span>
   </button>
@@ -4562,8 +4553,7 @@ function togglePanel(){
   panel.classList.toggle('collapsed');
   const isCollapsed=panel.classList.contains('collapsed');
   if(btn) btn.textContent=isCollapsed?'›':'‹';
-  if(toggle) toggle.classList.toggle('expanded', !isCollapsed);
-  setTimeout(()=>{
+    setTimeout(()=>{
     if(ch){
       if(ch._errorPulse){clearInterval(ch._errorPulse);ch._errorPulse=null;}
       ch.resize();
@@ -4577,8 +4567,7 @@ function toggleTradePanel(){
   const toggle=document.getElementById('trade-panel-toggle');
   panel.classList.toggle('collapsed');
   const isCollapsed=panel.classList.contains('collapsed');
-  if(toggle) toggle.classList.toggle('expanded', !isCollapsed);
-  setTimeout(()=>{
+    setTimeout(()=>{
     if(ch){ if(ch._errorPulse){clearInterval(ch._errorPulse);ch._errorPulse=null;} ch.resize(); _applyChartErrorStyle(); }
   },280);
 }
@@ -6327,8 +6316,7 @@ function authForceLogout(){
   const leftToggle=document.getElementById('left-panel-toggle');
   if(leftToggle){
     leftToggle.classList.remove('visible');
-    leftToggle.classList.remove('expanded');
-  }
+      }
   const tradeToggleHide=document.getElementById('trade-panel-toggle');
   if(tradeToggleHide) tradeToggleHide.classList.remove('visible');
   const leftPanel=document.getElementById('left-panel');
@@ -7088,8 +7076,8 @@ function openAccountPage(){
 
 function closeAccountPage(){
   document.body.style.overflow='auto';
-  document.title = 'BATT · Member Area';
-  try{ history.back(); }catch(e){}
+  battNav('member');
+  mbnSetActive('member');
   const page=document.getElementById('account-page');
   if(page) page.classList.remove('visible');
 }
@@ -7745,8 +7733,8 @@ function openDashboard(){
 
 function backToMemberArea(){
   document.body.style.overflow='auto';
-  document.title = 'BATT · Member Area';
-  try{ history.back(); }catch(e){}
+  battNav('member');
+  mbnSetActive('member');
   // Smooth fade out dashboard with pro easing
   const app=document.querySelector('.app');
   if(app){
@@ -7773,8 +7761,7 @@ function backToMemberArea(){
   const leftToggle=document.getElementById('left-panel-toggle');
   if(leftToggle){
     leftToggle.classList.remove('visible');
-    leftToggle.classList.remove('expanded');
-  }
+      }
   const tradeToggleHide=document.getElementById('trade-panel-toggle');
   if(tradeToggleHide) tradeToggleHide.classList.remove('visible');
   const leftPanel=document.getElementById('left-panel');
@@ -8490,8 +8477,8 @@ function openTradingPage() {
 
 function closeTradingPage() {
   document.body.style.overflow='auto';
-  document.title = 'BATT · Member Area';
-  try{ history.back(); }catch(e){}
+  battNav('member');
+  mbnSetActive('member');
   const page = document.getElementById('trading-page');
   const l3 = document.getElementById('layer3');
   if (page) {
@@ -10577,131 +10564,6 @@ window.addEventListener('resize',function(){
   });
 })();
 
-// ── PRESETS TOGGLE DRAG TO REPOSITION (vertical only) ──
-(function(){
-  var toggle, startY, startTop, dragging=false, hasDragged=false;
-  var _rafId=null, _lastY=0;
-  
-  function isToggleBtn(el){
-    return el && (el.id==='presets-toggle-btn' || el.closest('#presets-toggle-btn'));
-  }
-  
-  function onDown(e){
-    toggle=document.getElementById('presets-toggle-btn');
-    if(!toggle || !toggle.classList.contains('visible'))return;
-    var pt=e.touches?e.touches[0]:e;
-    startY=pt.clientY;
-    // Get current top position or default to center
-    var computedTop = toggle.style.top ? parseInt(toggle.style.top) : (window.innerHeight/2 - toggle.offsetHeight/2);
-    startTop = computedTop;
-    dragging=true;
-    hasDragged=false;
-    toggle.classList.add('dragging');
-    e.preventDefault();
-  }
-  
-  function onMove(e){
-    if(!dragging || !toggle)return;
-    var pt=e.touches?e.touches[0]:e;
-    var deltaY=pt.clientY-startY;
-    if(Math.abs(deltaY)<5)return;
-    hasDragged=true;
-    var H=window.innerHeight;
-    var toggleH=toggle.offsetHeight;
-    _lastY=Math.max(20,Math.min(startTop+deltaY, H-toggleH-20));
-    if(!_rafId) _rafId=requestAnimationFrame(function(){
-      if(toggle){
-        toggle.style.top=_lastY+'px';
-        toggle.style.transform='none';
-      }
-      _rafId=null;
-    });
-    e.preventDefault();
-  }
-  
-  function onUp(e){
-    if(!dragging)return;
-    dragging=false;
-    if(toggle)toggle.classList.remove('dragging');
-    // If not dragged, treat as click
-    if(!hasDragged && toggle){
-      togglePresetsPanel();
-    }
-  }
-  
-  document.addEventListener('mousedown',function(e){
-    if(isToggleBtn(e.target))onDown(e);
-  });
-  document.addEventListener('touchstart',function(e){
-    if(isToggleBtn(e.target))onDown(e);
-  },{passive:false});
-  document.addEventListener('mousemove',onMove);
-  document.addEventListener('touchmove',onMove,{passive:false});
-  document.addEventListener('mouseup',onUp);
-  document.addEventListener('touchend',onUp);
-})();
-
-// ── LEFT PANEL TOGGLE DRAG TO REPOSITION (vertical only) ──
-(function(){
-  var toggle, startY, startTop, dragging=false, hasDragged=false;
-  var _rafId=null, _lastY=0;
-  
-  function isLeftToggleBtn(el){
-    return el && (el.id==='left-panel-toggle' || el.closest('#left-panel-toggle'));
-  }
-  
-  function onDown(e){
-    toggle=document.getElementById('left-panel-toggle');
-    if(!toggle || !toggle.classList.contains('visible'))return;
-    var pt=e.touches?e.touches[0]:e;
-    startY=pt.clientY;
-    var computedTop = toggle.style.top ? parseInt(toggle.style.top) : (window.innerHeight/2 - toggle.offsetHeight/2);
-    startTop = computedTop;
-    dragging=true;
-    hasDragged=false;
-    toggle.classList.add('dragging');
-    e.preventDefault();
-  }
-  
-  function onMove(e){
-    if(!dragging || !toggle)return;
-    var pt=e.touches?e.touches[0]:e;
-    var deltaY=pt.clientY-startY;
-    if(Math.abs(deltaY)<5)return;
-    hasDragged=true;
-    var H=window.innerHeight;
-    var toggleH=toggle.offsetHeight;
-    _lastY=Math.max(20,Math.min(startTop+deltaY, H-toggleH-20));
-    if(!_rafId) _rafId=requestAnimationFrame(function(){
-      if(toggle){
-        toggle.style.top=_lastY+'px';
-        toggle.style.transform='none';
-      }
-      _rafId=null;
-    });
-    e.preventDefault();
-  }
-  
-  function onUp(e){
-    if(!dragging)return;
-    dragging=false;
-    if(toggle)toggle.classList.remove('dragging');
-    if(!hasDragged && toggle){
-      togglePanel();
-    }
-  }
-  
-  document.addEventListener('mousedown',function(e){
-    if(isLeftToggleBtn(e.target))onDown(e);
-  });
-  document.addEventListener('touchstart',function(e){
-    if(isLeftToggleBtn(e.target))onDown(e);
-  },{passive:false});
-  document.addEventListener('mousemove',onMove);
-  document.addEventListener('touchmove',onMove,{passive:false});
-  document.addEventListener('mouseup',onUp);
-  document.addEventListener('touchend',onUp);
-})();
 
 function aiSetLang(lang){
   AI_LANG=lang;
@@ -12649,20 +12511,25 @@ function _battToken(){
   catch(e){ return localStorage.getItem('batt_token') || null; }
 }
 
+var _battInAppNav = false; // flag: in-app button click, not browser back/forward
+
 function battNav(page){
   document.title = BATT_TITLES[page] || 'bet all the time, bet with style';
   try{
     var hash = page ? '#'+page : window.location.pathname;
     if((window.location.hash||'').replace('#','') !== page){
+      _battInAppNav = true;
       history.pushState({batt:page}, document.title, hash);
+      _battInAppNav = false;
     }
-  }catch(e){}
+  }catch(e){ _battInAppNav = false; }
 }
 function battSetRoute(page){ battNav(page); }
 function battSetTitle(page){ battNav(page); }
 
-// browser back/forward — ONLY closes overlay pages, never redirects to auth
+// browser back/forward — ONLY fires for actual browser back/forward, not in-app clicks
 window.addEventListener('popstate', function(){
+  if(_battInAppNav) return; // skip — triggered by our own pushState, not user
   var hash = (window.location.hash||'').replace('#','');
   document.title = BATT_TITLES[hash] || BATT_TITLES[''];
 
@@ -12746,9 +12613,8 @@ function openAboutCJ(){
 
 function closeAboutCJ(){
   document.body.style.overflow='auto';
-  // go back in history instead of pushing a new entry — avoids #member → #about → #member stack pollution
-  document.title = 'BATT · Member Area';
-  try{ history.back(); }catch(e){}
+  battNav('member');
+  mbnSetActive('member');
   var p=document.getElementById('about-cj-page');
   if(!p)return;
   p.style.opacity='0';
