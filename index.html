@@ -427,7 +427,7 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
 /* trade panel toggle button — mirrors panel-left-toggle exactly but different color + position */
 .panel-trade-toggle{position:fixed;left:0;top:40%;transform:translateY(-50%);width:42px;height:90px;background:linear-gradient(135deg,#7c5cbf,#5b3fa0);border:none;border-radius:0 14px 14px 0;cursor:grab;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px;font-size:14px;color:#fff;transition:opacity .4s ease .3s, left .3s ease, width .25s cubic-bezier(.4,0,.2,1), box-shadow .25s cubic-bezier(.4,0,.2,1);z-index:100;box-shadow:4px 0 20px rgba(0,0,0,0.3);opacity:0;pointer-events:none;user-select:none;touch-action:none;overflow:hidden}
 .panel-trade-toggle.visible{opacity:1;pointer-events:all}
-.panel-trade-toggle.expanded{left:224px;animation:none}
+.panel-trade-toggle.expanded{animation:none}
 .panel-trade-toggle:hover{width:52px;box-shadow:6px 0 28px rgba(0,0,0,0.4)}
 .panel-trade-toggle.dragging{cursor:grabbing;box-shadow:8px 0 32px rgba(0,0,0,0.5);transform:translateY(-50%) scale(1.08)}
 .panel-trade-toggle-icon{font-size:22px}
@@ -937,7 +937,7 @@ body.t-lavender{--bg:#f0eef8;--panel:#fff;--bd:#d8d4f0;--bd2:#e4e0f4;--sf:#f8f6f
 /* ── TRADE SLOTS PANEL (mirrors left panel) ── */
 .panel-trade-toggle{position:fixed;left:0;top:calc(50% + 56px);transform:translateY(-50%);width:42px;height:90px;background:linear-gradient(135deg,var(--acc2),#008855);border:none;border-radius:0 14px 14px 0;cursor:grab;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px;font-size:14px;color:#fff;transition:opacity .4s ease .3s, left .3s ease, width .25s cubic-bezier(.4,0,.2,1), box-shadow .25s cubic-bezier(.4,0,.2,1);z-index:100;box-shadow:4px 0 20px rgba(0,0,0,0.3);opacity:0;pointer-events:none;user-select:none;touch-action:none;overflow:hidden}
 .panel-trade-toggle.visible{opacity:1;pointer-events:all}
-.panel-trade-toggle.expanded{left:224px;animation:none}
+.panel-trade-toggle.expanded{animation:none}
 .panel-trade-toggle:hover{width:52px;box-shadow:6px 0 28px rgba(0,0,0,0.4)}
 .panel-trade-toggle.dragging{cursor:grabbing;box-shadow:8px 0 32px rgba(0,0,0,0.5);transform:translateY(-50%) scale(1.08)}
 .panel-trade-toggle-icon{font-size:22px}
@@ -4602,7 +4602,7 @@ function toggleTradePanel(){
   const toggle=document.getElementById('trade-panel-toggle');
   panel.classList.toggle('collapsed');
   const isCollapsed=panel.classList.contains('collapsed');
-  if(toggle) toggle.classList.toggle('expanded', !isCollapsed);
+  // don't use .expanded on trade toggle — _syncTradeToggleLeft owns the left position
   setTimeout(_syncTradeToggleLeft, 10);
   setTimeout(()=>{
     if(ch){ if(ch._errorPulse){clearInterval(ch._errorPulse);ch._errorPulse=null;} ch.resize(); _applyChartErrorStyle(); }
