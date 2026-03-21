@@ -2165,7 +2165,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
         <div class="l3-actions-wrap">
           <div class="l3-actions">
             <button class="l3-btn l3-btn-sync" id="l3-sync-btn" onclick="authSaveWithToast()">↑ sync</button>
-            <div class="l3-menu-wrap" id="l3-menu-wrap">
+            <div class="l3-menu-wrap" id="l3-menu-wrap" style="display:none">
               <button class="l3-btn l3-btn-menu" id="l3-menu-btn" onclick="toggleL3Menu(event)" title="more">
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <rect y="1.5" width="14" height="1.5" rx="0.75" fill="currentColor"/>
@@ -7319,6 +7319,8 @@ function goLayer3(){
     if(email) email.textContent = user.email || '';
     if(welcomeName) welcomeName.textContent = displayName;
   }
+  // show/hide ☰ menu based on allowed usernames
+  if(typeof initL3MenuVisibility==='function') initL3MenuVisibility();
   // update stats
   updateMemberStats();
   // hide layer2 if visible
@@ -12283,8 +12285,33 @@ function closeAboutCJ(){
 }
 
 // ── L3 MENU DROPDOWN ──
+var _cjFeatureAllowed = false; // set by server check only
+
+async function initL3MenuVisibility(){
+  var wrap=document.getElementById('l3-menu-wrap');
+  if(!wrap) return;
+  // always hide first — server decides
+  wrap.style.display='none';
+  _cjFeatureAllowed = false;
+  if(!AUTH_TOKEN) return;
+  try{
+    var res=await fetch(AUTH_URL+'/auth/check-feature',{
+      method:'GET',
+      headers:{'Authorization':'Bearer '+AUTH_TOKEN}
+    });
+    var data=await res.json();
+    if(data.allowed===true){
+      _cjFeatureAllowed=true;
+      wrap.style.display='';
+    }
+  }catch(e){
+    // network error — stay hidden
+  }
+}
+
 function toggleL3Menu(e){
   e.stopPropagation();
+  if(!_cjFeatureAllowed) return;
   var dd=document.getElementById('l3-menu-dropdown');
   if(!dd)return;
   dd.classList.toggle('open');
