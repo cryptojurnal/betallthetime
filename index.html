@@ -412,7 +412,24 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
 .party-mode *{animation:partyColors 0.5s ease infinite}
 @keyframes partyColors{0%,100%{filter:hue-rotate(0deg)}50%{filter:hue-rotate(180deg)}}
 
-/* ── PRICE ALERTS ── */
+/* ── TRADE SLOTS PANEL ── */
+.panel-trade{position:relative}
+.panel-trade{width:224px;min-width:224px;background:var(--panel);border-right:0.5px solid var(--bd);overflow-y:auto;overflow-x:hidden;flex-shrink:0;transition:background .25s,border-color .25s,width .3s ease,min-width .3s ease;scrollbar-width:none}
+.panel-trade::-webkit-scrollbar{display:none}
+.panel-trade.collapsed{width:0!important;min-width:0!important;overflow:hidden;border:none}
+.panel-trade.collapsed .pt-body{display:none}
+.pt-body{padding:0;display:flex;flex-direction:column;min-height:100%}
+.pt-head{padding:12px 12px 4px;border-bottom:0.5px solid var(--bd2)}
+
+/* trade panel toggle button — mirrors panel-left-toggle exactly but different color + position */
+.panel-trade-toggle{position:fixed;left:0;top:40%;transform:translateY(-50%);width:42px;height:90px;background:linear-gradient(135deg,#7c5cbf,#5b3fa0);border:none;border-radius:0 14px 14px 0;cursor:grab;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px;font-size:14px;color:#fff;transition:opacity .4s ease .3s, width .25s cubic-bezier(.4,0,.2,1), box-shadow .25s cubic-bezier(.4,0,.2,1);z-index:100;box-shadow:4px 0 20px rgba(0,0,0,0.3);opacity:0;pointer-events:none;user-select:none;touch-action:none;overflow:hidden}
+.panel-trade-toggle.visible{opacity:1;pointer-events:all}
+.panel-trade-toggle.expanded{left:224px;animation:none}
+.panel-trade-toggle:hover{width:52px;box-shadow:6px 0 28px rgba(0,0,0,0.4)}
+.panel-trade-toggle.dragging{cursor:grabbing;box-shadow:8px 0 32px rgba(0,0,0,0.5);transform:translateY(-50%) scale(1.08)}
+.panel-trade-toggle-icon{font-size:22px}
+.panel-trade-toggle-label{font-size:8px;font-weight:800;letter-spacing:0.5px;text-transform:uppercase;writing-mode:vertical-rl;text-orientation:mixed;margin-top:4px}
+.panel-trade-toggle::before{content:'';position:absolute;right:6px;top:50%;transform:translateY(-50%);width:4px;height:28px;background:rgba(255,255,255,0.2);border-radius:2px}
 #alerts-panel{position:fixed;top:50%;right:20px;transform:translateY(-50%);width:280px;background:#0d0d0d;border:1px solid #1a1a1a;border-radius:14px;z-index:9400;display:none;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,0.5)}
 #alerts-panel.show{display:block;animation:slideInRight 0.3s cubic-bezier(0.4,0,0.2,1)}
 @keyframes slideInRight{from{opacity:0;transform:translateY(-50%) translateX(20px)}to{opacity:1;transform:translateY(-50%) translateX(0)}}
@@ -912,6 +929,22 @@ body.t-lavender{--bg:#f0eef8;--panel:#fff;--bd:#d8d4f0;--bd2:#e4e0f4;--sf:#f8f6f
 .panel-left{position:relative}
 .panel-left{width:224px;min-width:224px;background:var(--panel);border-right:0.5px solid var(--bd);overflow-y:auto;overflow-x:hidden;flex-shrink:0;transition:background .25s,border-color .25s,width .3s ease,min-width .3s ease;scrollbar-width:none}
 .panel-left::-webkit-scrollbar{display:none}
+
+/* ── TRADE SLOTS PANEL (mirrors left panel) ── */
+.panel-trade-toggle{position:fixed;left:0;top:calc(50% + 56px);transform:translateY(-50%);width:42px;height:90px;background:linear-gradient(135deg,var(--acc2),#008855);border:none;border-radius:0 14px 14px 0;cursor:grab;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px;font-size:14px;color:#fff;transition:opacity .4s ease .3s, width .25s cubic-bezier(.4,0,.2,1), box-shadow .25s cubic-bezier(.4,0,.2,1);z-index:100;box-shadow:4px 0 20px rgba(0,0,0,0.3);opacity:0;pointer-events:none;user-select:none;touch-action:none;overflow:hidden}
+.panel-trade-toggle.visible{opacity:1;pointer-events:all}
+.panel-trade-toggle.expanded{left:224px;animation:none}
+.panel-trade-toggle:hover{width:52px;box-shadow:6px 0 28px rgba(0,0,0,0.4)}
+.panel-trade-toggle.dragging{cursor:grabbing;box-shadow:8px 0 32px rgba(0,0,0,0.5);transform:translateY(-50%) scale(1.08)}
+.panel-trade-toggle-icon{font-size:22px}
+.panel-trade-toggle-label{font-size:8px;font-weight:800;letter-spacing:0.5px;text-transform:uppercase;writing-mode:vertical-rl;text-orientation:mixed;margin-top:4px}
+.panel-trade-toggle::before{content:'';position:absolute;right:6px;top:50%;transform:translateY(-50%);width:4px;height:28px;background:rgba(255,255,255,0.2);border-radius:2px}
+.panel-trade{position:relative;width:224px;min-width:224px;background:var(--panel);border-right:0.5px solid var(--bd);overflow-y:auto;overflow-x:hidden;flex-shrink:0;transition:background .25s,border-color .25s,width .3s ease,min-width .3s ease;scrollbar-width:none}
+.panel-trade::-webkit-scrollbar{display:none}
+.panel-trade.collapsed{width:0!important;min-width:0!important;overflow:hidden;border:none}
+.panel-trade.collapsed .pt-body{display:none}
+.pt-body{padding-bottom:16px}
+.pt-head{padding:9px 10px 7px;border-bottom:0.5px solid var(--bd2);display:flex;flex-direction:column;gap:3px}
 .panel-right{flex:1;overflow-y:auto;background:var(--bg);padding:14px;transition:background .25s;min-width:0;scrollbar-width:none}
 .panel-right::-webkit-scrollbar{display:none}
 
@@ -1478,6 +1511,18 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 .l3-footer p{font-size:9px;color:#333;margin:0}
 .l3-footer a{color:#00c47a;text-decoration:none}
 .l3-footer a:hover{text-decoration:underline}
+
+/* ── MOBILE BOTTOM NAV ── */
+.mobile-bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:9200;background:#0a0a0a;border-top:1px solid #1a1a1a;padding:6px 0 max(6px,env(safe-area-inset-bottom));grid-template-columns:repeat(4,1fr)}
+@media(max-width:768px){.mobile-bottom-nav{display:grid}}
+.mbn-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 4px;background:none;border:none;cursor:pointer;transition:all .15s;border-radius:8px;margin:0 4px}
+.mbn-btn:active{transform:scale(0.92)}
+.mbn-icon{font-size:20px;transition:transform .2s}
+.mbn-label{font-size:9px;font-weight:700;color:#444;text-transform:uppercase;letter-spacing:.04em;transition:color .15s}
+.mbn-btn.active .mbn-icon{transform:scale(1.1)}
+.mbn-btn.active .mbn-label{color:var(--acc,#00c47a)}
+/* push l3-container up to avoid overlap with bottom nav on mobile */
+@media(max-width:768px){#layer3 .l3-container{padding-bottom:72px}}
 /* back to member area button in dashboard */
 .back-to-member{position:fixed;top:12px;left:12px;z-index:9400;display:flex;align-items:center;gap:6px;padding:6px 12px;background:#0a0a0a;border:0.5px solid #1a1a1a;border-radius:8px;color:#00c47a;font-size:10px;font-weight:700;cursor:grab;transition:all .2s;opacity:0;pointer-events:none;text-transform:uppercase;letter-spacing:.04em;user-select:none}
 .back-to-member:hover{background:#0d0d0d;border-color:#00c47a}
@@ -1719,7 +1764,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
     <div class="share-qr" id="share-qr"></div>
     <div class="share-info">
       Anyone with this link can view and import your preset.<br>
-      The link is valid for 30 days.
+      <span id="share-expiry" style="color:#00c47a;font-weight:600">valid for 30 days</span>
     </div>
     <button class="share-close" onclick="shareModalClose()">Close</button>
   </div>
@@ -1923,7 +1968,8 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
       <div class="acc-section">
         <div class="acc-sec-title" style="color:#E24B4A">⚠️ danger zone</div>
         <div class="acc-card" style="background:#1a0a0a;border-color:#2a0a0a">
-          <button onclick="authLogout()" style="width:100%;padding:10px;background:transparent;border:0.5px solid #4a1a1a;border-radius:6px;color:#E24B4A;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;margin-bottom:10px" onmouseover="this.style.background='#2a0a0a'" onmouseout="this.style.background='transparent'">logout</button>
+          <button onclick="authLogout()" style="width:100%;padding:10px;background:transparent;border:0.5px solid #4a1a1a;border-radius:6px;color:#E24B4A;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;margin-bottom:10px" onmouseover="this.style.background='#2a0a0a'" onmouseout="this.style.background='transparent'">logout this device</button>
+          <button onclick="logoutAllDevices()" style="width:100%;padding:10px;background:transparent;border:0.5px solid #4a1a1a;border-radius:6px;color:#E24B4A;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;margin-bottom:10px" onmouseover="this.style.background='#2a0a0a'" onmouseout="this.style.background='transparent'">logout all devices</button>
           <button onclick="deleteAccount()" style="width:100%;padding:10px;background:#E24B4A;border:none;border-radius:6px;color:#fff;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">delete account forever</button>
           <div style="font-size:9px;color:#4a2020;margin-top:10px;text-align:center">This will permanently delete your account and all data</div>
         </div>
@@ -2182,6 +2228,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
           <div class="price-card"><div class="skeleton" style="width:60px;height:32px"></div></div>
         </div>
         <div class="l3-actions-wrap">
+          <div class="l3-sync-status" id="l3-sync-status" style="font-size:8px;color:#444;text-align:right;margin-bottom:3px"></div>
           <div class="l3-actions">
             <button class="l3-btn l3-btn-sync" id="l3-sync-btn" onclick="authSaveWithToast()">↑ sync</button>
             <div class="l3-menu-wrap" id="l3-menu-wrap" style="display:none">
@@ -2201,7 +2248,6 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
             </div>
             <button class="l3-btn l3-btn-logout" onclick="authLogout()">logout</button>
           </div>
-          <div class="l3-sync-status" id="l3-sync-status">never synced</div>
         </div>
       </div>
     </div>
@@ -2294,6 +2340,26 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
       <p>built with 🤍 by <a href="https://t.me/CryptoJurnal" target="_blank">@cryptojurnal</a> · <span onclick="openAdminPage()" style="cursor:default" title="Admin">bet all the time</span>, bet with style</p>
     </div>
   </div>
+
+  <!-- mobile bottom nav — only visible on small screens -->
+  <nav class="mobile-bottom-nav" id="mobile-bottom-nav">
+    <button class="mbn-btn active" id="mbn-member" onclick="mbnGo('member')">
+      <span class="mbn-icon">🏠</span>
+      <span class="mbn-label">home</span>
+    </button>
+    <button class="mbn-btn" id="mbn-cockpit" onclick="mbnGo('cockpit')">
+      <span class="mbn-icon">📊</span>
+      <span class="mbn-label">cockpit</span>
+    </button>
+    <button class="mbn-btn" id="mbn-trade" onclick="mbnGo('trade')">
+      <span class="mbn-icon">⚡</span>
+      <span class="mbn-label">trade</span>
+    </button>
+    <button class="mbn-btn" id="mbn-account" onclick="mbnGo('account')">
+      <span class="mbn-icon">👤</span>
+      <span class="mbn-label">account</span>
+    </button>
+  </nav>
 </div>
 
 <!-- PAPER TRADING PAGE -->
@@ -2867,7 +2933,32 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 
   </div><!-- /sec-kpi -->
 
-  <div class="divider"></div>
+
+
+  <!-- SAVE AS PRESET BUTTON -->
+  <div style="padding:12px 10px;border-top:0.5px solid var(--bd2);margin-top:8px">
+    <button onclick="presetSaveModal()" style="width:100%;padding:10px;background:var(--acc2);color:#000;border:none;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.04em;display:flex;align-items:center;justify-content:center;gap:6px;transition:opacity .2s;margin-bottom:8px" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">💾 save as preset</button>
+    <button onclick="exportModalOpen()" style="width:100%;padding:8px;background:transparent;border:1px solid var(--bd2);color:var(--tx2);border-radius:8px;font-size:10px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .2s" onmouseover="this.style.borderColor='var(--acc2)';this.style.color='var(--acc2)'" onmouseout="this.style.borderColor='var(--bd2)';this.style.color='var(--tx2)'">📤 export dashboard</button>
+    <div style="font-size:8px;color:var(--tx3);text-align:center;margin-top:6px">saves everything to cloud • access from any device</div>
+  </div>
+
+</div><!-- pl-body -->
+</div><!-- panel-left -->
+
+<!-- TRADE PANEL TOGGLE -->
+<button class="panel-trade-toggle" id="trade-panel-toggle" title="Trade Slots - Drag to move">
+  <span class="panel-trade-toggle-icon">📊</span>
+  <span class="panel-trade-toggle-label">TRADE</span>
+</button>
+
+<!-- TRADE SLOTS PANEL -->
+<div class="panel-trade collapsed" id="trade-panel">
+  <div class="pt-body">
+  <div class="pt-head">
+    <h1 style="font-size:14px;font-weight:900;color:var(--tx)">trade slots</h1>
+    <p style="font-size:9px;color:var(--tx2);margin-top:2px">configure your trade targets</p>
+  </div>
+<div class="divider"></div>
 
   <!-- global mode + trade slots -->
   <div class="sec-head" data-sec="sec-trd" style="--arrow-rot:-90deg" onclick="toggleSec('sec-trd')">
@@ -2919,15 +3010,9 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 
   </div><!-- /sec-trd -->
 
-  <!-- SAVE AS PRESET BUTTON -->
-  <div style="padding:12px 10px;border-top:0.5px solid var(--bd2);margin-top:8px">
-    <button onclick="presetSaveModal()" style="width:100%;padding:10px;background:var(--acc2);color:#000;border:none;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.04em;display:flex;align-items:center;justify-content:center;gap:6px;transition:opacity .2s;margin-bottom:8px" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">💾 save as preset</button>
-    <button onclick="exportModalOpen()" style="width:100%;padding:8px;background:transparent;border:1px solid var(--bd2);color:var(--tx2);border-radius:8px;font-size:10px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .2s" onmouseover="this.style.borderColor='var(--acc2)';this.style.color='var(--acc2)'" onmouseout="this.style.borderColor='var(--bd2)';this.style.color='var(--tx2)'">📤 export dashboard</button>
-    <div style="font-size:8px;color:var(--tx3);text-align:center;margin-top:6px">saves everything to cloud • access from any device</div>
-  </div>
-
-</div><!-- pl-body -->
-</div><!-- panel-left -->
+  <!-- SAVE TRADES FOOTER -->
+  </div><!-- pt-body -->
+</div><!-- panel-trade -->
 
 <!-- RIGHT PANEL -->
 <div class="panel-right">
@@ -4487,6 +4572,63 @@ function togglePanel(){
   },280);
 }
 
+function toggleTradePanel(){
+  const panel=document.getElementById('trade-panel');
+  const toggle=document.getElementById('trade-panel-toggle');
+  panel.classList.toggle('collapsed');
+  const isCollapsed=panel.classList.contains('collapsed');
+  if(toggle) toggle.classList.toggle('expanded', !isCollapsed);
+  setTimeout(()=>{
+    if(ch){ if(ch._errorPulse){clearInterval(ch._errorPulse);ch._errorPulse=null;} ch.resize(); _applyChartErrorStyle(); }
+  },280);
+}
+
+// ── TRADE PANEL TOGGLE DRAG ──
+(function(){
+  var toggle, startY, startTop, dragging=false, hasDragged=false;
+  var _rafId=null, _lastY=0;
+  function isTradePanelBtn(el){
+    return el && (el.id==='trade-panel-toggle' || el.closest('#trade-panel-toggle'));
+  }
+  function onDown(e){
+    toggle=document.getElementById('trade-panel-toggle');
+    if(!toggle || !toggle.classList.contains('visible'))return;
+    var pt=e.touches?e.touches[0]:e;
+    startY=pt.clientY;
+    var computedTop=toggle.style.top?parseInt(toggle.style.top):(window.innerHeight/2+56-toggle.offsetHeight/2);
+    startTop=computedTop;
+    dragging=true; hasDragged=false;
+    toggle.classList.add('dragging');
+    e.preventDefault();
+  }
+  function onMove(e){
+    if(!dragging||!toggle)return;
+    var pt=e.touches?e.touches[0]:e;
+    var deltaY=pt.clientY-startY;
+    if(Math.abs(deltaY)<5)return;
+    hasDragged=true;
+    var H=window.innerHeight, toggleH=toggle.offsetHeight;
+    _lastY=Math.max(20,Math.min(startTop+deltaY, H-toggleH-20));
+    if(!_rafId) _rafId=requestAnimationFrame(function(){
+      if(toggle){toggle.style.top=_lastY+'px';toggle.style.transform='none';}
+      _rafId=null;
+    });
+    e.preventDefault();
+  }
+  function onUp(e){
+    if(!dragging)return;
+    dragging=false;
+    if(toggle)toggle.classList.remove('dragging');
+    if(!hasDragged&&toggle) toggleTradePanel();
+  }
+  document.addEventListener('mousedown',function(e){if(isTradePanelBtn(e.target))onDown(e);});
+  document.addEventListener('touchstart',function(e){if(isTradePanelBtn(e.target))onDown(e);},{passive:false});
+  document.addEventListener('mousemove',onMove);
+  document.addEventListener('touchmove',onMove,{passive:false});
+  document.addEventListener('mouseup',onUp);
+  document.addEventListener('touchend',onUp);
+})();
+
 // ── ZERO MONTH TOGGLE ──
 function toggleZeroMonth(m){
   const s=gs();
@@ -5816,9 +5958,11 @@ function launchApp(){
   if(window._attachAiFabDrag) window._attachAiFabDrag();
   document.documentElement.style.overflow='auto';
   document.body.style.overflow='auto';
-  // Show left panel toggle for ALL users
+  // Show left panel toggle and trade panel toggle for ALL users
   const leftToggle=document.getElementById('left-panel-toggle');
   if(leftToggle) leftToggle.classList.add('visible');
+  const tradeToggle=document.getElementById('trade-panel-toggle');
+  if(tradeToggle) tradeToggle.classList.add('visible');
   // show back button, keyboard hints, and presets toggle for logged-in users
   if(localStorage.getItem('batt_token')){
     const backBtn=document.getElementById('back-to-member');
@@ -6126,6 +6270,25 @@ async function authLogout(){
   showToast('Logged out successfully','info');
 }
 
+async function logoutAllDevices(){
+  const confirmed = await showConfirm({
+    icon:'🔐',
+    type:'danger',
+    title:'logout all devices',
+    message:'this will end all active sessions on every device. you\'ll need to log in again everywhere.',
+    confirmText:'logout all',
+    cancelText:'cancel'
+  });
+  if(!confirmed) return;
+  if(AUTH_TOKEN){
+    try{
+      await fetch(AUTH_URL+'/auth/logout-all',{method:'POST',headers:{'Authorization':'Bearer '+AUTH_TOKEN}});
+    }catch(e){}
+  }
+  authForceLogout();
+  showToast('All devices logged out','info');
+}
+
 function authForceLogout(){
   AUTH_TOKEN=null; AUTH_USER=null;
   // reset to leverage mode on logout — deferred so state is ready
@@ -6166,6 +6329,8 @@ function authForceLogout(){
     leftToggle.classList.remove('visible');
     leftToggle.classList.remove('expanded');
   }
+  const tradeToggleHide=document.getElementById('trade-panel-toggle');
+  if(tradeToggleHide) tradeToggleHide.classList.remove('visible');
   const leftPanel=document.getElementById('left-panel');
   if(leftPanel) leftPanel.classList.add('collapsed');
   // hide AI fab
@@ -6448,12 +6613,15 @@ async function updateMemberStats(){
       const mins=Math.floor(diff/60000);
       const hours=Math.floor(diff/3600000);
       const days=Math.floor(diff/86400000);
-      if(mins<1) syncStatus.textContent='synced just now';
-      else if(mins<60) syncStatus.textContent='synced '+mins+' min ago';
-      else if(hours<24) syncStatus.textContent='synced '+hours+' hr ago';
-      else syncStatus.textContent='synced '+days+' days ago';
+      let txt='';
+      if(mins<1) txt='synced just now';
+      else if(mins<60) txt='synced '+mins+'m ago';
+      else if(hours<24) txt='synced '+hours+'h ago';
+      else txt='synced '+days+'d ago';
+      const dot = mins < 60 ? '<span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:#00c47a;margin-right:4px;vertical-align:middle"></span>' : '';
+      syncStatus.innerHTML=dot+txt;
     }else{
-      syncStatus.textContent='never synced';
+      syncStatus.innerHTML='never synced';
     }
   }
 }
@@ -6884,9 +7052,33 @@ function l3AiAsk(topic){
 }
 
 // ── ACCOUNT PAGE FUNCTIONS ──
+// ── MOBILE BOTTOM NAV ──
+function mbnGo(page){
+  // update active state
+  ['member','cockpit','trade','account'].forEach(function(p){
+    var btn=document.getElementById('mbn-'+p);
+    if(btn) btn.classList.toggle('active', p===page);
+  });
+  switch(page){
+    case 'member':    backToMemberArea(); break;
+    case 'cockpit':   openDashboard(); break;
+    case 'trade':     openTradingPage(); break;
+    case 'account':   openAccountPage(); break;
+  }
+}
+
+// call this whenever a page opens to sync the active tab
+function mbnSetActive(page){
+  ['member','cockpit','trade','account'].forEach(function(p){
+    var btn=document.getElementById('mbn-'+p);
+    if(btn) btn.classList.toggle('active', p===page);
+  });
+}
+
 function openAccountPage(){
   document.body.style.overflow='auto';
   battNav('account');
+  mbnSetActive('account');
   const page=document.getElementById('account-page');
   if(page){
     page.classList.add('visible');
@@ -7441,6 +7633,7 @@ async function deleteAccount(){
 // ── LAYER 3: MEMBER AREA NAVIGATION ──
 function goLayer3(){
   document.body.style.overflow='auto';
+  mbnSetActive('member');
   // title only — no history push (goLayer3 is called on auto-restore too)
   document.title = 'BATT · Member Area';
   // Ensure AI fab is hidden in member area
@@ -7499,6 +7692,7 @@ var RISK_SHOWN = false;
 function openDashboard(){
   document.body.style.overflow='hidden';
   battNav('cockpit');
+  mbnSetActive('cockpit');
   const l3=document.getElementById('layer3');
   if(l3){l3.classList.remove('visible');setTimeout(()=>{l3.classList.add('hidden');},500);}
   if(RISK_SHOWN){
@@ -7525,9 +7719,11 @@ function openDashboard(){
           fab.style.pointerEvents='all';
         },120);
       }
-      // left panel toggle
+      // left panel toggle + trade panel toggle
       const leftToggle=document.getElementById('left-panel-toggle');
       if(leftToggle) leftToggle.classList.add('visible');
+      const tradeToggle2=document.getElementById('trade-panel-toggle');
+      if(tradeToggle2) tradeToggle2.classList.add('visible');
       // use localStorage — works across all script blocks
       if(localStorage.getItem('batt_token')){
         const backBtn=document.getElementById('back-to-member');
@@ -7579,6 +7775,8 @@ function backToMemberArea(){
     leftToggle.classList.remove('visible');
     leftToggle.classList.remove('expanded');
   }
+  const tradeToggleHide=document.getElementById('trade-panel-toggle');
+  if(tradeToggleHide) tradeToggleHide.classList.remove('visible');
   const leftPanel=document.getElementById('left-panel');
   if(leftPanel) leftPanel.classList.add('collapsed');
   // hide AI fab smoothly
@@ -8096,7 +8294,14 @@ async function sharePreset(id,name){
     if(d.ok&&d.share_code){
       const shareUrl='https://betallthetime.fun/?p='+d.share_code;
       if(linkInput) linkInput.value=shareUrl;
-      
+
+      // show expiry date
+      const expiryEl=document.getElementById('share-expiry');
+      if(expiryEl){
+        const expDate=new Date(Date.now()+30*24*60*60*1000);
+        expiryEl.textContent='expires '+expDate.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+      }
+
       // Generate QR code
       if(typeof QRCode!=='undefined'&&qrEl){
         qrEl.innerHTML='';
@@ -8110,7 +8315,7 @@ async function sharePreset(id,name){
         };
         document.head.appendChild(script);
       }
-      
+
       // Badge
       localStorage.setItem('wz_badge_share','1');
       checkBadges();
@@ -8263,6 +8468,7 @@ function tpSaveState() {
 function openTradingPage() {
   document.body.style.overflow='auto';
   battNav('trade');
+  mbnSetActive('trade');
   tpLoadState();
   const page = document.getElementById('trading-page');
   const l3 = document.getElementById('layer3');
