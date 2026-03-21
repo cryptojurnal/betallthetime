@@ -6896,7 +6896,8 @@ function openAccountPage(){
 
 function closeAccountPage(){
   document.body.style.overflow='auto';
-  battNav('member');
+  document.title = 'BATT · Member Area';
+  try{ history.back(); }catch(e){}
   const page=document.getElementById('account-page');
   if(page) page.classList.remove('visible');
 }
@@ -7548,7 +7549,8 @@ function openDashboard(){
 
 function backToMemberArea(){
   document.body.style.overflow='auto';
-  battNav('member');
+  document.title = 'BATT · Member Area';
+  try{ history.back(); }catch(e){}
   // Smooth fade out dashboard with pro easing
   const app=document.querySelector('.app');
   if(app){
@@ -8282,7 +8284,8 @@ function openTradingPage() {
 
 function closeTradingPage() {
   document.body.style.overflow='auto';
-  battNav('member');
+  document.title = 'BATT · Member Area';
+  try{ history.back(); }catch(e){}
   const page = document.getElementById('trading-page');
   const l3 = document.getElementById('layer3');
   if (page) {
@@ -12537,7 +12540,9 @@ function openAboutCJ(){
 
 function closeAboutCJ(){
   document.body.style.overflow='auto';
-  battNav('member');
+  // go back in history instead of pushing a new entry — avoids #member → #about → #member stack pollution
+  document.title = 'BATT · Member Area';
+  try{ history.back(); }catch(e){}
   var p=document.getElementById('about-cj-page');
   if(!p)return;
   p.style.opacity='0';
