@@ -228,7 +228,7 @@ function _onPopupResize(){
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{box-sizing:border-box;scroll-behavior:smooth;zoom:1.1;background:#000}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13px;line-height:1.4;min-height:100vh;transition:background .25s,color .25s;background:#000;overflow:auto}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:13px;line-height:1.4;min-height:100vh;transition:background .25s,color .25s;background:#000;overflow:hidden}
 *,*::before,*::after{box-sizing:inherit}
 button{transition:all .2s cubic-bezier(0.4,0,0.2,1)}
 button:active:not(:disabled){transform:scale(0.97)}
@@ -895,7 +895,7 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
 
 body.t-lavender{--bg:#f0eef8;--panel:#fff;--bd:#d8d4f0;--bd2:#e4e0f4;--sf:#f8f6ff;--sf2:#f0eef8;--tx:#2a1a4a;--tx2:#8070b0;--tx3:#c0b0e0;--acc:#7050c0;--acc2:#5060e0;--mh:#4030a0;--mhc:#fff;--mhs:#c0b8f0;--inp:#f8f6ff;--btn:#f0eef8;--btno:#e0d8f8;--btonc:#7050c0;--tog:#fff;--togon:#4030a0;--togonc:#fff;--tabact:#4030a0;--tabactc:#fff;--wd-on:#e0d8f8;--wd-onc:#7050c0}
 
-.app{display:flex;height:100vh;overflow:hidden;background:#000;color:var(--tx);opacity:0;position:fixed;inset:0;}
+.app{display:flex;height:100vh;overflow:hidden;background:#000;color:var(--tx);opacity:0;}
 .panel-left.collapsed{width:0!important;min-width:0!important;overflow:hidden;border:none}
 .panel-left.collapsed .pl-body{display:none}
 .panel-left-toggle{position:fixed;left:0;top:50%;transform:translateY(-50%);width:42px;height:90px;background:linear-gradient(135deg,var(--acc),#1D9E75);border:none;border-radius:0 14px 14px 0;cursor:grab;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px;font-size:14px;color:#fff;transition:opacity .4s ease .3s, width .25s cubic-bezier(.4,0,.2,1), box-shadow .25s cubic-bezier(.4,0,.2,1);z-index:100;box-shadow:4px 0 20px rgba(0,0,0,0.3);opacity:0;pointer-events:none;user-select:none;touch-action:none;overflow:hidden}
@@ -5736,6 +5736,7 @@ function launchApp(){
     const presetsBtn=document.getElementById('presets-toggle-btn');
     if(presetsBtn) presetsBtn.classList.add('visible');
   }
+  document.body.style.overflow='hidden';
   // update guest UI (login button + spot switch visibility)
   if(typeof battUpdateGuestUI==='function') battUpdateGuestUI();
   l2.classList.add('out');
@@ -6788,6 +6789,7 @@ function l3AiAsk(topic){
 
 // ── ACCOUNT PAGE FUNCTIONS ──
 function openAccountPage(){
+  document.body.style.overflow='auto';
   battNav('account');
   const page=document.getElementById('account-page');
   if(page){
@@ -6797,6 +6799,8 @@ function openAccountPage(){
 }
 
 function closeAccountPage(){
+  document.body.style.overflow='auto';
+  battNav('member');
   const page=document.getElementById('account-page');
   if(page) page.classList.remove('visible');
 }
@@ -7339,6 +7343,9 @@ async function deleteAccount(){
 
 // ── LAYER 3: MEMBER AREA NAVIGATION ──
 function goLayer3(){
+  document.body.style.overflow='auto';
+  // title only — no history push (goLayer3 is called on auto-restore too)
+  document.title = 'BATT · Member Area';
   // Ensure AI fab is hidden in member area
   const aiFab=document.getElementById('ai-fab');
   if(aiFab){aiFab.style.opacity='0';aiFab.style.pointerEvents='none';}
@@ -7393,6 +7400,7 @@ function goLayer3(){
 var RISK_SHOWN = false;
 
 function openDashboard(){
+  document.body.style.overflow='hidden';
   battNav('cockpit');
   // hide layer3 with smooth fade
   const l3=document.getElementById('layer3');
@@ -7452,6 +7460,7 @@ function openDashboard(){
 }
 
 function backToMemberArea(){
+  document.body.style.overflow='auto';
   battNav('member');
   // Smooth fade out dashboard with pro easing
   const app=document.querySelector('.app');
@@ -8163,6 +8172,7 @@ function tpSaveState() {
 
 // Open trading page
 function openTradingPage() {
+  document.body.style.overflow='auto';
   battNav('trade');
   tpLoadState();
   const page = document.getElementById('trading-page');
@@ -8184,6 +8194,7 @@ function openTradingPage() {
 }
 
 function closeTradingPage() {
+  document.body.style.overflow='auto';
   battNav('member');
   const page = document.getElementById('trading-page');
   const l3 = document.getElementById('layer3');
@@ -12400,6 +12411,7 @@ function battHandleHashSilent(hash){
 
 // ── UI-only helpers (no history push) ──
 function _showAuthUI(){
+  document.body.style.overflow='auto';
   // hide everything that could be on top
   var app=document.querySelector('.app');
   if(app){ app.style.opacity='0'; app.style.pointerEvents='none'; }
@@ -12433,6 +12445,7 @@ function _showAuthUI(){
   }
 }
 function _showMemberUI(){
+  document.body.style.overflow='auto';
   var al=document.getElementById('auth-layer');
   if(al){ al.style.opacity='0'; setTimeout(()=>al.classList.add('hidden'),400); }
   // close any open pages
@@ -12446,6 +12459,7 @@ function _showMemberUI(){
   if(typeof initL3MenuVisibility==='function') initL3MenuVisibility();
 }
 function _openDashboardUI(){
+  document.body.style.overflow='hidden';
   var l3=document.getElementById('layer3');
   if(l3){ l3.classList.remove('visible'); setTimeout(()=>l3.classList.add('hidden'),500); }
   var app=document.querySelector('.app');
@@ -12462,6 +12476,7 @@ function _openDashboardUI(){
   }
 }
 function _openTradingUI(){
+  document.body.style.overflow='auto';
   var l3=document.getElementById('layer3');
   var page=document.getElementById('trading-page');
   if(page){
@@ -12489,10 +12504,12 @@ function _openTradingUI(){
   }
 }
 function _openAccountUI(){
+  document.body.style.overflow='auto';
   var page=document.getElementById('account-page');
   if(page){ page.classList.add('visible'); if(typeof loadAccountPage==='function') loadAccountPage(); }
 }
 function _openAboutUI(){
+  document.body.style.overflow='auto';
   var p=document.getElementById('about-cj-page');
   if(!p) return;
   p.style.display='block';
@@ -12544,6 +12561,7 @@ function guestGoLogin(){
 
 // ── ABOUT CJ PAGE ──
 function openAboutCJ(){
+  document.body.style.overflow='auto';
   closeL3Menu();
   battNav('about');
   var p=document.getElementById('about-cj-page');
@@ -12559,7 +12577,8 @@ function openAboutCJ(){
 }
 
 function closeAboutCJ(){
-  document.title = 'BATT · Member Area';
+  document.body.style.overflow='auto';
+  battNav('member');
   var p=document.getElementById('about-cj-page');
   if(!p)return;
   p.style.opacity='0';
