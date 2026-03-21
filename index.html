@@ -2165,6 +2165,21 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
         <div class="l3-actions-wrap">
           <div class="l3-actions">
             <button class="l3-btn l3-btn-sync" id="l3-sync-btn" onclick="authSaveWithToast()">↑ sync</button>
+            <div class="l3-menu-wrap" id="l3-menu-wrap">
+              <button class="l3-btn l3-btn-menu" id="l3-menu-btn" onclick="toggleL3Menu(event)" title="more">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect y="1.5" width="14" height="1.5" rx="0.75" fill="currentColor"/>
+                  <rect y="6.25" width="14" height="1.5" rx="0.75" fill="currentColor"/>
+                  <rect y="11" width="14" height="1.5" rx="0.75" fill="currentColor"/>
+                </svg>
+              </button>
+              <div class="l3-menu-dropdown" id="l3-menu-dropdown">
+                <div class="l3-menu-item" onclick="openAboutCJ()">
+                  <span class="l3-menu-item-icon">📖</span>
+                  <span>about crypto jurnal</span>
+                </div>
+              </div>
+            </div>
             <button class="l3-btn l3-btn-logout" onclick="authLogout()">logout</button>
           </div>
           <div class="l3-sync-status" id="l3-sync-status">never synced</div>
@@ -11949,6 +11964,343 @@ document.addEventListener('keydown', (e) => {
 
 <!-- POWER USER BADGE -->
 <div class="power-user-badge" id="power-user-badge">Power User</div>
+
+<!-- ABOUT CRYPTO JURNAL PAGE -->
+<div id="about-cj-page" style="display:none;opacity:0;transition:opacity .4s ease">
+  <div class="acj-container">
+    <div class="acj-topbar">
+      <button class="acj-back" onclick="closeAboutCJ()">← back</button>
+      <div class="acj-topbar-title">Crypto Jurnal</div>
+      <div style="width:60px"></div>
+    </div>
+
+    <div class="acj-hero">
+      <div class="acj-hero-badge">since 2018</div>
+      <h1 class="acj-hero-title">bet all the time,<br><span>bet with style</span></h1>
+      <p class="acj-hero-sub">a small community with a different perspective on the crypto market</p>
+    </div>
+
+    <div class="acj-body">
+
+      <!-- WHO WE ARE -->
+      <div class="acj-section">
+        <div class="acj-section-label">who we are</div>
+        <div class="acj-card">
+          <p class="acj-text">Crypto Jurnal is a small crypto community. The crypto market carries extremely high risk — for those who don't fully understand that risk, we're a small group offering a different perspective. We've been operating since 2018 with over 10 years of combined experience in the crypto market.</p>
+          <p class="acj-text" style="color:var(--acj-tx2);font-style:italic;margin-top:10px">Crypto Jurnal adalah komunitas kripto kecil. Pasar kripto memiliki risiko sangat tinggi — bagi yang belum benar-benar memahaminya, kami hadir dengan perspektif berbeda. Beroperasi sejak 2018 dengan pengalaman lebih dari 10 tahun di pasar kripto.</p>
+        </div>
+      </div>
+
+      <!-- TIMELINE -->
+      <div class="acj-section">
+        <div class="acj-section-label">our journey</div>
+        <div class="acj-timeline">
+
+          <div class="acj-tl-item">
+            <div class="acj-tl-dot"></div>
+            <div class="acj-tl-content">
+              <div class="acj-tl-year">2018</div>
+              <div class="acj-tl-title">Crypto Jurnal Founded</div>
+              <div class="acj-tl-desc">Started as a small group with a mission to share a grounded, risk-aware perspective on the crypto market.</div>
+            </div>
+          </div>
+
+          <div class="acj-tl-item">
+            <div class="acj-tl-dot"></div>
+            <div class="acj-tl-content">
+              <div class="acj-tl-year">2019 – 2020</div>
+              <div class="acj-tl-title">Ebook Release</div>
+              <div class="acj-tl-desc">Launched a bonding curve ebook sale in 2020 — our first structured knowledge product for the community.</div>
+            </div>
+          </div>
+
+          <div class="acj-tl-item">
+            <div class="acj-tl-dot acj-tl-dot-accent"></div>
+            <div class="acj-tl-content">
+              <div class="acj-tl-year">2020 – 2021</div>
+              <div class="acj-tl-title">CJ Private Funds</div>
+              <div class="acj-tl-desc">During the pandemic — a rare collective moment — we organically grew to manage a million-dollar AUM from both real-life connections and our private Telegram group. We didn't plan it. It just happened.</div>
+            </div>
+          </div>
+
+          <div class="acj-tl-item">
+            <div class="acj-tl-dot acj-tl-dot-live"></div>
+            <div class="acj-tl-content">
+              <div class="acj-tl-year">2026 →</div>
+              <div class="acj-tl-title">CJ Private Partnership (CJPP)</div>
+              <div class="acj-tl-desc">A 2-year private partnership to help people grow their crypto portfolio with a disciplined, spot-only brick system. No masterclass fees. No membership fees. Just partnership.</div>
+              <div class="acj-tl-pill">active</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- PHILOSOPHY -->
+      <div class="acj-section">
+        <div class="acj-section-label">our belief</div>
+        <div class="acj-quote">
+          <div class="acj-quote-mark">"</div>
+          <div class="acj-quote-text">We think this is our legacy. We don't even know it yet.</div>
+        </div>
+        <div class="acj-card acj-card-grid">
+          <div class="acj-stat-box">
+            <div class="acj-stat-val">10+</div>
+            <div class="acj-stat-lbl">years experience</div>
+          </div>
+          <div class="acj-stat-box">
+            <div class="acj-stat-val">2018</div>
+            <div class="acj-stat-lbl">founded</div>
+          </div>
+          <div class="acj-stat-box">
+            <div class="acj-stat-val">$1M</div>
+            <div class="acj-stat-lbl">aum managed (2020)</div>
+          </div>
+          <div class="acj-stat-box">
+            <div class="acj-stat-val">0%</div>
+            <div class="acj-stat-lbl">leverage used</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CONNECT -->
+      <div class="acj-section">
+        <div class="acj-section-label">connect with us</div>
+        <div class="acj-card">
+          <p class="acj-text" style="margin-bottom:16px">we're reachable on telegram — for questions, updates, or to learn more about the private partnership.</p>
+          <button class="acj-tg-btn" onclick="window.open('https://t.me/CryptoJurnal','_blank')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248l-2.04 9.613c-.152.673-.553.837-1.12.521l-3.1-2.286-1.496 1.44c-.165.165-.304.304-.624.304l.223-3.162 5.746-5.19c.25-.223-.054-.347-.386-.124L7.48 14.68l-3.06-.955c-.665-.208-.679-.665.138-.984l11.944-4.607c.554-.2 1.039.135.86.977-.001 0-.001.001 0 0z"/></svg>
+            open telegram @cryptojurnal
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="acj-footer">
+      <p>built with 🤍 by <a href="https://t.me/CryptoJurnal" target="_blank">@cryptojurnal</a></p>
+    </div>
+  </div>
+</div>
+
+<style>
+/* ── ABOUT CJ PAGE ── */
+#about-cj-page{
+  position:fixed;inset:0;background:var(--bg,#0d0d0d);z-index:9800;
+  overflow-y:auto;-webkit-overflow-scrolling:touch;
+}
+#about-cj-page.acj-visible{display:block!important;opacity:1!important}
+
+/* css vars scoped for light/dark compat */
+#about-cj-page{
+  --acj-acc:#00c47a;
+  --acj-tx:#e0e0e0;
+  --acj-tx2:#555;
+  --acj-bd:#1a1a1a;
+  --acj-panel:#111;
+  --acj-sf:#0a0a0a;
+}
+body.t-light #about-cj-page{
+  --acj-acc:#185fa5;
+  --acj-tx:#1a1a1a;
+  --acj-tx2:#888;
+  --acj-bd:#e8e8e5;
+  --acj-panel:#fff;
+  --acj-sf:#f4f4f1;
+}
+
+.acj-container{max-width:640px;margin:0 auto;padding:0 0 60px}
+
+/* topbar */
+.acj-topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 20px;position:sticky;top:0;z-index:10;
+  background:var(--bg,#0d0d0d);border-bottom:1px solid var(--acj-bd);
+}
+.acj-back{
+  background:none;border:none;color:var(--acj-tx2);font-size:13px;
+  cursor:pointer;padding:6px 10px;border-radius:6px;transition:all .2s;
+  font-family:inherit;
+}
+.acj-back:hover{background:var(--acj-panel);color:var(--acj-tx)}
+.acj-topbar-title{font-size:13px;font-weight:700;color:var(--acj-tx)}
+
+/* hero */
+.acj-hero{
+  padding:48px 24px 36px;text-align:center;
+  background:radial-gradient(ellipse at 50% 0%,rgba(0,196,122,.06) 0%,transparent 70%);
+}
+body.t-light .acj-hero{
+  background:radial-gradient(ellipse at 50% 0%,rgba(24,95,165,.06) 0%,transparent 70%);
+}
+.acj-hero-badge{
+  display:inline-block;font-size:9px;font-weight:700;
+  color:var(--acj-acc);background:rgba(0,196,122,.08);
+  border:1px solid rgba(0,196,122,.2);border-radius:20px;
+  padding:4px 12px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:16px;
+}
+body.t-light .acj-hero-badge{background:rgba(24,95,165,.08);border-color:rgba(24,95,165,.2)}
+.acj-hero-title{
+  font-size:28px;font-weight:800;color:var(--acj-tx);
+  line-height:1.2;margin:0 0 12px;letter-spacing:-.02em;
+}
+.acj-hero-title span{color:var(--acj-acc)}
+.acj-hero-sub{font-size:13px;color:var(--acj-tx2);line-height:1.6;margin:0}
+
+/* body sections */
+.acj-body{padding:0 20px}
+.acj-section{margin-bottom:32px}
+.acj-section-label{
+  font-size:9px;font-weight:700;color:var(--acj-tx2);
+  text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px;
+}
+.acj-card{
+  background:var(--acj-panel);border:1px solid var(--acj-bd);
+  border-radius:12px;padding:18px;
+}
+.acj-card-grid{
+  display:grid;grid-template-columns:repeat(2,1fr);gap:1px;
+  background:var(--acj-bd);padding:0;overflow:hidden;
+}
+.acj-text{font-size:12px;color:var(--acj-tx);line-height:1.75;margin:0}
+
+/* timeline */
+.acj-timeline{position:relative;padding-left:20px}
+.acj-timeline::before{
+  content:'';position:absolute;left:7px;top:8px;bottom:8px;
+  width:1px;background:var(--acj-bd);
+}
+.acj-tl-item{
+  position:relative;display:flex;gap:16px;
+  padding-bottom:28px;
+}
+.acj-tl-item:last-child{padding-bottom:0}
+.acj-tl-dot{
+  width:14px;height:14px;border-radius:50%;
+  background:var(--acj-panel);border:2px solid var(--acj-bd);
+  flex-shrink:0;margin-top:3px;position:relative;left:-20px;
+  transition:border-color .2s;
+}
+.acj-tl-dot-accent{border-color:var(--acj-acc);background:rgba(0,196,122,.15)}
+.acj-tl-dot-live{border-color:var(--acj-acc);background:var(--acj-acc);box-shadow:0 0 0 4px rgba(0,196,122,.15)}
+.acj-tl-content{flex:1;margin-left:-6px}
+.acj-tl-year{font-size:9px;font-weight:700;color:var(--acj-acc);letter-spacing:.05em;text-transform:uppercase;margin-bottom:4px}
+.acj-tl-title{font-size:13px;font-weight:700;color:var(--acj-tx);margin-bottom:6px}
+.acj-tl-desc{font-size:11px;color:var(--acj-tx2);line-height:1.7}
+.acj-tl-pill{
+  display:inline-block;margin-top:8px;font-size:8px;font-weight:700;
+  color:#000;background:var(--acj-acc);padding:3px 10px;border-radius:20px;
+  text-transform:uppercase;letter-spacing:.06em;
+}
+
+/* quote */
+.acj-quote{
+  background:var(--acj-panel);border:1px solid var(--acj-bd);
+  border-left:3px solid var(--acj-acc);border-radius:0 12px 12px 0;
+  padding:20px 20px 20px 24px;margin-bottom:12px;position:relative;
+}
+.acj-quote-mark{
+  font-size:48px;line-height:1;color:var(--acj-acc);opacity:.25;
+  position:absolute;top:8px;left:14px;font-family:Georgia,serif;
+}
+.acj-quote-text{font-size:15px;font-weight:600;color:var(--acj-tx);line-height:1.5;font-style:italic}
+
+/* stat boxes */
+.acj-stat-box{padding:16px;text-align:center}
+.acj-stat-val{font-size:22px;font-weight:800;color:var(--acj-acc)}
+.acj-stat-lbl{font-size:9px;color:var(--acj-tx2);text-transform:uppercase;letter-spacing:.05em;margin-top:4px}
+
+/* telegram button */
+.acj-tg-btn{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  width:100%;padding:14px;
+  background:linear-gradient(135deg,#0088cc,#006ba3);
+  color:#fff;border:none;border-radius:10px;
+  font-size:13px;font-weight:700;cursor:pointer;
+  font-family:inherit;transition:opacity .2s;
+}
+.acj-tg-btn:hover{opacity:.88}
+
+/* footer */
+.acj-footer{
+  text-align:center;padding:20px;
+  border-top:1px solid var(--acj-bd);margin:0 20px;
+  font-size:11px;color:var(--acj-tx2);
+}
+.acj-footer a{color:var(--acj-acc);text-decoration:none}
+
+/* ── L3 MENU BUTTON & DROPDOWN ── */
+.l3-menu-wrap{position:relative}
+.l3-btn-menu{
+  display:flex;align-items:center;justify-content:center;
+  width:32px;height:32px;padding:0;color:var(--tx2,#555);
+}
+.l3-btn-menu:hover{color:var(--tx,#e0e0e0)}
+.l3-menu-dropdown{
+  position:absolute;top:calc(100% + 8px);right:0;
+  min-width:190px;background:var(--panel,#111);
+  border:1px solid var(--bd,#222);border-radius:10px;
+  padding:6px;z-index:999;box-shadow:0 8px 28px rgba(0,0,0,.5);
+  display:none;
+  animation:acjDDIn .18s cubic-bezier(.4,0,.2,1);
+}
+@keyframes acjDDIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.l3-menu-dropdown.open{display:block}
+.l3-menu-item{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 12px;border-radius:7px;cursor:pointer;
+  font-size:12px;color:var(--tx2,#888);
+  transition:background .15s,color .15s;
+}
+.l3-menu-item:hover{background:var(--sf,#1a1a1a);color:var(--tx,#e0e0e0)}
+.l3-menu-item-icon{font-size:15px;flex-shrink:0}
+</style>
+
+<script>
+// ── ABOUT CJ PAGE ──
+function openAboutCJ(){
+  closeL3Menu();
+  var p=document.getElementById('about-cj-page');
+  if(!p)return;
+  p.style.display='block';
+  requestAnimationFrame(function(){
+    requestAnimationFrame(function(){
+      p.style.opacity='1';
+      p.classList.add('acj-visible');
+    });
+  });
+  p.scrollTop=0;
+}
+
+function closeAboutCJ(){
+  var p=document.getElementById('about-cj-page');
+  if(!p)return;
+  p.style.opacity='0';
+  setTimeout(function(){
+    p.style.display='none';
+    p.classList.remove('acj-visible');
+  },400);
+}
+
+// ── L3 MENU DROPDOWN ──
+function toggleL3Menu(e){
+  e.stopPropagation();
+  var dd=document.getElementById('l3-menu-dropdown');
+  if(!dd)return;
+  dd.classList.toggle('open');
+}
+
+function closeL3Menu(){
+  var dd=document.getElementById('l3-menu-dropdown');
+  if(dd)dd.classList.remove('open');
+}
+
+// close dropdown on outside click
+document.addEventListener('click',function(e){
+  var wrap=document.getElementById('l3-menu-wrap');
+  if(wrap&&!wrap.contains(e.target))closeL3Menu();
+});
+</script>
 
 <!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "52b9865191d84f9b92b6a0b25b65d1d6"}'></script><!-- End Cloudflare Web Analytics -->
 
