@@ -7374,16 +7374,21 @@ function openDashboard(){
           app.style.transform='scale(1) translateY(0)';
         });
       }
+      // restore AI fab — clear all inline styles first then re-show
       const fab=document.getElementById('ai-fab');
       if(fab){
-        fab.style.transition='opacity 0.4s cubic-bezier(0.4,0,0.2,1), transform 0.4s cubic-bezier(0.4,0,0.2,1)';
-        fab.style.transform='scale(0.5)';
+        fab.style.transition='none';
+        fab.style.transform='scale(0.8) translateY(20px)';
         fab.style.opacity='0';
-        setTimeout(()=>{
-          fab.style.opacity='1';
-          fab.style.transform='scale(1)';
-          fab.style.pointerEvents='all';
-        },200);
+        fab.style.pointerEvents='none';
+        requestAnimationFrame(()=>{
+          fab.style.transition='opacity 0.4s cubic-bezier(0.4,0,0.2,1), transform 0.4s cubic-bezier(0.4,0,0.2,1)';
+          requestAnimationFrame(()=>{
+            fab.style.opacity='1';
+            fab.style.transform='scale(1) translateY(0)';
+            fab.style.pointerEvents='all';
+          });
+        });
       }
       // Show left panel toggle
       const leftToggle=document.getElementById('left-panel-toggle');
@@ -7393,9 +7398,15 @@ function openDashboard(){
         if(backBtn) backBtn.style.display='flex';
         const kbdHint=document.getElementById('kbd-hint');
         if(kbdHint) setTimeout(()=>{kbdHint.classList.add('visible');},500);
+        // restore presets toggle — remove and re-add visible to force reflow
         const presetsBtn=document.getElementById('presets-toggle-btn');
-        if(presetsBtn) presetsBtn.classList.add('visible');
+        if(presetsBtn){
+          presetsBtn.classList.remove('visible');
+          requestAnimationFrame(()=>presetsBtn.classList.add('visible'));
+        }
       }
+      // update guest UI
+      if(typeof battUpdateGuestUI==='function') battUpdateGuestUI();
     },400);
   } else {
     // show layer2 (risk disclosure) first time
