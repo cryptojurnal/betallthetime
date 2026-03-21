@@ -2713,7 +2713,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 <div class="app">
 
 <!-- LEFT PANEL TOGGLE -->
-<button class="panel-left-toggle" id="left-panel-toggle" title="Controls" onclick="togglePanel()">
+<button class="panel-left-toggle" id="left-panel-toggle" title="Controls - Drag to move">
   <span class="panel-left-toggle-icon">⚙️</span>
   <span class="panel-left-toggle-label">CTRL</span>
 </button>
@@ -4561,6 +4561,7 @@ function togglePanel(){
   const panel=document.getElementById('left-panel');
   const btn=document.getElementById('collapse-btn');
   const toggle=document.getElementById('left-panel-toggle');
+  const tradeToggle=document.getElementById('trade-panel-toggle');
   const isCollapsed=panel.classList.contains('collapsed');
 
   if(isCollapsed){
@@ -4569,13 +4570,20 @@ function togglePanel(){
     panel.classList.remove('collapsed');
     if(btn) btn.textContent='‹';
     if(toggle) toggle.classList.add('expanded');
+    // also push trade toggle right so it doesn't overlap
+    if(tradeToggle) tradeToggle.classList.add('expanded');
     // after transition completes restore scroll
     setTimeout(()=>{ panel.style.overflow=''; },380);
   } else {
-    // collapsing — let width transition run, then hide content
+    // collapsing
     if(toggle) toggle.classList.remove('expanded');
     if(btn) btn.textContent='›';
     panel.classList.add('collapsed');
+    // restore trade toggle position only if trade panel itself is also collapsed
+    const tradePanel=document.getElementById('trade-panel');
+    if(tradeToggle && tradePanel && tradePanel.classList.contains('collapsed')){
+      tradeToggle.classList.remove('expanded');
+    }
   }
 
   setTimeout(()=>{
