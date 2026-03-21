@@ -9459,6 +9459,7 @@ function tpRenderOrderBook() {
 // Update openTradingPage to include order book
 var _origOpenTradingPage = openTradingPage;
 openTradingPage = function() {
+  document.body.style.overflow='auto';
   if(typeof battNav==='function') battNav('trade');
   tpLoadState();
   const page = document.getElementById('trading-page');
@@ -12333,189 +12334,78 @@ body.t-light .acj-hero-badge{background:rgba(24,95,165,.08);border-color:rgba(24
 </style>
 
 <script>
-// ── HASH ROUTER ──
-var BATT_ROUTES = {
-  '':        { title: 'bet all the time, bet with style' },
-  'auth':    { title: 'BATT · Login' },
-  'member':  { title: 'BATT · Member Area' },
-  'cockpit': { title: 'BATT · Cockpit' },
-  'trade':   { title: 'BATT · Trade Panel' },
-  'account': { title: 'BATT · Account' },
-  'about':   { title: 'BATT · About CJ' },
+// ── ROUTER ──
+// Simple: update title + URL hash on navigation. Browser back/forward only closes overlay pages.
+
+var BATT_TITLES = {
+  '':        'bet all the time, bet with style',
+  'auth':    'BATT · Login',
+  'member':  'BATT · Member Area',
+  'cockpit': 'BATT · Cockpit',
+  'trade':   'BATT · Trade Panel',
+  'account': 'BATT · Account',
+  'about':   'BATT · About CJ',
 };
 
-// safe token reader — works across script blocks regardless of let/var scoping
+// safe token reader across script blocks
 function _battToken(){
   try{ return (typeof AUTH_TOKEN!=='undefined' ? AUTH_TOKEN : null) || localStorage.getItem('batt_token') || null; }
   catch(e){ return localStorage.getItem('batt_token') || null; }
 }
 
-// flag — only push history on explicit user navigation, not auto-restores
-var _battUserNav = false;
-
-function battSetRoute(hash){
-  var route = BATT_ROUTES[hash] || BATT_ROUTES[''];
-  document.title = route.title;
-  if(!_battUserNav) return;
-  var currentHash = (window.location.hash || '').replace('#','');
+function battNav(page){
+  document.title = BATT_TITLES[page] || 'bet all the time, bet with style';
   try{
-    if(currentHash === hash){
-      history.replaceState({ batt: hash }, route.title, hash ? '#'+hash : window.location.pathname.split('#')[0]);
-    } else {
-      history.pushState({ batt: hash }, route.title, hash ? '#'+hash : window.location.pathname.split('#')[0]);
+    var hash = page ? '#'+page : window.location.pathname;
+    if((window.location.hash||'').replace('#','') !== page){
+      history.pushState({batt:page}, document.title, hash);
     }
-  }catch(e){ /* sandboxed iframe — ignore */ }
+  }catch(e){}
 }
+function battSetRoute(page){ battNav(page); }
+function battSetTitle(page){ battNav(page); }
 
-// wrap every explicit user click with this
-function battNav(hash){
-  _battUserNav = true;
-  battSetRoute(hash);
-  _battUserNav = false;
-}
+// browser back/forward — ONLY closes overlay pages, never redirects to auth
+window.addEventListener('popstate', function(){
+  var hash = (window.location.hash||'').replace('#','');
+  document.title = BATT_TITLES[hash] || BATT_TITLES[''];
 
-// handle browser back/forward
-window.addEventListener('popstate', function(e){
-  var hash = (window.location.hash || '').replace('#','');
-  battHandleHashSilent(hash);
+  // close any overlay page that shouldn't be visible for this hash
+  var account = document.getElementById('account-page');
+  var trading = document.getElementById('trading-page');
+  var about   = document.getElementById('about-cj-page');
+  var l3      = document.getElementById('layer3');
+  var app     = document.querySelector('.app');
+
+  if(hash === 'member'){
+    // close overlays, show member area
+    if(account){ account.classList.remove('visible'); }
+    if(trading){ trading.classList.remove('visible'); trading.style.opacity=''; trading.style.transform=''; trading.style.transition=''; }
+    if(about){ about.style.display='none'; about.style.opacity='0'; about.classList.remove('acj-visible'); }
+    if(app){ app.style.opacity='0'; }
+    document.body.style.overflow='auto';
+    if(l3){ l3.classList.remove('hidden'); requestAnimationFrame(function(){ requestAnimationFrame(function(){ l3.classList.add('visible'); }); }); }
+  } else if(hash === 'cockpit'){
+    // show cockpit
+    if(account){ account.classList.remove('visible'); }
+    if(trading){ trading.classList.remove('visible'); }
+    if(about){ about.style.display='none'; about.style.opacity='0'; about.classList.remove('acj-visible'); }
+    if(l3){ l3.classList.remove('visible'); setTimeout(function(){ l3.classList.add('hidden'); }, 300); }
+    document.body.style.overflow='hidden';
+    if(app){ app.style.opacity='1'; app.style.transform=''; app.style.pointerEvents=''; }
+  } else if(hash === 'account'){
+    if(account){ account.classList.add('visible'); if(typeof loadAccountPage==='function') loadAccountPage(); }
+    document.body.style.overflow='auto';
+  } else if(hash === 'trade'){
+    if(trading){ trading.style.transition=''; trading.style.opacity=''; trading.style.transform=''; trading.classList.add('visible'); }
+    if(l3){ l3.classList.remove('visible'); }
+    document.body.style.overflow='auto';
+  } else if(hash === 'about'){
+    if(about){ about.style.display='block'; requestAnimationFrame(function(){ requestAnimationFrame(function(){ about.style.opacity='1'; about.classList.add('acj-visible'); }); }); }
+    document.body.style.overflow='auto';
+  }
+  // 'auth' and '' — do nothing, let existing state stay
 });
-
-// silent version — only updates UI, never pushes history
-function battHandleHashSilent(hash){
-  var tok=_battToken();
-  document.title = (BATT_ROUTES[hash] || BATT_ROUTES['']).title;
-  switch(hash){
-    case 'cockpit':
-      if(tok){ _openDashboardUI(); } else { _showAuthUI(); }
-      break;
-    case 'trade':
-      if(tok){ _openTradingUI(); } else { _showAuthUI(); }
-      break;
-    case 'account':
-      if(tok){ _openAccountUI(); } else { _showAuthUI(); }
-      break;
-    case 'about':
-      _openAboutUI();
-      break;
-    case 'member':
-      if(tok){ _showMemberUI(); } else { _showAuthUI(); }
-      break;
-    case 'auth':
-      _showAuthUI();
-      break;
-    default:
-      document.title = BATT_ROUTES[''].title;
-      break;
-  }
-}
-
-// ── UI-only helpers (no history push) ──
-function _showAuthUI(){
-  document.body.style.overflow='auto';
-  // hide everything that could be on top
-  var app=document.querySelector('.app');
-  if(app){ app.style.opacity='0'; app.style.pointerEvents='none'; }
-  var l3=document.getElementById('layer3');
-  if(l3){ l3.classList.remove('visible'); }
-  var l1=document.getElementById('layer1');
-  if(l1){ l1.classList.add('hidden'); }
-  var leftToggle=document.getElementById('left-panel-toggle');
-  if(leftToggle) leftToggle.classList.remove('visible');
-  var presetsBtn=document.getElementById('presets-toggle-btn');
-  if(presetsBtn) presetsBtn.classList.remove('visible');
-  var backBtn=document.getElementById('back-to-member');
-  if(backBtn){ backBtn.style.display='none'; }
-  var guestBtn=document.getElementById('guest-login-btn');
-  if(guestBtn) guestBtn.style.display='none';
-  var guestBanner=document.getElementById('guest-mode-banner');
-  if(guestBanner) guestBanner.style.display='none';
-  var tp=document.getElementById('trading-page');
-  if(tp){ tp.classList.remove('visible'); tp.style.opacity=''; tp.style.transform=''; tp.style.transition=''; }
-  var accPage=document.getElementById('account-page');
-  if(accPage) accPage.classList.remove('visible');
-  var aboutPage=document.getElementById('about-cj-page');
-  if(aboutPage){ aboutPage.style.display='none'; aboutPage.style.opacity='0'; aboutPage.classList.remove('acj-visible'); }
-  // show auth — remove BOTH hidden AND out classes
-  var al=document.getElementById('auth-layer');
-  if(al){
-    al.classList.remove('hidden','out');
-    al.style.opacity='0';
-    al.style.pointerEvents='';
-    requestAnimationFrame(()=>requestAnimationFrame(()=>{ al.style.opacity='1'; }));
-  }
-}
-function _showMemberUI(){
-  document.body.style.overflow='auto';
-  var al=document.getElementById('auth-layer');
-  if(al){ al.style.opacity='0'; setTimeout(()=>al.classList.add('hidden'),400); }
-  // close any open pages
-  var pages=['account-page','trading-page','about-cj-page'];
-  pages.forEach(function(id){
-    var p=document.getElementById(id);
-    if(p){ p.classList.remove('visible'); p.style.display='none'; p.style.opacity='0'; }
-  });
-  var l3=document.getElementById('layer3');
-  if(l3){ l3.classList.remove('hidden'); requestAnimationFrame(()=>requestAnimationFrame(()=>l3.classList.add('visible'))); }
-  if(typeof initL3MenuVisibility==='function') initL3MenuVisibility();
-}
-function _openDashboardUI(){
-  document.body.style.overflow='hidden';
-  var l3=document.getElementById('layer3');
-  if(l3){ l3.classList.remove('visible'); setTimeout(()=>l3.classList.add('hidden'),500); }
-  var app=document.querySelector('.app');
-  if(app){ app.style.opacity='1'; app.style.transform=''; app.style.pointerEvents=''; }
-  if(_battToken()){
-    var backBtn=document.getElementById('back-to-member');
-    if(backBtn) backBtn.style.display='flex';
-    var presetsBtn=document.getElementById('presets-toggle-btn');
-    if(presetsBtn){ presetsBtn.classList.remove('visible'); requestAnimationFrame(()=>presetsBtn.classList.add('visible')); }
-    var leftToggle=document.getElementById('left-panel-toggle');
-    if(leftToggle) leftToggle.classList.add('visible');
-    var fab=document.getElementById('ai-fab');
-    if(fab){ fab.style.opacity='1'; fab.style.transform=''; fab.style.pointerEvents='all'; }
-  }
-}
-function _openTradingUI(){
-  document.body.style.overflow='auto';
-  var l3=document.getElementById('layer3');
-  var page=document.getElementById('trading-page');
-  if(page){
-    // clear any lingering inline styles left by closeTradingPage fade-out
-    page.style.transition='';
-    page.style.opacity='';
-    page.style.transform='';
-    page.classList.add('visible');
-    if(l3) l3.classList.remove('visible');
-    // reset chart guard so tpInitChart reinitializes
-    if(window._tpChart){
-      try{ window._tpChart.remove(); }catch(e){}
-      window._tpChart=null;
-    }
-    if(typeof tpLoadState==='function') tpLoadState();
-    if(typeof tpFetchPrices==='function') tpFetchPrices();
-    if(typeof tpInitChart==='function') tpInitChart();
-    if(typeof tpUpdateUI==='function') tpUpdateUI();
-    if(typeof tpRenderPositions==='function') tpRenderPositions();
-    if(typeof tpRenderHistory==='function') tpRenderHistory();
-    if(typeof tpRenderPairList==='function') tpRenderPairList();
-    if(!window._tpPriceInterval && typeof tpFetchPrices==='function'){
-      window._tpPriceInterval=setInterval(tpFetchPrices,5000);
-    }
-  }
-}
-function _openAccountUI(){
-  document.body.style.overflow='auto';
-  var page=document.getElementById('account-page');
-  if(page){ page.classList.add('visible'); if(typeof loadAccountPage==='function') loadAccountPage(); }
-}
-function _openAboutUI(){
-  document.body.style.overflow='auto';
-  var p=document.getElementById('about-cj-page');
-  if(!p) return;
-  p.style.display='block';
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{ p.style.opacity='1'; p.classList.add('acj-visible'); }));
-  p.scrollTop=0;
-}
 
 // ── GUEST / AUTH VISIBILITY HELPERS ──
 function battUpdateGuestUI(){
@@ -12523,7 +12413,6 @@ function battUpdateGuestUI(){
   var guestBtn=document.getElementById('guest-login-btn');
   var spotSwitcher=document.getElementById('spot-mode-switcher');
   var guestBanner=document.getElementById('guest-mode-banner');
-
   if(tok){
     if(guestBtn) guestBtn.style.display='none';
     if(guestBanner) guestBanner.style.display='none';
@@ -12533,30 +12422,23 @@ function battUpdateGuestUI(){
   } else {
     if(guestBtn) guestBtn.style.display='block';
     if(guestBanner) guestBanner.style.display='flex';
-    if(spotSwitcher){
-      spotSwitcher.style.display='';
-      spotSwitcher.setAttribute('data-guest','1');
-    }
+    if(spotSwitcher){ spotSwitcher.style.display=''; spotSwitcher.setAttribute('data-guest','1'); }
   }
 }
 
 function guestGoLogin(){
   window.BATT_GUEST=false;
-  // hide guest UI
   var guestBtn=document.getElementById('guest-login-btn');
   var guestBanner=document.getElementById('guest-mode-banner');
   if(guestBtn) guestBtn.style.display='none';
   if(guestBanner) guestBanner.style.display='none';
-  // fade out app
   var app=document.querySelector('.app');
   if(app){ app.style.transition='opacity 0.4s ease'; app.style.opacity='0'; }
-  // reset layer2 so launch btn works if they come back as guest again
   var l2=document.getElementById('layer2');
   if(l2){ l2.classList.add('hidden'); l2.classList.remove('out'); l2.style.opacity='0'; }
-  // show auth
   battNav('auth');
   var al=document.getElementById('auth-layer');
-  if(al){ al.classList.remove('hidden'); al.style.opacity='0'; requestAnimationFrame(()=>requestAnimationFrame(()=>{al.style.opacity='1';})); }
+  if(al){ al.classList.remove('hidden','out'); al.style.opacity='0'; requestAnimationFrame(function(){ requestAnimationFrame(function(){ al.style.opacity='1'; }); }); }
 }
 
 // ── ABOUT CJ PAGE ──
@@ -12567,12 +12449,7 @@ function openAboutCJ(){
   var p=document.getElementById('about-cj-page');
   if(!p)return;
   p.style.display='block';
-  requestAnimationFrame(function(){
-    requestAnimationFrame(function(){
-      p.style.opacity='1';
-      p.classList.add('acj-visible');
-    });
-  });
+  requestAnimationFrame(function(){ requestAnimationFrame(function(){ p.style.opacity='1'; p.classList.add('acj-visible'); }); });
   p.scrollTop=0;
 }
 
@@ -12582,36 +12459,24 @@ function closeAboutCJ(){
   var p=document.getElementById('about-cj-page');
   if(!p)return;
   p.style.opacity='0';
-  setTimeout(function(){
-    p.style.display='none';
-    p.classList.remove('acj-visible');
-  },400);
+  setTimeout(function(){ p.style.display='none'; p.classList.remove('acj-visible'); },400);
 }
 
 // ── L3 MENU DROPDOWN ──
-var _cjFeatureAllowed = false; // set by server check only
+var _cjFeatureAllowed = false;
 
 async function initL3MenuVisibility(){
   var wrap=document.getElementById('l3-menu-wrap');
   if(!wrap) return;
-  // always hide first — server decides
   wrap.style.display='none';
   _cjFeatureAllowed = false;
   var tok=_battToken();
   if(!tok) return;
   try{
-    var res=await fetch(AUTH_URL+'/auth/check-feature',{
-      method:'GET',
-      headers:{'Authorization':'Bearer '+tok}
-    });
+    var res=await fetch(AUTH_URL+'/auth/check-feature',{ method:'GET', headers:{'Authorization':'Bearer '+tok} });
     var data=await res.json();
-    if(data.allowed===true){
-      _cjFeatureAllowed=true;
-      wrap.style.display='';
-    }
-  }catch(e){
-    // network error — stay hidden
-  }
+    if(data.allowed===true){ _cjFeatureAllowed=true; wrap.style.display=''; }
+  }catch(e){}
 }
 
 function toggleL3Menu(e){
@@ -12627,7 +12492,6 @@ function closeL3Menu(){
   if(dd)dd.classList.remove('open');
 }
 
-// close dropdown on outside click
 document.addEventListener('click',function(e){
   var wrap=document.getElementById('l3-menu-wrap');
   if(wrap&&!wrap.contains(e.target))closeL3Menu();
