@@ -5948,28 +5948,32 @@ render();
 function goLayer2(){
   const l1=document.getElementById('layer1');
   const l2=document.getElementById('layer2');
-  // reset launch button — force it always visible and clickable
-  const lb=l2?l2.querySelector('.launch-btn'):null;
-  if(lb){
-    lb.style.cssText='opacity:1;pointer-events:auto;animation:none;transform:none;disabled:false';
-    lb.disabled=false;
-  }
-  if(l2) l2.style.pointerEvents='';
+  if(!l2) return;
+  // fully reset layer2 — clear ALL inline styles that may have been set
+  l2.classList.remove('hidden','out');
+  l2.style.display='';
+  l2.style.opacity='';
+  l2.style.pointerEvents='';
+  l2.style.transform='';
+  // reset launch button
+  const lb=l2.querySelector('.launch-btn');
+  if(lb){ lb.disabled=false; lb.style.cssText=''; }
   if(l1 && !l1.classList.contains('hidden')){
     l1.classList.add('out');
     setTimeout(()=>{
       l1.classList.add('hidden');
-      if(l2){l2.classList.remove('hidden','out');requestAnimationFrame(()=>requestAnimationFrame(()=>{l2.style.opacity='1';}));}
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{ l2.style.opacity='1'; }));
     },900);
   } else {
-    if(l2){l2.classList.remove('hidden','out');requestAnimationFrame(()=>requestAnimationFrame(()=>{l2.style.opacity='1';}));}
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{ l2.style.opacity='1'; }));
   }
 }
 function launchApp(){
   const l2=document.getElementById('layer2');
   if(!l2) return;
-  // force layer2 hidden immediately — no lingering state
-  l2.style.pointerEvents='none';
+  // disable button to prevent double-tap, don't block whole layer
+  const lb=l2.querySelector('.launch-btn');
+  if(lb){ lb.disabled=true; lb.style.opacity='0.5'; }
   // mark risk disclosure as shown for this session
   window.RISK_SHOWN = true;
   // always default to leverage mode
@@ -12770,6 +12774,17 @@ async function initL3MenuVisibility(){
   if(!wrap) return;
   wrap.style.display='none';
   _cjFeatureAllowed = false;
+
+  // check client-side first using AUTH_USER or localStorage
+  var user = null;
+  try{ user = (typeof AUTH_USER!=='undefined' && AUTH_USER) ? AUTH_USER : JSON.parse(localStorage.getItem('wz_user')||'null'); }catch(e){}
+  var username = (user && (user.username||user.email||'')).toLowerCase().replace(/@/,'').split('@')[0];
+  var ALLOWED = ['cryptojurnal','nobitacrypto'];
+  if(ALLOWED.includes(username)){
+    _cjFeatureAllowed=true; wrap.style.display=''; return;
+  }
+
+  // fallback: server check
   var tok=_battToken();
   if(!tok) return;
   try{
