@@ -6347,6 +6347,9 @@ function authForceLogout(){
   localStorage.removeItem('wz_sync_count');
   localStorage.removeItem('wz_last_sync');
   localStorage.removeItem('wz_auth_google');
+  // reset in-memory badge state — server is source of truth
+  if(typeof _badgeData !== 'undefined'){ _badgeData = {}; }
+  if(typeof _badgeNewList !== 'undefined'){ _badgeNewList = []; }
   // hide user bar
   const ub=document.getElementById('auth-user-bar');
   if(ub) ub.classList.add('hidden');
@@ -7549,7 +7552,7 @@ function exportAllData(){
   
   showToast('Data exported!','success');
   if(typeof logActivity==='function') logActivity('export',{format:'json'});
-  localStorage.setItem('wz_badge_export','1');
+  if(typeof unlockBadge==='function') unlockBadge('export');
   if(typeof checkBadges==='function') checkBadges();
 }
 
@@ -7714,6 +7717,8 @@ function goLayer3(){
   }
   // show/hide ☰ menu based on allowed usernames
   if(typeof initL3MenuVisibility==='function') initL3MenuVisibility();
+  // load badges from server
+  if(typeof loadBadgesFromServer==='function') loadBadgesFromServer().then(()=>{ if(typeof checkBadges==='function') checkBadges(); });
   // update stats
   updateMemberStats();
   // hide layer2 if visible
@@ -8194,109 +8199,104 @@ function loadMoreActivity(){
 
 // ── ACHIEVEMENTS/BADGES ──
 const BADGES=[
-  {id:'first_steps',icon:'🌱',name:'First Steps',desc:'Complete onboarding',check:()=>localStorage.getItem('onboarding_done')},
-  {id:'saver',icon:'💾',name:'Saver',desc:'Save your first preset',check:()=>parseInt(localStorage.getItem('wz_badge_presets')||'0')>=1},
-  {id:'power_user',icon:'📊',name:'Power User',desc:'Create 10+ presets',check:()=>parseInt(localStorage.getItem('wz_badge_presets')||'0')>=10},
-  {id:'cloud_sync',icon:'☁️',name:'Cloud Sync',desc:'Sync to cloud',check:()=>parseInt(localStorage.getItem('wz_sync_count')||'0')>=1},
-  {id:'cloud_master',icon:'🌩️',name:'Cloud Master',desc:'Sync 50 times',check:()=>parseInt(localStorage.getItem('wz_sync_count')||'0')>=50},
-  {id:'exporter',icon:'📤',name:'Exporter',desc:'Export your data',check:()=>localStorage.getItem('wz_badge_export')},
-  {id:'night_owl',icon:'🌙',name:'Night Owl',desc:'Use after midnight',check:()=>localStorage.getItem('wz_badge_night')},
-  {id:'early_bird',icon:'🐦',name:'Early Bird',desc:'Use before 6am',check:()=>localStorage.getItem('wz_badge_early')},
-  {id:'week_streak',icon:'🔥',name:'On Fire',desc:'7-day login streak',check:()=>parseInt(localStorage.getItem('wz_badge_streak')||'0')>=7},
-  {id:'sharer',icon:'🔗',name:'Sharer',desc:'Share a preset',check:()=>localStorage.getItem('wz_badge_share')}
+  {id:'first_steps', icon:'🌱', name:'First Steps',  desc:'Complete onboarding'},
+  {id:'saver',       icon:'💾', name:'Saver',         desc:'Save your first preset'},
+  {id:'power_user',  icon:'📊', name:'Power User',    desc:'Create 10+ presets'},
+  {id:'cloud_sync',  icon:'☁️', name:'Cloud Sync',    desc:'Sync to cloud'},
+  {id:'cloud_master',icon:'🌩️', name:'Cloud Master',  desc:'Sync 50 times'},
+  {id:'exporter',    icon:'📤', name:'Exporter',      desc:'Export your data'},
+  {id:'night_owl',   icon:'🌙', name:'Night Owl',     desc:'Use after midnight'},
+  {id:'early_bird',  icon:'🐦', name:'Early Bird',    desc:'Use before 6am'},
+  {id:'week_streak', icon:'🔥', name:'On Fire',       desc:'7-day login streak'},
+  {id:'sharer',      icon:'🔗', name:'Sharer',        desc:'Share a preset'},
 ];
 
-function checkTimeBadges(){
-  const hour=new Date().getHours();
-  if(hour>=0&&hour<5) localStorage.setItem('wz_badge_night','1');
-  if(hour>=4&&hour<6) localStorage.setItem('wz_badge_early','1');
+// server-side badge state — loaded on login
+var _badgeData = {}; // { badge_id: unlocked_at_timestamp }
+var _badgeNewList = []; // badges newly unlocked this session
+
+async function loadBadgesFromServer(){
+  const tok = _battToken();
+  if(!tok){ _badgeData = {}; return; }
+  try{
+    const r = await fetch(AUTH_URL+'/badges/load', { headers:{'Authorization':'Bearer '+tok} });
+    const d = await r.json();
+    if(d.ok) _badgeData = d.badges || {};
+  }catch(e){ _badgeData = {}; }
 }
 
-function checkLoginStreak(){
-  const today=new Date().toDateString();
-  const lastLogin=localStorage.getItem('wz_last_login_date');
-  let streak=parseInt(localStorage.getItem('wz_badge_streak')||'0');
-  
-  if(lastLogin){
-    const lastDate=new Date(lastLogin);
-    const diff=Math.floor((new Date(today)-lastDate)/(1000*60*60*24));
-    if(diff===1) streak++;
-    else if(diff>1) streak=1;
-  }else{
-    streak=1;
-  }
-  
-  localStorage.setItem('wz_last_login_date',today);
-  localStorage.setItem('wz_badge_streak',streak);
+async function saveBadgeToServer(badgeId){
+  const tok = _battToken();
+  if(!tok) return;
+  try{
+    await fetch(AUTH_URL+'/badges/unlock', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok},
+      body: JSON.stringify({badge_id: badgeId})
+    });
+  }catch(e){}
 }
 
 function renderBadges(){
-  const grid=document.getElementById('badges-grid');
-  const unlockedEl=document.getElementById('badges-unlocked');
-  const totalEl=document.getElementById('badges-total');
-  if(!grid)return;
-  
-  checkTimeBadges();
-  
-  let unlocked=0;
-  const newBadges=JSON.parse(localStorage.getItem('wz_new_badges')||'[]');
-  
-  grid.innerHTML=BADGES.map(b=>{
-    const isUnlocked=b.check();
+  const grid = document.getElementById('badges-grid');
+  const unlockedEl = document.getElementById('badges-unlocked');
+  const totalEl = document.getElementById('badges-total');
+  if(!grid) return;
+
+  // check time badges client-side and unlock if needed
+  const hour = new Date().getHours();
+  if(hour>=0 && hour<5)  unlockBadge('night_owl');
+  if(hour>=4 && hour<6)  unlockBadge('early_bird');
+
+  let unlocked = 0;
+  grid.innerHTML = BADGES.map(b=>{
+    const ts = _badgeData[b.id];
+    const isUnlocked = !!ts;
     if(isUnlocked) unlocked++;
-    const isNew=newBadges.includes(b.id);
-    const unlockedDate=localStorage.getItem('wz_badge_date_'+b.id);
-    
+    const isNew = _badgeNewList.includes(b.id);
     return `<div class="badge-item ${isUnlocked?'unlocked':'locked'}" title="${b.desc}" onclick="showBadgeInfo('${b.id}','${b.name}','${b.desc}',${isUnlocked})">
       ${isNew?'<span class="badge-new">!</span>':''}
       <span class="badge-icon">${b.icon}</span>
       <span class="badge-name">${b.name}</span>
-      ${isUnlocked&&unlockedDate?`<span class="badge-date">${new Date(parseInt(unlockedDate)).toLocaleDateString()}</span>`:''}
+      ${isUnlocked&&ts?`<span class="badge-date">${new Date(ts).toLocaleDateString()}</span>`:''}
     </div>`;
   }).join('');
-  
-  if(unlockedEl) unlockedEl.textContent=unlocked;
-  if(totalEl) totalEl.textContent=BADGES.length;
-  
-  // Clear new badges indicator after viewing
-  localStorage.setItem('wz_new_badges','[]');
+
+  if(unlockedEl) unlockedEl.textContent = unlocked;
+  if(totalEl) totalEl.textContent = BADGES.length;
+  _badgeNewList = [];
 }
 
-function unlockBadge(badgeId){
-  const badge=BADGES.find(b=>b.id===badgeId);
-  if(!badge||!badge.check())return;
-  
-  const dateKey='wz_badge_date_'+badgeId;
-  if(localStorage.getItem(dateKey))return; // Already unlocked
-  
-  localStorage.setItem(dateKey,Date.now());
-  
-  // Mark as new
-  const newBadges=JSON.parse(localStorage.getItem('wz_new_badges')||'[]');
-  if(!newBadges.includes(badgeId)){
-    newBadges.push(badgeId);
-    localStorage.setItem('wz_new_badges',JSON.stringify(newBadges));
-  }
-  
-  showToast('🏆 Badge unlocked: '+badge.name,'success',4000);
+async function unlockBadge(badgeId){
+  if(_badgeData[badgeId]) return; // already unlocked
+  const badge = BADGES.find(b=>b.id===badgeId);
+  if(!badge) return;
+  const tok = _battToken();
+  if(!tok) return; // guests don't earn badges
+  _badgeData[badgeId] = Date.now();
+  _badgeNewList.push(badgeId);
+  await saveBadgeToServer(badgeId);
+  showToast('🏆 Badge unlocked: '+badge.name, 'success', 4000);
 }
 
-function checkBadges(){
-  BADGES.forEach(b=>{
-    if(b.check()&&!localStorage.getItem('wz_badge_date_'+b.id)){
-      unlockBadge(b.id);
-    }
-  });
+async function checkBadges(){
+  // called after actions — check counter-based badges
+  const syncCount = parseInt(localStorage.getItem('wz_sync_count')||'0');
+  const presetCount = parseInt(localStorage.getItem('wz_badge_presets')||'0');
+  if(presetCount >= 1)  await unlockBadge('saver');
+  if(presetCount >= 10) await unlockBadge('power_user');
+  if(syncCount >= 1)    await unlockBadge('cloud_sync');
+  if(syncCount >= 50)   await unlockBadge('cloud_master');
 }
 
-function showBadgeInfo(id,name,desc,unlocked){
-  const badge=BADGES.find(b=>b.id===id);
-  const status=unlocked?'<span style="color:#00c47a">✅ Unlocked</span>':'<span style="color:#666">🔒 Locked</span>';
-  const date=localStorage.getItem('wz_badge_date_'+id);
-  const dateStr=date?'<br><small style="color:#555">Unlocked: '+new Date(parseInt(date)).toLocaleDateString()+'</small>':'';
+function showBadgeInfo(id, name, desc, unlocked){
+  const badge = BADGES.find(b=>b.id===id);
+  const status = unlocked?'<span style="color:#00c47a">✅ Unlocked</span>':'<span style="color:#666">🔒 Locked</span>';
+  const ts = _badgeData[id];
+  const dateStr = ts?'<br><small style="color:#555">Unlocked: '+new Date(ts).toLocaleDateString()+'</small>':'';
   showConfirm({
-    icon: badge.icon,
-    type: unlocked ? 'success' : 'info',
+    icon: badge?badge.icon:'🏆',
+    type: unlocked?'success':'info',
     title: name,
     message: desc+'<br><br>'+status+dateStr,
     confirmText: 'Nice!',
@@ -8305,9 +8305,9 @@ function showBadgeInfo(id,name,desc,unlocked){
 }
 
 function incrementBadgeCounter(key){
-  const count=parseInt(localStorage.getItem(key)||'0')+1;
-  localStorage.setItem(key,count);
-  setTimeout(checkBadges,100);
+  const count = parseInt(localStorage.getItem(key)||'0')+1;
+  localStorage.setItem(key, count);
+  setTimeout(checkBadges, 100);
 }
 
 // ── PRESET SHARING ──
@@ -8364,7 +8364,7 @@ async function sharePreset(id,name){
       }
 
       // Badge
-      localStorage.setItem('wz_badge_share','1');
+      if(typeof unlockBadge==='function') unlockBadge('sharer');
       checkBadges();
       if(typeof logActivity==='function') logActivity('preset_share',{name});
     }else{
