@@ -4704,8 +4704,8 @@ function togglePanel(){
   }
   setTimeout(_syncTradeToggleLeft, 10);
   setTimeout(()=>{
-    if(ch){ if(ch._errorPulse){clearInterval(ch._errorPulse);ch._errorPulse=null;} _applyChartErrorStyle(); }
-  },380);
+    if(ch){ if(ch._errorPulse){clearInterval(ch._errorPulse);ch._errorPulse=null;} _applyChartErrorStyle(); requestAnimationFrame(()=>ch.resize()); }
+  },320);
 }
 
 function toggleTradePanel(){
@@ -4716,8 +4716,8 @@ function toggleTradePanel(){
   // _syncTradeToggleLeft owns left position, not .expanded
   setTimeout(_syncTradeToggleLeft, 10);
   setTimeout(()=>{
-    if(ch){ if(ch._errorPulse){clearInterval(ch._errorPulse);ch._errorPulse=null;} _applyChartErrorStyle(); }
-  },280);
+    if(ch){ if(ch._errorPulse){clearInterval(ch._errorPulse);ch._errorPulse=null;} _applyChartErrorStyle(); requestAnimationFrame(()=>ch.resize()); }
+  },320);
 }
 
 // ── TRADE PANEL TOGGLE DRAG ──
