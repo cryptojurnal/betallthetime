@@ -6127,6 +6127,7 @@ function launchApp(){
   if(leftToggle) leftToggle.classList.add('visible');
   const tradeToggle=document.getElementById('trade-panel-toggle');
   if(tradeToggle) tradeToggle.classList.add('visible');
+  if(typeof _syncTradeToggleLeft==='function') _syncTradeToggleLeft();
   // show back button, keyboard hints, and presets toggle for logged-in users
   if(localStorage.getItem('batt_token')){
     const backBtn=document.getElementById('back-to-member');
@@ -7925,6 +7926,8 @@ function openDashboard(){
       if(leftToggle) leftToggle.classList.add('visible');
       const tradeToggle2=document.getElementById('trade-panel-toggle');
       if(tradeToggle2) tradeToggle2.classList.add('visible');
+      // sync trade toggle left position
+      if(typeof _syncTradeToggleLeft==='function') _syncTradeToggleLeft();
       // use localStorage — works across all script blocks
       if(localStorage.getItem('batt_token')){
         const backBtn=document.getElementById('back-to-member');
@@ -7934,7 +7937,7 @@ function openDashboard(){
         const presetsBtn=document.getElementById('presets-toggle-btn');
         if(presetsBtn){
           presetsBtn.classList.remove('visible');
-          setTimeout(()=>presetsBtn.classList.add('visible'),50);
+          setTimeout(()=>presetsBtn.classList.add('visible'),80);
         }
       }
       if(typeof battUpdateGuestUI==='function') battUpdateGuestUI();
