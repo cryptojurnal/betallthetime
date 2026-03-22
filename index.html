@@ -4880,6 +4880,37 @@ function _tpSyncPosToggle(){
   if(icon) icon.textContent = open ? '◀' : 'POS';
 }
 
+
+function tpOpenPosPanel(){
+  const panel = document.getElementById('tp-pos-panel');
+  if(!panel) return;
+  if(panel.classList.contains('collapsed')){
+    panel.classList.remove('collapsed');
+    setTimeout(_tpSyncPosToggle, 10);
+    setTimeout(()=>{
+      try{ if(_tvWidget&&_tvWidget.iframe) _tvWidget.iframe.contentWindow.dispatchEvent(new Event('resize')); }catch(e){}
+    }, 380);
+  } else {
+    // already open — close it
+    panel.classList.add('collapsed');
+    setTimeout(_tpSyncPosToggle, 10);
+  }
+}
+
+function tpOpenRightPanel(){
+  const sidebar = document.getElementById('tp-sidebar');
+  if(!sidebar) return;
+  if(sidebar.classList.contains('collapsed')){
+    sidebar.classList.remove('collapsed');
+    setTimeout(_tpSyncRightToggle, 10);
+    setTimeout(()=>{
+      try{ if(_tvWidget&&_tvWidget.iframe) _tvWidget.iframe.contentWindow.dispatchEvent(new Event('resize')); }catch(e){}
+    }, 380);
+  } else {
+    sidebar.classList.add('collapsed');
+    setTimeout(_tpSyncRightToggle, 10);
+  }
+}
 function tpTogglePosPanel(){
   const panel = document.getElementById('tp-pos-panel');
   if(!panel) return;
@@ -5327,14 +5358,14 @@ function tpRenderOrders(){
   container.innerHTML = orders.map(o => {
     const sideColor = o.side==='long' ? '#00c47a' : '#e24b4a';
     const typeColor = o.type==='stop' ? '#EF9F27' : '#5b7fff';
-    return `<div class="tp-position-card" style="padding:10px;border-left:3px solid ${sideColor}">
+    return `<div class="tp-position-card" style="padding:10px;border-left:3px solid ${sideColor};cursor:pointer" onclick="tpJumpTo('${o.pair}','${o.exchange}','${o.marketType}')">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
         <div style="display:flex;align-items:center;gap:6px">
           <span style="font-size:13px;font-weight:700;color:#e0e0e0">${o.pair.replace('USDT','')}/USDT</span>
           <span style="font-size:9px;font-weight:800;padding:2px 6px;border-radius:4px;background:${sideColor}22;color:${sideColor}">${o.side.toUpperCase()}</span>
           <span style="font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;background:${typeColor}22;color:${typeColor}">${o.type.toUpperCase()}</span>
         </div>
-        <button onclick="tpCancelOrder('${o.id}')" style="font-size:9px;padding:3px 10px;background:#2a0a0a;color:#e24b4a;border:0.5px solid #3a1a1a;border-radius:4px;cursor:pointer;font-family:'Trebuchet MS',sans-serif">✕ cancel</button>
+        <button onclick="event.stopPropagation();tpCancelOrder('${o.id}')" style="font-size:9px;padding:3px 10px;background:#2a0a0a;color:#e24b4a;border:0.5px solid #3a1a1a;border-radius:4px;cursor:pointer;font-family:'Trebuchet MS',sans-serif">✕ cancel</button>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px">
         <div class="tp-pos-stat">Price<span style="color:#e0e0e0">${fmtPrice(o.limitPrice)}</span></div>
@@ -5406,6 +5437,23 @@ function _tpUpdateOrderBadge(){
 // ── END ORDER ENGINE ──
 // ══════════════════════════════════════════════════════
 
+
+// ── JUMP TO POSITION/ORDER STATE ──
+function tpJumpTo(pair, exchange, marketType){
+  var changed = false;
+  if(pair && pair !== TP_STATE.pair){
+    tpSelectPair(pair);
+    changed = true;
+  }
+  if(exchange && exchange !== TP_STATE.exchange){
+    tpSelectExchange(exchange);
+    changed = true;
+  }
+  if(marketType && marketType !== TP_STATE.marketType){
+    tpSetMarketType(marketType);
+    changed = true;
+  }
+}
 // ── BATT ICON SYSTEM ──
 const BATT_ICONS = {
   BTC: 'https://assets.coingecko.com/coins/images/1/small/bitcoin.png',
@@ -11161,7 +11209,7 @@ function tpRenderPositions() {
     const currentValue = isSpot ? (holdings * currentPrice) : null;
     
     return `
-      <div class="tp-position-card" data-id="${pos.id}">
+      <div class="tp-position-card" data-id="${pos.id}" onclick="tpJumpTo('${pos.pair}','${pos.exchange||TP_STATE.exchange}','${pos.marketType||'perpetual'}')" style="cursor:pointer">
         <div class="tp-pos-row1">
           <div class="tp-pos-symbol">
             <span class="tp-pos-symbol-name">${pos.pair.replace('USDT', '')}/USDT</span>
@@ -11197,13 +11245,13 @@ function tpRenderPositions() {
         ` : ''}
         <div class="tp-pos-actions">
           ${!isSpot ? `
-            <button onclick="tpPartialClose('${pos.id}', 25)">25%</button>
-            <button onclick="tpPartialClose('${pos.id}', 50)">50%</button>
-            <button onclick="tpPartialClose('${pos.id}', 75)">75%</button>
-            <button onclick="tpEditPosition('${pos.id}')">Edit</button>
+            <button onclick="event.stopPropagation();tpPartialClose('${pos.id}', 25)">25%</button>
+            <button onclick="event.stopPropagation();tpPartialClose('${pos.id}', 50)">50%</button>
+            <button onclick="event.stopPropagation();tpPartialClose('${pos.id}', 75)">75%</button>
+            <button onclick="event.stopPropagation();tpEditPosition('${pos.id}')">Edit</button>
           ` : ''}
-          <button onclick="tpClosePosition('${pos.id}')" class="close">${isSpot ? 'Sell All' : 'Close'}</button>
-          <button onclick="tpSharePosition('${pos.id}')" class="share" title="Share P&L">share</button>
+          <button onclick="event.stopPropagation();tpClosePosition('${pos.id}')" class="close">${isSpot ? 'Sell All' : 'Close'}</button>
+          <button onclick="event.stopPropagation();tpSharePosition('${pos.id}')" class="share" title="Share P&L">share</button>
         </div>
       </div>
     `;
