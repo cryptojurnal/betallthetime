@@ -10084,8 +10084,11 @@ function tpSelectPair(symbol) {
   tpUpdateSubmitButton();
   tpSaveState();
   _obReset();
+  _tpTrades = []; // clear stale trades
   if(typeof tpStartWebSocket==='function') tpStartWebSocket();
   if(typeof tpInitTVChart==='function') tpInitTVChart();
+  // restart trade WS if trades tab is active
+  if(_tpObMode==='trades' && typeof tpStartTradeWS==='function') tpStartTradeWS();
 }
 
 // Pair modal
@@ -10141,10 +10144,11 @@ function tpSelectExchange(ex) {
   event.target.classList.add('active');
   const isSpot = TP_STATE.marketType === 'spot';
   document.getElementById('tp-pair-exchange').textContent = `${isSpot?'spot':'perpetual'} · ${ex}`;
-  // sync everything to new exchange
+  _obReset();
+  _tpTrades = [];
+  if(typeof tpStartWebSocket==='function') tpStartWebSocket();
   if(typeof tpInitTVChart==='function') tpInitTVChart();
-  if(typeof tpFetchOrderBook==='function') tpFetchOrderBook();
-  if(typeof tpFetchPrices==='function') tpFetchPrices();
+  if(_tpObMode==='trades' && typeof tpStartTradeWS==='function') tpStartTradeWS();
 }
 
 // Order type
@@ -10424,11 +10428,15 @@ function tpUpdatePositionsPnL() {
 // Update UI
 function tpUpdateUI() {
   let unrealizedPnL = 0;
+  let allPricesKnown = true;
   TP_STATE.positions.forEach(pos => {
-    const currentPrice = TP_STATE.prices[pos.pair]?.price || pos.entryPrice;
+    const currentPrice = TP_STATE.prices[pos.pair]?.price;
+    if(!currentPrice) { allPricesKnown = false; return; }
     unrealizedPnL += tpCalcPnL(pos, currentPrice);
   });
-  
+  // skip portfolio update if any position price is missing — avoids flash to 0
+  if(!allPricesKnown && TP_STATE.positions.length > 0) return;
+
   const totalEquity = TP_STATE.balance + TP_STATE.positions.reduce((a, p) => a + p.size, 0) + unrealizedPnL;
   const totalPnL = totalEquity - TP_STATE.startBalance;
   const pnlPercent = (totalPnL / TP_STATE.startBalance) * 100;
@@ -11026,9 +11034,15 @@ function _tpRenderOBData(asks, bids) {
     _obPrevMidPrice = midPrice;
   }
   if(changeEl){
-    const isUp = priceData.change>=0;
-    changeEl.textContent=(isUp?'+':'')+priceData.change.toFixed(2)+'%';
-    changeEl.className='tp-ob-mid-change '+(isUp?'up':'down');
+    const _chg = priceData.change;
+    if(_chg !== undefined && _chg !== null){
+      const isUp = _chg>=0;
+      const newChg = (isUp?'+':'')+_chg.toFixed(2)+'%';
+      if(changeEl.textContent !== newChg){
+        changeEl.textContent = newChg;
+        changeEl.className='tp-ob-mid-change '+(isUp?'up':'down');
+      }
+    }
   }
   if(spreadEl){
     const pct = midPrice?((spread/midPrice)*100).toFixed(4):'0';
