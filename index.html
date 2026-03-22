@@ -449,8 +449,8 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
 
 /* ── SIMULATOR RIGHT ORDER PANEL ── */
 .tp-sidebar{width:300px;min-width:300px;background:#0a0a0a;border-left:0.5px solid #1a1a1a;display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;transition:width .35s cubic-bezier(.4,0,.2,1),min-width .35s cubic-bezier(.4,0,.2,1);will-change:width;position:relative}
-.tp-sidebar.collapsed{width:0;min-width:0;border-left:none;overflow:hidden}
-.tp-sidebar-inner{width:300px;flex-shrink:0;display:flex;flex-direction:column;flex:1;overflow-y:auto;overflow-x:hidden;scrollbar-width:none}
+.tp-sidebar.collapsed{width:0!important;min-width:0!important;border-left:none;overflow:hidden}
+.tp-sidebar-inner{width:300px;min-width:300px;flex-shrink:0;display:flex;flex-direction:column;height:100%;overflow-y:auto;overflow-x:hidden;scrollbar-width:none}
 .tp-sidebar-inner::-webkit-scrollbar{display:none}
 .tp-sidebar::-webkit-scrollbar{display:none}
 .tp-right-toggle{position:fixed;right:300px;top:50%;transform:translateY(-50%);width:18px;height:80px;background:linear-gradient(180deg,#5b7fff,#3b5bd9);border:none;border-radius:10px 0 0 10px;cursor:grab;display:flex;align-items:center;justify-content:center;z-index:9999;transition:right .35s cubic-bezier(.4,0,.2,1),opacity .3s,width .2s;opacity:0;pointer-events:none;user-select:none;touch-action:none;will-change:right,opacity}
@@ -742,9 +742,9 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
 .tp-chart-area{flex:1;display:flex;border-right:1px solid #1a1a1a;min-height:0}
 .tp-chart-wrap{flex:1;min-width:0;display:flex;flex-direction:column;min-height:0}
 .tp-orderbook{width:200px;background:#0a0a0a;border-left:1px solid #1a1a1a;display:flex;flex-direction:column;min-height:0}
-.tp-sidebar{display:flex;flex-direction:column;background:#0a0a0a;min-height:0;overflow:hidden;border-left:0.5px solid #1a1a1a}
+/* tp-sidebar — see right panel CSS block */
 @media(max-width:1200px){.tp-orderbook{width:160px}}
-@media(max-width:900px){.tp-main{grid-template-columns:1fr}.tp-sidebar{border-left:none;border-top:0.5px solid #1a1a1a;max-height:380px}}
+@media(max-width:900px){.tp-main{flex-direction:column}.tp-sidebar{width:100%!important;min-width:100%!important;max-height:50vh;border-left:none;border-top:0.5px solid #1a1a1a}}
 @media(max-width:900px){
   .tp-main{flex-direction:column}
   .tp-chart-section{min-height:300px}
