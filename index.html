@@ -4797,7 +4797,9 @@ function qaRefreshMonths(){
   const cur = sel.value;
   sel.innerHTML = '<option value="">select...</option>';
   for(let i=1;i<=maxM;i++){
-    const lbl = (typeof getML==='function') ? getML(i) : ('m'+String(i).padStart(2,'0'));
+    const def = 'm'+String(i).padStart(2,'0');
+    const custom = (typeof gs==='function') ? (gs().ML[i]||'') : '';
+    const lbl = custom && custom !== def ? def+' — '+custom : def;
     const opt = document.createElement('option');
     opt.value = i;
     opt.textContent = lbl;
@@ -5741,8 +5743,8 @@ function renderTbl(months){
             h+=`<tr class="skip-row">
               <td style="padding-left:8px;text-align:left"><input class="lbl-in lbl-trade" value="${tLabel}" placeholder="trade ${t.no}..." onchange="onTradeLabel(${t.no},this.value)" onclick="this.select()"></td>
               <td colspan="4" style="color:var(--tx3);font-size:9px;font-style:italic">skipped</td>
-              <td><div class="tg-cell" style="min-width:68px"><button class="tg-btn" onclick="manStep('bt',${mo.m},${t.no-1},-0.5)" tabindex="-1">−</button><input type="number" id="mbt-${mo.m}-${t.no-1}" value="${btVal}" min="-500" max="500" step="0.5" placeholder="tgt%" style="flex:1;min-width:0;padding:2px 0;font-size:9px;text-align:center;border:none;background:transparent;color:var(--acc);font-weight:700;-moz-appearance:textfield" oninput="onManualBT(${mo.m},${t.no-1},this.value)"><button class="tg-btn" onclick="manStep('bt',${mo.m},${t.no-1},0.5)" tabindex="-1">+</button></div></td>
-              <td><div class="tg-cell fi" style="min-width:60px;border-color:var(--acc2)"><button class="tg-btn" style="color:var(--acc2)" onclick="manStep('fr',${mo.m},${t.no-1},-1)" tabindex="-1">−</button><input type="number" id="mfr-${mo.m}-${t.no-1}" value="${frVal}" min="0" max="20" step="1" placeholder="freq" style="flex:1;min-width:0;padding:2px 0;font-size:9px;text-align:center;border:none;background:transparent;color:var(--acc2);font-weight:700;-moz-appearance:textfield" oninput="onManualFR(${mo.m},${t.no-1},this.value)"><button class="tg-btn" style="color:var(--acc2)" onclick="manStep('fr',${mo.m},${t.no-1},1)" tabindex="-1">+</button></div></td>
+              <td><div class="tg-cell" style="width:54px"><button class="tg-btn" onclick="manStep('bt',${mo.m},${t.no-1},-0.5)" tabindex="-1">−</button><input type="number" id="mbt-${mo.m}-${t.no-1}" value="${btVal}" min="-500" max="500" step="0.5" placeholder="tgt%" style="flex:1;min-width:0;padding:1px 0;font-size:9px;text-align:center;border:none;background:transparent;color:var(--acc);font-weight:700;-moz-appearance:textfield" oninput="onManualBT(${mo.m},${t.no-1},this.value)"><button class="tg-btn" onclick="manStep('bt',${mo.m},${t.no-1},0.5)" tabindex="-1">+</button></div></td>
+              <td><div class="tg-cell fi" style="width:48px;border-color:var(--acc2)"><button class="tg-btn" style="color:var(--acc2)" onclick="manStep('fr',${mo.m},${t.no-1},-1)" tabindex="-1">−</button><input type="number" id="mfr-${mo.m}-${t.no-1}" value="${frVal}" min="0" max="20" step="1" placeholder="freq" style="flex:1;min-width:0;padding:1px 0;font-size:9px;text-align:center;border:none;background:transparent;color:var(--acc2);font-weight:700;-moz-appearance:textfield" oninput="onManualFR(${mo.m},${t.no-1},this.value)"><button class="tg-btn" style="color:var(--acc2)" onclick="manStep('fr',${mo.m},${t.no-1},1)" tabindex="-1">+</button></div></td>
               <td colspan="7" style="color:var(--tx3);font-size:9px;text-align:center;font-style:italic">set both > 0 to activate</td>
             </tr>`;
           } else {
@@ -5763,10 +5765,10 @@ function renderTbl(months){
           <td>${s.SPOT?'<span style="color:var(--tx3);font-size:9px">n/a</span>':t.fm.toFixed(1)+'%'}</td>
           <td style="color:${lc(t.liq)};font-weight:700">${s.SPOT?'<span style="color:#5DC96A;font-size:9px">◈</span>':t.liq.toFixed(1)+'%'}</td>
           <td>${!GLOBAL_MODE
-            ?'<div class="tg-cell" style="min-width:64px"><button class="tg-btn" onclick="manStep(\'bt\','+mo.m+','+(t.no-1)+',-0.5)" tabindex="-1">−</button><input type="number" id="mbt-'+mo.m+'-'+(t.no-1)+'" value="'+((gs().MT[mo.m]?.bt[t.no-1]??t.tgt/s.KPI)).toFixed(1)+'" min="-500" max="500" step="0.5" style="flex:1;min-width:0;padding:2px 0;font-size:9px;text-align:center;border:none;background:transparent;color:var(--acc);font-weight:700;-moz-appearance:textfield" oninput="onManualBT('+mo.m+','+(t.no-1)+',this.value)"><button class="tg-btn" onclick="manStep(\'bt\','+mo.m+','+(t.no-1)+',0.5)" tabindex="-1">+</button></div>'
+            ?'<div class="tg-cell" style="width:54px"><button class="tg-btn" onclick="manStep(\'bt\','+mo.m+','+(t.no-1)+',-0.5)" tabindex="-1">−</button><input type="number" id="mbt-'+mo.m+'-'+(t.no-1)+'" value="'+((gs().MT[mo.m]?.bt[t.no-1]??t.tgt/s.KPI)).toFixed(1)+'" min="-500" max="500" step="0.5" style="flex:1;min-width:0;padding:1px 0;font-size:9px;text-align:center;border:none;background:transparent;color:var(--acc);font-weight:700;-moz-appearance:textfield" oninput="onManualBT('+mo.m+','+(t.no-1)+',this.value)"><button class="tg-btn" onclick="manStep(\'bt\','+mo.m+','+(t.no-1)+',0.5)" tabindex="-1">+</button></div>'
             :t.tgt.toFixed(2)+'%'}</td>
           <td>${!GLOBAL_MODE
-            ?'<div class="tg-cell fi" style="min-width:56px;border-color:var(--acc2)"><button class="tg-btn" style="color:var(--acc2)" onclick="manStep(\'fr\','+mo.m+','+(t.no-1)+',-1)" tabindex="-1">−</button><input type="number" id="mfr-'+mo.m+'-'+(t.no-1)+'" value="'+(gs().MT[mo.m]?.fr[t.no-1]??t.freq)+'" min="0" max="20" step="1" style="flex:1;min-width:0;padding:2px 0;font-size:9px;text-align:center;border:none;background:transparent;color:var(--acc2);font-weight:700;-moz-appearance:textfield" oninput="onManualFR('+mo.m+','+(t.no-1)+',this.value)"><button class="tg-btn" style="color:var(--acc2)" onclick="manStep(\'fr\','+mo.m+','+(t.no-1)+',1)" tabindex="-1">+</button></div>'
+            ?'<div class="tg-cell fi" style="width:48px;border-color:var(--acc2)"><button class="tg-btn" style="color:var(--acc2)" onclick="manStep(\'fr\','+mo.m+','+(t.no-1)+',-1)" tabindex="-1">−</button><input type="number" id="mfr-'+mo.m+'-'+(t.no-1)+'" value="'+(gs().MT[mo.m]?.fr[t.no-1]??t.freq)+'" min="0" max="20" step="1" style="flex:1;min-width:0;padding:1px 0;font-size:9px;text-align:center;border:none;background:transparent;color:var(--acc2);font-weight:700;-moz-appearance:textfield" oninput="onManualFR('+mo.m+','+(t.no-1)+',this.value)"><button class="tg-btn" style="color:var(--acc2)" onclick="manStep(\'fr\','+mo.m+','+(t.no-1)+',1)" tabindex="-1">+</button></div>'
             :'<span style="color:var(--tx2)">'+t.freq+'×</span>'}</td>
           <td style="color:${t.tgt<0?'#E24B4A':'var(--acc2)'}">${t.tgt>=0?'+':''}${fmt(t.sp)}</td>
           <td style="color:${t.tgt<0?'#E24B4A':'var(--acc2)'};font-weight:600">${t.tgt>=0?'+':''}${fmt(t.cp)}</td>
