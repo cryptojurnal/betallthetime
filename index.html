@@ -3058,6 +3058,16 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
   </div>
 </div>
 
+<!-- Share P&L Modal -->
+<div id="tp-share-modal" style="display:none;position:fixed;inset:0;z-index:10500;background:rgba(0,0,0,0.85);backdrop-filter:blur(6px);align-items:center;justify-content:center;flex-direction:column;gap:16px">
+  <canvas id="tp-share-canvas" style="border-radius:16px;max-width:90vw;max-height:70vh"></canvas>
+  <div style="display:flex;gap:10px">
+    <button onclick="tpDownloadShare()" style="padding:10px 24px;background:#00c47a;color:#000;border:none;border-radius:8px;font-size:12px;font-weight:800;cursor:pointer;font-family:'Trebuchet MS',sans-serif">⬇ download</button>
+    <button onclick="tpCopyShare()" id="tp-share-copy-btn" style="padding:10px 24px;background:#1a1a1a;color:#e0e0e0;border:0.5px solid #333;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Trebuchet MS',sans-serif">copy image</button>
+    <button onclick="tpCloseShareModal()" style="padding:10px 24px;background:#111;color:#555;border:0.5px solid #222;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Trebuchet MS',sans-serif">close</button>
+  </div>
+</div>
+
 <!-- Pair Selection Modal -->
 <div id="tp-pair-modal">
   <div class="tp-pair-modal-content">
@@ -5040,6 +5050,179 @@ function _tpInitRightPanel(){
 }
 // ── END RIGHT ORDER PANEL ──
 
+
+
+// ── SHARE P&L CARD ──
+function tpSharePosition(id){
+  const pos = TP_STATE.positions.find(p=>p.id===id);
+  if(!pos) return;
+  const currentPrice = TP_STATE.prices[pos.pair]?.price || pos.entryPrice;
+  const pnl = tpCalcPnL(pos, currentPrice);
+  const pnlPct = (pnl / pos.size) * 100;
+  const isUp = pnl >= 0;
+  const isSpot = pos.marketType==='spot' || pos.leverage===1;
+
+  const W=800, H=420;
+  const canvas = document.getElementById('tp-share-canvas');
+  canvas.width=W; canvas.height=H;
+  const ctx = canvas.getContext('2d');
+
+  // ── background ──
+  ctx.fillStyle = '#0a0a0a';
+  ctx.fillRect(0,0,W,H);
+
+  // ── top color band ──
+  const bandColor = isUp ? '#00c47a' : '#e24b4a';
+  ctx.fillStyle = bandColor;
+  ctx.globalAlpha = 0.08;
+  ctx.fillRect(0,0,W,H);
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = bandColor;
+  ctx.fillRect(0,0,W,4);
+
+  // ── grid lines ──
+  ctx.strokeStyle = '#1a1a1a';
+  ctx.lineWidth = 0.5;
+  for(let x=0;x<W;x+=80){ ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke(); }
+  for(let y=0;y<H;y+=60){ ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke(); }
+
+  // ── BATT watermark ──
+  ctx.font='700 11px "Trebuchet MS",sans-serif';
+  ctx.fillStyle='#333';
+  ctx.textAlign='left';
+  ctx.fillText('⚡ BATT · PAPER TRADING · betallthetime.fun', 28, 32);
+
+  // ── pair + badge ──
+  const pair = pos.pair.replace('USDT','') + '/USDT';
+  ctx.font='700 32px "Trebuchet MS",sans-serif';
+  ctx.fillStyle='#e0e0e0';
+  ctx.textAlign='left';
+  ctx.fillText(pair, 28, 80);
+
+  // side badge
+  const badgeColor = pos.side==='long' ? '#00c47a' : '#e24b4a';
+  const badgeTxt = isSpot ? 'SPOT' : pos.side.toUpperCase();
+  ctx.fillStyle = badgeColor + '22';
+  roundRect(ctx, 28+ctx.measureText(pair).width+12, 58, 64, 26, 6);
+  ctx.fill();
+  ctx.font='700 11px "Trebuchet MS",sans-serif';
+  ctx.fillStyle = badgeColor;
+  ctx.textAlign='center';
+  ctx.fillText(badgeTxt, 28+ctx.measureText(pair).width+12+32, 76);
+
+  if(!isSpot){
+    const levW=44;
+    const levX=28+ctx.measureText(pair).width+84;
+    ctx.fillStyle='#1a1a2a';
+    roundRect(ctx,levX,58,levW,26,6);ctx.fill();
+    ctx.fillStyle='#5b7fff';
+    ctx.fillText(pos.leverage+'x',levX+levW/2,76);
+  }
+
+  // ── big PnL number ──
+  const pnlStr = (isUp?'+':'') + '$' + Math.abs(pnl).toFixed(2);
+  ctx.font='800 72px "Trebuchet MS",sans-serif';
+  ctx.fillStyle = bandColor;
+  ctx.textAlign='left';
+  ctx.fillText(pnlStr, 28, 175);
+
+  // pnl percent
+  const pctStr = (isUp?'+':'') + pnlPct.toFixed(2) + '%';
+  ctx.font='700 28px "Trebuchet MS",sans-serif';
+  ctx.fillStyle = bandColor + 'cc';
+  ctx.fillText(pctStr, 32, 210);
+
+  // ── divider ──
+  ctx.strokeStyle = '#222';
+  ctx.lineWidth = 1;
+  ctx.beginPath();ctx.moveTo(28,235);ctx.lineTo(W-28,235);ctx.stroke();
+
+  // ── stats row ──
+  const stats = isSpot ? [
+    ['Avg Entry', fmtPrice(pos.entryPrice)],
+    ['Mark Price', fmtPrice(currentPrice)],
+    ['Holdings', (pos.size/pos.entryPrice).toFixed(6)+' '+pos.pair.replace('USDT','')],
+    ['Exchange', pos.exchange||TP_STATE.exchange],
+  ] : [
+    ['Entry Price', fmtPrice(pos.entryPrice)],
+    ['Mark Price', fmtPrice(currentPrice)],
+    ['Size', '$'+pos.size],
+    ['Leverage', pos.leverage+'x'],
+    ['Exchange', (pos.exchange||TP_STATE.exchange).toUpperCase()],
+  ];
+
+  const colW = (W-56)/stats.length;
+  stats.forEach(([label,val],i)=>{
+    const x = 28 + i*colW;
+    ctx.font='400 11px "Trebuchet MS",sans-serif';
+    ctx.fillStyle='#555';
+    ctx.textAlign='left';
+    ctx.fillText(label, x, 265);
+    ctx.font='700 15px "Trebuchet MS",sans-serif';
+    ctx.fillStyle='#e0e0e0';
+    ctx.fillText(val, x, 288);
+  });
+
+  // ── timestamp ──
+  const now = new Date().toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  ctx.font='400 11px "Trebuchet MS",sans-serif';
+  ctx.fillStyle='#333';
+  ctx.textAlign='left';
+  ctx.fillText(now + ' UTC', 28, H-20);
+
+  // ── qr-like branding corner ──
+  ctx.font='700 13px "Trebuchet MS",sans-serif';
+  ctx.fillStyle='#2a2a2a';
+  ctx.textAlign='right';
+  ctx.fillText('bet all the time · bet with style', W-28, H-20);
+
+  // show modal
+  const modal = document.getElementById('tp-share-modal');
+  if(modal){ modal.style.display='flex'; }
+}
+
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
+}
+
+function tpCloseShareModal(){
+  const m=document.getElementById('tp-share-modal');
+  if(m) m.style.display='none';
+}
+
+function tpDownloadShare(){
+  const canvas=document.getElementById('tp-share-canvas');
+  const a=document.createElement('a');
+  a.download='batt-pnl-'+(Date.now())+'.png';
+  a.href=canvas.toDataURL('image/png');
+  a.click();
+}
+
+async function tpCopyShare(){
+  const canvas=document.getElementById('tp-share-canvas');
+  const btn=document.getElementById('tp-share-copy-btn');
+  try{
+    canvas.toBlob(async blob=>{
+      await navigator.clipboard.write([new ClipboardItem({'image/png':blob})]);
+      if(btn){ const t=btn.textContent; btn.textContent='✓ copied!'; setTimeout(()=>btn.textContent=t,2000); }
+    });
+  }catch(e){
+    if(btn){ btn.textContent='use download instead'; setTimeout(()=>btn.textContent='copy image',2000); }
+  }
+}
+
+// close modal on backdrop click
+document.addEventListener('click',function(e){
+  const m=document.getElementById('tp-share-modal');
+  if(m && e.target===m) tpCloseShareModal();
+});
+// ── END SHARE P&L ──
 
 // ── BATT ICON SYSTEM ──
 const BATT_ICONS = {
@@ -10765,6 +10948,7 @@ function tpRenderPositions() {
             <button onclick="tpEditPosition('${pos.id}')">Edit</button>
           ` : ''}
           <button onclick="tpClosePosition('${pos.id}')" class="close">${isSpot ? 'Sell All' : 'Close'}</button>
+          <button onclick="tpSharePosition('${pos.id}')" class="share" title="Share P&L">share</button>
         </div>
       </div>
     `;
