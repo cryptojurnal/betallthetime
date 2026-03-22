@@ -2796,6 +2796,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
   <div class="tp-topbar">
     <div class="tp-topbar-left">
       <div class="tp-logo">⚡ BATT <span>PAPER</span></div>
+      <div id="tp-ws-status" style="width:6px;height:6px;border-radius:50%;background:#333;flex-shrink:0;margin-left:-8px;title:'WebSocket status'"></div>
       <div class="tp-pair-selector" onclick="tpShowPairModal()">
         <span class="tp-pair-selector-icon" id="tp-pair-icon"><img src="https://assets.coingecko.com/coins/images/1/small/bitcoin.png" width="20" height="20" style="border-radius:50%;object-fit:cover;flex-shrink:0" alt="" loading="lazy" onerror="this.style.display='none'"></span>
         <div class="tp-pair-selector-info">
@@ -9852,6 +9853,15 @@ function tpStartWebSocket(){
   if(volEl) volEl.textContent = '--';
   // fetch via REST immediately while WS is connecting
   tpFetchPrices().then(()=>tpFetchOrderBook());
+  // keep REST as 3s fallback in case WS drops silently
+  if(window._tpPriceInterval) clearInterval(window._tpPriceInterval);
+  window._tpPriceInterval = setInterval(()=>{
+    // only use REST if WS is not connected
+    if(!_tpWS || _tpWS.readyState !== WebSocket.OPEN){
+      tpFetchPrices();
+      tpFetchOrderBook();
+    }
+  }, 3000);
   const ex = TP_STATE.exchange || 'binance';
   const isSpot = TP_STATE.marketType === 'spot';
   const pair = (TP_STATE.pair || 'BTCUSDT').toLowerCase();
@@ -9864,6 +9874,7 @@ function tpStartWebSocket(){
     // combine ticker + orderbook in one connection
     const streams = `${pair}@ticker/${pair}@depth10@100ms`;
     _tpWS = new WebSocket(base + streams);
+    _tpWS.onopen = () => { const d=document.getElementById('tp-ws-status'); if(d) d.style.background='#00c47a'; };
 
     _tpWS.onmessage = (e) => {
       try {
@@ -9989,8 +10000,8 @@ function tpStartWebSocket(){
 function tpStopWebSocket(){
   if(_tpWSReconnectTimer){ clearTimeout(_tpWSReconnectTimer); _tpWSReconnectTimer=null; }
   if(_tpWS){ try{ _tpWS.close(); }catch(e){} _tpWS=null; }
-  // also stop REST interval — WS replaces it
   if(window._tpPriceInterval){ clearInterval(window._tpPriceInterval); window._tpPriceInterval=null; }
+  const d=document.getElementById('tp-ws-status'); if(d) d.style.background='#e24b4a';
 }
 // ── END WEBSOCKET ──
 
