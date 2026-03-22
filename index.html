@@ -571,7 +571,8 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
 .price-card{flex:0 0 auto;background:#0d0d0d;border:0.5px solid #1a1a1a;border-radius:10px;padding:10px 14px;min-width:120px;transition:all .2s}
 .price-card:hover{border-color:#00c47a;transform:translateY(-1px)}
 .price-card-head{display:flex;align-items:center;gap:6px;margin-bottom:4px}
-.price-card-icon{font-size:16px}
+.price-card-icon{font-size:16px;display:flex;align-items:center;justify-content:center}
+.price-card-icon img{width:18px;height:18px;border-radius:50%}
 .price-card-sym{font-size:10px;font-weight:700;color:#fff;text-transform:uppercase}
 .price-card-price{font-size:14px;font-weight:800;color:#fff;margin-bottom:2px}
 .price-card-change{font-size:10px;font-weight:600;display:flex;align-items:center;gap:3px}
@@ -2356,38 +2357,38 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
     <div class="l3-grid">
       <div class="l3-card" onclick="openAccountPage()">
         <span class="l3-card-badge live">live</span>
-        <div class="l3-card-icon">👤</div>
+        <div class="l3-card-icon" style="font-size:0"><svg width="32" height="32" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8" r="4" fill="#00c47a" opacity=".8"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="#00c47a" stroke-width="1.5" stroke-linecap="round" fill="none" opacity=".6"/></svg></div>
         <h3>Account</h3>
         <p>View your profile, manage cloud sync, and account settings.</p>
       </div>
       <div class="l3-card" onclick="openDashboard()">
         <span class="l3-card-badge live">live</span>
-        <div class="l3-card-icon">📊</div>
+        <div class="l3-card-icon" style="font-size:0"><svg width="32" height="32" viewBox="0 0 24 24" fill="none"><rect x="3" y="12" width="4" height="9" rx="1" fill="#00c47a" opacity=".5"/><rect x="10" y="7" width="4" height="14" rx="1" fill="#00c47a" opacity=".75"/><rect x="17" y="3" width="4" height="18" rx="1" fill="#00c47a"/></svg></div>
         <h3>Dashboard Cockpit</h3>
         <p>Your command center for preparation. Calculate risk, plan positions, and project portfolio growth before you trade.</p>
       </div>
       <div class="l3-card" onclick="openTradingPage()">
         <span class="l3-card-badge live">live</span>
         <span class="l3-card-badge wip" style="top:28px">🚧 beta</span>
-        <div class="l3-card-icon">⚡</div>
+        <div class="l3-card-icon" style="font-size:0"><svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" fill="#f59e0b"/></svg></div>
         <h3>Trade Hub</h3>
         <p>Your gateway to simulation, CEX trading, DEX perps, and token swaps — all in one place.</p>
       </div>
       <div class="l3-card l3-card-soon" onclick="showToast('Coming soon! Stay tuned.','info')">
         <span class="l3-card-badge soon">soon</span>
-        <div class="l3-card-icon">📚</div>
+        <div class="l3-card-icon" style="font-size:0"><svg width="32" height="32" viewBox="0 0 24 24" fill="none"><rect x="4" y="3" width="12" height="16" rx="2" fill="#3b82f6" opacity=".6"/><rect x="8" y="3" width="12" height="16" rx="2" fill="#3b82f6" opacity=".9"/><line x1="11" y1="8" x2="17" y2="8" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/><line x1="11" y1="11" x2="17" y2="11" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/><line x1="11" y1="14" x2="15" y2="14" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/></svg></div>
         <h3>Learning Hub</h3>
         <p>Guides, tutorials, and resources to level up your trading knowledge.</p>
       </div>
       <div class="l3-card l3-card-soon" onclick="showToast('Coming soon! Stay tuned.','info')">
         <span class="l3-card-badge soon">soon</span>
-        <div class="l3-card-icon">📈</div>
+        <div class="l3-card-icon" style="font-size:0"><svg width="32" height="32" viewBox="0 0 24 24" fill="none"><polyline points="3,17 9,11 13,15 21,7" stroke="#00c47a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/><polyline points="17,7 21,7 21,11" stroke="#00c47a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></div>
         <h3>Trade Journal</h3>
         <p>Log your real trades, track performance, and analyze your win rate over time.</p>
       </div>
       <div class="l3-card l3-card-soon" onclick="showToast('Coming soon! Stay tuned.','info')">
         <span class="l3-card-badge soon">soon</span>
-        <div class="l3-card-icon">🤝</div>
+        <div class="l3-card-icon" style="font-size:0"><svg width="32" height="32" viewBox="0 0 24 24" fill="none"><path d="M16 11l-4 4-2-2-4 4" stroke="#a855f7" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity=".7"/><circle cx="18" cy="6" r="3" fill="#a855f7" opacity=".9"/><circle cx="6" cy="18" r="3" fill="#a855f7" opacity=".6"/></svg></div>
         <h3>Bet With Us</h3>
         <p>We're building something together. Share ideas, connect with like-minded traders, and help shape how this platform grows.</p>
       </div>
@@ -2459,7 +2460,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
       <!-- simulation -->
       <div onclick="openSimulation()" style="background:#0d0d0d;border:0.5px solid #1a1a1a;border-radius:14px;padding:20px;cursor:pointer;transition:border-color .2s;position:relative" onmouseover="this.style.borderColor='#00c47a'" onmouseout="this.style.borderColor='#1a1a1a'">
         <span style="position:absolute;top:14px;right:14px;font-size:8px;font-weight:700;padding:2px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:.05em;background:#0a2a1a;color:#00c47a">live</span>
-        <div style="width:44px;height:44px;border-radius:10px;background:#0a2a1a;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:14px">📊</div>
+        <div style="width:44px;height:44px;border-radius:10px;background:#0a2a1a;display:flex;align-items:center;justify-content:center;margin-bottom:14px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="12" width="4" height="9" rx="1" fill="#00c47a" opacity=".5"/><rect x="10" y="7" width="4" height="14" rx="1" fill="#00c47a" opacity=".75"/><rect x="17" y="3" width="4" height="18" rx="1" fill="#00c47a"/></svg></div>
         <div style="font-size:14px;font-weight:800;color:#00c47a;margin-bottom:4px">Simulation</div>
         <div style="font-size:11px;color:#555;line-height:1.6;margin-bottom:14px">Plan and backtest your strategy with no real money. Full chart, paper trading, position sizing and risk calculator.</div>
         <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:14px">
@@ -2478,7 +2479,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
       <!-- cex -->
       <div style="background:#0d0d0d;border:0.5px solid #1a1a1a;border-radius:14px;padding:20px;cursor:default;position:relative;opacity:.6">
         <span style="position:absolute;top:14px;right:14px;font-size:8px;font-weight:700;padding:2px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:.05em;background:#1a1a1a;color:#444">coming soon</span>
-        <div style="width:44px;height:44px;border-radius:10px;background:#0a1a2a;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:14px">🏦</div>
+        <div style="width:44px;height:44px;border-radius:10px;background:#0a1a2a;display:flex;align-items:center;justify-content:center;margin-bottom:14px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="10" width="18" height="11" rx="1" fill="#3b82f6" opacity=".5"/><path d="M12 3l9 7H3l9-7z" fill="#3b82f6" opacity=".9"/><rect x="9" y="14" width="6" height="7" rx="1" fill="#3b82f6" opacity=".8"/></svg></div>
         <div style="font-size:14px;font-weight:800;color:#3b82f6;margin-bottom:4px">CEX Trading</div>
         <div style="font-size:11px;color:#555;line-height:1.6;margin-bottom:14px">Connect your Bybit, Binance or OKX account via API key. Trade real markets with your exchange account.</div>
         <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:14px">
@@ -2494,7 +2495,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
       <!-- dex -->
       <div onclick="openDexSelector()" style="background:#0d0d0d;border:0.5px solid #1a1a1a;border-radius:14px;padding:20px;cursor:pointer;transition:border-color .2s;position:relative" onmouseover="this.style.borderColor='#a855f7'" onmouseout="this.style.borderColor='#1a1a1a'">
         <span style="position:absolute;top:14px;right:14px;font-size:8px;font-weight:700;padding:2px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:.05em;background:#1a0a2a;color:#a855f7">beta</span>
-        <div style="width:44px;height:44px;border-radius:10px;background:#1a0a2a;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:14px">⛓️</div>
+        <div style="width:44px;height:44px;border-radius:10px;background:#1a0a2a;display:flex;align-items:center;justify-content:center;margin-bottom:14px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="9" cy="12" r="3" stroke="#a855f7" stroke-width="1.5" fill="none"/><circle cx="15" cy="12" r="3" stroke="#a855f7" stroke-width="1.5" fill="none" opacity=".7"/><line x1="3" y1="12" x2="6" y2="12" stroke="#a855f7" stroke-width="1.5" stroke-linecap="round"/><line x1="18" y1="12" x2="21" y2="12" stroke="#a855f7" stroke-width="1.5" stroke-linecap="round" opacity=".7"/></svg></div>
         <div style="font-size:14px;font-weight:800;color:#a855f7;margin-bottom:4px">DEX Trading</div>
         <div style="font-size:11px;color:#555;line-height:1.6;margin-bottom:14px">Trade on-chain with your wallet. Choose between perpetual futures (Hyperliquid) or spot trading (Jupiter, Drift).</div>
         <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:14px">
@@ -2513,7 +2514,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
       <!-- swap -->
       <div onclick="openSwapPage()" style="background:#0d0d0d;border:0.5px solid #1a1a1a;border-radius:14px;padding:20px;cursor:pointer;position:relative;transition:border-color .2s" onmouseover="this.style.borderColor='#f59e0b'" onmouseout="this.style.borderColor='#1a1a1a'">
         <span style="position:absolute;top:14px;right:14px;font-size:8px;font-weight:700;padding:2px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:.05em;background:#2a1a0a;color:#f59e0b">live</span>
-        <div style="width:44px;height:44px;border-radius:10px;background:#2a1a0a;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:14px">🔄</div>
+        <div style="width:44px;height:44px;border-radius:10px;background:#2a1a0a;display:flex;align-items:center;justify-content:center;margin-bottom:14px"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M17 4l3 3-3 3" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M20 7H8a5 5 0 000 10h1" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round" fill="none" opacity=".7"/><path d="M7 20l-3-3 3-3" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity=".7"/><path d="M4 17h12a5 5 0 000-10h-1" stroke="#f59e0b" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg></div>
         <div style="font-size:14px;font-weight:800;color:#f59e0b;margin-bottom:4px">DEX Swap</div>
         <div style="font-size:11px;color:#555;line-height:1.6;margin-bottom:14px">Swap any token across EVM, Solana, Sui, Aptos and TON. Auto-routed best rate. No account needed.</div>
         <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:14px">
@@ -2662,56 +2663,56 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
     <div id="sw-nets-evm">
       <div class="sw-grp-label">L1 mainnet</div>
       <div class="sw-net-grid">
-        <div class="sw-net-btn" onclick="swSetNet('eth',this,'⟠','Ethereum','Uniswap v3','~$8','L1 mainnet · highest liquidity · MetaMask')"><span class="sw-net-badge sw-bl1">L1</span><span class="sw-net-icon">⟠</span><span class="sw-net-name">Ethereum</span><span class="sw-net-fee">~$8</span></div>
-        <div class="sw-net-btn" onclick="swSetNet('bnb',this,'🟡','BNB Chain','PancakeSwap','~$0.20','L1 mainnet · cheap · MetaMask')"><span class="sw-net-badge sw-bl1">L1</span><span class="sw-net-icon">🟡</span><span class="sw-net-name">BNB Chain</span><span class="sw-net-fee">~$0.20</span></div>
-        <div class="sw-net-btn" onclick="swSetNet('avax',this,'🔺','Avalanche','Trader Joe','~$0.10','L1 mainnet · fast · MetaMask')"><span class="sw-net-badge sw-bl1">L1</span><span class="sw-net-icon">🔺</span><span class="sw-net-name">Avalanche</span><span class="sw-net-fee">~$0.10</span></div>
-        <div class="sw-net-btn" onclick="swSetNet('ftm',this,'🌊','Fantom','SpookySwap','~$0.01','L1 mainnet · ultra cheap · MetaMask')"><span class="sw-net-badge sw-bl1">L1</span><span class="sw-net-icon">🌊</span><span class="sw-net-name">Fantom</span><span class="sw-net-fee">~$0.01</span></div>
+        <div class="sw-net-btn" onclick="swSetNet('eth',this,'⟠','Ethereum','Uniswap v3','~$8','L1 mainnet · highest liquidity · MetaMask')"><span class="sw-net-badge sw-bl1">L1</span><img src="https://assets.coingecko.com/coins/images/279/small/ethereum.png" class="batt-icon sm" alt="ETH" style="margin:0 auto 3px;display:block;border-radius:50%" onerror="this.style.display='none'"><span class="sw-net-name">Ethereum</span><span class="sw-net-fee">~$8</span></div>
+        <div class="sw-net-btn" onclick="swSetNet('bnb',this,'🟡','BNB Chain','PancakeSwap','~$0.20','L1 mainnet · cheap · MetaMask')"><span class="sw-net-badge sw-bl1">L1</span><img src="https://assets.coingecko.com/coins/images/825/small/bnb-icon2_2x.png" class="batt-icon sm" alt="BNB" style="margin:0 auto 3px;display:block;border-radius:50%" onerror="this.style.display='none'"><span class="sw-net-name">BNB Chain</span><span class="sw-net-fee">~$0.20</span></div>
+        <div class="sw-net-btn" onclick="swSetNet('avax',this,'🔺','Avalanche','Trader Joe','~$0.10','L1 mainnet · fast · MetaMask')"><span class="sw-net-badge sw-bl1">L1</span><img src="https://assets.coingecko.com/coins/images/12559/small/Avalanche_Circle_RedWhite_Trans.png" class="batt-icon sm" alt="AVAX" style="margin:0 auto 3px;display:block;border-radius:50%" onerror="this.style.display='none'"><span class="sw-net-name">Avalanche</span><span class="sw-net-fee">~$0.10</span></div>
+        <div class="sw-net-btn" onclick="swSetNet('ftm',this,'🌊','Fantom','SpookySwap','~$0.01','L1 mainnet · ultra cheap · MetaMask')"><span class="sw-net-badge sw-bl1">L1</span><img src="https://assets.coingecko.com/coins/images/4001/small/Fantom_round.png" class="batt-icon sm" alt="FTM" style="margin:0 auto 3px;display:block;border-radius:50%" onerror="this.style.display='none'"><span class="sw-net-name">Fantom</span><span class="sw-net-fee">~$0.01</span></div>
       </div>
       <div class="sw-grp-label">L2 — cheap &amp; fast</div>
       <div class="sw-net-grid">
-        <div class="sw-net-btn on" onclick="swSetNet('base',this,'🔵','Base','Uniswap v3','~$0.01','L2 · Coinbase backed · cheapest EVM · MetaMask')"><span class="sw-net-badge sw-bl2">L2</span><span class="sw-net-icon">🔵</span><span class="sw-net-name">Base</span><span class="sw-net-fee">~$0.01</span></div>
-        <div class="sw-net-btn" onclick="swSetNet('arb',this,'🔷','Arbitrum','Uniswap v3','~$0.10','L2 · deep liquidity · MetaMask')"><span class="sw-net-badge sw-bl2">L2</span><span class="sw-net-icon">🔷</span><span class="sw-net-name">Arbitrum</span><span class="sw-net-fee">~$0.10</span></div>
-        <div class="sw-net-btn" onclick="swSetNet('op',this,'🔴','Optimism','Velodrome','~$0.10','L2 · OP Stack · MetaMask')"><span class="sw-net-badge sw-bl2">L2</span><span class="sw-net-icon">🔴</span><span class="sw-net-name">Optimism</span><span class="sw-net-fee">~$0.10</span></div>
-        <div class="sw-net-btn" onclick="swSetNet('pol',this,'🟣','Polygon','QuickSwap','~$0.01','L2 sidechain · ultra cheap · MetaMask')"><span class="sw-net-badge sw-bl2">L2</span><span class="sw-net-icon">🟣</span><span class="sw-net-name">Polygon</span><span class="sw-net-fee">~$0.01</span></div>
+        <div class="sw-net-btn on" onclick="swSetNet('base',this,'🔵','Base','Uniswap v3','~$0.01','L2 · Coinbase backed · cheapest EVM · MetaMask')"><span class="sw-net-badge sw-bl2">L2</span><img src="https://assets.coingecko.com/coins/images/30966/small/base-symbol-blue.png" class="batt-icon sm" alt="Base" style="margin:0 auto 3px;display:block;border-radius:50%" onerror="this.style.display='none'"><span class="sw-net-name">Base</span><span class="sw-net-fee">~$0.01</span></div>
+        <div class="sw-net-btn" onclick="swSetNet('arb',this,'🔷','Arbitrum','Uniswap v3','~$0.10','L2 · deep liquidity · MetaMask')"><span class="sw-net-badge sw-bl2">L2</span><img src="https://assets.coingecko.com/coins/images/16547/small/photo_2023-03-29_21.47.00.jpeg" class="batt-icon sm" alt="ARB" style="margin:0 auto 3px;display:block;border-radius:50%" onerror="this.style.display='none'"><span class="sw-net-name">Arbitrum</span><span class="sw-net-fee">~$0.10</span></div>
+        <div class="sw-net-btn" onclick="swSetNet('op',this,'🔴','Optimism','Velodrome','~$0.10','L2 · OP Stack · MetaMask')"><span class="sw-net-badge sw-bl2">L2</span><img src="https://assets.coingecko.com/coins/images/25244/small/Optimism.png" class="batt-icon sm" alt="OP" style="margin:0 auto 3px;display:block;border-radius:50%" onerror="this.style.display='none'"><span class="sw-net-name">Optimism</span><span class="sw-net-fee">~$0.10</span></div>
+        <div class="sw-net-btn" onclick="swSetNet('pol',this,'🟣','Polygon','QuickSwap','~$0.01','L2 sidechain · ultra cheap · MetaMask')"><span class="sw-net-badge sw-bl2">L2</span><img src="https://assets.coingecko.com/coins/images/4713/small/matic-token-icon.png" class="batt-icon sm" alt="POL" style="margin:0 auto 3px;display:block;border-radius:50%" onerror="this.style.display='none'"><span class="sw-net-name">Polygon</span><span class="sw-net-fee">~$0.01</span></div>
       </div>
       <div class="sw-grp-label">ZK rollups</div>
       <div class="sw-net-grid col3">
-        <div class="sw-net-btn" onclick="swSetNet('zks',this,'⚡','zkSync','SyncSwap','~$0.01','ZK rollup · ultra fast · MetaMask')"><span class="sw-net-badge sw-bzk">ZK</span><span class="sw-net-icon">⚡</span><span class="sw-net-name">zkSync</span><span class="sw-net-fee">~$0.01</span></div>
-        <div class="sw-net-btn" onclick="swSetNet('stark',this,'🌀','Starknet','Avnu','~$0.01','ZK rollup · Cairo VM · Argent/Braavos')"><span class="sw-net-badge sw-bzk">ZK</span><span class="sw-net-icon">🌀</span><span class="sw-net-name">Starknet</span><span class="sw-net-fee">~$0.01</span></div>
-        <div class="sw-net-btn" onclick="swSetNet('linea',this,'🔮','Linea','Nile','~$0.01','ZK rollup · ConsenSys · MetaMask')"><span class="sw-net-badge sw-bzk">ZK</span><span class="sw-net-icon">🔮</span><span class="sw-net-name">Linea</span><span class="sw-net-fee">~$0.01</span></div>
+        <div class="sw-net-btn" onclick="swSetNet('zks',this,'⚡','zkSync','SyncSwap','~$0.01','ZK rollup · ultra fast · MetaMask')"><span class="sw-net-badge sw-bzk">ZK</span><img src="https://assets.coingecko.com/coins/images/38043/small/ZKSyncLogo.jpeg" class="batt-icon sm" alt="ZKS" style="margin:0 auto 3px;display:block;border-radius:50%" onerror="this.style.display='none'"><span class="sw-net-name">zkSync</span><span class="sw-net-fee">~$0.01</span></div>
+        <div class="sw-net-btn" onclick="swSetNet('stark',this,'🌀','Starknet','Avnu','~$0.01','ZK rollup · Cairo VM · Argent/Braavos')"><span class="sw-net-badge sw-bzk">ZK</span><img src="https://assets.coingecko.com/coins/images/26433/small/starknet.png" class="batt-icon sm" alt="STK" style="margin:0 auto 3px;display:block;border-radius:50%" onerror="this.style.display='none'"><span class="sw-net-name">Starknet</span><span class="sw-net-fee">~$0.01</span></div>
+        <div class="sw-net-btn" onclick="swSetNet('linea',this,'🔮','Linea','Nile','~$0.01','ZK rollup · ConsenSys · MetaMask')"><span class="sw-net-badge sw-bzk">ZK</span><img src="https://assets.coingecko.com/coins/images/33735/small/linea-mainnet.png" class="batt-icon sm" alt="LNA" style="margin:0 auto 3px;display:block;border-radius:50%" onerror="this.style.display='none'"><span class="sw-net-name">Linea</span><span class="sw-net-fee">~$0.01</span></div>
       </div>
     </div>
     <div id="sw-nets-sol" style="display:none">
       <div class="sw-grp-label">Solana</div>
       <div class="sw-net-grid" style="grid-template-columns:1fr">
-        <div class="sw-net-btn on" onclick="swSetNet('sol',this,'◎','Solana','Jupiter','~$0.00025','Solana mainnet · Jupiter aggregator · Phantom wallet')"><span class="sw-net-badge sw-bfast" style="background:#1a0a2a;color:#9945ff">SOL</span><span class="sw-net-icon">◎</span><span class="sw-net-name">Solana</span><span class="sw-net-fee">~$0.00025</span></div>
+        <div class="sw-net-btn on" onclick="swSetNet('sol',this,'◎','Solana','Jupiter','~$0.00025','Solana mainnet · Jupiter aggregator · Phantom wallet')"><span class="sw-net-badge sw-bfast" style="background:#1a0a2a;color:#9945ff">SOL</span><img src="https://assets.coingecko.com/coins/images/4128/small/solana.png" class="batt-icon sm" alt="SOL" style="margin:0 auto 3px;display:block;border-radius:50%" onerror="this.style.display='none'"><span class="sw-net-name">Solana</span><span class="sw-net-fee">~$0.00025</span></div>
       </div>
       <div class="sw-notice">requires <strong style="color:#9945ff">Phantom</strong> or <strong style="color:#9945ff">Solflare</strong> wallet</div>
     </div>
     <div id="sw-nets-sui" style="display:none">
       <div class="sw-grp-label">Sui</div>
       <div class="sw-net-grid" style="grid-template-columns:1fr">
-        <div class="sw-net-btn on" onclick="swSetNet('sui',this,'🅢','Sui','Cetus','~$0.001','Sui mainnet · Cetus DEX · Sui Wallet')"><span class="sw-net-badge" style="background:#0a1a2a;color:#4da2ff">SUI</span><span class="sw-net-icon">🅢</span><span class="sw-net-name">Sui</span><span class="sw-net-fee">~$0.001</span></div>
+        <div class="sw-net-btn on" onclick="swSetNet('sui',this,'🅢','Sui','Cetus','~$0.001','Sui mainnet · Cetus DEX · Sui Wallet')"><span class="sw-net-badge" style="background:#0a1a2a;color:#4da2ff">SUI</span><img src="https://assets.coingecko.com/coins/images/26375/small/sui_asset.jpeg" class="batt-icon sm" alt="SUI" style="margin:0 auto 3px;display:block;border-radius:50%" onerror="this.style.display='none'"><span class="sw-net-name">Sui</span><span class="sw-net-fee">~$0.001</span></div>
       </div>
       <div class="sw-notice">requires <strong style="color:#4da2ff">Sui Wallet</strong> or <strong style="color:#4da2ff">Suiet</strong></div>
     </div>
     <div id="sw-nets-apt" style="display:none">
       <div class="sw-grp-label">Aptos</div>
       <div class="sw-net-grid" style="grid-template-columns:1fr">
-        <div class="sw-net-btn on" onclick="swSetNet('apt',this,'🔷','Aptos','Liquidswap','~$0.001','Aptos mainnet · Liquidswap DEX · Petra wallet')"><span class="sw-net-badge" style="background:#0a1a0a;color:#2dd4bf">APT</span><span class="sw-net-icon">🔷</span><span class="sw-net-name">Aptos</span><span class="sw-net-fee">~$0.001</span></div>
+        <div class="sw-net-btn on" onclick="swSetNet('apt',this,'🔷','Aptos','Liquidswap','~$0.001','Aptos mainnet · Liquidswap DEX · Petra wallet')"><span class="sw-net-badge" style="background:#0a1a0a;color:#2dd4bf">APT</span><img src="https://assets.coingecko.com/coins/images/16547/small/photo_2023-03-29_21.47.00.jpeg" class="batt-icon sm" alt="ARB" style="margin:0 auto 3px;display:block;border-radius:50%" onerror="this.style.display='none'"><span class="sw-net-name">Aptos</span><span class="sw-net-fee">~$0.001</span></div>
       </div>
       <div class="sw-notice">requires <strong style="color:#2dd4bf">Petra</strong> or <strong style="color:#2dd4bf">Martian</strong> wallet</div>
     </div>
     <div id="sw-nets-ton" style="display:none">
       <div class="sw-grp-label">TON</div>
       <div class="sw-net-grid" style="grid-template-columns:1fr">
-        <div class="sw-net-btn on" onclick="swSetNet('ton',this,'⬡','TON','DeDust','~$0.01','TON mainnet · DeDust DEX · Tonkeeper wallet')"><span class="sw-net-badge" style="background:#0a1a2a;color:#0088cc">TON</span><span class="sw-net-icon">⬡</span><span class="sw-net-name">TON</span><span class="sw-net-fee">~$0.01</span></div>
+        <div class="sw-net-btn on" onclick="swSetNet('ton',this,'⬡','TON','DeDust','~$0.01','TON mainnet · DeDust DEX · Tonkeeper wallet')"><span class="sw-net-badge" style="background:#0a1a2a;color:#0088cc">TON</span><img src="https://assets.coingecko.com/coins/images/17980/small/ton_symbol.png" class="batt-icon sm" alt="TON" style="margin:0 auto 3px;display:block;border-radius:50%" onerror="this.style.display='none'"><span class="sw-net-name">TON</span><span class="sw-net-fee">~$0.01</span></div>
       </div>
       <div class="sw-notice">requires <strong style="color:#0088cc">Tonkeeper</strong> or <strong style="color:#0088cc">MyTonWallet</strong></div>
     </div>
     <!-- selected network info -->
     <div class="sw-net-info" id="sw-net-info">
-      <div class="sw-ni-icon" id="sw-ni-icon">🔵</div>
+      <div class="sw-ni-icon" id="sw-ni-icon"><img src="https://assets.coingecko.com/coins/images/30966/small/base-symbol-blue.png" style="width:24px;height:24px;border-radius:50%" alt="Base"></div>
       <div>
         <div class="sw-ni-name" id="sw-ni-name">Base · Uniswap v3</div>
         <div class="sw-ni-desc" id="sw-ni-desc">L2 · Coinbase backed · cheapest EVM · MetaMask</div>
@@ -2729,7 +2730,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
       </div>
       <div class="sw-token-row">
         <button class="sw-token-pill" onclick="swPickToken('in')">
-          <div class="sw-token-icon" style="background:#627eea;color:#fff" id="sw-in-icon">Ξ</div>
+          <img src="https://assets.coingecko.com/coins/images/279/small/ethereum.png" class="batt-icon sm" id="sw-in-icon" alt="ETH" style="border-radius:50%">
           <span class="sw-token-sym" id="sw-in-sym">ETH</span>
           <span style="font-size:7px;color:#555">▼</span>
         </button>
@@ -2748,7 +2749,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
       </div>
       <div class="sw-token-row">
         <button class="sw-token-pill" onclick="swPickToken('out')">
-          <div class="sw-token-icon" style="background:#2775ca;color:#fff;font-size:8px" id="sw-out-icon">$</div>
+          <img src="https://assets.coingecko.com/coins/images/6319/small/usdc.png" class="batt-icon sm" id="sw-out-icon" alt="USDC" style="border-radius:50%">
           <span class="sw-token-sym" id="sw-out-sym">USDC</span>
           <span style="font-size:7px;color:#555">▼</span>
         </button>
@@ -10574,8 +10575,8 @@ var _swState = {
   gas: '~$0.01',
   netDesc: 'L2 · Coinbase backed · cheapest EVM · MetaMask',
   wallet: null,
-  inSym: 'ETH', inIcon: 'Ξ', inColor: '#627eea',
-  outSym: 'USDC', outIcon: '$', outColor: '#2775ca',
+  inSym: 'ETH', inIcon: 'Ξ', inImg: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png', inColor: '#627eea',
+  outSym: 'USDC', outIcon: '$', outImg: 'https://assets.coingecko.com/coins/images/6319/small/usdc.png', outColor: '#2775ca',
 };
 
 function openSwapPage(){
@@ -10624,7 +10625,7 @@ function swSetNet(net, btn, icon, name, dex, gas, desc){
   if(panel) panel.querySelectorAll('.sw-net-btn').forEach(b=>b.classList.remove('on'));
   btn.classList.add('on');
   // update info bar
-  const ni = document.getElementById('sw-ni-icon'); if(ni) ni.textContent=icon;
+  const ni = document.getElementById('sw-ni-icon'); if(ni){ const src=BATT_ICONS[net]; ni.innerHTML=src?`<img src="${src}" style="width:24px;height:24px;border-radius:50%" alt="${name}">`:`<span style="font-size:18px">${icon}</span>`; }
   const nn = document.getElementById('sw-ni-name'); if(nn) nn.textContent=name+' · '+dex;
   const nd = document.getElementById('sw-ni-desc'); if(nd) nd.textContent=desc;
   const nf = document.getElementById('sw-ni-fee'); if(nf) nf.textContent=gas;
@@ -10688,9 +10689,9 @@ function swFlip(){
   const tmpSym=_swState.inSym, tmpIcon=_swState.inIcon, tmpColor=_swState.inColor;
   _swState.inSym=_swState.outSym; _swState.inIcon=_swState.outIcon; _swState.inColor=_swState.outColor;
   _swState.outSym=tmpSym; _swState.outIcon=tmpIcon; _swState.outColor=tmpColor;
-  const ii=document.getElementById('sw-in-icon'); if(ii){ii.textContent=_swState.inIcon;ii.style.background=_swState.inColor;}
+  const ii=document.getElementById('sw-in-icon'); if(ii&&_swState.inImg){ii.src=_swState.inImg;ii.alt=_swState.inSym;}
   const is=document.getElementById('sw-in-sym'); if(is) is.textContent=_swState.inSym;
-  const oi=document.getElementById('sw-out-icon'); if(oi){oi.textContent=_swState.outIcon;oi.style.background=_swState.outColor;}
+  const oi=document.getElementById('sw-out-icon'); if(oi&&_swState.outImg){oi.src=_swState.outImg;oi.alt=_swState.outSym;}
   const os=document.getElementById('sw-out-sym'); if(os) os.textContent=_swState.outSym;
   swUpdateQuote();
 }
