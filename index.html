@@ -10746,13 +10746,6 @@ function tpSelectExchange(ex) {
 }
 
 // Order type
-function tpSetOrderType(type) {
-  TP_STATE.orderType = type;
-  document.querySelectorAll('.tp-order-tab').forEach(t => t.classList.remove('active'));
-  event.target.classList.add('active');
-  document.getElementById('tp-limit-price-group').style.display = type === 'limit' ? 'block' : 'none';
-}
-
 // Side selection
 function tpSelectSide(side) {
   TP_STATE.side = side;
@@ -10794,9 +10787,9 @@ function tpCalculate() {
   const tp = parseFloat(document.getElementById('tp-tp')?.value) || 10;
   const sl = parseFloat(document.getElementById('tp-sl')?.value) || 5;
   const priceData = TP_STATE.prices[TP_STATE.pair] || { price: 69000 };
-  const price = TP_STATE.orderType === 'limit' ? 
-    (parseFloat(document.getElementById('tp-limit-price')?.value) || priceData.price) : 
-    priceData.price;
+  const price = (TP_STATE.orderType === 'limit' || TP_STATE.orderType === 'stop')
+    ? (parseFloat(document.getElementById('tp-limit-price')?.value) || parseFloat(document.getElementById('tp-stop-price')?.value) || priceData.price)
+    : priceData.price;
   const lev = TP_STATE.leverage;
   const side = TP_STATE.side;
   
@@ -10861,8 +10854,8 @@ function tpPlaceOrder() {
       showToast('Insufficient balance', 'error');
       return;
     }
-    const tp = parseFloat(document.getElementById('tp-tp-pct')?.value) || 10;
-    const sl = parseFloat(document.getElementById('tp-sl-pct')?.value) || 5;
+    const tp = parseFloat(document.getElementById('tp-tp')?.value) || 10;
+    const sl = parseFloat(document.getElementById('tp-sl')?.value) || 5;
     const order = {
       id: 'ord_'+Date.now(),
       pair: TP_STATE.pair,
@@ -10882,6 +10875,8 @@ function tpPlaceOrder() {
     TP_STATE.pendingOrders.push(order);
     tpSaveState();
     tpRenderOrders();
+    // switch to orders tab to show the new order
+    tpShowTab('orders');
     showToast(`${TP_STATE.orderType.toUpperCase()} order placed @ ${fmtPrice(limitPrice)}`, 'success');
     return;
   }
@@ -11550,17 +11545,7 @@ function tpSetOrderType(type) {
 
 // Generate and render order book
 // Click order book row to fill price
-function tpFillPrice(price) {
-  // Switch to limit order
-  TP_STATE.orderType = 'limit';
-  document.querySelectorAll('.tp-order-tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.tp-order-tab')[1]?.classList.add('active'); // Limit tab
-  document.getElementById('tp-limit-price-group').style.display = 'block';
-  const fmtd = fmtPrice(price,false);
-  document.getElementById('tp-limit-price').value = fmtd;
-  tpCalculate();
-  showToast(`Price set to ${fmtPrice(price)}`, 'info');
-}
+
 
 // Fetch real order book from Binance
 async function tpFetchOrderBook() {
@@ -11900,9 +11885,9 @@ tpCalculate = function() {
   const tp = parseFloat(document.getElementById('tp-tp')?.value) || 10;
   const sl = parseFloat(document.getElementById('tp-sl')?.value) || 5;
   const priceData = TP_STATE.prices[TP_STATE.pair] || { price: 69000 };
-  const price = TP_STATE.orderType === 'limit' ? 
-    (parseFloat(document.getElementById('tp-limit-price')?.value) || priceData.price) : 
-    priceData.price;
+  const price = (TP_STATE.orderType === 'limit' || TP_STATE.orderType === 'stop')
+    ? (parseFloat(document.getElementById('tp-limit-price')?.value) || parseFloat(document.getElementById('tp-stop-price')?.value) || priceData.price)
+    : priceData.price;
   const lev = TP_STATE.marketType === 'spot' ? 1 : TP_STATE.leverage;
   const side = TP_STATE.side;
   const isSpot = TP_STATE.marketType === 'spot';
