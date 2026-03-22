@@ -9568,25 +9568,26 @@ function tpInitTVChart(){
       overrides: {
         'paneProperties.background': '#050505',
         'paneProperties.backgroundType': 'solid',
-        'paneProperties.vertGridProperties.color': '#111111',
-        'paneProperties.horzGridProperties.color': '#111111',
-        'paneProperties.crossHairProperties.color': '#555555',
-        'scalesProperties.textColor': '#555555',
-        'scalesProperties.backgroundColor': '#050505',
+        'paneProperties.vertGridProperties.color': '#0f0f0f',
+        'paneProperties.horzGridProperties.color': '#0f0f0f',
+        'scalesProperties.textColor': '#666666',
         'scalesProperties.lineColor': '#1a1a1a',
-        'candleStyle.upColor': '#00c47a',
-        'candleStyle.downColor': '#e24b4a',
-        'candleStyle.borderUpColor': '#00c47a',
-        'candleStyle.borderDownColor': '#e24b4a',
-        'candleStyle.wickUpColor': '#00c47a',
-        'candleStyle.wickDownColor': '#e24b4a',
-        'hollowCandleStyle.upColor': '#00c47a',
-        'hollowCandleStyle.downColor': '#e24b4a',
-        'lineStyle.color': '#00c47a',
-        'areaStyle.color1': 'rgba(0,196,122,0.2)',
-        'areaStyle.color2': 'rgba(0,196,122,0)',
-        'areaStyle.lineColor': '#00c47a',
-        'volumePaneSize': 'medium',
+        'mainSeriesProperties.candleStyle.upColor': '#00c47a',
+        'mainSeriesProperties.candleStyle.downColor': '#e24b4a',
+        'mainSeriesProperties.candleStyle.borderUpColor': '#00c47a',
+        'mainSeriesProperties.candleStyle.borderDownColor': '#e24b4a',
+        'mainSeriesProperties.candleStyle.wickUpColor': '#00c47a',
+        'mainSeriesProperties.candleStyle.wickDownColor': '#e24b4a',
+        'mainSeriesProperties.hollowCandleStyle.upColor': '#00c47a',
+        'mainSeriesProperties.hollowCandleStyle.downColor': '#e24b4a',
+        'mainSeriesProperties.hollowCandleStyle.borderUpColor': '#00c47a',
+        'mainSeriesProperties.hollowCandleStyle.borderDownColor': '#e24b4a',
+        'mainSeriesProperties.barStyle.upColor': '#00c47a',
+        'mainSeriesProperties.barStyle.downColor': '#e24b4a',
+        'mainSeriesProperties.lineStyle.color': '#00c47a',
+        'mainSeriesProperties.areaStyle.color1': 'rgba(0,196,122,0.2)',
+        'mainSeriesProperties.areaStyle.color2': 'rgba(0,196,122,0)',
+        'mainSeriesProperties.areaStyle.lineColor': '#00c47a',
       },
       studies_overrides: {
         'volume.volume.color.0': '#e24b4a',
@@ -9928,10 +9929,14 @@ function tpStartWebSocket(){
     _tpWS = new WebSocket(wsUrl);
 
     _tpWS.onopen = () => {
-      _tpWS.send(JSON.stringify({
-        op:'subscribe',
-        args:[`tickers.${pairUp}`, `orderbook.25.${pairUp}`]
-      }));
+      const d=document.getElementById('tp-ws-status'); if(d) d.style.background='#00c47a';
+      _tpWS.send(JSON.stringify({op:'subscribe',args:[`tickers.${pairUp}`,`orderbook.25.${pairUp}`]}));
+      _tpWS._ping = setInterval(()=>{ if(_tpWS.readyState===1) _tpWS.send(JSON.stringify({op:'ping'})); },20000);
+    };
+    _tpWS.onclose = _tpWS.onerror = ()=>{
+      if(_tpWS._ping) clearInterval(_tpWS._ping);
+      const d=document.getElementById('tp-ws-status'); if(d) d.style.background='#e24b4a';
+      _tpWSReconnectTimer=setTimeout(()=>{ if(TP_STATE.exchange==='bybit') tpStartWebSocket(); },3000);
     };
 
     _tpWS.onmessage = (e) => {
@@ -9980,13 +9985,14 @@ function tpStartWebSocket(){
       : pairUp.replace('USDT','-USDT-SWAP');
 
     _tpWS.onopen = () => {
-      _tpWS.send(JSON.stringify({
-        op:'subscribe',
-        args:[
-          {channel:'tickers', instId},
-          {channel:'books5', instId}
-        ]
-      }));
+      const d=document.getElementById('tp-ws-status'); if(d) d.style.background='#00c47a';
+      _tpWS.send(JSON.stringify({op:'subscribe',args:[{channel:'tickers',instId},{channel:'books5',instId}]}));
+      _tpWS._ping = setInterval(()=>{ if(_tpWS.readyState===1) _tpWS.send('ping'); },25000);
+    };
+    _tpWS.onclose = _tpWS.onerror = ()=>{
+      if(_tpWS._ping) clearInterval(_tpWS._ping);
+      const d=document.getElementById('tp-ws-status'); if(d) d.style.background='#e24b4a';
+      _tpWSReconnectTimer=setTimeout(()=>{ if(TP_STATE.exchange==='okx') tpStartWebSocket(); },3000);
     };
 
     _tpWS.onmessage = (e) => {
@@ -10992,15 +10998,18 @@ function tpRenderOrderBookData(asks, bids) {
       const prevSize = _obPrevRows[side][key];
       const changed = prevSize!==undefined && prevSize!==size;
       _obPrevRows[side][key] = size;
+      const priceColor = side==='asks' ? '#e24b4a' : '#00c47a';
       let row = container.children[i];
       if(!row){
         row = document.createElement('div');
         row.className = 'tp-ob-row '+side;
-        row.innerHTML = '<span class="price"></span><span class="size"></span><span class="usdt"></span><div class="depth"></div>';
+        row.innerHTML = `<span style="color:${priceColor};font-weight:700;font-family:monospace"></span><span style="color:#888;text-align:right;font-family:monospace"></span><span style="color:#444;text-align:right;font-family:monospace"></span><div class="depth"></div>`;
         container.appendChild(row);
       }
       row.onclick = ()=>tpFillPrice(price);
       const spans = row.querySelectorAll('span');
+      // ensure color stays correct
+      if(spans[0]) spans[0].style.color = priceColor;
       const newP = fmtPrice(price,false);
       const newS = fmtSize(size);
       const newU = fmtUsdt(usdt);
