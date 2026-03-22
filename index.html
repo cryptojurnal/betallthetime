@@ -4818,16 +4818,16 @@ function tpRenderTrades(){
 // ── SMART PRICE FORMATTER ──
 // determines decimal places based on price magnitude — matches exchange tick sizes
 function fmtPrice(price, withDollar=true){
-  if(!price || isNaN(price)) return withDollar ? '$--' : '--';
+  if(!price || isNaN(price) || price === 0) return withDollar ? '' : '';
   let decimals;
-  if(price >= 10000)      decimals = 1;  // BTC, ETH high price
-  else if(price >= 1000)  decimals = 2;  // BTC lower, ETH
-  else if(price >= 100)   decimals = 2;  // SOL, BNB, AVAX
-  else if(price >= 10)    decimals = 3;  // SOL lower range
-  else if(price >= 1)     decimals = 4;  // XRP, ADA, MATIC
-  else if(price >= 0.1)   decimals = 5;  // DOGE
-  else if(price >= 0.01)  decimals = 6;  // SHIB range
-  else                    decimals = 8;  // very small caps
+  if(price >= 10000)      decimals = 1;
+  else if(price >= 1000)  decimals = 2;
+  else if(price >= 100)   decimals = 2;
+  else if(price >= 10)    decimals = 3;
+  else if(price >= 1)     decimals = 4;
+  else if(price >= 0.1)   decimals = 5;
+  else if(price >= 0.01)  decimals = 6;
+  else                    decimals = 8;
   const formatted = price.toFixed(decimals);
   return withDollar ? '$' + formatted : formatted;
 }
@@ -10057,6 +10057,9 @@ function tpUpdatePriceDisplay() {
   document.getElementById('tp-pair-name').textContent = TP_STATE.pair.replace('USDT', '/USDT');
   document.getElementById('tp-pair-exchange').textContent = `${TP_STATE.marketType} · ${TP_STATE.exchange}`;
   
+  // skip if no real data yet — keep whatever is already displayed
+  if(!priceData.price || priceData.price === 0) return;
+
   const priceEl = document.getElementById('tp-price-main');
   const changeEl = document.getElementById('tp-price-change');
   
@@ -10067,9 +10070,9 @@ function tpUpdatePriceDisplay() {
     changeEl.className = 'tp-price-change ' + (isUp ? 'up' : 'down');
   }
   
-  document.getElementById('tp-high').textContent = '$' + (priceData.high || 0).toLocaleString();
-  document.getElementById('tp-low').textContent = '$' + (priceData.low || 0).toLocaleString();
-  document.getElementById('tp-vol').textContent = '$' + (priceData.volume || 0).toLocaleString(undefined, { notation: 'compact', maximumFractionDigits: 1 });
+  if(priceData.high) document.getElementById('tp-high').textContent = fmtPrice(priceData.high);
+  if(priceData.low) document.getElementById('tp-low').textContent = fmtPrice(priceData.low);
+  if(priceData.volume) document.getElementById('tp-vol').textContent = '$' + (priceData.volume).toLocaleString(undefined, { notation: 'compact', maximumFractionDigits: 1 });
   
   tpCalculate();
 }
