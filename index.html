@@ -4798,12 +4798,31 @@ function tpRenderTrades(){
   const fmtSize = (s) => s>=1000?(s/1000).toFixed(2)+'K':s.toFixed(3);
   el.innerHTML = _tpTrades.slice(0,40).map(t=>`
     <div class="tp-trade-row ${t.side}">
-      <span class="t-price">${t.price.toFixed(2)}</span>
+      <span class="t-price">${fmtPrice(t.price,false)}</span>
       <span class="t-size">${fmtSize(t.size)}</span>
       <span class="t-time">${t.time}</span>
     </div>`).join('');
 }
 // ── END LAST TRADES ──
+
+
+// ── SMART PRICE FORMATTER ──
+// determines decimal places based on price magnitude — matches exchange tick sizes
+function fmtPrice(price, withDollar=true){
+  if(!price || isNaN(price)) return withDollar ? '$--' : '--';
+  let decimals;
+  if(price >= 10000)      decimals = 1;  // BTC, ETH high price
+  else if(price >= 1000)  decimals = 2;  // BTC lower, ETH
+  else if(price >= 100)   decimals = 2;  // SOL, BNB, AVAX
+  else if(price >= 10)    decimals = 3;  // SOL lower range
+  else if(price >= 1)     decimals = 4;  // XRP, ADA, MATIC
+  else if(price >= 0.1)   decimals = 5;  // DOGE
+  else if(price >= 0.01)  decimals = 6;  // SHIB range
+  else                    decimals = 8;  // very small caps
+  const formatted = price.toFixed(decimals);
+  return withDollar ? '$' + formatted : formatted;
+}
+// ── END SMART PRICE FORMATTER ──
 
 // ── BATT ICON SYSTEM ──
 const BATT_ICONS = {
@@ -9998,7 +10017,7 @@ function tpUpdatePriceDisplay() {
   const priceEl = document.getElementById('tp-price-main');
   const changeEl = document.getElementById('tp-price-change');
   
-  if (priceEl) priceEl.textContent = '$' + priceData.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (priceEl) priceEl.textContent = fmtPrice(priceData.price);
   if (changeEl) {
     const isUp = priceData.change >= 0;
     changeEl.textContent = (isUp ? '+' : '') + priceData.change.toFixed(2) + '%';
@@ -10144,7 +10163,7 @@ function tpCalculate() {
   const tpPrice = side === 'long' ? price * (1 + tp / 100) : price * (1 - tp / 100);
   const slPrice = side === 'long' ? price * (1 - sl / 100) : price * (1 + sl / 100);
   
-  const fmt = (n) => '$' + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmt = (n) => fmtPrice(n);
   
   document.getElementById('tp-sum-entry').textContent = fmt(price);
   document.getElementById('tp-sum-value').textContent = fmt(posValue);
@@ -10824,9 +10843,10 @@ function tpFillPrice(price) {
   document.querySelectorAll('.tp-order-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tp-order-tab')[1]?.classList.add('active'); // Limit tab
   document.getElementById('tp-limit-price-group').style.display = 'block';
-  document.getElementById('tp-limit-price').value = price.toFixed(2);
+  const fmtd = fmtPrice(price,false);
+  document.getElementById('tp-limit-price').value = fmtd;
   tpCalculate();
-  showToast(`Price set to $${price.toFixed(2)}`, 'info');
+  showToast(`Price set to ${fmtPrice(price)}`, 'info');
 }
 
 // Fetch real order book from Binance
@@ -10904,7 +10924,7 @@ function tpRenderOrderBookData(asks, bids) {
     const usdt = price * size;
     const depth = (size / maxSize) * 100;
     return `<div class="tp-ob-row ask" onclick="tpFillPrice(${price})" title="Click to set limit price">
-        <span class="price">${price.toFixed(2)}</span>
+        <span class="price">${fmtPrice(price,false)}</span>
         <span class="size">${fmtSize(size)}</span>
         <span class="size" style="color:#555">${fmtUsdt(usdt)}</span>
         <div class="depth" style="width:${depth}%"></div>
@@ -10919,7 +10939,7 @@ function tpRenderOrderBookData(asks, bids) {
     const usdt = price * size;
     const depth = (size / maxSize) * 100;
     return `<div class="tp-ob-row bid" onclick="tpFillPrice(${price})" title="Click to set limit price">
-        <span class="price">${price.toFixed(2)}</span>
+        <span class="price">${fmtPrice(price,false)}</span>
         <span class="size">${fmtSize(size)}</span>
         <span class="size" style="color:#555">${fmtUsdt(usdt)}</span>
         <div class="depth" style="width:${depth}%"></div>
@@ -10932,7 +10952,7 @@ function tpRenderOrderBookData(asks, bids) {
   const midPrice = (bestAsk + bestBid) / 2;
   const spread = bestAsk - bestBid;
   
-  if (priceEl) priceEl.textContent = '$' + midPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (priceEl) priceEl.textContent = fmtPrice(midPrice);
   if (changeEl) {
     const isUp = change >= 0;
     changeEl.textContent = (isUp ? '+' : '') + change.toFixed(2) + '%';
@@ -10975,7 +10995,7 @@ function tpRenderOrderBook() {
   // Render asks (reversed so lowest ask is at bottom)
   asksContainer.innerHTML = asks.reverse().map(a => `
     <div class="tp-ob-row ask" onclick="tpFillPrice(${a.price})" title="Click to set limit price">
-      <span class="price">${a.price.toFixed(2)}</span>
+      <span class="price">${fmtPrice(a.price,false)}</span>
       <span class="size">${a.size}</span>
       <div class="depth" style="width:${a.depth}%"></div>
     </div>
@@ -10984,7 +11004,7 @@ function tpRenderOrderBook() {
   // Render bids
   bidsContainer.innerHTML = bids.map(b => `
     <div class="tp-ob-row bid" onclick="tpFillPrice(${b.price})" title="Click to set limit price">
-      <span class="price">${b.price.toFixed(2)}</span>
+      <span class="price">${fmtPrice(b.price,false)}</span>
       <span class="size">${b.size}</span>
       <div class="depth" style="width:${b.depth}%"></div>
     </div>
@@ -11182,7 +11202,7 @@ tpCalculate = function() {
   const slPrice = side === 'long' ? price * (1 - sl / 100) : price * (1 + sl / 100);
   const fee = posValue * 0.001; // 0.1% fee
   
-  const fmt = (n) => '$' + n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmt = (n) => fmtPrice(n);
   
   // Update size label based on mode
   const sizeLabel = document.getElementById('tp-size-label');
@@ -11378,7 +11398,7 @@ async function fetchLivePrices(){
       const price = parseFloat(ticker?.lastPrice)||0;
       const change = parseFloat(ticker?.priceChangePercent)||0;
       const isUp = change>=0;
-      const priceStr = price > 0 ? (price>=1000?'$'+price.toLocaleString(undefined,{maximumFractionDigits:0}):'$'+price.toFixed(2)) : '--';
+      const priceStr = price > 0 ? fmtPrice(price) : '--';
       const changeStr = price > 0 ? ((isUp?'+':'')+change.toFixed(2)+'%') : '--';
       return `<div class="price-card">
         <div class="price-card-head">
