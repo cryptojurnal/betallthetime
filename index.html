@@ -12940,8 +12940,14 @@ function battNav(page){
     var hash = '#' + page;
     var cur = (window.location.hash||'').replace('#','');
     if(cur === page) return;
+    // overlay states (#risk, #guide-lock) should be replaced, not stacked
+    var overlayStates = ['risk','guide-lock'];
     _battInAppNav = true;
-    history.pushState({batt:page}, '', hash);
+    if(overlayStates.indexOf(cur) !== -1){
+      history.replaceState({batt:page}, '', hash);
+    } else {
+      history.pushState({batt:page}, '', hash);
+    }
     _battInAppNav = false;
   }catch(e){ _battInAppNav = false; }
 }
