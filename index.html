@@ -764,8 +764,18 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
 .tp-ob-content{flex:1;overflow:hidden;display:flex;flex-direction:column}
 .tp-ob-asks,.tp-ob-bids{flex:1;overflow:hidden;display:flex;flex-direction:column}
 .tp-ob-asks{justify-content:flex-end}
-.tp-ob-spread{padding:6px 10px;background:#111;text-align:center;font-size:10px;color:#555;border-top:1px solid #1a1a1a;border-bottom:1px solid #1a1a1a}
-.tp-ob-spread span{color:#888;font-weight:600}
+.tp-ob-tabs{display:flex;border-bottom:0.5px solid #1a1a1a;flex-shrink:0}
+.tp-ob-tab{flex:1;padding:5px;font-size:9px;font-weight:700;color:#555;border:none;background:transparent;cursor:pointer;border-bottom:1.5px solid transparent;font-family:inherit}
+.tp-ob-tab.on{color:#e0e0e0;border-bottom-color:#00c47a}
+#tp-ob-book{display:flex;flex-direction:column;flex:1;min-height:0}
+#tp-ob-trades{display:none;flex:1;min-height:0}
+#tp-trades-list::-webkit-scrollbar{display:none}
+.tp-trade-row{display:grid;grid-template-columns:1fr 1fr 1fr;padding:2px 6px;font-size:9px;cursor:default}
+.tp-trade-row.buy .t-price{color:#00c47a}
+.tp-trade-row.sell .t-price{color:#e24b4a}
+.tp-trade-row .t-size,.tp-trade-row .t-time{color:#555;text-align:right}
+.tp-ob-spread{font-size:8px;color:#333;margin-top:2px;letter-spacing:.02em}
+.tp-ob-spread span{color:#444;font-weight:600}
 .tp-ob-row{display:flex;justify-content:space-between;padding:3px 10px;font-size:10px;font-family:monospace;position:relative;cursor:pointer;transition:background .1s}
 .tp-ob-row:hover{background:rgba(255,255,255,0.05)}
 .tp-ob-row.ask{color:#E24B4A}
@@ -775,7 +785,7 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
 .tp-ob-row .depth{position:absolute;right:0;top:0;bottom:0;opacity:0.15;transition:width .3s}
 .tp-ob-row.ask .depth{background:#E24B4A}
 .tp-ob-row.bid .depth{background:#00c47a}
-.tp-ob-mid{padding:10px;background:#111;text-align:center;border-top:1px solid #1a1a1a;border-bottom:1px solid #1a1a1a}
+.tp-ob-mid{padding:4px 6px;background:#111;text-align:center;border-top:0.5px solid #1a1a1a;border-bottom:0.5px solid #1a1a1a;flex-shrink:0}
 .tp-ob-mid-price{font-size:16px;font-weight:800;color:#fff}
 .tp-ob-mid-change{font-size:10px;margin-top:2px}
 .tp-ob-mid-change.up{color:#00c47a}
@@ -2831,19 +2841,34 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
         
         <!-- Order Book -->
         <div class="tp-orderbook">
-          <div class="tp-ob-header">
-            <span>Price</span>
-            <span>Size</span>
+          <div class="tp-ob-tabs">
+            <button class="tp-ob-tab on" onclick="tpObTab('book',this)">Book</button>
+            <button class="tp-ob-tab" onclick="tpObTab('trades',this)">Trades</button>
           </div>
-          <div class="tp-ob-content">
-            <div class="tp-ob-asks" id="tp-ob-asks"></div>
-            <div class="tp-ob-mid">
-              <div class="tp-ob-mid-price" id="tp-ob-price">$69,420.50</div>
-              <div class="tp-ob-mid-change up" id="tp-ob-change">+2.45%</div>
+          <div id="tp-ob-book">
+            <div class="tp-ob-header">
+              <span>Price</span>
+              <span>Size</span>
+              <span>USDT</span>
             </div>
-            <div class="tp-ob-bids" id="tp-ob-bids"></div>
+            <div class="tp-ob-content">
+              <div class="tp-ob-asks" id="tp-ob-asks"></div>
+              <div class="tp-ob-mid">
+                <div class="tp-ob-mid-price" id="tp-ob-price">$69,420.50</div>
+                <div class="tp-ob-mid-change up" id="tp-ob-change">+2.45%</div>
+              </div>
+              <div class="tp-ob-bids" id="tp-ob-bids"></div>
+            </div>
+            <div class="tp-ob-spread">Spread: <span id="tp-ob-spread">$12.50 (0.02%)</span></div>
           </div>
-          <div class="tp-ob-spread">Spread: <span id="tp-ob-spread">$12.50 (0.02%)</span></div>
+          <div id="tp-ob-trades" style="display:none;flex:1;overflow:hidden;flex-direction:column">
+            <div class="tp-ob-header">
+              <span>Price</span>
+              <span>Size</span>
+              <span>Time</span>
+            </div>
+            <div id="tp-trades-list" style="flex:1;overflow-y:auto;scrollbar-width:none"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -4681,6 +4706,105 @@ function softUpdate(){
     _softUpdateCore();
   });
 }
+
+// ── LAST TRADES ──
+var _tpTradeWS = null;
+var _tpTrades = [];
+var _tpObMode = 'book';
+
+function tpObTab(mode, btn){
+  _tpObMode = mode;
+  document.querySelectorAll('.tp-ob-tab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  const book = document.getElementById('tp-ob-book');
+  const trades = document.getElementById('tp-ob-trades');
+  if(book) book.style.display = mode==='book' ? 'flex' : 'none';
+  if(trades) trades.style.display = mode==='trades' ? 'flex' : 'none';
+  if(mode==='trades') tpStartTradeWS();
+  else tpStopTradeWS();
+}
+
+function tpStopTradeWS(){
+  if(_tpTradeWS){ try{_tpTradeWS.close();}catch(e){} _tpTradeWS=null; }
+}
+
+function tpStartTradeWS(){
+  tpStopTradeWS();
+  _tpTrades = [];
+  const ex = TP_STATE.exchange || 'binance';
+  const isSpot = TP_STATE.marketType === 'spot';
+  const pair = (TP_STATE.pair||'BTCUSDT').toLowerCase();
+  const pairUp = TP_STATE.pair||'BTCUSDT';
+
+  if(ex==='binance'){
+    const base = isSpot ? 'wss://stream.binance.com:9443/ws/' : 'wss://fstream.binance.com/ws/';
+    _tpTradeWS = new WebSocket(base + pair + '@trade');
+    _tpTradeWS.onmessage = (e) => {
+      const d = JSON.parse(e.data);
+      const trade = {
+        price: parseFloat(d.p),
+        size: parseFloat(d.q),
+        side: d.m ? 'sell' : 'buy',
+        time: new Date(d.T).toLocaleTimeString('en',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'})
+      };
+      _tpTrades.unshift(trade);
+      if(_tpTrades.length > 50) _tpTrades.pop();
+      if(_tpObMode==='trades') tpRenderTrades();
+    };
+  } else if(ex==='bybit'){
+    const wsUrl = isSpot ? 'wss://stream.bybit.com/v5/public/spot' : 'wss://stream.bybit.com/v5/public/linear';
+    _tpTradeWS = new WebSocket(wsUrl);
+    _tpTradeWS.onopen = () => _tpTradeWS.send(JSON.stringify({op:'subscribe',args:[`publicTrade.${pairUp}`]}));
+    _tpTradeWS.onmessage = (e) => {
+      const msg = JSON.parse(e.data);
+      if(!msg.data) return;
+      (Array.isArray(msg.data)?msg.data:[msg.data]).forEach(d=>{
+        const trade = {
+          price: parseFloat(d.p),
+          size: parseFloat(d.v||d.q||0),
+          side: d.S==='Buy'||d.m===false ? 'buy' : 'sell',
+          time: new Date(d.T||d.ts).toLocaleTimeString('en',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'})
+        };
+        _tpTrades.unshift(trade);
+        if(_tpTrades.length>50) _tpTrades.pop();
+        if(_tpObMode==='trades') tpRenderTrades();
+      });
+    };
+  } else if(ex==='okx'){
+    _tpTradeWS = new WebSocket('wss://ws.okx.com:8443/ws/v5/public');
+    const instId = isSpot ? pairUp.replace('USDT','-USDT') : pairUp.replace('USDT','-USDT-SWAP');
+    _tpTradeWS.onopen = () => _tpTradeWS.send(JSON.stringify({op:'subscribe',args:[{channel:'trades',instId}]}));
+    _tpTradeWS.onmessage = (e) => {
+      const msg = JSON.parse(e.data);
+      if(!msg.data) return;
+      msg.data.forEach(d=>{
+        const trade = {
+          price: parseFloat(d.px),
+          size: parseFloat(d.sz),
+          side: d.side==='buy' ? 'buy' : 'sell',
+          time: new Date(parseInt(d.ts)).toLocaleTimeString('en',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'})
+        };
+        _tpTrades.unshift(trade);
+        if(_tpTrades.length>50) _tpTrades.pop();
+        if(_tpObMode==='trades') tpRenderTrades();
+      });
+    };
+  }
+}
+
+function tpRenderTrades(){
+  const el = document.getElementById('tp-trades-list');
+  if(!el) return;
+  const fmtSize = (s) => s>=1000?(s/1000).toFixed(2)+'K':s.toFixed(3);
+  el.innerHTML = _tpTrades.slice(0,40).map(t=>`
+    <div class="tp-trade-row ${t.side}">
+      <span class="t-price">${t.price.toFixed(2)}</span>
+      <span class="t-size">${fmtSize(t.size)}</span>
+      <span class="t-time">${t.time}</span>
+    </div>`).join('');
+}
+// ── END LAST TRADES ──
+
 // ── BATT ICON SYSTEM ──
 const BATT_ICONS = {
   BTC: 'https://assets.coingecko.com/coins/images/1/small/bitcoin.png',
@@ -9332,6 +9456,7 @@ function closeDexSelector(){
 
 function closeTradingPage() {
   if(typeof tpStopWebSocket==='function') tpStopWebSocket();
+  if(typeof tpStopTradeWS==='function') tpStopTradeWS();
   document.body.style.overflow='auto';
   history.replaceState({batt:'trade'}, '', '#trade');
   document.title = 'BATT · Trade Hub';
@@ -10767,34 +10892,38 @@ function tpRenderOrderBookData(asks, bids) {
   const allSizes = [...asks, ...bids].map(o => parseFloat(o[1]));
   const maxSize = Math.max(...allSizes);
   
-  // Take top 8 asks (reversed - lowest at bottom)
+  // format helpers
+  const fmtSize = (s) => s >= 1000 ? (s/1000).toFixed(2)+'K' : s.toFixed(3);
+  const fmtUsdt = (v) => v >= 1000000 ? (v/1000000).toFixed(2)+'M' : v >= 1000 ? (v/1000).toFixed(1)+'K' : v.toFixed(0);
+
+  // Top 8 asks (reversed - lowest at bottom)
   const topAsks = asks.slice(0, 8).reverse();
   asksContainer.innerHTML = topAsks.map(a => {
     const price = parseFloat(a[0]);
     const size = parseFloat(a[1]);
+    const usdt = price * size;
     const depth = (size / maxSize) * 100;
-    return `
-      <div class="tp-ob-row ask" onclick="tpFillPrice(${price})" title="Click to set limit price">
+    return `<div class="tp-ob-row ask" onclick="tpFillPrice(${price})" title="Click to set limit price">
         <span class="price">${price.toFixed(2)}</span>
-        <span class="size">${size.toFixed(4)}</span>
+        <span class="size">${fmtSize(size)}</span>
+        <span class="size" style="color:#555">${fmtUsdt(usdt)}</span>
         <div class="depth" style="width:${depth}%"></div>
-      </div>
-    `;
+      </div>`;
   }).join('');
-  
+
   // Top 8 bids
   const topBids = bids.slice(0, 8);
   bidsContainer.innerHTML = topBids.map(b => {
     const price = parseFloat(b[0]);
     const size = parseFloat(b[1]);
+    const usdt = price * size;
     const depth = (size / maxSize) * 100;
-    return `
-      <div class="tp-ob-row bid" onclick="tpFillPrice(${price})" title="Click to set limit price">
+    return `<div class="tp-ob-row bid" onclick="tpFillPrice(${price})" title="Click to set limit price">
         <span class="price">${price.toFixed(2)}</span>
-        <span class="size">${size.toFixed(4)}</span>
+        <span class="size">${fmtSize(size)}</span>
+        <span class="size" style="color:#555">${fmtUsdt(usdt)}</span>
         <div class="depth" style="width:${depth}%"></div>
-      </div>
-    `;
+      </div>`;
   }).join('');
   
   // Mid price (average of best bid/ask)
