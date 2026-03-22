@@ -2511,18 +2511,19 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
       </div>
 
       <!-- swap -->
-      <div style="background:#0d0d0d;border:0.5px solid #1a1a1a;border-radius:14px;padding:20px;cursor:default;position:relative;opacity:.6">
-        <span style="position:absolute;top:14px;right:14px;font-size:8px;font-weight:700;padding:2px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:.05em;background:#1a1a1a;color:#444">coming soon</span>
+      <div onclick="openSwapPage()" style="background:#0d0d0d;border:0.5px solid #1a1a1a;border-radius:14px;padding:20px;cursor:pointer;position:relative;transition:border-color .2s" onmouseover="this.style.borderColor='#f59e0b'" onmouseout="this.style.borderColor='#1a1a1a'">
+        <span style="position:absolute;top:14px;right:14px;font-size:8px;font-weight:700;padding:2px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:.05em;background:#2a1a0a;color:#f59e0b">live</span>
         <div style="width:44px;height:44px;border-radius:10px;background:#2a1a0a;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:14px">🔄</div>
         <div style="font-size:14px;font-weight:800;color:#f59e0b;margin-bottom:4px">DEX Swap</div>
-        <div style="font-size:11px;color:#555;line-height:1.6;margin-bottom:14px">Instantly swap tokens via Uniswap or PancakeSwap. No account, no order book — just connect your wallet and swap.</div>
+        <div style="font-size:11px;color:#555;line-height:1.6;margin-bottom:14px">Swap any token across EVM, Solana, Sui, Aptos and TON. Auto-routed best rate. No account needed.</div>
         <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:14px">
-          <span style="font-size:9px;font-weight:600;padding:2px 7px;border-radius:4px;background:#2a1a0a;color:#f59e0b">uniswap</span>
-          <span style="font-size:9px;font-weight:600;padding:2px 7px;border-radius:4px;background:#2a1a0a;color:#f59e0b">instant swap</span>
+          <span style="font-size:9px;font-weight:600;padding:2px 7px;border-radius:4px;background:#2a1a0a;color:#f59e0b">all networks</span>
+          <span style="font-size:9px;font-weight:600;padding:2px 7px;border-radius:4px;background:#2a1a0a;color:#f59e0b">wallet only</span>
           <span style="font-size:9px;font-weight:600;padding:2px 7px;border-radius:4px;background:#2a1a0a;color:#f59e0b">0.1% fee</span>
         </div>
-        <div style="border-top:0.5px solid #1a1a1a;padding-top:12px">
-          <div style="font-size:9px;color:#333">requires web3 wallet · in development</div>
+        <div style="border-top:0.5px solid #1a1a1a;padding-top:12px;display:flex;align-items:center;justify-content:space-between">
+          <div style="font-size:10px;font-weight:700;color:#f59e0b">open swap →</div>
+          <div style="font-size:9px;color:#333">requires web3 wallet</div>
         </div>
       </div>
 
@@ -2549,6 +2550,221 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
     </div>
     <button onclick="closeDexSelector()" style="width:100%;padding:8px;background:transparent;border:0.5px solid #1a1a1a;border-radius:8px;color:#555;font-size:11px;cursor:pointer;font-family:inherit">cancel</button>
   </div>
+</div>
+
+<!-- DEX SWAP PAGE -->
+<div id="swap-page" style="display:none;position:fixed;inset:0;z-index:9660;background:#000;opacity:0;transform:scale(0.98);transition:opacity .35s ease,transform .35s ease;overflow-y:auto;scrollbar-width:none">
+<style>
+#swap-page::-webkit-scrollbar{display:none}
+.sw-wrap{max-width:420px;margin:0 auto;padding:24px 16px}
+.sw-topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.sw-back{font-size:11px;color:#555;background:#111;border:0.5px solid #1a1a1a;border-radius:6px;padding:6px 12px;cursor:pointer;font-family:inherit}
+.sw-title{font-size:14px;font-weight:800;color:#f59e0b;text-align:center}
+.sw-title span{display:block;font-size:9px;color:#555;font-weight:500;margin-top:1px}
+.sw-card{background:#0d0d0d;border:0.5px solid #1a1a1a;border-radius:16px;padding:20px}
+.sw-wallet{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:#0a0a0a;border:0.5px solid #111;border-radius:8px;margin-bottom:14px}
+.sw-wallet-dot{width:6px;height:6px;border-radius:50%;background:#555;display:inline-block;margin-right:6px}
+.sw-wallet-dot.on{background:#00c47a}
+.sw-wallet-addr{font-size:9px;font-weight:700;color:#555}
+.sw-wallet-btn{font-size:9px;font-weight:700;color:#f59e0b;background:#1a1200;border:0.5px solid #f59e0b;border-radius:5px;padding:3px 8px;cursor:pointer;font-family:inherit}
+.sw-eco-tabs{display:flex;gap:3px;background:#111;border-radius:10px;padding:3px;margin-bottom:14px}
+.sw-eco-tab{flex:1;padding:6px 4px;border:none;background:transparent;border-radius:7px;cursor:pointer;text-align:center;transition:all .15s;font-family:inherit}
+.sw-eco-icon{font-size:12px;display:block;margin-bottom:2px}
+.sw-eco-name{font-size:8px;font-weight:700;color:#555;display:block}
+.sw-eco-tab.on{background:#1a1a1a}
+.sw-eco-tab.on .sw-eco-name{color:#e0e0e0}
+.sw-grp-label{font-size:8px;font-weight:700;color:#333;text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.sw-grp-label::after{content:'';flex:1;height:0.5px;background:#1a1a1a}
+.sw-net-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:10px}
+.sw-net-grid.col3{grid-template-columns:repeat(3,1fr)}
+.sw-net-btn{padding:8px 4px;border-radius:9px;border:0.5px solid #1a1a1a;background:#111;cursor:pointer;text-align:center;transition:all .15s;position:relative;font-family:inherit}
+.sw-net-btn:hover{border-color:#2a2a2a;background:#161616}
+.sw-net-icon{font-size:14px;display:block;margin-bottom:3px}
+.sw-net-name{font-size:7px;font-weight:700;color:#555;display:block}
+.sw-net-fee{font-size:6px;color:#222;display:block;margin-top:1px}
+.sw-net-badge{position:absolute;top:3px;right:3px;font-size:5px;font-weight:700;padding:1px 3px;border-radius:2px;text-transform:uppercase}
+.sw-bl1{background:#1a1a1a;color:#444}
+.sw-bl2{background:#0a1a2a;color:#3b82f6}
+.sw-bzk{background:#0a0a2a;color:#7c3aed}
+.sw-net-btn.on{border-color:#f59e0b;background:#1a1200}
+.sw-net-btn.on .sw-net-name{color:#f59e0b}
+.sw-net-btn.on .sw-net-fee{color:#854f0b}
+.sw-net-info{display:flex;align-items:center;gap:8px;background:#111;border:0.5px solid #1a1a1a;border-radius:8px;padding:8px 10px;margin-bottom:14px}
+.sw-ni-icon{font-size:18px}
+.sw-ni-name{font-size:11px;font-weight:700;color:#e0e0e0}
+.sw-ni-desc{font-size:8px;color:#444;margin-top:1px}
+.sw-ni-fee{font-size:9px;font-weight:700;color:#00c47a;white-space:nowrap;margin-left:auto}
+.sw-box{border-radius:10px;padding:12px;margin-bottom:3px;border:0.5px solid #1a1a1a;background:#111}
+.sw-box.pay{border-top:2px solid #f59e0b}
+.sw-box.get{border-top:2px solid #00c47a}
+.sw-box-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.sw-lbl{font-size:8px;font-weight:700;color:#444;text-transform:uppercase;letter-spacing:.08em}
+.sw-bal{font-size:8px;color:#333}
+.sw-max{color:#f59e0b;cursor:pointer;font-weight:700;margin-left:4px}
+.sw-token-row{display:flex;align-items:center;gap:8px}
+.sw-token-pill{display:flex;align-items:center;gap:5px;background:#0d0d0d;border:0.5px solid #2a2a2a;border-radius:8px;padding:6px 9px;cursor:pointer;flex-shrink:0;transition:border-color .15s;font-family:inherit}
+.sw-token-pill:hover{border-color:#444}
+.sw-token-icon{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0}
+.sw-token-sym{font-size:12px;font-weight:700;color:#e0e0e0}
+.sw-amt{flex:1;background:transparent;border:none;outline:none;font-size:22px;font-weight:800;color:#fff;text-align:right;width:0;font-family:inherit}
+.sw-amt-usd{font-size:9px;color:#333;margin-top:4px;text-align:right}
+.sw-flip-wrap{display:flex;justify-content:center;margin:5px 0;position:relative}
+.sw-divline{position:absolute;left:0;right:0;top:50%;height:0.5px;background:#1a1a1a}
+.sw-flip-btn{width:30px;height:30px;border-radius:8px;border:0.5px solid #222;background:#0d0d0d;color:#555;cursor:pointer;font-size:13px;position:relative;z-index:1;transition:all .15s;display:flex;align-items:center;justify-content:center;font-family:inherit}
+.sw-flip-btn:hover{border-color:#f59e0b;color:#f59e0b}
+.sw-route{background:#0a0a0a;border:0.5px solid #111;border-radius:8px;padding:10px;margin-top:10px}
+.sw-route-row{display:flex;justify-content:space-between;margin-bottom:4px}
+.sw-route-row:last-child{margin-bottom:0}
+.sw-rk{font-size:9px;color:#333}
+.sw-rv{font-size:9px;font-weight:600;color:#555}
+.sw-rv.good{color:#00c47a}
+.sw-rv.warn{color:#EF9F27}
+.sw-rv.bad{color:#E24B4A}
+.sw-rv.fee{color:#f59e0b}
+.sw-route-path{display:flex;align-items:center;gap:3px;margin-top:7px;padding-top:7px;border-top:0.5px solid #111;flex-wrap:wrap}
+.sw-rp-label{font-size:8px;color:#333;margin-right:2px}
+.sw-rp-step{font-size:8px;font-weight:700;color:#555;background:#111;padding:2px 5px;border-radius:3px}
+.sw-rp-arrow{font-size:8px;color:#222}
+.sw-btn{width:100%;padding:13px;border:none;border-radius:10px;font-size:12px;font-weight:800;cursor:pointer;letter-spacing:.06em;text-transform:uppercase;margin-top:12px;font-family:inherit;transition:opacity .15s}
+.sw-btn.primary{background:#f59e0b;color:#000}
+.sw-btn.primary:hover{opacity:.9}
+.sw-btn.connect{background:#0d0d0d;border:1px solid #f59e0b;color:#f59e0b}
+.sw-notice{font-size:9px;color:#444;background:#111;border:0.5px solid #1a1a1a;border-radius:6px;padding:6px 10px;margin-top:8px;line-height:1.6;text-align:center}
+</style>
+<div class="sw-wrap">
+  <div class="sw-topbar">
+    <button class="sw-back" onclick="closeSwapPage()">← back</button>
+    <div class="sw-title">DEX Swap <span>auto-routed · best rate</span></div>
+    <div style="width:60px"></div>
+  </div>
+  <div class="sw-card">
+    <!-- wallet bar -->
+    <div class="sw-wallet" id="sw-wallet-bar">
+      <div><span class="sw-wallet-dot" id="sw-wallet-dot"></span><span class="sw-wallet-addr" id="sw-wallet-addr">not connected</span></div>
+      <button class="sw-wallet-btn" id="sw-wallet-btn" onclick="swConnectWallet()">connect wallet</button>
+    </div>
+    <!-- ecosystem tabs -->
+    <div class="sw-eco-tabs">
+      <button class="sw-eco-tab on" onclick="swSetEco('evm',this)"><span class="sw-eco-icon">⟠</span><span class="sw-eco-name">EVM</span></button>
+      <button class="sw-eco-tab" onclick="swSetEco('sol',this)"><span class="sw-eco-icon">◎</span><span class="sw-eco-name">Solana</span></button>
+      <button class="sw-eco-tab" onclick="swSetEco('sui',this)"><span class="sw-eco-icon">🅢</span><span class="sw-eco-name">Sui</span></button>
+      <button class="sw-eco-tab" onclick="swSetEco('apt',this)"><span class="sw-eco-icon">🔷</span><span class="sw-eco-name">Aptos</span></button>
+      <button class="sw-eco-tab" onclick="swSetEco('ton',this)"><span class="sw-eco-icon">⬡</span><span class="sw-eco-name">TON</span></button>
+    </div>
+    <!-- network panels -->
+    <div id="sw-nets-evm">
+      <div class="sw-grp-label">L1 mainnet</div>
+      <div class="sw-net-grid">
+        <div class="sw-net-btn" onclick="swSetNet('eth',this,'⟠','Ethereum','Uniswap v3','~$8','L1 mainnet · highest liquidity · MetaMask')"><span class="sw-net-badge sw-bl1">L1</span><span class="sw-net-icon">⟠</span><span class="sw-net-name">Ethereum</span><span class="sw-net-fee">~$8</span></div>
+        <div class="sw-net-btn" onclick="swSetNet('bnb',this,'🟡','BNB Chain','PancakeSwap','~$0.20','L1 mainnet · cheap · MetaMask')"><span class="sw-net-badge sw-bl1">L1</span><span class="sw-net-icon">🟡</span><span class="sw-net-name">BNB Chain</span><span class="sw-net-fee">~$0.20</span></div>
+        <div class="sw-net-btn" onclick="swSetNet('avax',this,'🔺','Avalanche','Trader Joe','~$0.10','L1 mainnet · fast · MetaMask')"><span class="sw-net-badge sw-bl1">L1</span><span class="sw-net-icon">🔺</span><span class="sw-net-name">Avalanche</span><span class="sw-net-fee">~$0.10</span></div>
+        <div class="sw-net-btn" onclick="swSetNet('ftm',this,'🌊','Fantom','SpookySwap','~$0.01','L1 mainnet · ultra cheap · MetaMask')"><span class="sw-net-badge sw-bl1">L1</span><span class="sw-net-icon">🌊</span><span class="sw-net-name">Fantom</span><span class="sw-net-fee">~$0.01</span></div>
+      </div>
+      <div class="sw-grp-label">L2 — cheap &amp; fast</div>
+      <div class="sw-net-grid">
+        <div class="sw-net-btn on" onclick="swSetNet('base',this,'🔵','Base','Uniswap v3','~$0.01','L2 · Coinbase backed · cheapest EVM · MetaMask')"><span class="sw-net-badge sw-bl2">L2</span><span class="sw-net-icon">🔵</span><span class="sw-net-name">Base</span><span class="sw-net-fee">~$0.01</span></div>
+        <div class="sw-net-btn" onclick="swSetNet('arb',this,'🔷','Arbitrum','Uniswap v3','~$0.10','L2 · deep liquidity · MetaMask')"><span class="sw-net-badge sw-bl2">L2</span><span class="sw-net-icon">🔷</span><span class="sw-net-name">Arbitrum</span><span class="sw-net-fee">~$0.10</span></div>
+        <div class="sw-net-btn" onclick="swSetNet('op',this,'🔴','Optimism','Velodrome','~$0.10','L2 · OP Stack · MetaMask')"><span class="sw-net-badge sw-bl2">L2</span><span class="sw-net-icon">🔴</span><span class="sw-net-name">Optimism</span><span class="sw-net-fee">~$0.10</span></div>
+        <div class="sw-net-btn" onclick="swSetNet('pol',this,'🟣','Polygon','QuickSwap','~$0.01','L2 sidechain · ultra cheap · MetaMask')"><span class="sw-net-badge sw-bl2">L2</span><span class="sw-net-icon">🟣</span><span class="sw-net-name">Polygon</span><span class="sw-net-fee">~$0.01</span></div>
+      </div>
+      <div class="sw-grp-label">ZK rollups</div>
+      <div class="sw-net-grid col3">
+        <div class="sw-net-btn" onclick="swSetNet('zks',this,'⚡','zkSync','SyncSwap','~$0.01','ZK rollup · ultra fast · MetaMask')"><span class="sw-net-badge sw-bzk">ZK</span><span class="sw-net-icon">⚡</span><span class="sw-net-name">zkSync</span><span class="sw-net-fee">~$0.01</span></div>
+        <div class="sw-net-btn" onclick="swSetNet('stark',this,'🌀','Starknet','Avnu','~$0.01','ZK rollup · Cairo VM · Argent/Braavos')"><span class="sw-net-badge sw-bzk">ZK</span><span class="sw-net-icon">🌀</span><span class="sw-net-name">Starknet</span><span class="sw-net-fee">~$0.01</span></div>
+        <div class="sw-net-btn" onclick="swSetNet('linea',this,'🔮','Linea','Nile','~$0.01','ZK rollup · ConsenSys · MetaMask')"><span class="sw-net-badge sw-bzk">ZK</span><span class="sw-net-icon">🔮</span><span class="sw-net-name">Linea</span><span class="sw-net-fee">~$0.01</span></div>
+      </div>
+    </div>
+    <div id="sw-nets-sol" style="display:none">
+      <div class="sw-grp-label">Solana</div>
+      <div class="sw-net-grid" style="grid-template-columns:1fr">
+        <div class="sw-net-btn on" onclick="swSetNet('sol',this,'◎','Solana','Jupiter','~$0.00025','Solana mainnet · Jupiter aggregator · Phantom wallet')"><span class="sw-net-badge sw-bfast" style="background:#1a0a2a;color:#9945ff">SOL</span><span class="sw-net-icon">◎</span><span class="sw-net-name">Solana</span><span class="sw-net-fee">~$0.00025</span></div>
+      </div>
+      <div class="sw-notice">requires <strong style="color:#9945ff">Phantom</strong> or <strong style="color:#9945ff">Solflare</strong> wallet</div>
+    </div>
+    <div id="sw-nets-sui" style="display:none">
+      <div class="sw-grp-label">Sui</div>
+      <div class="sw-net-grid" style="grid-template-columns:1fr">
+        <div class="sw-net-btn on" onclick="swSetNet('sui',this,'🅢','Sui','Cetus','~$0.001','Sui mainnet · Cetus DEX · Sui Wallet')"><span class="sw-net-badge" style="background:#0a1a2a;color:#4da2ff">SUI</span><span class="sw-net-icon">🅢</span><span class="sw-net-name">Sui</span><span class="sw-net-fee">~$0.001</span></div>
+      </div>
+      <div class="sw-notice">requires <strong style="color:#4da2ff">Sui Wallet</strong> or <strong style="color:#4da2ff">Suiet</strong></div>
+    </div>
+    <div id="sw-nets-apt" style="display:none">
+      <div class="sw-grp-label">Aptos</div>
+      <div class="sw-net-grid" style="grid-template-columns:1fr">
+        <div class="sw-net-btn on" onclick="swSetNet('apt',this,'🔷','Aptos','Liquidswap','~$0.001','Aptos mainnet · Liquidswap DEX · Petra wallet')"><span class="sw-net-badge" style="background:#0a1a0a;color:#2dd4bf">APT</span><span class="sw-net-icon">🔷</span><span class="sw-net-name">Aptos</span><span class="sw-net-fee">~$0.001</span></div>
+      </div>
+      <div class="sw-notice">requires <strong style="color:#2dd4bf">Petra</strong> or <strong style="color:#2dd4bf">Martian</strong> wallet</div>
+    </div>
+    <div id="sw-nets-ton" style="display:none">
+      <div class="sw-grp-label">TON</div>
+      <div class="sw-net-grid" style="grid-template-columns:1fr">
+        <div class="sw-net-btn on" onclick="swSetNet('ton',this,'⬡','TON','DeDust','~$0.01','TON mainnet · DeDust DEX · Tonkeeper wallet')"><span class="sw-net-badge" style="background:#0a1a2a;color:#0088cc">TON</span><span class="sw-net-icon">⬡</span><span class="sw-net-name">TON</span><span class="sw-net-fee">~$0.01</span></div>
+      </div>
+      <div class="sw-notice">requires <strong style="color:#0088cc">Tonkeeper</strong> or <strong style="color:#0088cc">MyTonWallet</strong></div>
+    </div>
+    <!-- selected network info -->
+    <div class="sw-net-info" id="sw-net-info">
+      <div class="sw-ni-icon" id="sw-ni-icon">🔵</div>
+      <div>
+        <div class="sw-ni-name" id="sw-ni-name">Base · Uniswap v3</div>
+        <div class="sw-ni-desc" id="sw-ni-desc">L2 · Coinbase backed · cheapest EVM · MetaMask</div>
+      </div>
+      <div class="sw-ni-fee" id="sw-ni-fee">~$0.01</div>
+    </div>
+    <!-- swap boxes -->
+    <div class="sw-box pay">
+      <div class="sw-box-top">
+        <div class="sw-lbl">you pay</div>
+        <div class="sw-bal">bal: — <span class="sw-max" onclick="swSetMax()">max</span></div>
+      </div>
+      <div class="sw-token-row">
+        <button class="sw-token-pill" onclick="swPickToken('in')">
+          <div class="sw-token-icon" style="background:#627eea;color:#fff" id="sw-in-icon">Ξ</div>
+          <span class="sw-token-sym" id="sw-in-sym">ETH</span>
+          <span style="font-size:7px;color:#555">▼</span>
+        </button>
+        <input class="sw-amt" id="sw-in-amt" value="0.0" oninput="swOnAmtChange()">
+      </div>
+      <div class="sw-amt-usd" id="sw-in-usd">≈ $0.00</div>
+    </div>
+    <div class="sw-flip-wrap">
+      <div class="sw-divline"></div>
+      <button class="sw-flip-btn" onclick="swFlip()">↕</button>
+    </div>
+    <div class="sw-box get">
+      <div class="sw-box-top">
+        <div class="sw-lbl">you receive</div>
+        <div class="sw-bal" id="sw-out-bal">bal: —</div>
+      </div>
+      <div class="sw-token-row">
+        <button class="sw-token-pill" onclick="swPickToken('out')">
+          <div class="sw-token-icon" style="background:#2775ca;color:#fff;font-size:8px" id="sw-out-icon">$</div>
+          <span class="sw-token-sym" id="sw-out-sym">USDC</span>
+          <span style="font-size:7px;color:#555">▼</span>
+        </button>
+        <input class="sw-amt" id="sw-out-amt" value="0.0" readonly style="color:#00c47a">
+      </div>
+      <div class="sw-amt-usd" id="sw-out-usd">≈ $0.00</div>
+    </div>
+    <!-- route info -->
+    <div class="sw-route" id="sw-route" style="display:none">
+      <div class="sw-route-row"><span class="sw-rk">rate</span><span class="sw-rv" id="sw-rate">—</span></div>
+      <div class="sw-route-row"><span class="sw-rk">price impact</span><span class="sw-rv" id="sw-impact">—</span></div>
+      <div class="sw-route-row"><span class="sw-rk">network gas</span><span class="sw-rv" id="sw-gas">—</span></div>
+      <div class="sw-route-row"><span class="sw-rk">batt fee (0.1%)</span><span class="sw-rv fee" id="sw-fee">—</span></div>
+      <div class="sw-route-path">
+        <span class="sw-rp-label">route</span>
+        <span class="sw-rp-step" id="sw-route-in">—</span>
+        <span class="sw-rp-arrow">→</span>
+        <span class="sw-rp-step" id="sw-route-dex">—</span>
+        <span class="sw-rp-arrow">→</span>
+        <span class="sw-rp-step" id="sw-route-out">—</span>
+      </div>
+    </div>
+    <button class="sw-btn connect" id="sw-main-btn" onclick="swMainAction()">connect wallet to swap</button>
+    <div class="sw-notice" id="sw-notice">connect your wallet to get a live quote and swap</div>
+  </div>
+</div>
 </div>
 
 <!-- PAPER TRADING PAGE -->
@@ -10336,7 +10552,146 @@ function tpRenderOrderBook() {
   }
 }
 
-// openTradingPage now shows the hub — simulation logic moved to openSimulation above
+// ── DEX SWAP PAGE ──
+var _swState = {
+  eco: 'evm',
+  net: 'base',
+  netIcon: '🔵',
+  netName: 'Base',
+  dex: 'Uniswap v3',
+  gas: '~$0.01',
+  netDesc: 'L2 · Coinbase backed · cheapest EVM · MetaMask',
+  wallet: null,
+  inSym: 'ETH', inIcon: 'Ξ', inColor: '#627eea',
+  outSym: 'USDC', outIcon: '$', outColor: '#2775ca',
+};
+
+function openSwapPage(){
+  history.pushState({batt:'swap'}, '', '#swap');
+  document.title = 'BATT · DEX Swap';
+  const hub = document.getElementById('trade-hub');
+  if(hub){ hub.style.opacity='0'; hub.style.transform='scale(0.98)'; setTimeout(()=>{ hub.style.display='none'; hub.style.opacity=''; hub.style.transform=''; },300); }
+  const pg = document.getElementById('swap-page');
+  if(pg){
+    pg.style.display='block';
+    requestAnimationFrame(()=>{ pg.style.opacity='1'; pg.style.transform='scale(1)'; });
+  }
+}
+
+function closeSwapPage(){
+  history.replaceState({batt:'trade'}, '', '#trade');
+  document.title = 'BATT · Trade Hub';
+  const pg = document.getElementById('swap-page');
+  if(pg){ pg.style.opacity='0'; pg.style.transform='scale(0.98)'; setTimeout(()=>{ pg.style.display='none'; pg.style.opacity=''; pg.style.transform=''; },300); }
+  const hub = document.getElementById('trade-hub');
+  if(hub){
+    hub.style.display='flex';
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{ hub.style.opacity='1'; hub.style.transform='scale(1)'; }));
+  }
+  mbnSetActive('trade');
+}
+
+function swSetEco(eco, btn){
+  _swState.eco = eco;
+  document.querySelectorAll('.sw-eco-tab').forEach(t=>t.classList.remove('on'));
+  btn.classList.add('on');
+  ['evm','sol','sui','apt','ton'].forEach(e=>{
+    const el = document.getElementById('sw-nets-'+e);
+    if(el) el.style.display = e===eco ? '' : 'none';
+  });
+  // auto-select first network of that eco
+  const firstBtn = document.querySelector('#sw-nets-'+eco+' .sw-net-btn.on') || document.querySelector('#sw-nets-'+eco+' .sw-net-btn');
+  if(firstBtn) firstBtn.click();
+}
+
+function swSetNet(net, btn, icon, name, dex, gas, desc){
+  _swState.net=net; _swState.netIcon=icon; _swState.netName=name;
+  _swState.dex=dex; _swState.gas=gas; _swState.netDesc=desc;
+  // clear all active in current eco panel
+  const panel = document.getElementById('sw-nets-'+_swState.eco);
+  if(panel) panel.querySelectorAll('.sw-net-btn').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  // update info bar
+  const ni = document.getElementById('sw-ni-icon'); if(ni) ni.textContent=icon;
+  const nn = document.getElementById('sw-ni-name'); if(nn) nn.textContent=name+' · '+dex;
+  const nd = document.getElementById('sw-ni-desc'); if(nd) nd.textContent=desc;
+  const nf = document.getElementById('sw-ni-fee'); if(nf) nf.textContent=gas;
+  // update route display
+  const rd = document.getElementById('sw-route-dex'); if(rd) rd.textContent=dex;
+  const rg = document.getElementById('sw-gas'); if(rg) rg.textContent=gas;
+  swUpdateQuote();
+}
+
+function swConnectWallet(){
+  if(_swState.wallet){
+    _swState.wallet=null;
+    const dot=document.getElementById('sw-wallet-dot'); if(dot){dot.classList.remove('on');}
+    const addr=document.getElementById('sw-wallet-addr'); if(addr) addr.textContent='not connected';
+    const btn=document.getElementById('sw-wallet-btn'); if(btn){btn.textContent='connect wallet';}
+    const mb=document.getElementById('sw-main-btn'); if(mb){mb.textContent='connect wallet to swap';mb.className='sw-btn connect';}
+    return;
+  }
+  if(typeof window.ethereum !== 'undefined'){
+    window.ethereum.request({method:'eth_requestAccounts'}).then(accounts=>{
+      if(accounts[0]){
+        _swState.wallet=accounts[0];
+        const short=accounts[0].slice(0,6)+'...'+accounts[0].slice(-4);
+        const dot=document.getElementById('sw-wallet-dot'); if(dot) dot.classList.add('on');
+        const addr=document.getElementById('sw-wallet-addr'); if(addr) addr.textContent=short+' · MetaMask';
+        const btn=document.getElementById('sw-wallet-btn'); if(btn) btn.textContent='disconnect';
+        const mb=document.getElementById('sw-main-btn'); if(mb){mb.textContent='swap now';mb.className='sw-btn primary';}
+        showToast('Wallet connected','success',2000);
+        swUpdateQuote();
+      }
+    }).catch(()=>showToast('Connection rejected','error',2000));
+  } else {
+    showToast('No wallet detected — install MetaMask or Phantom','error',3000);
+  }
+}
+
+function swOnAmtChange(){
+  const amt=parseFloat(document.getElementById('sw-in-amt').value)||0;
+  if(amt>0) swUpdateQuote();
+}
+
+function swUpdateQuote(){
+  const amt=parseFloat(document.getElementById('sw-in-amt').value)||0;
+  if(amt<=0){ document.getElementById('sw-route').style.display='none'; return; }
+  // mock quote — will be replaced with real API call
+  const mockRate=2111;
+  const out=(amt*mockRate*(1-0.001)).toFixed(2);
+  const fee=(amt*mockRate*0.001).toFixed(2);
+  const outEl=document.getElementById('sw-out-amt'); if(outEl) outEl.value=out;
+  const inUsd=document.getElementById('sw-in-usd'); if(inUsd) inUsd.textContent='≈ $'+(amt*mockRate).toFixed(2);
+  const outUsd=document.getElementById('sw-out-usd'); if(outUsd) outUsd.textContent='≈ $'+out;
+  const rateEl=document.getElementById('sw-rate'); if(rateEl) rateEl.textContent='1 '+_swState.inSym+' = '+mockRate+' '+_swState.outSym;
+  const impEl=document.getElementById('sw-impact'); if(impEl){ impEl.textContent='0.01% — excellent'; impEl.className='sw-rv good'; }
+  const feeEl=document.getElementById('sw-fee'); if(feeEl) feeEl.textContent='$'+fee;
+  const riEl=document.getElementById('sw-route-in'); if(riEl) riEl.textContent=_swState.inSym;
+  const roEl=document.getElementById('sw-route-out'); if(roEl) roEl.textContent=_swState.outSym;
+  document.getElementById('sw-route').style.display='';
+}
+
+function swFlip(){
+  const tmpSym=_swState.inSym, tmpIcon=_swState.inIcon, tmpColor=_swState.inColor;
+  _swState.inSym=_swState.outSym; _swState.inIcon=_swState.outIcon; _swState.inColor=_swState.outColor;
+  _swState.outSym=tmpSym; _swState.outIcon=tmpIcon; _swState.outColor=tmpColor;
+  const ii=document.getElementById('sw-in-icon'); if(ii){ii.textContent=_swState.inIcon;ii.style.background=_swState.inColor;}
+  const is=document.getElementById('sw-in-sym'); if(is) is.textContent=_swState.inSym;
+  const oi=document.getElementById('sw-out-icon'); if(oi){oi.textContent=_swState.outIcon;oi.style.background=_swState.outColor;}
+  const os=document.getElementById('sw-out-sym'); if(os) os.textContent=_swState.outSym;
+  swUpdateQuote();
+}
+
+function swPickToken(side){ showToast('Token picker coming soon','info',1500); }
+function swSetMax(){ showToast('Connect wallet to use max','info',1500); }
+
+function swMainAction(){
+  if(!_swState.wallet){ swConnectWallet(); return; }
+  showToast('Swap execution coming soon — wallet connected ✓','info',2500);
+}
+
+// ── END DEX SWAP ──
 
 // Update tpSelectSide for spot/perpetual
 var _origSelectSide = tpSelectSide;
@@ -13209,6 +13564,8 @@ window.addEventListener('popstate', function(){
     if(about){ about.style.display='none'; about.style.opacity='0'; about.classList.remove('acj-visible'); }
     var hub = document.getElementById('trade-hub');
     if(hub){ hub.style.display='none'; hub.style.opacity=''; hub.style.transform=''; }
+    var swPg = document.getElementById('swap-page');
+    if(swPg){ swPg.style.display='none'; swPg.style.opacity=''; swPg.style.transform=''; }
     if(app) app.style.opacity='0';
     document.body.style.overflow='auto';
     if(l3){ l3.classList.remove('hidden'); requestAnimationFrame(function(){ l3.classList.add('visible'); }); }
@@ -13226,8 +13583,11 @@ window.addEventListener('popstate', function(){
     document.body.style.overflow='auto';
     if(typeof mbnSetActive==='function') mbnSetActive('account');
   } else if(hash === 'simulate'){
-    // back from simulate stays on simulator — re-push to block
     history.pushState({batt:'simulate'}, '', '#simulate');
+    return;
+  } else if(hash === 'swap'){
+    // back from swap — close swap, show hub
+    if(typeof closeSwapPage==='function') closeSwapPage();
     return;
   } else if(hash === 'trade'){
     // show trade hub
