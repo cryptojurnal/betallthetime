@@ -9380,14 +9380,32 @@ function tpInitTVChart(){
   if(!container) return;
   container.innerHTML = '';
 
-  // build symbol from current pair
-  const sym = TP_STATE.pair || 'BTCUSDT';
-  _tvSymbol = 'BINANCE:' + sym;
+  // build correct exchange prefix per exchange
+  const exMap = {
+    'binance': TP_STATE.marketType==='spot' ? 'BINANCE' : 'BINANCE',
+    'bybit':   TP_STATE.marketType==='spot' ? 'BYBIT' : 'BYBIT',
+    'okx':     TP_STATE.marketType==='spot' ? 'OKX' : 'OKX',
+    'coinbase':'COINBASE',
+  };
+  const exPrefix = exMap[TP_STATE.exchange] || 'BINANCE';
+
+  // build symbol — perp uses different suffix on some exchanges
+  const baseSym = (TP_STATE.pair || 'BTCUSDT').replace('USDT','');
+  let tvSym;
+  if(TP_STATE.marketType === 'perpetual'){
+    const perpMap = {
+      'binance': `${exPrefix}:${baseSym}USDT.P`,
+      'bybit':   `${exPrefix}:${baseSym}USDT.P`,
+      'okx':     `${exPrefix}:${baseSym}USDT-SWAP`,
+    };
+    tvSym = perpMap[TP_STATE.exchange] || `BINANCE:${baseSym}USDT.P`;
+  } else {
+    tvSym = `${exPrefix}:${baseSym}USDT`;
+  }
+  _tvSymbol = tvSym;
   _tvInterval = _tvIntervalMap[TP_STATE.timeframe || '15m'] || '15';
 
-  const script = document.createElement('script');
-  script.src = 'https://s3.tradingview.com/tv.js';
-  script.onload = function(){
+  const doInit = function(){
     _tvWidget = new TradingView.widget({
       container_id: 'tp-tv-widget',
       symbol: _tvSymbol,
@@ -9396,30 +9414,41 @@ function tpInitTVChart(){
       theme: 'dark',
       style: '1',
       locale: 'en',
-      toolbar_bg: '#000000',
+      toolbar_bg: '#0a0a0a',
       enable_publishing: false,
-      hide_top_toolbar: false,
-      hide_legend: false,
-      save_image: false,
-      withdateranges: true,
       allow_symbol_change: true,
-      studies: ['RSI@tv-studioes','MACD@tv-studioes','BB@tv-studioes'],
+      withdateranges: true,
+      save_image: true,
+      hide_side_toolbar: false,
       width: '100%',
       height: '100%',
       autosize: true,
+      enabled_features: [
+        'study_templates',
+        'side_toolbar_in_fullscreen_mode',
+        'header_in_fullscreen_mode',
+        'display_market_status',
+      ],
+      disabled_features: [
+        'header_symbol_search',
+        'header_compare',
+        'border_around_the_chart',
+      ],
     });
   };
+
   if(window.TradingView){
-    script.onload();
+    doInit();
   } else {
+    const script = document.createElement('script');
+    script.src = 'https://s3.tradingview.com/tv.js';
+    script.onload = doInit;
     document.head.appendChild(script);
   }
 }
 
 function tpSyncTVSymbol(){
-  const sym = TP_STATE.pair || 'BTCUSDT';
-  _tvSymbol = 'BINANCE:' + sym;
-  // re-init with new symbol
+  // tpInitTVChart builds the correct symbol from TP_STATE
   tpInitTVChart();
 }
 // ── END TRADINGVIEW WIDGET ──
@@ -9745,7 +9774,10 @@ function tpSelectExchange(ex) {
   TP_STATE.exchange = ex;
   document.querySelectorAll('.tp-ex-tabs button').forEach(b => b.classList.remove('active'));
   event.target.classList.add('active');
-  document.getElementById('tp-pair-exchange').textContent = `perpetual · ${ex}`;
+  const isSpot = TP_STATE.marketType === 'spot';
+  document.getElementById('tp-pair-exchange').textContent = `${isSpot?'spot':'perpetual'} · ${ex}`;
+  // sync chart to new exchange
+  if(typeof tpInitTVChart==='function') tpInitTVChart();
 }
 
 // Order type
@@ -10445,6 +10477,8 @@ function tpSetMarketType(type) {
   
   tpCalculate();
   tpSaveState();
+  // sync chart — spot vs perp uses different TV symbol suffix
+  if(typeof tpInitTVChart==='function') tpInitTVChart();
 }
 
 // Update submit button based on mode and side
