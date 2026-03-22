@@ -756,7 +756,7 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
   .tp-chart-section{min-height:300px}
   
   .tp-chart-area{border-right:none;border-bottom:1px solid #1a1a1a;min-height:250px}
-  .tp-orderbook{display:none}
+  /* tp-orderbook stays visible on tablet */
   .tp-topbar{flex-wrap:wrap;gap:8px;padding:10px}
   .tp-topbar-left{width:100%;justify-content:space-between}
   .tp-topbar-right{width:100%}
@@ -4788,9 +4788,14 @@ function softUpdate(){
     _moved = false;
   }
 
-  var _origPos = window._tpInitPosPanel;
-  window._tpInitPosPanel = function(){
-    if(_origPos) _origPos();
+  // attach on document — toggling works from anywhere
+  document.addEventListener('mousemove', onMove, {passive:false});
+  document.addEventListener('touchmove', onMove, {passive:false});
+  document.addEventListener('mouseup', onUp);
+  document.addEventListener('touchend', onUp);
+  document.addEventListener('mouseleave', onUp);
+  // will attach mousedown in _tpInitPosPanel
+  window._tpAttachPosToggleDrag = function(){
     var t = document.getElementById('tp-pos-toggle');
     if(t && !t._posDragBound){
       t.addEventListener('mousedown', onDown);
@@ -4798,11 +4803,6 @@ function softUpdate(){
       t._posDragBound = true;
     }
   };
-  document.addEventListener('mousemove', onMove, {passive:false});
-  document.addEventListener('touchmove', onMove, {passive:false});
-  document.addEventListener('mouseup', onUp);
-  document.addEventListener('touchend', onUp);
-  document.addEventListener('mouseleave', onUp);
 })();
 
 // ── RIGHT ORDER PANEL TOGGLE + DRAG ──
@@ -4844,9 +4844,12 @@ function softUpdate(){
     _moved = false;
   }
 
-  var _orig = window._tpInitRightPanel;
-  window._tpInitRightPanel = function(){
-    if(_orig) _orig();
+  document.addEventListener('mousemove', onMove, {passive:false});
+  document.addEventListener('touchmove', onMove, {passive:false});
+  document.addEventListener('mouseup', onUp);
+  document.addEventListener('touchend', onUp);
+  document.addEventListener('mouseleave', onUp);
+  window._tpAttachRightToggleDrag = function(){
     var t = document.getElementById('tp-right-toggle');
     if(t && !t._rightDragBound){
       t.addEventListener('mousedown', onDown);
@@ -4854,11 +4857,6 @@ function softUpdate(){
       t._rightDragBound = true;
     }
   };
-  document.addEventListener('mousemove', onMove, {passive:false});
-  document.addEventListener('touchmove', onMove, {passive:false});
-  document.addEventListener('mouseup', onUp);
-  document.addEventListener('touchend', onUp);
-  document.addEventListener('mouseleave', onUp);
 })();
 
 // ── POS PANEL TOGGLE FUNCTIONS ──
@@ -4884,6 +4882,8 @@ function _tpInitPosPanel(){
   const toggle = document.getElementById('tp-pos-toggle');
   if(toggle){ toggle.style.left='0px'; toggle.style.top=''; toggle.style.transform=''; }
   _tpSyncPosToggle();
+  if(typeof window._tpAttachPosToggleDrag==='function') window._tpAttachPosToggleDrag();
+  if(typeof window._tpAttachRightToggleDrag==='function') window._tpAttachRightToggleDrag();
 }
 
 // ── RIGHT PANEL TOGGLE FUNCTIONS ──
