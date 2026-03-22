@@ -4742,134 +4742,127 @@ function onMP(m,v){
 // ── SOFT UPDATE: re-sim + patch metrics + table without rebuilding chart ──
 var _softUpdateTimer=null;
 function softUpdate(){
-  if(_softUpdateTimer) return; // already queued
+  if(_softUpdateTimer) return;
   _softUpdateTimer=requestAnimationFrame(function(){
     _softUpdateTimer=null;
-    _softUpdateCore();
+    sim();
   });
 }
 
-// ── LAST TRADES ──
-var _tpTradeWS = null;
-var _tpTrades = [];
-var _tpObMode = 'book';
+// ── LEFT POS PANEL TOGGLE + DRAG ──
+(function(){
+  var _tog=null, _startY=0, _startTop=0, _down=false, _moved=false, _raf=null;
 
-function tpObTab(mode, btn){
-  _tpObMode = mode;
-  document.querySelectorAll('.tp-ob-tab').forEach(b=>b.classList.remove('on'));
-  btn.classList.add('on');
-  const book = document.getElementById('tp-ob-book');
-  const trades = document.getElementById('tp-ob-trades');
-  if(book) book.style.display = mode==='book' ? 'flex' : 'none';
-  if(trades) trades.style.display = mode==='trades' ? 'flex' : 'none';
-  if(mode==='trades') tpStartTradeWS();
-  else tpStopTradeWS();
-}
-
-function tpStopTradeWS(){
-  if(_tpTradeWS){ try{_tpTradeWS.close();}catch(e){} _tpTradeWS=null; }
-}
-
-function tpStartTradeWS(){
-  tpStopTradeWS();
-  _tpTrades = [];
-  const ex = TP_STATE.exchange || 'binance';
-  const isSpot = TP_STATE.marketType === 'spot';
-  const pair = (TP_STATE.pair||'BTCUSDT').toLowerCase();
-  const pairUp = TP_STATE.pair||'BTCUSDT';
-
-  if(ex==='binance'){
-    const base = isSpot ? 'wss://stream.binance.com:9443/ws/' : 'wss://fstream.binance.com/ws/';
-    _tpTradeWS = new WebSocket(base + pair + '@trade');
-    _tpTradeWS.onmessage = (e) => {
-      const d = JSON.parse(e.data);
-      const trade = {
-        price: parseFloat(d.p),
-        size: parseFloat(d.q),
-        side: d.m ? 'sell' : 'buy',
-        time: new Date(d.T).toLocaleTimeString('en',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'})
-      };
-      _tpTrades.unshift(trade);
-      if(_tpTrades.length > 50) _tpTrades.pop();
-      if(_tpObMode==='trades') tpRenderTrades();
-    };
-  } else if(ex==='bybit'){
-    const wsUrl = isSpot ? 'wss://stream.bybit.com/v5/public/spot' : 'wss://stream.bybit.com/v5/public/linear';
-    _tpTradeWS = new WebSocket(wsUrl);
-    _tpTradeWS.onopen = () => _tpTradeWS.send(JSON.stringify({op:'subscribe',args:[`publicTrade.${pairUp}`]}));
-    _tpTradeWS.onmessage = (e) => {
-      const msg = JSON.parse(e.data);
-      if(!msg.data) return;
-      (Array.isArray(msg.data)?msg.data:[msg.data]).forEach(d=>{
-        const trade = {
-          price: parseFloat(d.p),
-          size: parseFloat(d.v||d.q||0),
-          side: d.S==='Buy'||d.m===false ? 'buy' : 'sell',
-          time: new Date(d.T||d.ts).toLocaleTimeString('en',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'})
-        };
-        _tpTrades.unshift(trade);
-        if(_tpTrades.length>50) _tpTrades.pop();
-        if(_tpObMode==='trades') tpRenderTrades();
-      });
-    };
-  } else if(ex==='okx'){
-    _tpTradeWS = new WebSocket('wss://ws.okx.com:8443/ws/v5/public');
-    const instId = isSpot ? pairUp.replace('USDT','-USDT') : pairUp.replace('USDT','-USDT-SWAP');
-    _tpTradeWS.onopen = () => _tpTradeWS.send(JSON.stringify({op:'subscribe',args:[{channel:'trades',instId}]}));
-    _tpTradeWS.onmessage = (e) => {
-      const msg = JSON.parse(e.data);
-      if(!msg.data) return;
-      msg.data.forEach(d=>{
-        const trade = {
-          price: parseFloat(d.px),
-          size: parseFloat(d.sz),
-          side: d.side==='buy' ? 'buy' : 'sell',
-          time: new Date(parseInt(d.ts)).toLocaleTimeString('en',{hour12:false,hour:'2-digit',minute:'2-digit',second:'2-digit'})
-        };
-        _tpTrades.unshift(trade);
-        if(_tpTrades.length>50) _tpTrades.pop();
-        if(_tpObMode==='trades') tpRenderTrades();
-      });
-    };
+  function onDown(e){
+    _tog = document.getElementById('tp-pos-toggle');
+    if(!_tog) return;
+    var pt = e.touches ? e.touches[0] : e;
+    _startY = pt.clientY;
+    _startTop = _tog.getBoundingClientRect().top;
+    _down = true; _moved = false;
+    _tog.classList.add('dragging');
+    e.preventDefault(); e.stopPropagation();
   }
-}
 
-function tpRenderTrades(){
-  const el = document.getElementById('tp-trades-list');
-  if(!el) return;
-  const fmtSize = (s) => s>=1000?(s/1000).toFixed(2)+'K':s.toFixed(3);
-  el.innerHTML = _tpTrades.slice(0,40).map(t=>`
-    <div class="tp-trade-row ${t.side}">
-      <span class="t-price">${fmtPrice(t.price,false)}</span>
-      <span class="t-size">${fmtSize(t.size)}</span>
-      <span class="t-time">${t.time}</span>
-    </div>`).join('');
-}
-// ── END LAST TRADES ──
+  function onMove(e){
+    if(!_down || !_tog) return;
+    var pt = e.touches ? e.touches[0] : e;
+    var dy = pt.clientY - _startY;
+    if(Math.abs(dy) < 5){ e.preventDefault(); return; }
+    _moved = true;
+    var H=window.innerHeight, tH=_tog.offsetHeight;
+    var newTop = Math.max(20, Math.min(_startTop+dy, H-tH-20));
+    if(!_raf) _raf = requestAnimationFrame(function(){
+      if(_tog){ _tog.style.top=newTop+'px'; _tog.style.transform='none'; }
+      _raf=null;
+    });
+    e.preventDefault();
+  }
 
+  function onUp(){
+    if(!_down) return;
+    _down = false;
+    if(_raf){ cancelAnimationFrame(_raf); _raf=null; }
+    if(_tog) _tog.classList.remove('dragging');
+    if(!_moved) tpTogglePosPanel();
+    _moved = false;
+  }
 
-// ── SMART PRICE FORMATTER ──
-// determines decimal places based on price magnitude — matches exchange tick sizes
-function fmtPrice(price, withDollar=true){
-  if(!price || isNaN(price) || price === 0) return withDollar ? '' : '';
-  let decimals;
-  if(price >= 10000)      decimals = 1;
-  else if(price >= 1000)  decimals = 2;
-  else if(price >= 100)   decimals = 2;
-  else if(price >= 10)    decimals = 3;
-  else if(price >= 1)     decimals = 4;
-  else if(price >= 0.1)   decimals = 5;
-  else if(price >= 0.01)  decimals = 6;
-  else                    decimals = 8;
-  const formatted = price.toFixed(decimals);
-  return withDollar ? '$' + formatted : formatted;
-}
-// ── END SMART PRICE FORMATTER ──
+  var _origPos = window._tpInitPosPanel;
+  window._tpInitPosPanel = function(){
+    if(_origPos) _origPos();
+    var t = document.getElementById('tp-pos-toggle');
+    if(t && !t._posDragBound){
+      t.addEventListener('mousedown', onDown);
+      t.addEventListener('touchstart', onDown, {passive:false});
+      t._posDragBound = true;
+    }
+  };
+  document.addEventListener('mousemove', onMove, {passive:false});
+  document.addEventListener('touchmove', onMove, {passive:false});
+  document.addEventListener('mouseup', onUp);
+  document.addEventListener('touchend', onUp);
+  document.addEventListener('mouseleave', onUp);
+})();
 
+// ── RIGHT ORDER PANEL TOGGLE + DRAG ──
+(function(){
+  var _tog=null, _startY=0, _startTop=0, _down=false, _moved=false, _raf=null;
 
-// ── POSITIONS PANEL TOGGLE + DRAG (cockpit style) ──
+  function onDown(e){
+    _tog = document.getElementById('tp-right-toggle');
+    if(!_tog) return;
+    var pt = e.touches ? e.touches[0] : e;
+    _startY = pt.clientY;
+    _startTop = _tog.getBoundingClientRect().top;
+    _down = true; _moved = false;
+    _tog.classList.add('dragging');
+    e.preventDefault(); e.stopPropagation();
+  }
+
+  function onMove(e){
+    if(!_down || !_tog) return;
+    var pt = e.touches ? e.touches[0] : e;
+    var dy = pt.clientY - _startY;
+    if(Math.abs(dy) < 5){ e.preventDefault(); return; }
+    _moved = true;
+    var H=window.innerHeight, tH=_tog.offsetHeight;
+    var newTop = Math.max(20, Math.min(_startTop+dy, H-tH-20));
+    if(!_raf) _raf = requestAnimationFrame(function(){
+      if(_tog){ _tog.style.top=newTop+'px'; _tog.style.transform='none'; }
+      _raf=null;
+    });
+    e.preventDefault();
+  }
+
+  function onUp(){
+    if(!_down) return;
+    _down = false;
+    if(_raf){ cancelAnimationFrame(_raf); _raf=null; }
+    if(_tog) _tog.classList.remove('dragging');
+    if(!_moved) tpToggleRightPanel();
+    _moved = false;
+  }
+
+  var _orig = window._tpInitRightPanel;
+  window._tpInitRightPanel = function(){
+    if(_orig) _orig();
+    var t = document.getElementById('tp-right-toggle');
+    if(t && !t._rightDragBound){
+      t.addEventListener('mousedown', onDown);
+      t.addEventListener('touchstart', onDown, {passive:false});
+      t._rightDragBound = true;
+    }
+  };
+  document.addEventListener('mousemove', onMove, {passive:false});
+  document.addEventListener('touchmove', onMove, {passive:false});
+  document.addEventListener('mouseup', onUp);
+  document.addEventListener('touchend', onUp);
+  document.addEventListener('mouseleave', onUp);
+})();
+
+// ── POS PANEL TOGGLE FUNCTIONS ──
 var _tpPosOpen = false;
-
 function _tpSyncPosToggle(){
   const panel = document.getElementById('tp-pos-panel');
   const toggle = document.getElementById('tp-pos-toggle');
@@ -4879,114 +4872,22 @@ function _tpSyncPosToggle(){
   const icon = toggle.querySelector('.tp-pos-panel-toggle-icon');
   if(icon) icon.textContent = open ? '◀' : 'POS';
 }
-
 function tpTogglePosPanel(){
   const panel = document.getElementById('tp-pos-panel');
   if(!panel) return;
   _tpPosOpen = panel.classList.contains('collapsed');
-  if(_tpPosOpen){
-    panel.style.overflow = 'hidden';
-    panel.classList.remove('collapsed');
-    setTimeout(()=>{ panel.style.overflow = ''; }, 380);
-  } else {
-    panel.classList.add('collapsed');
-  }
+  panel.classList.toggle('collapsed', !_tpPosOpen);
   setTimeout(_tpSyncPosToggle, 10);
-  // resize TV chart after transition
-  setTimeout(()=>{
-    if(_tvWidget && _tvWidget.iframe){
-      try{ _tvWidget.iframe.contentWindow.dispatchEvent(new Event('resize')); }catch(e){}
-    }
-  }, 380);
+  setTimeout(()=>{ try{ if(_tvWidget&&_tvWidget.iframe) _tvWidget.iframe.contentWindow.dispatchEvent(new Event('resize')); }catch(e){} }, 380);
 }
-
-// ── DRAG SYSTEM ──
-(function(){
-  var toggle, startY, startTop, dragging=false, hasDragged=false;
-  var _rafId=null, _lastY=0;
-  var _pointerDown=false; // tracks if pointer was actually pressed on toggle
-
-  function isPosToggle(el){
-    return el && (el.id==='tp-pos-toggle' || el.closest('#tp-pos-toggle'));
-  }
-
-  function onDown(e){
-    toggle = document.getElementById('tp-pos-toggle');
-    if(!toggle || !toggle.classList.contains('visible')) return;
-    if(!isPosToggle(e.target)) return; // must click exactly on toggle
-    _pointerDown = true;
-    var pt = e.touches ? e.touches[0] : e;
-    startY = pt.clientY;
-    var rect = toggle.getBoundingClientRect();
-    startTop = rect.top;
-    dragging = false; hasDragged = false;
-    toggle.classList.add('dragging');
-    e.preventDefault();
-    e.stopPropagation();
-  }
-
-  function onMove(e){
-    if(!_pointerDown || !toggle) return;
-    var pt = e.touches ? e.touches[0] : e;
-    var deltaY = pt.clientY - startY;
-    if(Math.abs(deltaY) < 6){
-      e.preventDefault();
-      return;
-    }
-    dragging = true; hasDragged = true;
-    var H = window.innerHeight, tH = toggle.offsetHeight;
-    _lastY = Math.max(20, Math.min(startTop + deltaY, H - tH - 20));
-    if(!_rafId) _rafId = requestAnimationFrame(function(){
-      if(toggle){ toggle.style.top = _lastY + 'px'; toggle.style.transform = 'none'; }
-      _rafId = null;
-    });
-    e.preventDefault();
-  }
-
-  function onUp(e){
-    if(!_pointerDown) return;
-    _pointerDown = false;
-    dragging = false;
-    if(_rafId){ cancelAnimationFrame(_rafId); _rafId=null; }
-    if(toggle) toggle.classList.remove('dragging');
-    if(!hasDragged) tpTogglePosPanel();
-    hasDragged = false;
-  }
-
-  var posToggleEl = document.getElementById('tp-pos-toggle');
-  // attach on first use — toggle exists after simulator opens
-  var _posListenerAttached = false;
-  var _origPosInit = window._tpInitPosPanel;
-  window._tpInitPosPanel = function(){
-    if(_origPosInit) _origPosInit();
-    if(!_posListenerAttached){
-      var t = document.getElementById('tp-pos-toggle');
-      if(t){
-        t.addEventListener('mousedown', onDown);
-        t.addEventListener('touchstart', onDown, {passive:false});
-        _posListenerAttached = true;
-      }
-    }
-  };
-  // but move/up on document so drag works outside toggle bounds
-  document.addEventListener('mousemove', onMove, {passive:false});
-  document.addEventListener('touchmove', onMove, {passive:false});
-  document.addEventListener('mouseup', onUp);
-  document.addEventListener('touchend', onUp);
-  // safety reset — if mouse leaves window while dragging
-  document.addEventListener('mouseleave', onUp);
-})();
-
-// init toggle position when simulator opens
 function _tpInitPosPanel(){
   const toggle = document.getElementById('tp-pos-toggle');
   if(toggle){ toggle.style.left='0px'; toggle.style.top=''; toggle.style.transform=''; }
+  _tpSyncPosToggle();
 }
-// ── END POSITIONS PANEL TOGGLE ──
 
-// ── RIGHT ORDER PANEL TOGGLE + DRAG ──
+// ── RIGHT PANEL TOGGLE FUNCTIONS ──
 var _tpRightOpen = true;
-
 function _tpSyncRightToggle(){
   const sidebar = document.getElementById('tp-sidebar');
   const toggle = document.getElementById('tp-right-toggle');
@@ -4997,94 +4898,14 @@ function _tpSyncRightToggle(){
   const icon = toggle.querySelector('.tp-right-toggle-icon');
   if(icon) icon.textContent = open ? '▶' : 'ORDER';
 }
-
 function tpToggleRightPanel(){
   const sidebar = document.getElementById('tp-sidebar');
   if(!sidebar) return;
   _tpRightOpen = sidebar.classList.contains('collapsed');
-  if(_tpRightOpen){
-    sidebar.style.overflow = 'hidden';
-    sidebar.classList.remove('collapsed');
-    setTimeout(()=>{ sidebar.style.overflow = ''; }, 380);
-  } else {
-    sidebar.classList.add('collapsed');
-  }
+  sidebar.classList.toggle('collapsed', !_tpRightOpen);
   setTimeout(_tpSyncRightToggle, 10);
-  setTimeout(()=>{
-    if(_tvWidget && _tvWidget.iframe){
-      try{ _tvWidget.iframe.contentWindow.dispatchEvent(new Event('resize')); }catch(e){}
-    }
-  }, 380);
+  setTimeout(()=>{ try{ if(_tvWidget&&_tvWidget.iframe) _tvWidget.iframe.contentWindow.dispatchEvent(new Event('resize')); }catch(e){} }, 380);
 }
-
-(function(){
-  var toggle, startY, startTop, dragging=false, hasDragged=false;
-  var _rafId=null, _lastY=0;
-
-  function isRightToggle(el){
-    return el && (el.id==='tp-right-toggle' || el.closest('#tp-right-toggle'));
-  }
-
-  var _rPointerDown = false;
-
-  function onDown(e){
-    toggle = document.getElementById('tp-right-toggle');
-    if(!toggle || !toggle.classList.contains('visible')) return;
-    _rPointerDown = true;
-    var pt = e.touches ? e.touches[0] : e;
-    startY = pt.clientY;
-    var rect = toggle.getBoundingClientRect();
-    startTop = rect.top;
-    dragging = false; hasDragged = false;
-    toggle.classList.add('dragging');
-    e.preventDefault();
-    e.stopPropagation();
-  }
-
-  function onMove(e){
-    if(!_rPointerDown || !toggle) return;
-    var pt = e.touches ? e.touches[0] : e;
-    var deltaY = pt.clientY - startY;
-    if(Math.abs(deltaY) < 6){ e.preventDefault(); return; }
-    dragging = true; hasDragged = true;
-    var H = window.innerHeight, tH = toggle.offsetHeight;
-    _lastY = Math.max(20, Math.min(startTop + deltaY, H - tH - 20));
-    if(!_rafId) _rafId = requestAnimationFrame(function(){
-      if(toggle){ toggle.style.top = _lastY + 'px'; toggle.style.transform = 'none'; }
-      _rafId = null;
-    });
-    e.preventDefault();
-  }
-
-  function onUp(e){
-    if(!_rPointerDown) return;
-    _rPointerDown = false;
-    dragging = false;
-    if(_rafId){ cancelAnimationFrame(_rafId); _rafId=null; }
-    if(toggle) toggle.classList.remove('dragging');
-    if(!hasDragged) tpToggleRightPanel();
-    hasDragged = false;
-  }
-
-  var _rightListenerAttached = false;
-  var _origRightInit = window._tpInitRightPanel;
-  window._tpInitRightPanel = function(){
-    if(_origRightInit) _origRightInit();
-    if(!_rightListenerAttached){
-      var t = document.getElementById('tp-right-toggle');
-      if(t){
-        t.addEventListener('mousedown', onDown);
-        t.addEventListener('touchstart', onDown, {passive:false});
-        _rightListenerAttached = true;
-      }
-    }
-  };
-  document.addEventListener('mousemove', onMove, {passive:false});
-  document.addEventListener('touchmove', onMove, {passive:false});
-  document.addEventListener('mouseup', onUp);
-  document.addEventListener('touchend', onUp);
-  document.addEventListener('mouseleave', onUp);
-})();
 
 function _tpInitRightPanel(){
   const toggle = document.getElementById('tp-right-toggle');
@@ -7356,6 +7177,7 @@ function launchApp(){
     },900);
   });
 }
+// end
 </script>
 <script>
 // ── AUTH SYSTEM ──
