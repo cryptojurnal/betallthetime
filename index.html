@@ -9413,7 +9413,7 @@ function tpInitTVChart(){
       locale: 'en',
       toolbar_bg: '#000000',
       enable_publishing: false,
-      allow_symbol_change: true,
+      allow_symbol_change: false,
       withdateranges: true,
       save_image: true,
       hide_side_toolbar: false,
@@ -9421,7 +9421,7 @@ function tpInitTVChart(){
       height: '100%',
       autosize: true,
       fullscreen: false,
-      disabled_features: [],
+      disabled_features: ['header_symbol_search','header_compare','symbol_search_hot_key'],
     });
   };
 
