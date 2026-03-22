@@ -5061,124 +5061,130 @@ function tpSharePosition(id){
   const pnlPct = (pnl / pos.size) * 100;
   const isUp = pnl >= 0;
   const isSpot = pos.marketType==='spot' || pos.leverage===1;
+  const bandColor = isUp ? '#00c47a' : '#e24b4a';
+  const sideColor = pos.side==='long' ? '#00c47a' : '#e24b4a';
+  const pair = pos.pair.replace('USDT','') + '/USDT';
+  const ex = (pos.exchange||TP_STATE.exchange||'').toUpperCase();
 
-  const W=800, H=420;
+  const W=800, H=440;
   const canvas = document.getElementById('tp-share-canvas');
   canvas.width=W; canvas.height=H;
   const ctx = canvas.getContext('2d');
 
   // ── background ──
-  ctx.fillStyle = '#0a0a0a';
+  ctx.fillStyle='#0d0d0d';
   ctx.fillRect(0,0,W,H);
 
-  // ── top color band ──
-  const bandColor = isUp ? '#00c47a' : '#e24b4a';
-  ctx.fillStyle = bandColor;
-  ctx.globalAlpha = 0.08;
+  // ── subtle tint ──
+  ctx.fillStyle=bandColor;
+  ctx.globalAlpha=0.05;
   ctx.fillRect(0,0,W,H);
-  ctx.globalAlpha = 1;
-  ctx.fillStyle = bandColor;
-  ctx.fillRect(0,0,W,4);
+  ctx.globalAlpha=1;
+
+  // ── left color bar ──
+  ctx.fillStyle=bandColor;
+  ctx.fillRect(0,0,4,H);
 
   // ── grid lines ──
-  ctx.strokeStyle = '#1a1a1a';
-  ctx.lineWidth = 0.5;
-  for(let x=0;x<W;x+=80){ ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke(); }
-  for(let y=0;y<H;y+=60){ ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke(); }
+  ctx.strokeStyle='#1a1a1a';
+  ctx.lineWidth=0.5;
+  for(let x=80;x<W;x+=80){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for(let y=60;y<H;y+=60){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
 
-  // ── BATT watermark ──
-  ctx.font='700 11px "Trebuchet MS",sans-serif';
-  ctx.fillStyle='#333';
+  // ── BATT watermark top left ──
+  ctx.font='600 11px "Trebuchet MS",sans-serif';
+  ctx.fillStyle='#444';
   ctx.textAlign='left';
-  ctx.fillText('⚡ BATT · PAPER TRADING · betallthetime.fun', 28, 32);
+  ctx.fillText('⚡ BATT  ·  PAPER TRADING  ·  betallthetime.fun', 24, 30);
 
-  // ── pair + badge ──
-  const pair = pos.pair.replace('USDT','') + '/USDT';
-  ctx.font='700 32px "Trebuchet MS",sans-serif';
-  ctx.fillStyle='#e0e0e0';
-  ctx.textAlign='left';
-  ctx.fillText(pair, 28, 80);
-
-  // side badge
-  const badgeColor = pos.side==='long' ? '#00c47a' : '#e24b4a';
-  const badgeTxt = isSpot ? 'SPOT' : pos.side.toUpperCase();
-  ctx.fillStyle = badgeColor + '22';
-  roundRect(ctx, 28+ctx.measureText(pair).width+12, 58, 64, 26, 6);
-  ctx.fill();
-  ctx.font='700 11px "Trebuchet MS",sans-serif';
-  ctx.fillStyle = badgeColor;
+  // ── TOP RIGHT — long/short + leverage badge ──
+  const sideLabel = isSpot ? 'SPOT' : pos.side.toUpperCase();
+  const badgeW = isSpot ? 60 : 72;
+  const badgeX = W - 24 - badgeW;
+  ctx.fillStyle = sideColor+'22';
+  roundRect(ctx, badgeX, 14, badgeW, 26, 6); ctx.fill();
+  ctx.font='800 12px "Trebuchet MS",sans-serif';
+  ctx.fillStyle=sideColor;
   ctx.textAlign='center';
-  ctx.fillText(badgeTxt, 28+ctx.measureText(pair).width+12+32, 76);
+  ctx.fillText(sideLabel, badgeX+badgeW/2, 31);
 
   if(!isSpot){
     const levW=44;
-    const levX=28+ctx.measureText(pair).width+84;
+    const levX=badgeX-levW-8;
     ctx.fillStyle='#1a1a2a';
-    roundRect(ctx,levX,58,levW,26,6);ctx.fill();
+    roundRect(ctx,levX,14,levW,26,6);ctx.fill();
+    ctx.font='800 12px "Trebuchet MS",sans-serif';
     ctx.fillStyle='#5b7fff';
-    ctx.fillText(pos.leverage+'x',levX+levW/2,76);
+    ctx.fillText(pos.leverage+'x', levX+levW/2, 31);
   }
 
-  // ── big PnL number ──
-  const pnlStr = (isUp?'+':'') + '$' + Math.abs(pnl).toFixed(2);
-  ctx.font='800 72px "Trebuchet MS",sans-serif';
-  ctx.fillStyle = bandColor;
-  ctx.textAlign='left';
-  ctx.fillText(pnlStr, 28, 175);
-
-  // pnl percent
-  const pctStr = (isUp?'+':'') + pnlPct.toFixed(2) + '%';
+  // ── pair name ──
   ctx.font='700 28px "Trebuchet MS",sans-serif';
-  ctx.fillStyle = bandColor + 'cc';
-  ctx.fillText(pctStr, 32, 210);
+  ctx.fillStyle='#e0e0e0';
+  ctx.textAlign='left';
+  ctx.fillText(pair, 24, 78);
+
+  // ── exchange label ──
+  ctx.font='400 12px "Trebuchet MS",sans-serif';
+  ctx.fillStyle='#555';
+  ctx.fillText(ex + (isSpot?' · SPOT':' · PERP'), 24, 98);
+
+  // ── BIG percentage (hero number) ──
+  const pctStr = (isUp?'+':'') + pnlPct.toFixed(2) + '%';
+  ctx.font='800 96px "Trebuchet MS",sans-serif';
+  ctx.fillStyle=bandColor;
+  ctx.textAlign='left';
+  ctx.fillText(pctStr, 24, 215);
+
+  // ── dollar amount below ──
+  const pnlStr = (isUp?'+':'-') + '$' + Math.abs(pnl).toFixed(2);
+  ctx.font='400 22px "Trebuchet MS",sans-serif';
+  ctx.fillStyle=bandColor+'99';
+  ctx.fillText(pnlStr, 28, 248);
 
   // ── divider ──
-  ctx.strokeStyle = '#222';
-  ctx.lineWidth = 1;
-  ctx.beginPath();ctx.moveTo(28,235);ctx.lineTo(W-28,235);ctx.stroke();
+  ctx.strokeStyle='#222';
+  ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(24,272);ctx.lineTo(W-24,272);ctx.stroke();
 
   // ── stats row ──
   const stats = isSpot ? [
-    ['Avg Entry', fmtPrice(pos.entryPrice)],
-    ['Mark Price', fmtPrice(currentPrice)],
-    ['Holdings', (pos.size/pos.entryPrice).toFixed(6)+' '+pos.pair.replace('USDT','')],
-    ['Exchange', pos.exchange||TP_STATE.exchange],
+    ['avg entry', fmtPrice(pos.entryPrice)],
+    ['mark price', fmtPrice(currentPrice)],
+    ['size', '$'+pos.size],
+    ['holdings', (pos.size/pos.entryPrice).toFixed(6)+' '+pos.pair.replace('USDT','')],
   ] : [
-    ['Entry Price', fmtPrice(pos.entryPrice)],
-    ['Mark Price', fmtPrice(currentPrice)],
-    ['Size', '$'+pos.size],
-    ['Leverage', pos.leverage+'x'],
-    ['Exchange', (pos.exchange||TP_STATE.exchange).toUpperCase()],
+    ['entry price', fmtPrice(pos.entryPrice)],
+    ['mark price', fmtPrice(currentPrice)],
+    ['size', '$'+pos.size],
+    ['leverage', pos.leverage+'x'],
+    ['exchange', ex],
   ];
 
-  const colW = (W-56)/stats.length;
+  const colW=(W-48)/stats.length;
   stats.forEach(([label,val],i)=>{
-    const x = 28 + i*colW;
+    const x=24+i*colW;
     ctx.font='400 11px "Trebuchet MS",sans-serif';
-    ctx.fillStyle='#555';
+    ctx.fillStyle='#444';
     ctx.textAlign='left';
-    ctx.fillText(label, x, 265);
-    ctx.font='700 15px "Trebuchet MS",sans-serif';
-    ctx.fillStyle='#e0e0e0';
-    ctx.fillText(val, x, 288);
+    ctx.fillText(label, x, 300);
+    ctx.font='700 16px "Trebuchet MS",sans-serif';
+    ctx.fillStyle='#c0c0c0';
+    ctx.fillText(val, x, 322);
   });
 
-  // ── timestamp ──
-  const now = new Date().toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  // ── bottom row ──
+  const now=new Date().toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'});
   ctx.font='400 11px "Trebuchet MS",sans-serif';
   ctx.fillStyle='#333';
   ctx.textAlign='left';
-  ctx.fillText(now + ' UTC', 28, H-20);
-
-  // ── qr-like branding corner ──
-  ctx.font='700 13px "Trebuchet MS",sans-serif';
-  ctx.fillStyle='#2a2a2a';
+  ctx.fillText(now, 24, H-18);
   ctx.textAlign='right';
-  ctx.fillText('bet all the time · bet with style', W-28, H-20);
+  ctx.fillText('bet all the time · bet with style', W-24, H-18);
 
   // show modal
-  const modal = document.getElementById('tp-share-modal');
-  if(modal){ modal.style.display='flex'; }
+  const modal=document.getElementById('tp-share-modal');
+  if(modal) modal.style.display='flex';
 }
 
 function roundRect(ctx,x,y,w,h,r){
