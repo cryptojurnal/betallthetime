@@ -2370,8 +2370,8 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
         <span class="l3-card-badge live">live</span>
         <span class="l3-card-badge wip" style="top:28px">🚧 beta</span>
         <div class="l3-card-icon">⚡</div>
-        <h3>Trade Panel</h3>
-        <p>Practice with real market data. Chart analysis, paper trading, and skill building — under active development.</p>
+        <h3>Trade Hub</h3>
+        <p>Your gateway to simulation, CEX trading, DEX perps, and token swaps — all in one place.</p>
       </div>
       <div class="l3-card l3-card-soon" onclick="showToast('Coming soon! Stay tuned.','info')">
         <span class="l3-card-badge soon">soon</span>
@@ -2442,7 +2442,8 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 
 <!-- TRADE HUB — landing page before entering any trade mode -->
 <div id="trade-hub" style="display:none;position:fixed;inset:0;z-index:9650;background:#000;flex-direction:column;opacity:0;transform:scale(0.98);transition:opacity .35s ease,transform .35s ease">
-  <div style="flex:1;overflow-y:auto;padding:24px;max-width:880px;width:100%;margin:0 auto">
+  <div style="flex:1;overflow-y:auto;overflow-x:hidden;padding:24px;max-width:880px;width:100%;margin:0 auto;scrollbar-width:none">
+  <style>#trade-hub>div::-webkit-scrollbar{display:none}</style>
     <!-- topbar -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px">
       <button onclick="closeTradeHub()" style="font-size:11px;color:#555;background:#111;border:0.5px solid #1a1a1a;border-radius:6px;padding:6px 12px;cursor:pointer;font-family:inherit">← back</button>
@@ -8993,54 +8994,74 @@ function tpSaveState() {
 
 // Open trading page
 function openTradingPage() {
-  document.body.style.overflow='auto';
   battNav('trade');
   mbnSetActive('trade');
-  // show trade hub instead of going directly to simulation
+  document.body.style.overflow='auto';
   const hub = document.getElementById('trade-hub');
   const l3 = document.getElementById('layer3');
+  if(l3){ l3.classList.remove('visible'); setTimeout(()=>l3.classList.add('hidden'),300); }
   if(hub){
     hub.style.display='flex';
-    if(l3) l3.classList.remove('visible');
-    requestAnimationFrame(()=>requestAnimationFrame(()=>{
-      hub.style.opacity='1';
-      hub.style.transform='scale(1)';
-    }));
+    requestAnimationFrame(()=>{ hub.style.opacity='1'; hub.style.transform='scale(1)'; });
   }
 }
 
 function closeTradeHub(){
+  battNav('member');
+  mbnSetActive('member');
+  document.body.style.overflow='auto';
   const hub = document.getElementById('trade-hub');
   if(hub){
     hub.style.opacity='0';
     hub.style.transform='scale(0.98)';
-    setTimeout(()=>{
-      hub.style.display='none';
-      hub.style.opacity='';
-      hub.style.transform='';
-    },350);
+    setTimeout(()=>{ hub.style.display='none'; hub.style.opacity=''; hub.style.transform=''; },300);
   }
-  battNav('member');
-  mbnSetActive('member');
   const l3 = document.getElementById('layer3');
-  if(l3){ l3.classList.remove('hidden'); requestAnimationFrame(()=>l3.classList.add('visible')); }
+  if(l3){ l3.classList.remove('hidden'); requestAnimationFrame(()=>requestAnimationFrame(()=>l3.classList.add('visible'))); }
 }
 
 function openSimulation(){
   const hub = document.getElementById('trade-hub');
-  if(hub){ hub.style.opacity='0'; setTimeout(()=>{ hub.style.display='none'; hub.style.opacity=''; hub.style.transform=''; },300); }
+  if(hub){ hub.style.opacity='0'; hub.style.transform='scale(0.98)'; setTimeout(()=>{ hub.style.display='none'; hub.style.opacity=''; hub.style.transform=''; },300); }
   tpLoadState();
   const page = document.getElementById('trading-page');
   if(page){
     page.classList.add('visible');
+    // hide floating elements that interfere
+    const userBar = document.getElementById('auth-user-bar');
+    const aiFab = document.getElementById('ai-fab');
+    if(userBar) userBar.style.display='none';
+    if(aiFab) aiFab.style.display='none';
     tpFetchPrices();
     tpInitChart();
     tpUpdateUI();
     tpRenderPositions();
     tpRenderHistory();
     tpRenderPairList();
+    if(typeof tpFetchOrderBook==='function') tpFetchOrderBook();
+    // apply market type
+    const isSpot = TP_STATE.marketType==='spot';
+    document.querySelectorAll('.tp-market-type button').forEach(b=>{
+      b.classList.toggle('active', b.textContent.toLowerCase()===TP_STATE.marketType);
+    });
+    const longBtn=document.getElementById('tp-side-long');
+    const shortBtn=document.getElementById('tp-side-short');
+    if(longBtn) longBtn.textContent=isSpot?'Buy':'Long';
+    if(shortBtn) shortBtn.textContent=isSpot?'Sell':'Short';
+    if(longBtn) longBtn.classList.toggle('active',TP_STATE.side==='long');
+    if(shortBtn) shortBtn.classList.toggle('active',TP_STATE.side==='short');
+    ['tp-leverage-row','tp-tpsl-row','tp-sum-margin-row','tp-sum-liq-row','tp-sum-tp-row','tp-sum-sl-row'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el) el.style.display=isSpot?'none':'flex';
+    });
+    if(typeof tpUpdateSubmitButton==='function') tpUpdateSubmitButton();
+    const exLbl=document.getElementById('tp-pair-exchange');
+    if(exLbl) exLbl.textContent=`${isSpot?'spot':'perpetual'} · ${TP_STATE.exchange}`;
     if(!window._tpPriceInterval){
-      window._tpPriceInterval = setInterval(tpFetchPrices, 5000);
+      window._tpPriceInterval=setInterval(()=>{
+        tpFetchPrices();
+        if(typeof tpFetchOrderBook==='function') tpFetchOrderBook();
+      },5000);
     }
   }
 }
@@ -10311,81 +10332,7 @@ function tpRenderOrderBook() {
   }
 }
 
-// Update openTradingPage to include order book
-var _origOpenTradingPage = openTradingPage;
-openTradingPage = function() {
-  document.body.style.overflow='auto';
-  if(typeof battNav==='function') battNav('trade');
-  tpLoadState();
-  const page = document.getElementById('trading-page');
-  const l3 = document.getElementById('layer3');
-  if (page) {
-    page.classList.add('visible');
-    l3.classList.remove('visible');
-    
-    // Hide floating elements that interfere with trading UI
-    const userBar = document.getElementById('auth-user-bar');
-    const aiFab = document.getElementById('ai-fab');
-    const presetsToggle = document.querySelector('.panel-presets-toggle');
-    if (userBar) userBar.style.display = 'none';
-    if (aiFab) aiFab.style.display = 'none';
-    if (presetsToggle) presetsToggle.style.display = 'none';
-    
-    tpFetchPrices();
-    tpInitChart();
-    tpUpdateUI();
-    tpRenderPositions();
-    tpRenderHistory();
-    tpRenderPairList();
-    tpFetchOrderBook(); // Fetch real order book
-    
-    // Apply market type settings
-    const isSpot = TP_STATE.marketType === 'spot';
-    document.querySelectorAll('.tp-market-type button').forEach(b => {
-      const btnType = b.textContent.toLowerCase();
-      b.classList.toggle('active', btnType === TP_STATE.marketType);
-    });
-    
-    // Update side button labels
-    const longBtn = document.getElementById('tp-side-long');
-    const shortBtn = document.getElementById('tp-side-short');
-    if (longBtn) longBtn.textContent = isSpot ? 'Buy' : 'Long';
-    if (shortBtn) shortBtn.textContent = isSpot ? 'Sell' : 'Short';
-    
-    // Set active side button
-    document.getElementById('tp-side-long').classList.toggle('active', TP_STATE.side === 'long');
-    document.getElementById('tp-side-short').classList.toggle('active', TP_STATE.side === 'short');
-    
-    // Show/hide perpetual-only elements
-    const leverageRow = document.getElementById('tp-leverage-row');
-    const tpslRow = document.getElementById('tp-tpsl-row');
-    const marginRow = document.getElementById('tp-sum-margin-row');
-    const liqRow = document.getElementById('tp-sum-liq-row');
-    const tpRow = document.getElementById('tp-sum-tp-row');
-    const slRow = document.getElementById('tp-sum-sl-row');
-    
-    if (leverageRow) leverageRow.style.display = isSpot ? 'none' : 'flex';
-    if (tpslRow) tpslRow.style.display = isSpot ? 'none' : 'flex';
-    if (marginRow) marginRow.style.display = isSpot ? 'none' : 'flex';
-    if (liqRow) liqRow.style.display = isSpot ? 'none' : 'flex';
-    if (tpRow) tpRow.style.display = isSpot ? 'none' : 'flex';
-    if (slRow) slRow.style.display = isSpot ? 'none' : 'flex';
-    
-    // Update submit button
-    tpUpdateSubmitButton();
-    
-    // Update exchange label
-    document.getElementById('tp-pair-exchange').textContent = `${isSpot ? 'spot' : 'perpetual'} · ${TP_STATE.exchange}`;
-    
-    // Start price updates
-    if (!window._tpPriceInterval) {
-      window._tpPriceInterval = setInterval(() => {
-        tpFetchPrices();
-        tpFetchOrderBook(); // Fetch real order book
-      }, 5000);
-    }
-  }
-};
+// openTradingPage now shows the hub — simulation logic moved to openSimulation above
 
 // Update tpSelectSide for spot/perpetual
 var _origSelectSide = tpSelectSide;
@@ -13179,7 +13126,7 @@ function battNav(page){
   var titles = {
     'member':  'BATT · Member Area',
     'cockpit': 'BATT · Cockpit',
-    'trade':   'BATT · Trade Panel',
+    'trade':   'BATT · Trade Hub',
     'account': 'BATT · Account',
     'about':   'BATT · About CJ',
     'auth':    'BATT · Login',
@@ -13275,8 +13222,11 @@ window.addEventListener('popstate', function(){
     document.body.style.overflow='auto';
     if(typeof mbnSetActive==='function') mbnSetActive('account');
   } else if(hash === 'trade'){
-    if(trading){ trading.style.opacity=''; trading.style.transform=''; trading.classList.add('visible'); }
+    // show trade hub, not simulator directly
+    var hub = document.getElementById('trade-hub');
+    if(trading){ trading.classList.remove('visible'); trading.style.opacity=''; trading.style.transform=''; }
     if(l3) l3.classList.remove('visible');
+    if(hub){ hub.style.display='flex'; requestAnimationFrame(function(){ hub.style.opacity='1'; hub.style.transform='scale(1)'; }); }
     document.body.style.overflow='auto';
     if(typeof mbnSetActive==='function') mbnSetActive('trade');
   } else if(hash === 'about'){
