@@ -88,7 +88,7 @@ function showGuidePopup(){
   // push sentinel so browser back dismisses popup instead of leaving
   try{
     if((window.location.hash||'').replace('#','') !== 'guide'){
-      history.pushState({batt:'guide'}, '', '#guide');
+      history.replaceState({batt:'guide'}, '', '#guide');
     }
   }catch(e){}
   // reset display in case it was hidden from a previous session
@@ -6108,7 +6108,7 @@ function goLayer2(){
   // push sentinel so browser back has somewhere to go
   try{
     if((window.location.hash||'').replace('#','') !== 'risk'){
-      history.pushState({batt:'risk'}, '', '#risk');
+      history.replaceState({batt:'risk'}, '', '#risk');
     }
   }catch(e){}
   document.title = 'BATT · Risk Disclosure';
