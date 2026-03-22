@@ -3897,13 +3897,13 @@ function renameTab(id,name){
 }
 
 function saveTabRegistry(){
-  try{localStorage.setItem('wz_custom_tabs',JSON.stringify(CUSTOM_TABS.map(t=>({id:t.id,name:t.name}))));}catch(e){}
-  try{localStorage.setItem('wz_next_tab_id',JSON.stringify(_nextTabId));}catch(e){}
+  try{localStorage.setItem('batt_custom_tabs',JSON.stringify(CUSTOM_TABS.map(t=>({id:t.id,name:t.name}))));}catch(e){}
+  try{localStorage.setItem('batt_next_tab_id',JSON.stringify(_nextTabId));}catch(e){}
 }
 
 function loadTabRegistry(){
   try{
-    const raw=localStorage.getItem('wz_custom_tabs');
+    const raw=localStorage.getItem('batt_custom_tabs');
     if(raw){
       const arr=JSON.parse(raw);
       arr.forEach(t=>{
@@ -3911,7 +3911,7 @@ function loadTabRegistry(){
         if(!S[t.id])S[t.id]=mkState();
       });
     }
-    const nid=localStorage.getItem('wz_next_tab_id');
+    const nid=localStorage.getItem('batt_next_tab_id');
     if(nid){const p=JSON.parse(nid);if(p&&typeof p==='object')_nextTabId=p;}
   }catch(e){}
 }
@@ -3958,7 +3958,7 @@ function loadAll(){
       }catch(e){}
     });
   });
-  try{const t=localStorage.getItem('wz_theme');if(t)THEME=t;}catch(e){}
+  try{const t=localStorage.getItem('batt_theme');if(t)THEME=t;}catch(e){}
 }
 
 function syncControls(){
@@ -5710,7 +5710,7 @@ function setTheme(t,btn){
   THEME=t;
   document.body.className=t;
   document.querySelectorAll('.th-btn').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
-  try{localStorage.setItem('wz_theme',t);}catch(e){}
+  try{localStorage.setItem('batt_theme',t);}catch(e){}
   if(ch){if(ch._errorPulse){clearInterval(ch._errorPulse);ch._errorPulse=null;}ch.destroy();ch=null;}
   render();
 }
@@ -5951,7 +5951,7 @@ initGrid();
 syncControls();
 renderTabBar();
 try{
-  const t=localStorage.getItem('wz_theme');
+  const t=localStorage.getItem('batt_theme');
   if(t){THEME=t;document.body.className=t;document.querySelectorAll('.th-btn').forEach(b=>b.classList.toggle('on',b.dataset.t===t));}
 }catch(e){}
 render();
@@ -6119,7 +6119,7 @@ function authOnSuccess(d){
   AUTH_TOKEN = d.token;
   AUTH_USER  = d.user;
   localStorage.setItem('batt_token', d.token);
-  if(d.user) localStorage.setItem('wz_user', JSON.stringify(d.user));
+  if(d.user) localStorage.setItem('batt_user', JSON.stringify(d.user));
   // load cloud preferences
   if(typeof loadCloudPrefs==='function') loadCloudPrefs();
   // load cloud data if exists and merge
@@ -6235,8 +6235,8 @@ async function sendGoogleToWorker(google_id,email,name,picture){
       // add picture and google_id to user object
       AUTH_USER=data.user ? {...data.user, picture:picture, google_id:google_id} : {email,name,picture,google_id};
       localStorage.setItem('batt_token',data.token);
-      localStorage.setItem('wz_user',JSON.stringify(AUTH_USER));
-      localStorage.setItem('wz_auth_google','1'); // flag for Google login
+      localStorage.setItem('batt_user',JSON.stringify(AUTH_USER));
+      localStorage.setItem('batt_auth_google','1'); // flag for Google login
       // show user bar
       const ub=document.getElementById('auth-user-bar');
       const ul=document.getElementById('auth-username-lbl');
@@ -6343,19 +6343,18 @@ function authForceLogout(){
   // reset to leverage mode on logout — deferred so state is ready
   setTimeout(()=>{ if(typeof setSpotMode==='function') try{setSpotMode(false);}catch(e){} },100);
   localStorage.removeItem('batt_token');
-  localStorage.removeItem('wz_user');
+  localStorage.removeItem('batt_user');
   localStorage.removeItem('batt_sync_count');
-  localStorage.removeItem('wz_last_sync');
-  localStorage.removeItem('wz_auth_google');
+  localStorage.removeItem('batt_last_sync');
+  localStorage.removeItem('batt_auth_google');
   // reset in-memory badge + stats state — server is source of truth
   if(typeof _badgeData !== 'undefined'){ _badgeData = {}; }
   if(typeof _badgeNewList !== 'undefined'){ _badgeNewList = []; }
   // clear cached stat counters
   localStorage.removeItem('batt_sync_count');
   localStorage.removeItem('batt_badge_presets');
-  // also clear old wz_ keys if still present
-  localStorage.removeItem('wz_sync_count');
-  localStorage.removeItem('wz_badge_presets');
+  // clear old wz_ keys for users migrating from old version
+  ['wz_sync_count','wz_badge_presets','wz_user','wz_theme','wz_prefs','wz_last_sync','wz_auth_google'].forEach(k=>localStorage.removeItem(k));
   // hide user bar
   const ub=document.getElementById('auth-user-bar');
   if(ub) ub.classList.add('hidden');
@@ -6621,7 +6620,7 @@ async function authSaveWithToast(){
       localStorage.setItem('batt_sync_count', syncCount); // keep local as cache
       const tok = _battToken();
       if(tok) fetch(AUTH_URL+'/stats/increment',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok},body:JSON.stringify({key:'sync_count'})}).then(r=>r.json()).then(d=>{ if(d.ok){ localStorage.setItem('batt_sync_count', d.value); } }).catch(()=>{});
-      localStorage.setItem('wz_last_sync',Date.now());
+      localStorage.setItem('batt_last_sync',Date.now());
       updateMemberStats();
       if(btn){btn.innerHTML='✓ synced';btn.style.opacity='1';setTimeout(()=>{btn.innerHTML='↑ sync';btn.disabled=false;},1500);}
       showToast('Synced to cloud successfully!','success');
@@ -6667,7 +6666,7 @@ async function updateMemberStats(){
   // last sync
   const syncStatus=document.getElementById('l3-sync-status');
   if(syncStatus){
-    const lastSync=localStorage.getItem('wz_last_sync');
+    const lastSync=localStorage.getItem('batt_last_sync');
     if(lastSync){
       const diff=Date.now()-parseInt(lastSync);
       const mins=Math.floor(diff/60000);
@@ -7379,7 +7378,7 @@ async function loadAccountPage(){
   
   // Google indicator
   const googleEl=document.getElementById('acc-google');
-  const isGoogle=user.google_id||localStorage.getItem('wz_auth_google');
+  const isGoogle=user.google_id||localStorage.getItem('batt_auth_google');
   if(googleEl) googleEl.style.display=isGoogle?'inline':'none';
   
   // Security section - show password change for email users, google message for google users
@@ -7410,7 +7409,7 @@ async function loadAccountPage(){
   // Last sync
   const lastSync=document.getElementById('acc-last-sync');
   if(lastSync){
-    const ls=localStorage.getItem('wz_last_sync');
+    const ls=localStorage.getItem('batt_last_sync');
     if(ls){
       const diff=Date.now()-parseInt(ls);
       const mins=Math.floor(diff/60000);
@@ -7423,7 +7422,7 @@ async function loadAccountPage(){
   // Preferences
   const prefTheme=document.getElementById('acc-pref-theme');
   const prefLang=document.getElementById('acc-pref-lang');
-  const prefs=JSON.parse(localStorage.getItem('wz_prefs')||'{}');
+  const prefs=JSON.parse(localStorage.getItem('batt_prefs')||'{}');
   if(prefTheme) prefTheme.value=prefs.ma_theme||'ma-dark';
   if(prefLang) prefLang.value=prefs.lang||'en';
   // Apply member theme
@@ -7437,9 +7436,9 @@ async function loadAccountPage(){
 }
 
 function savePref(key,value){
-  const prefs=JSON.parse(localStorage.getItem('wz_prefs')||'{}');
+  const prefs=JSON.parse(localStorage.getItem('batt_prefs')||'{}');
   prefs[key]=value;
-  localStorage.setItem('wz_prefs',JSON.stringify(prefs));
+  localStorage.setItem('batt_prefs',JSON.stringify(prefs));
   
   // Apply immediately
   if(key==='ma_theme'){
@@ -7471,9 +7470,9 @@ async function loadCloudPrefs(){
     const d=await r.json();
     if(d.ok && d.prefs){
       // Merge with localStorage (cloud takes priority)
-      const local=JSON.parse(localStorage.getItem('wz_prefs')||'{}');
+      const local=JSON.parse(localStorage.getItem('batt_prefs')||'{}');
       const merged={...local,...d.prefs};
-      localStorage.setItem('wz_prefs',JSON.stringify(merged));
+      localStorage.setItem('batt_prefs',JSON.stringify(merged));
       // Apply member theme if set
       if(merged.ma_theme) applyMemberTheme(merged.ma_theme);
       // Apply AI language if set
@@ -7543,7 +7542,7 @@ function exportAllData(){
     user:AUTH_USER,
     state:{},
     customTabs:typeof CUSTOM_TABS!=='undefined'?CUSTOM_TABS:[],
-    prefs:JSON.parse(localStorage.getItem('wz_prefs')||'{}')
+    prefs:JSON.parse(localStorage.getItem('batt_prefs')||'{}')
   };
   
   // Export current state
@@ -7599,7 +7598,7 @@ async function importData(event){
       
       // Restore prefs
       if(data.prefs){
-        localStorage.setItem('wz_prefs',JSON.stringify(data.prefs));
+        localStorage.setItem('batt_prefs',JSON.stringify(data.prefs));
         if(data.prefs.theme){
           document.body.className=data.prefs.theme;
         }
@@ -7705,7 +7704,7 @@ function goLayer3(){
   // update layer3 user info - use AUTH_USER or fallback to localStorage
   let user = AUTH_USER;
   if(!user){
-    try{ user = JSON.parse(localStorage.getItem('wz_user')); }catch(e){}
+    try{ user = JSON.parse(localStorage.getItem('batt_user')); }catch(e){}
   }
   if(user){
     const avatar=document.getElementById('l3-avatar');
@@ -7731,6 +7730,7 @@ function goLayer3(){
   // load badges + stats from server
   if(typeof loadBadgesFromServer==='function') loadBadgesFromServer().then(()=>{ if(typeof checkBadges==='function') checkBadges(); });
   if(typeof loadStatsFromServer==='function') loadStatsFromServer();
+  if(typeof loadAllUserDataFromServer==='function') loadAllUserDataFromServer();
   // update stats
   updateMemberStats();
   // hide layer2 if visible
@@ -7743,7 +7743,7 @@ function goLayer3(){
     requestAnimationFrame(()=>requestAnimationFrame(()=>{l3.classList.add('visible');}));
   }
   // Apply saved member theme
-  const prefs=JSON.parse(localStorage.getItem('wz_prefs')||'{}');
+  const prefs=JSON.parse(localStorage.getItem('batt_prefs')||'{}');
   if(prefs.ma_theme && typeof applyMemberTheme==='function'){
     applyMemberTheme(prefs.ma_theme);
   }
@@ -7871,7 +7871,7 @@ async function authRestoreSession(){
     const d=await r.json();
     if(d.ok){
       AUTH_USER=d.user;
-      if(d.user) localStorage.setItem('wz_user', JSON.stringify(d.user));
+      if(d.user) localStorage.setItem('batt_user', JSON.stringify(d.user));
       const ub=document.getElementById('auth-user-bar');
       const ul=document.getElementById('auth-username-lbl');
       if(ub) ub.classList.remove('hidden');
@@ -8226,6 +8226,51 @@ const BADGES=[
 // server-side badge state — loaded on login
 var _badgeData = {}; // { badge_id: unlocked_at_timestamp }
 var _badgeNewList = []; // badges newly unlocked this session
+
+async function saveUserDataToServer(key, value){
+  const tok = _battToken();
+  if(!tok) return;
+  try{
+    await fetch(AUTH_URL+'/userdata/save',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok},
+      body: JSON.stringify({key, value})
+    });
+  }catch(e){}
+}
+
+async function loadAllUserDataFromServer(){
+  const tok = _battToken();
+  if(!tok) return;
+  try{
+    const r = await fetch(AUTH_URL+'/userdata/load', { headers:{'Authorization':'Bearer '+tok} });
+    const d = await r.json();
+    if(!d.ok) return;
+    // restore each key into memory and localStorage cache
+    if(d.data.alerts !== undefined){
+      PRICE_ALERTS = d.data.alerts;
+      localStorage.setItem('batt_alerts', JSON.stringify(PRICE_ALERTS));
+    }
+    if(d.data.webhooks !== undefined){
+      WEBHOOKS = d.data.webhooks;
+      localStorage.setItem('batt_webhooks', JSON.stringify(WEBHOOKS));
+    }
+    if(d.data.api_key !== undefined){
+      API_KEY = d.data.api_key;
+      localStorage.setItem('batt_api_key', API_KEY);
+    }
+    if(d.data.custom_themes !== undefined){
+      CUSTOM_THEMES = d.data.custom_themes;
+      localStorage.setItem('batt_custom_themes', JSON.stringify(CUSTOM_THEMES));
+  saveUserDataToServer('custom_themes', CUSTOM_THEMES);
+    }
+    if(d.data.power_actions !== undefined){
+      POWER_USER_ACTIONS = d.data.power_actions;
+      localStorage.setItem('batt_power_actions', JSON.stringify(POWER_USER_ACTIONS));
+  saveUserDataToServer('power_actions', POWER_USER_ACTIONS);
+    }
+  }catch(e){}
+}
 
 async function loadStatsFromServer(){
   const tok = _battToken();
@@ -10443,7 +10488,7 @@ window.addEventListener('resize',function(){
     if(fab)fab.classList.remove('dragging');
     if(hasDragged){
       _wasDragged=true;
-      try{localStorage.setItem('wz_ai_pos',JSON.stringify({x:_lastX,y:_lastY}));}catch(ex){}
+      try{localStorage.setItem('batt_ai_pos',JSON.stringify({x:_lastX,y:_lastY}));}catch(ex){}
     }
     hasDragged=false;
   }
@@ -10459,7 +10504,7 @@ window.addEventListener('resize',function(){
     var f=document.getElementById('ai-fab');
     if(!f)return;
     try{
-      var saved=JSON.parse(localStorage.getItem('wz_ai_pos'));
+      var saved=JSON.parse(localStorage.getItem('batt_ai_pos'));
       if(saved){f.style.left=saved.x+'px';f.style.top=saved.y+'px';f.style.right='auto';f.style.bottom='auto';}
     }catch(ex){}
     window.addEventListener('mousemove',onMove);
@@ -10531,7 +10576,7 @@ window.addEventListener('resize',function(){
     if(hasDragged){
       window._ubWasDragged=true;
       setTimeout(function(){window._ubWasDragged=false;},100);
-      try{localStorage.setItem('wz_ub_pos',JSON.stringify({x:_lastX,y:_lastY}));}catch(ex){}
+      try{localStorage.setItem('batt_ub_pos',JSON.stringify({x:_lastX,y:_lastY}));}catch(ex){}
     }
     hasDragged=false;
   }
@@ -10541,7 +10586,7 @@ window.addEventListener('resize',function(){
     if(!u)return;
     // restore saved position
     try{
-      var saved=JSON.parse(localStorage.getItem('wz_ub_pos'));
+      var saved=JSON.parse(localStorage.getItem('batt_ub_pos'));
       if(saved){u.style.left=saved.x+'px';u.style.top=saved.y+'px';u.style.right='auto';}
     }catch(ex){}
     // attach drag listeners
@@ -10616,7 +10661,7 @@ window.addEventListener('resize',function(){
     if(hasDragged){
       window._backBtnWasDragged=true;
       setTimeout(function(){window._backBtnWasDragged=false;},100);
-      try{localStorage.setItem('wz_back_pos',JSON.stringify({x:_lastX,y:_lastY}));}catch(ex){}
+      try{localStorage.setItem('batt_back_pos',JSON.stringify({x:_lastX,y:_lastY}));}catch(ex){}
     }
     hasDragged=false;
   }
@@ -10626,7 +10671,7 @@ window.addEventListener('resize',function(){
     if(!b)return;
     // restore saved position
     try{
-      var saved=JSON.parse(localStorage.getItem('wz_back_pos'));
+      var saved=JSON.parse(localStorage.getItem('batt_back_pos'));
       if(saved){b.style.left=saved.x+'px';b.style.top=saved.y+'px';}
     }catch(ex){}
     // intercept click if dragged
@@ -11125,7 +11170,7 @@ document.getElementById('compare-modal')?.addEventListener('click', (e) => {
 });
 
 function populateCompareSelects() {
-  const presets = JSON.parse(localStorage.getItem('wz_presets_cache') || '[]');
+  const presets = JSON.parse(localStorage.getItem('batt_presets_cache') || '[]');
   const opt1 = '<option value="">Select preset...</option>' + presets.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
   const opt2 = opt1;
   document.getElementById('compare-select-1').innerHTML = opt1;
@@ -11144,7 +11189,7 @@ function loadComparePreset(colNum) {
   }
   
   // Load from cache (in real implementation, would fetch from server)
-  const presets = JSON.parse(localStorage.getItem('wz_presets_cache') || '[]');
+  const presets = JSON.parse(localStorage.getItem('batt_presets_cache') || '[]');
   const preset = presets.find(p => p.id == presetId);
   
   if (!preset || !preset.data) {
@@ -11349,6 +11394,7 @@ function trackPowerUser(action) {
   if (!POWER_USER_ACTIONS.includes(action)) {
     POWER_USER_ACTIONS.push(action);
     localStorage.setItem('batt_power_actions', JSON.stringify(POWER_USER_ACTIONS));
+  saveUserDataToServer('power_actions', POWER_USER_ACTIONS);
     
     if (POWER_USER_ACTIONS.length >= 5) {
       document.getElementById('power-user-badge')?.classList.add('show');
@@ -11595,6 +11641,7 @@ function createAlert() {
 function deleteAlert(id) {
   PRICE_ALERTS = PRICE_ALERTS.filter(a => a.id !== id);
   localStorage.setItem('batt_alerts', JSON.stringify(PRICE_ALERTS));
+  saveUserDataToServer('alerts', PRICE_ALERTS);
   renderAlertsList();
   showToast('Alert deleted', 'success');
 }
@@ -11759,6 +11806,7 @@ function createWebhook() {
 function deleteWebhook(id) {
   WEBHOOKS = WEBHOOKS.filter(w => w.id !== id);
   localStorage.setItem('batt_webhooks', JSON.stringify(WEBHOOKS));
+  saveUserDataToServer('webhooks', WEBHOOKS);
   renderWebhooksList();
   showToast('Webhook deleted', 'success');
 }
@@ -11888,6 +11936,7 @@ function saveCustomTheme() {
   
   CUSTOM_THEMES.push(theme);
   localStorage.setItem('batt_custom_themes', JSON.stringify(CUSTOM_THEMES));
+  saveUserDataToServer('custom_themes', CUSTOM_THEMES);
   renderCustomThemesList();
   showToast(`Theme "${name}" saved!`, 'success');
 }
@@ -11909,6 +11958,7 @@ function applyCustomTheme(id) {
 function deleteCustomTheme(id) {
   CUSTOM_THEMES = CUSTOM_THEMES.filter(t => t.id !== id);
   localStorage.setItem('batt_custom_themes', JSON.stringify(CUSTOM_THEMES));
+  saveUserDataToServer('custom_themes', CUSTOM_THEMES);
   renderCustomThemesList();
   showToast('Theme deleted', 'success');
 }
@@ -11998,6 +12048,7 @@ function generateApiKey() {
     .map(b => b.toString(16).padStart(2, '0')).join('');
   API_KEY = key;
   localStorage.setItem('batt_api_key', key);
+  saveUserDataToServer('api_key', key);
   showToast('API key generated!', 'success');
   trackPowerUser('api_key');
   return key;
@@ -12015,13 +12066,13 @@ function copyApiKey() {
 // Expose API for developers (hidden)
 window.BATT_API = {
   getState: () => JSON.parse(JSON.stringify(S)),
-  getPresets: () => JSON.parse(localStorage.getItem('wz_presets_cache') || '[]'),
+  getPresets: () => JSON.parse(localStorage.getItem('batt_presets_cache') || '[]'),
   getCurrency: () => CURRENT_CURRENCY,
   formatCurrency: formatCurrency,
   triggerWebhook: triggerWebhook,
   exportData: () => ({
     state: S,
-    presets: JSON.parse(localStorage.getItem('wz_presets_cache') || '[]'),
+    presets: JSON.parse(localStorage.getItem('batt_presets_cache') || '[]'),
     alerts: PRICE_ALERTS,
     webhooks: WEBHOOKS.map(w => ({ name: w.name, events: w.events })),
     currency: CURRENT_CURRENCY
