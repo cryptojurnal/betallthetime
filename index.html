@@ -2553,15 +2553,19 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 </div>
 
 <!-- DEX SWAP PAGE -->
-<div id="swap-page" style="display:none;position:fixed;inset:0;z-index:9660;background:#000;opacity:0;transform:scale(0.98);transition:opacity .35s ease,transform .35s ease;overflow-y:auto;scrollbar-width:none">
+<div id="swap-page" style="display:none;position:fixed;inset:0;z-index:9660;background:#000;opacity:0;transform:scale(0.98);transition:opacity .35s ease,transform .35s ease;overflow:hidden;flex-direction:column">
 <style>
 #swap-page::-webkit-scrollbar{display:none}
-.sw-wrap{max-width:420px;margin:0 auto;padding:24px 16px}
-.sw-topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.sw-wrap{max-width:960px;margin:0 auto;padding:20px 16px;flex:1;display:flex;flex-direction:column;min-height:0;width:100%}
+.sw-topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-shrink:0}
 .sw-back{font-size:11px;color:#555;background:#111;border:0.5px solid #1a1a1a;border-radius:6px;padding:6px 12px;cursor:pointer;font-family:inherit}
 .sw-title{font-size:14px;font-weight:800;color:#f59e0b;text-align:center}
 .sw-title span{display:block;font-size:9px;color:#555;font-weight:500;margin-top:1px}
-.sw-card{background:#0d0d0d;border:0.5px solid #1a1a1a;border-radius:16px;padding:20px}
+.sw-card{background:#0d0d0d;border:0.5px solid #1a1a1a;border-radius:16px;padding:20px;flex:1;overflow-y:auto;scrollbar-width:none;min-height:0}
+.sw-card::-webkit-scrollbar{display:none}
+.sw-two-col{display:grid;grid-template-columns:1fr 360px;gap:16px;align-items:start}
+.sw-left{min-width:0}
+.sw-right{position:sticky;top:0}
 .sw-wallet{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:#0a0a0a;border:0.5px solid #111;border-radius:8px;margin-bottom:14px}
 .sw-wallet-dot{width:6px;height:6px;border-radius:50%;background:#555;display:inline-block;margin-right:6px}
 .sw-wallet-dot.on{background:#00c47a}
@@ -2638,11 +2642,14 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
     <div style="width:60px"></div>
   </div>
   <div class="sw-card">
-    <!-- wallet bar -->
-    <div class="sw-wallet" id="sw-wallet-bar">
+    <!-- wallet bar — full width -->
+    <div class="sw-wallet" id="sw-wallet-bar" style="margin-bottom:14px">
       <div><span class="sw-wallet-dot" id="sw-wallet-dot"></span><span class="sw-wallet-addr" id="sw-wallet-addr">not connected</span></div>
       <button class="sw-wallet-btn" id="sw-wallet-btn" onclick="swConnectWallet()">connect wallet</button>
     </div>
+    <div class="sw-two-col">
+    <!-- LEFT: network selector -->
+    <div class="sw-left">
     <!-- ecosystem tabs -->
     <div class="sw-eco-tabs">
       <button class="sw-eco-tab on" onclick="swSetEco('evm',this)"><span class="sw-eco-icon">⟠</span><span class="sw-eco-name">EVM</span></button>
@@ -2711,6 +2718,9 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
       </div>
       <div class="sw-ni-fee" id="sw-ni-fee">~$0.01</div>
     </div>
+    </div><!-- /sw-left -->
+    <!-- RIGHT: swap box -->
+    <div class="sw-right">
     <!-- swap boxes -->
     <div class="sw-box pay">
       <div class="sw-box-top">
@@ -2763,6 +2773,8 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
     </div>
     <button class="sw-btn connect" id="sw-main-btn" onclick="swMainAction()">connect wallet to swap</button>
     <div class="sw-notice" id="sw-notice">connect your wallet to get a live quote and swap</div>
+    </div><!-- /sw-right -->
+    </div><!-- /sw-two-col -->
   </div>
 </div>
 </div>
@@ -10573,7 +10585,7 @@ function openSwapPage(){
   if(hub){ hub.style.opacity='0'; hub.style.transform='scale(0.98)'; setTimeout(()=>{ hub.style.display='none'; hub.style.opacity=''; hub.style.transform=''; },300); }
   const pg = document.getElementById('swap-page');
   if(pg){
-    pg.style.display='block';
+    pg.style.display='flex';
     requestAnimationFrame(()=>{ pg.style.opacity='1'; pg.style.transform='scale(1)'; });
   }
 }
