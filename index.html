@@ -85,6 +85,12 @@ function goLayer2(){
 function showGuidePopup(){
   const p=document.getElementById('guide-popup');
   if(!p) return;
+  // push sentinel so browser back dismisses popup instead of leaving
+  try{
+    if((window.location.hash||'').replace('#','') !== 'guide'){
+      history.pushState({batt:'guide'}, '', '#guide');
+    }
+  }catch(e){}
   // reset display in case it was hidden from a previous session
   p.style.display='';
   p.classList.remove('visible');
@@ -6099,7 +6105,13 @@ render();
 function goLayer2(){
   const l1=document.getElementById('layer1');
   const l2=document.getElementById('layer2');
-  // If coming from layer1, animate it out first
+  // push sentinel so browser back has somewhere to go
+  try{
+    if((window.location.hash||'').replace('#','') !== 'risk'){
+      history.pushState({batt:'risk'}, '', '#risk');
+    }
+  }catch(e){}
+  document.title = 'BATT · Risk Disclosure';
   if(l1 && !l1.classList.contains('hidden')){
     l1.classList.add('out');
     setTimeout(()=>{
@@ -6107,7 +6119,6 @@ function goLayer2(){
       if(l2){l2.classList.remove('hidden');requestAnimationFrame(()=>requestAnimationFrame(()=>{l2.style.opacity='1';}));}
     },900);
   } else {
-    // Coming from layer3 or elsewhere, just show layer2
     if(l2){l2.classList.remove('hidden');requestAnimationFrame(()=>requestAnimationFrame(()=>{l2.style.opacity='1';}));}
   }
 }
@@ -12933,12 +12944,21 @@ window.addEventListener('popstate', function(){
   // if guide popup is visible — dismiss it, stay on cockpit
   if(guidePopup && guidePopup.classList.contains('visible')){
     if(typeof dismissPopup==='function') dismissPopup();
-    history.pushState({batt:'cockpit'}, '', '#cockpit');
+    history.replaceState({batt:'cockpit'}, '', '#cockpit');
+    document.title = 'BATT · Cockpit';
     return;
   }
-  // if risk disclosure (layer2) is visible — do nothing, user must click launch
+  // if risk disclosure (layer2) is visible — go back to member area
   if(layer2 && !layer2.classList.contains('hidden') && !layer2.classList.contains('out')){
-    history.pushState({}, '', window.location.hash||''); // re-push to prevent leaving
+    layer2.classList.add('out');
+    setTimeout(()=>{ layer2.classList.add('hidden'); layer2.style.opacity=''; },500);
+    // show member area
+    var l3b = document.getElementById('layer3');
+    document.body.style.overflow='auto';
+    if(l3b){ l3b.classList.remove('hidden'); requestAnimationFrame(function(){ l3b.classList.add('visible'); }); }
+    history.replaceState({batt:'member'}, '', '#member');
+    document.title = 'BATT · Member Area';
+    if(typeof mbnSetActive==='function') mbnSetActive('member');
     return;
   }
   // if confirm/alert popup is open — close it
@@ -12949,7 +12969,7 @@ window.addEventListener('popstate', function(){
   }
 
   var hash = (window.location.hash||'').replace('#','');
-  var titles = {'member':'BATT · Member Area','cockpit':'BATT · Cockpit','trade':'BATT · Trade Panel','account':'BATT · Account','about':'BATT · About CJ'};
+  var titles = {'member':'BATT · Member Area','cockpit':'BATT · Cockpit','trade':'BATT · Trade Panel','account':'BATT · Account','about':'BATT · About CJ','risk':'BATT · Risk Disclosure','guide':'BATT · Guide'};
   if(titles[hash]) document.title = titles[hash];
 
   var account = document.getElementById('account-page');
