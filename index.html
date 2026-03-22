@@ -446,6 +446,19 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
 .pt-head{padding:12px 12px 4px;border-bottom:0.5px solid var(--bd2)}
 
 
+
+/* ── SIMULATOR RIGHT ORDER PANEL ── */
+.tp-sidebar{width:300px;min-width:300px;background:#0a0a0a;border-left:0.5px solid #1a1a1a;display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;transition:width .35s cubic-bezier(.4,0,.2,1),min-width .35s cubic-bezier(.4,0,.2,1);will-change:width}
+.tp-sidebar.collapsed{width:0;min-width:0;border-left:none;overflow:hidden}
+.tp-sidebar-inner{width:300px;flex-shrink:0;display:flex;flex-direction:column;height:100%;overflow-y:auto;scrollbar-width:none}
+.tp-sidebar-inner::-webkit-scrollbar{display:none}
+.tp-right-toggle{position:fixed;right:0;top:50%;transform:translateY(-50%);width:18px;height:80px;background:linear-gradient(180deg,#5b7fff,#3b5bd9);border:none;border-radius:10px 0 0 10px;cursor:grab;display:flex;align-items:center;justify-content:center;z-index:9999;transition:right .35s cubic-bezier(.4,0,.2,1),opacity .3s,width .2s;opacity:0;pointer-events:none;user-select:none;touch-action:none;will-change:right,opacity}
+.tp-right-toggle.visible{opacity:1;pointer-events:all}
+.tp-right-toggle.open{right:300px}
+.tp-right-toggle.dragging{cursor:grabbing;width:22px;box-shadow:-4px 0 20px rgba(91,127,255,0.4)}
+.tp-right-toggle-icon{color:#fff;writing-mode:vertical-rl;font-weight:800;font-family:'Trebuchet MS',sans-serif;font-size:8px;text-transform:uppercase;letter-spacing:1px;transform:rotate(180deg)}
+/* ── END SIMULATOR RIGHT ORDER PANEL ── */
+
 /* ── SIMULATOR LEFT POSITIONS PANEL ── */
 .tp-pos-panel{width:260px;min-width:260px;background:#0a0a0a;border-right:0.5px solid #1a1a1a;display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;transition:width .35s cubic-bezier(.4,0,.2,1),min-width .35s cubic-bezier(.4,0,.2,1);will-change:width}
 .tp-pos-panel.collapsed{width:0;min-width:0;border-right:none;overflow:hidden}
@@ -723,7 +736,7 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
 .tp-balance-pnl.down{color:#E24B4A}
 
 /* Main Layout */
-.tp-main{display:grid;grid-template-columns:1fr 300px;flex:1;overflow:hidden;min-height:0}
+.tp-main{display:flex;flex:1;overflow:hidden;min-height:0}
 .tp-chart-section{display:flex;flex-direction:column;min-height:400px;border-right:0.5px solid #1a1a1a}
 .tp-chart-area{flex:1;display:flex;border-right:1px solid #1a1a1a;min-height:0}
 .tp-chart-wrap{flex:1;min-width:0;display:flex;flex-direction:column;min-height:0}
@@ -2898,6 +2911,9 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
   <button class="tp-pos-panel-toggle visible" id="tp-pos-toggle">
     <span class="tp-pos-panel-toggle-icon">POS</span>
   </button>
+  <button class="tp-right-toggle visible" id="tp-right-toggle">
+    <span class="tp-right-toggle-icon">ORDER</span>
+  </button>
   <div class="tp-main">
     <!-- Chart Section -->
     <div class="tp-chart-section">
@@ -2943,7 +2959,8 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
     </div>
 
     <!-- Sidebar -->
-    <div class="tp-sidebar">
+    <div class="tp-sidebar" id="tp-sidebar">
+      <div class="tp-sidebar-inner">
       <!-- Order Form -->
       <div class="tp-order-form">
         <div class="tp-order-tabs">
@@ -3028,6 +3045,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
         </button>
       </div>
 
+      </div><!-- end sidebar-inner -->
     </div>
   </div>
   </div>
@@ -4915,6 +4933,98 @@ function _tpInitPosPanel(){
   if(toggle){ toggle.style.left='0px'; toggle.style.top=''; toggle.style.transform=''; }
 }
 // ── END POSITIONS PANEL TOGGLE ──
+
+// ── RIGHT ORDER PANEL TOGGLE + DRAG ──
+var _tpRightOpen = true;
+
+function _tpSyncRightToggle(){
+  const sidebar = document.getElementById('tp-sidebar');
+  const toggle = document.getElementById('tp-right-toggle');
+  if(!toggle) return;
+  const open = sidebar && !sidebar.classList.contains('collapsed');
+  toggle.style.right = open ? '300px' : '0px';
+  const icon = toggle.querySelector('.tp-right-toggle-icon');
+  if(icon) icon.textContent = open ? '▶' : 'ORDER';
+}
+
+function tpToggleRightPanel(){
+  const sidebar = document.getElementById('tp-sidebar');
+  if(!sidebar) return;
+  _tpRightOpen = sidebar.classList.contains('collapsed');
+  if(_tpRightOpen){
+    sidebar.style.overflow = 'hidden';
+    sidebar.classList.remove('collapsed');
+    setTimeout(()=>{ sidebar.style.overflow = ''; }, 380);
+  } else {
+    sidebar.classList.add('collapsed');
+  }
+  setTimeout(_tpSyncRightToggle, 10);
+  setTimeout(()=>{
+    if(_tvWidget && _tvWidget.iframe){
+      try{ _tvWidget.iframe.contentWindow.dispatchEvent(new Event('resize')); }catch(e){}
+    }
+  }, 380);
+}
+
+(function(){
+  var toggle, startY, startTop, dragging=false, hasDragged=false;
+  var _rafId=null, _lastY=0;
+
+  function isRightToggle(el){
+    return el && (el.id==='tp-right-toggle' || el.closest('#tp-right-toggle'));
+  }
+
+  function onDown(e){
+    toggle = document.getElementById('tp-right-toggle');
+    if(!toggle || !toggle.classList.contains('visible')) return;
+    var pt = e.touches ? e.touches[0] : e;
+    startY = pt.clientY;
+    var computedTop = toggle.style.top
+      ? parseInt(toggle.style.top)
+      : (window.innerHeight/2 - toggle.offsetHeight/2);
+    startTop = computedTop;
+    dragging = true; hasDragged = false;
+    toggle.classList.add('dragging');
+    e.preventDefault();
+  }
+
+  function onMove(e){
+    if(!dragging || !toggle) return;
+    var pt = e.touches ? e.touches[0] : e;
+    var deltaY = pt.clientY - startY;
+    if(Math.abs(deltaY) < 4) return;
+    hasDragged = true;
+    var H = window.innerHeight, tH = toggle.offsetHeight;
+    _lastY = Math.max(20, Math.min(startTop + deltaY, H - tH - 20));
+    if(!_rafId) _rafId = requestAnimationFrame(function(){
+      if(toggle){ toggle.style.top = _lastY + 'px'; toggle.style.transform = 'none'; }
+      _rafId = null;
+    });
+    e.preventDefault();
+  }
+
+  function onUp(e){
+    if(!dragging) return;
+    dragging = false;
+    if(toggle) toggle.classList.remove('dragging');
+    if(!hasDragged) tpToggleRightPanel();
+  }
+
+  document.addEventListener('mousedown', function(e){ if(isRightToggle(e.target)) onDown(e); });
+  document.addEventListener('touchstart', function(e){ if(isRightToggle(e.target)) onDown(e); }, {passive:false});
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('touchmove', onMove, {passive:false});
+  document.addEventListener('mouseup', onUp);
+  document.addEventListener('touchend', onUp);
+})();
+
+function _tpInitRightPanel(){
+  const toggle = document.getElementById('tp-right-toggle');
+  if(toggle){ toggle.style.right='300px'; toggle.style.top=''; toggle.style.transform=''; }
+  _tpSyncRightToggle();
+}
+// ── END RIGHT ORDER PANEL ──
+
 
 // ── BATT ICON SYSTEM ──
 const BATT_ICONS = {
