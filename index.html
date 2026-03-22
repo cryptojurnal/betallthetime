@@ -9442,6 +9442,13 @@ function tpSyncTVSymbol(){
   // tpInitTVChart builds the correct symbol from TP_STATE
   tpInitTVChart();
 }
+function tpRestartPriceInterval(){
+  if(window._tpPriceInterval){ clearInterval(window._tpPriceInterval); window._tpPriceInterval=null; }
+  window._tpPriceInterval = setInterval(()=>{
+    tpFetchPrices();
+    tpFetchOrderBook();
+  }, 5000);
+}
 // ── END TRADINGVIEW WIDGET ──
 
 function tpInitChart() {
@@ -9650,29 +9657,46 @@ function tpUpdateChartData() {
 // Fetch live prices
 async function tpFetchPrices() {
   try {
-    // Fetch each ticker individually (more reliable)
+    const ex = TP_STATE.exchange || 'binance';
+    const isSpot = TP_STATE.marketType === 'spot';
+
     const data = await Promise.all(TP_PAIRS.map(async p => {
-      const r = await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${p.symbol}`);
-      return r.json();
+      try {
+        let url, ticker;
+        if(ex === 'binance'){
+          if(isSpot){
+            url = `https://api.binance.com/api/v3/ticker/24hr?symbol=${p.symbol}`;
+            ticker = await fetch(url).then(r=>r.json());
+            return { symbol: p.symbol, price: parseFloat(ticker.lastPrice)||0, change: parseFloat(ticker.priceChangePercent)||0, high: parseFloat(ticker.highPrice)||0, low: parseFloat(ticker.lowPrice)||0, volume: parseFloat(ticker.quoteVolume)||0 };
+          } else {
+            url = `https://fapi.binance.com/fapi/v1/ticker/24hr?symbol=${p.symbol}`;
+            ticker = await fetch(url).then(r=>r.json());
+            return { symbol: p.symbol, price: parseFloat(ticker.lastPrice)||0, change: parseFloat(ticker.priceChangePercent)||0, high: parseFloat(ticker.highPrice)||0, low: parseFloat(ticker.lowPrice)||0, volume: parseFloat(ticker.quoteVolume)||0 };
+          }
+        } else if(ex === 'bybit'){
+          const cat = isSpot ? 'spot' : 'linear';
+          url = `https://api.bybit.com/v5/market/tickers?category=${cat}&symbol=${p.symbol}`;
+          ticker = await fetch(url).then(r=>r.json());
+          const t = ticker.result?.list?.[0];
+          return { symbol: p.symbol, price: parseFloat(t?.lastPrice)||0, change: parseFloat(t?.price24hPcnt||0)*100, high: parseFloat(t?.highPrice24h)||0, low: parseFloat(t?.lowPrice24h)||0, volume: parseFloat(t?.turnover24h)||0 };
+        } else if(ex === 'okx'){
+          const instId = isSpot ? p.symbol.replace('USDT','-USDT') : p.symbol.replace('USDT','-USDT-SWAP');
+          url = `https://www.okx.com/api/v5/market/ticker?instId=${instId}`;
+          ticker = await fetch(url).then(r=>r.json());
+          const t = ticker.data?.[0];
+          return { symbol: p.symbol, price: parseFloat(t?.last)||0, change: parseFloat(t?.open24h) ? ((parseFloat(t?.last)-parseFloat(t?.open24h))/parseFloat(t?.open24h)*100) : 0, high: parseFloat(t?.high24h)||0, low: parseFloat(t?.low24h)||0, volume: parseFloat(t?.volCcy24h)||0 };
+        }
+      } catch(e){ return null; }
     }));
-    
-    data.forEach((ticker, i) => {
-      const pair = TP_PAIRS[i];
-      if (ticker && ticker.symbol) {
-        TP_STATE.prices[ticker.symbol] = {
-          price: parseFloat(ticker.lastPrice) || 0,
-          change: parseFloat(ticker.priceChangePercent) || 0,
-          high: parseFloat(ticker.highPrice) || 0,
-          low: parseFloat(ticker.lowPrice) || 0,
-          volume: parseFloat(ticker.quoteVolume) || 0
-        };
-      }
+
+    data.forEach(d => {
+      if(d) TP_STATE.prices[d.symbol] = d;
     });
-    
+
     tpUpdatePriceDisplay();
     tpUpdatePositionsPnL();
     tpRenderPairList();
-  } catch (e) {
+  } catch(e) {
     console.error('Price fetch error:', e);
   }
 }
@@ -9707,11 +9731,13 @@ function tpUpdatePriceDisplay() {
 function tpSelectPair(symbol) {
   TP_STATE.pair = symbol;
   tpHidePairModal();
-  tpUpdatePriceDisplay();
   tpUpdateSubmitButton();
-  tpFetchOrderBook();
   tpSaveState();
-  // sync TradingView chart to new pair + current exchange + market type
+  // fetch price + OB fresh, then update display — guarantees sync
+  Promise.all([tpFetchPrices(), tpFetchOrderBook()]).then(()=>{
+    tpUpdatePriceDisplay();
+  });
+  // rebuild chart for new pair
   if(typeof tpInitTVChart==='function') tpInitTVChart();
 }
 
@@ -9768,9 +9794,10 @@ function tpSelectExchange(ex) {
   event.target.classList.add('active');
   const isSpot = TP_STATE.marketType === 'spot';
   document.getElementById('tp-pair-exchange').textContent = `${isSpot?'spot':'perpetual'} · ${ex}`;
-  // sync chart and orderbook to new exchange
+  // sync everything to new exchange
   if(typeof tpInitTVChart==='function') tpInitTVChart();
   if(typeof tpFetchOrderBook==='function') tpFetchOrderBook();
+  if(typeof tpFetchPrices==='function') tpFetchPrices();
 }
 
 // Order type
@@ -10470,8 +10497,10 @@ function tpSetMarketType(type) {
   
   tpCalculate();
   tpSaveState();
-  // sync chart — spot vs perp uses different TV symbol suffix
+  // sync everything — spot vs perp uses different endpoints
   if(typeof tpInitTVChart==='function') tpInitTVChart();
+  if(typeof tpFetchPrices==='function') tpFetchPrices();
+  if(typeof tpFetchOrderBook==='function') tpFetchOrderBook();
 }
 
 // Update submit button based on mode and side
