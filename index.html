@@ -445,6 +445,21 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
 .pt-body{padding:0;display:flex;flex-direction:column;min-height:100%}
 .pt-head{padding:12px 12px 4px;border-bottom:0.5px solid var(--bd2)}
 
+
+/* ── SIMULATOR LEFT POSITIONS PANEL ── */
+.tp-pos-panel{position:absolute;left:0;top:0;bottom:0;width:280px;background:#0a0a0a;border-right:0.5px solid #1a1a1a;display:flex;flex-direction:column;z-index:10;transition:width .3s cubic-bezier(.4,0,.2,1);overflow:hidden;will-change:width}
+.tp-pos-panel.collapsed{width:0;border-right:none}
+.tp-pos-panel-toggle{position:absolute;left:0;top:50%;transform:translateY(-50%);width:18px;height:80px;background:linear-gradient(180deg,#00c47a,#1D9E75);border:none;border-radius:0 10px 10px 0;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:11;transition:left .3s cubic-bezier(.4,0,.2,1),opacity .3s;opacity:0;pointer-events:none}
+.tp-pos-panel-toggle.visible{opacity:1;pointer-events:all}
+.tp-pos-panel-toggle.open{left:280px}
+.tp-pos-panel-toggle-icon{font-size:10px;color:#fff;writing-mode:vertical-rl;letter-spacing:1px;font-weight:800;font-family:'Trebuchet MS',sans-serif;font-size:8px;text-transform:uppercase}
+.tp-pos-panel-inner{width:280px;flex-shrink:0;display:flex;flex-direction:column;height:100%;overflow:hidden}
+.tp-pos-panel-header{padding:8px 12px;border-bottom:0.5px solid #1a1a1a;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.tp-pos-panel-title{font-size:10px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.08em;font-family:'Trebuchet MS',sans-serif}
+/* shift chart section when panel open */
+.tp-chart-section{position:relative;transition:margin-left .3s cubic-bezier(.4,0,.2,1)}
+/* ── END SIMULATOR LEFT POSITIONS PANEL ── */
+
 /* trade panel toggle button — mirrors panel-left-toggle exactly but different color + position */
 .panel-trade-toggle{position:fixed;left:0;top:40%;transform:translateY(-50%);width:42px;height:90px;background:linear-gradient(135deg,#7c5cbf,#5b3fa0);border:none;border-radius:0 14px 14px 0;cursor:grab;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px;font-size:14px;color:#fff;transition:opacity .4s ease .3s, left .3s ease, width .25s cubic-bezier(.4,0,.2,1), box-shadow .25s cubic-bezier(.4,0,.2,1);z-index:100;box-shadow:4px 0 20px rgba(0,0,0,0.3);opacity:0;pointer-events:none;user-select:none;touch-action:none;overflow:hidden}
 .panel-trade-toggle.visible{opacity:1;pointer-events:all}
@@ -2838,6 +2853,53 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
   </div>
 
   <!-- Main Layout -->
+  <div style="position:relative;flex:1;display:flex;min-height:0;overflow:hidden">
+  <!-- Left Positions Panel -->
+  <div class="tp-pos-panel collapsed" id="tp-pos-panel">
+    <div class="tp-pos-panel-inner">
+      <div class="tp-pos-panel-header">
+        <span class="tp-pos-panel-title">positions / history</span>
+      </div>
+      <div class="tp-positions" style="flex:1;overflow:hidden">
+        <div class="tp-pos-tabs">
+          <button class="tp-pos-tab active" onclick="tpShowTab('positions')" id="tp-tab-positions">Positions <span id="tp-pos-count">0</span></button>
+          <button class="tp-pos-tab" onclick="tpShowTab('orders')" id="tp-tab-orders">Orders <span id="tp-orders-count">0</span></button>
+          <button class="tp-pos-tab" onclick="tpShowTab('history')" id="tp-tab-history">History</button>
+          <button class="tp-pos-tab" onclick="tpShowTab('stats')" id="tp-tab-stats">Stats</button>
+        </div>
+        <div class="tp-pos-content" id="tp-positions">
+          <div class="tp-empty"><div class="tp-empty-icon">📭</div><div class="tp-empty-text">No open positions</div></div>
+        </div>
+        <div class="tp-pos-content" id="tp-orders" style="display:none">
+          <div class="tp-empty"><div class="tp-empty-icon">📋</div><div class="tp-empty-text">No pending orders</div></div>
+        </div>
+        <div class="tp-pos-content" id="tp-history" style="display:none">
+          <div class="tp-empty"><div class="tp-empty-icon">📜</div><div class="tp-empty-text">No trade history</div></div>
+        </div>
+        <div class="tp-pos-content" id="tp-stats" style="display:none">
+          <div class="tp-stats-grid">
+            <div class="tp-stat-box"><div class="tp-stat-value" id="tp-stat-total-trades">0</div><div class="tp-stat-label">Total Trades</div></div>
+            <div class="tp-stat-box"><div class="tp-stat-value up" id="tp-stat-win-rate">0%</div><div class="tp-stat-label">Win Rate</div></div>
+            <div class="tp-stat-box"><div class="tp-stat-value up" id="tp-stat-total-profit">$0</div><div class="tp-stat-label">Total Profit</div></div>
+            <div class="tp-stat-box"><div class="tp-stat-value down" id="tp-stat-total-loss">$0</div><div class="tp-stat-label">Total Loss</div></div>
+            <div class="tp-stat-box"><div class="tp-stat-value" id="tp-stat-best-trade">$0</div><div class="tp-stat-label">Best Trade</div></div>
+            <div class="tp-stat-box"><div class="tp-stat-value" id="tp-stat-worst-trade">$0</div><div class="tp-stat-label">Worst Trade</div></div>
+            <div class="tp-stat-box"><div class="tp-stat-value" id="tp-stat-avg-win">$0</div><div class="tp-stat-label">Avg Win</div></div>
+            <div class="tp-stat-box"><div class="tp-stat-value" id="tp-stat-avg-loss">$0</div><div class="tp-stat-label">Avg Loss</div></div>
+          </div>
+          <div class="tp-pnl-chart">
+            <div class="tp-pnl-chart-title">Cumulative PnL</div>
+            <canvas id="tp-pnl-canvas" height="120"></canvas>
+          </div>
+          <button onclick="tpResetAccount()" class="tp-reset-btn">Reset Paper Account</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Panel Toggle -->
+  <button class="tp-pos-panel-toggle visible" id="tp-pos-toggle" onclick="tpTogglePosPanel()">
+    <span class="tp-pos-panel-toggle-icon">POS</span>
+  </button>
   <div class="tp-main">
     <!-- Chart Section -->
     <div class="tp-chart-section">
@@ -2968,79 +3030,8 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
         </button>
       </div>
 
-      <!-- Positions Panel -->
-      <div class="tp-positions">
-        <div class="tp-pos-tabs">
-          <button class="tp-pos-tab active" onclick="tpShowTab('positions')" id="tp-tab-positions">Positions <span id="tp-pos-count">0</span></button>
-          <button class="tp-pos-tab" onclick="tpShowTab('orders')" id="tp-tab-orders">Orders <span id="tp-orders-count">0</span></button>
-          <button class="tp-pos-tab" onclick="tpShowTab('history')" id="tp-tab-history">History</button>
-          <button class="tp-pos-tab" onclick="tpShowTab('stats')" id="tp-tab-stats">Stats</button>
-        </div>
-
-        <div class="tp-pos-content" id="tp-positions">
-          <div class="tp-empty">
-            <div class="tp-empty-icon">📭</div>
-            <div class="tp-empty-text">No open positions</div>
-          </div>
-        </div>
-
-        <div class="tp-pos-content" id="tp-orders" style="display:none">
-          <div class="tp-empty">
-            <div class="tp-empty-icon">📋</div>
-            <div class="tp-empty-text">No pending orders</div>
-          </div>
-        </div>
-
-        <div class="tp-pos-content" id="tp-history" style="display:none">
-          <div class="tp-empty">
-            <div class="tp-empty-icon">📜</div>
-            <div class="tp-empty-text">No trade history</div>
-          </div>
-        </div>
-
-        <div class="tp-pos-content" id="tp-stats" style="display:none">
-          <div class="tp-stats-grid">
-            <div class="tp-stat-box">
-              <div class="tp-stat-value" id="tp-stat-total-trades">0</div>
-              <div class="tp-stat-label">Total Trades</div>
-            </div>
-            <div class="tp-stat-box">
-              <div class="tp-stat-value up" id="tp-stat-win-rate">0%</div>
-              <div class="tp-stat-label">Win Rate</div>
-            </div>
-            <div class="tp-stat-box">
-              <div class="tp-stat-value up" id="tp-stat-total-profit">$0</div>
-              <div class="tp-stat-label">Total Profit</div>
-            </div>
-            <div class="tp-stat-box">
-              <div class="tp-stat-value down" id="tp-stat-total-loss">$0</div>
-              <div class="tp-stat-label">Total Loss</div>
-            </div>
-            <div class="tp-stat-box">
-              <div class="tp-stat-value" id="tp-stat-best-trade">$0</div>
-              <div class="tp-stat-label">Best Trade</div>
-            </div>
-            <div class="tp-stat-box">
-              <div class="tp-stat-value" id="tp-stat-worst-trade">$0</div>
-              <div class="tp-stat-label">Worst Trade</div>
-            </div>
-            <div class="tp-stat-box">
-              <div class="tp-stat-value" id="tp-stat-avg-win">$0</div>
-              <div class="tp-stat-label">Avg Win</div>
-            </div>
-            <div class="tp-stat-box">
-              <div class="tp-stat-value" id="tp-stat-avg-loss">$0</div>
-              <div class="tp-stat-label">Avg Loss</div>
-            </div>
-          </div>
-          <div class="tp-pnl-chart">
-            <div class="tp-pnl-chart-title">Cumulative PnL</div>
-            <canvas id="tp-pnl-canvas" height="120"></canvas>
-          </div>
-          <button onclick="tpResetAccount()" class="tp-reset-btn">Reset Paper Account</button>
-        </div>
-      </div>
     </div>
+  </div>
   </div>
 </div>
 
@@ -4832,6 +4823,26 @@ function fmtPrice(price, withDollar=true){
   return withDollar ? '$' + formatted : formatted;
 }
 // ── END SMART PRICE FORMATTER ──
+
+
+// ── POSITIONS PANEL TOGGLE ──
+var _tpPosOpen = false;
+function tpTogglePosPanel(){
+  _tpPosOpen = !_tpPosOpen;
+  const panel = document.getElementById('tp-pos-panel');
+  const toggle = document.getElementById('tp-pos-toggle');
+  if(!panel||!toggle) return;
+  if(_tpPosOpen){
+    panel.classList.remove('collapsed');
+    toggle.classList.add('open');
+    toggle.querySelector('.tp-pos-panel-toggle-icon').textContent = '◀';
+  } else {
+    panel.classList.add('collapsed');
+    toggle.classList.remove('open');
+    toggle.querySelector('.tp-pos-panel-toggle-icon').textContent = 'POS';
+  }
+}
+// ── END POSITIONS PANEL TOGGLE ──
 
 // ── BATT ICON SYSTEM ──
 const BATT_ICONS = {
