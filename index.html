@@ -10037,6 +10037,7 @@ function openSimulation(){
     tpUpdateUI();
     tpRenderPositions();
     tpRenderHistory();
+    tpRenderOrders();
     tpRenderPairList();
     if(typeof tpFetchOrderBook==='function') tpFetchOrderBook();
     // apply market type
@@ -11328,9 +11329,9 @@ function tpShowTab(tab) {
   document.getElementById('tp-history').style.display = tab === 'history' ? 'block' : 'none';
   document.getElementById('tp-stats').style.display = tab === 'stats' ? 'block' : 'none';
   
-  if (tab === 'stats') {
-    tpUpdateStats();
-  }
+  if (tab === 'stats') tpUpdateStats();
+  if (tab === 'orders') tpRenderOrders();
+  if (tab === 'history') tpRenderHistory();
 }
 
 // Update stats panel
