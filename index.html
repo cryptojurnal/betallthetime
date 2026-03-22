@@ -10972,24 +10972,18 @@ async function tpFetchOrderBook() {
 }
 
 var _obPrevMidPrice = 0;
-var _obPrevRows = {asks:{},bids:{}};
-var _obPendingAsks = null;
-var _obPendingBids = null;
+var _obPending = null;
 var _obRAF = null;
 
 function tpRenderOrderBookData(asks, bids){
-  // store latest data
-  _obPendingAsks = asks;
-  _obPendingBids = bids;
-  // schedule one render per frame
-  if(!_obRAF) _obRAF = requestAnimationFrame(_obFlush);
-}
-function _obFlush(){
-  _obRAF = null;
-  if(!_obPendingAsks || !_obPendingBids) return;
-  _tpRenderOBData(_obPendingAsks, _obPendingBids);
-  _obPendingAsks = null;
-  _obPendingBids = null;
+  _obPending = {asks, bids};
+  if(!_obRAF) _obRAF = requestAnimationFrame(()=>{
+    _obRAF = null;
+    if(!_obPending) return;
+    const {asks,bids} = _obPending;
+    _obPending = null;
+    _tpRenderOBData(asks, bids);
+  });
 }
 
 function _tpRenderOBData(asks, bids) {
@@ -11006,47 +11000,22 @@ function _tpRenderOBData(asks, bids) {
   const allSizes = [...asks,...bids].map(o=>parseFloat(o[1]));
   const maxSize = Math.max(...allSizes)||1;
 
-  function updateRows(container, rows, side){
-    rows.forEach((r,i) => {
-      const price = parseFloat(r[0]);
-      const size = parseFloat(r[1]);
-      const usdt = price*size;
-      const depth = Math.min((size/maxSize)*100,100);
-      const key = r[0];
-      const prevSize = _obPrevRows[side][key];
-      const changed = prevSize!==undefined && prevSize!==size;
-      _obPrevRows[side][key] = size;
-      const priceColor = side==='asks' ? '#e24b4a' : '#00c47a';
-      let row = container.children[i];
-      if(!row){
-        row = document.createElement('div');
-        row.className = 'tp-ob-row '+side;
-        row.innerHTML = `<span style="color:${priceColor};font-weight:700;font-family:monospace"></span><span style="color:#888;text-align:right;font-family:monospace"></span><span style="color:#444;text-align:right;font-family:monospace"></span><div class="depth"></div>`;
-        container.appendChild(row);
-      }
-      row.onclick = ()=>tpFillPrice(price);
-      const spans = row.querySelectorAll('span');
-      // ensure color stays correct
-      if(spans[0]) spans[0].style.color = priceColor;
-      const newP = fmtPrice(price,false);
-      const newS = fmtSize(size);
-      const newU = fmtUsdt(usdt);
-      if(spans[0].textContent!==newP) spans[0].textContent=newP;
-      if(spans[1].textContent!==newS) spans[1].textContent=newS;
-      if(spans[2].textContent!==newU) spans[2].textContent=newU;
-      const d = row.querySelector('.depth');
-      if(d) d.style.width=depth+'%';
-      if(changed){
-        row.classList.remove('ob-flash-up','ob-flash-dn');
-        void row.offsetWidth;
-        row.classList.add(size>prevSize?'ob-flash-up':'ob-flash-dn');
-      }
-    });
-    while(container.children.length>rows.length) container.removeChild(container.lastChild);
-  }
+  const mkRows = (rows, side) => rows.map(r=>{
+    const p=parseFloat(r[0]), s=parseFloat(r[1]);
+    const dep=Math.min((s/maxSize)*100,100);
+    const pc=side==='asks'?'#e24b4a':'#00c47a';
+    return `<div class="tp-ob-row ${side}" onclick="tpFillPrice(${p})" style="position:relative">` +
+      `<span style="color:${pc};font-weight:700">${fmtPrice(p,false)}</span>` +
+      `<span style="color:#888;text-align:right">${fmtSize(s)}</span>` +
+      `<span style="color:#555;text-align:right">${fmtUsdt(p*s)}</span>` +
+      `<div style="position:absolute;right:0;top:0;bottom:0;width:${dep}%;background:${pc};opacity:0.1;pointer-events:none"></div>` +
+      `</div>`;
+  }).join('');
 
-  updateRows(asksContainer, asks.slice(0,8).reverse(), 'asks');
-  updateRows(bidsContainer, bids.slice(0,8), 'bids');
+  const topAsks = asks.slice(0,10).reverse();
+  const topBids = bids.slice(0,10);
+  asksContainer.innerHTML = mkRows(topAsks,'asks');
+  bidsContainer.innerHTML = mkRows(topBids,'bids');
 
   const bestAsk = parseFloat(asks[0]?.[0]||0);
   const bestBid = parseFloat(bids[0]?.[0]||0);
