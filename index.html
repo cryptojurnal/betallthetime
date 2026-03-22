@@ -459,7 +459,7 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
 
 
 
-.tp-right-toggle{position:fixed;right:300px;top:50%;transform:translateY(-50%);width:18px;height:80px;background:linear-gradient(180deg,#5b7fff,#3b5bd9);border:none;border-radius:10px 0 0 10px;cursor:grab;display:flex;align-items:center;justify-content:center;z-index:9999;transition:right .35s cubic-bezier(.4,0,.2,1),opacity .3s,width .2s;opacity:0;pointer-events:none;user-select:none;touch-action:none;will-change:right,opacity}
+.tp-right-toggle{position:fixed;right:300px;top:50%;transform:translateY(-50%);width:18px;height:80px;background:linear-gradient(180deg,#5b7fff,#3b5bd9);border:none;border-radius:10px 0 0 10px;cursor:grab;display:flex;align-items:center;justify-content:center;z-index:9999;transition:right .35s cubic-bezier(.4,0,.2,1),opacity .3s,width .2s;opacity:0;pointer-events:none;user-select:none;touch-action:none;will-change:top,right,opacity}
 .tp-right-toggle.visible{opacity:1;pointer-events:all}
 .tp-right-toggle.collapsed{right:0}
 .tp-right-toggle.dragging{cursor:grabbing;width:22px;box-shadow:-4px 0 20px rgba(91,127,255,0.4)}
@@ -472,7 +472,7 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
 .tp-pos-panel-inner{width:260px;flex-shrink:0;display:flex;flex-direction:column;height:100%;overflow:hidden}
 .tp-pos-panel-header{padding:8px 12px;border-bottom:0.5px solid #1a1a1a;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 .tp-pos-panel-title{font-size:10px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.08em;font-family:'Trebuchet MS',sans-serif}
-.tp-pos-panel-toggle{position:fixed;left:0;top:50%;transform:translateY(-50%);width:18px;height:80px;background:linear-gradient(180deg,#00c47a,#1D9E75);border:none;border-radius:0 10px 10px 0;cursor:grab;display:flex;align-items:center;justify-content:center;z-index:9999;transition:left .35s cubic-bezier(.4,0,.2,1),opacity .3s,width .2s;opacity:0;pointer-events:none;user-select:none;touch-action:none;will-change:left,opacity}
+.tp-pos-panel-toggle{position:fixed;left:0;top:50%;transform:translateY(-50%);width:18px;height:80px;background:linear-gradient(180deg,#00c47a,#1D9E75);border:none;border-radius:0 10px 10px 0;cursor:grab;display:flex;align-items:center;justify-content:center;z-index:9999;transition:left .35s cubic-bezier(.4,0,.2,1),opacity .3s,width .2s;opacity:0;pointer-events:none;user-select:none;touch-action:none;will-change:top,left,opacity}
 .tp-pos-panel-toggle.visible{opacity:1;pointer-events:all}
 .tp-pos-panel-toggle.open{left:260px}
 .tp-pos-panel-toggle.dragging{cursor:grabbing;width:22px;box-shadow:4px 0 20px rgba(0,196,122,0.4)}
@@ -4948,6 +4948,7 @@ function tpTogglePosPanel(){
     var rect = toggle.getBoundingClientRect();
     startTop = rect.top;
     dragging = true; hasDragged = false;
+    toggle.style.transition = 'none';
     toggle.classList.add('dragging');
     e.preventDefault();
   }
@@ -4972,7 +4973,7 @@ function tpTogglePosPanel(){
   function onUp(e){
     if(!dragging)return;
     dragging=false;
-    if(toggle)toggle.classList.remove('dragging');
+    if(toggle){ toggle.classList.remove('dragging'); toggle.style.transition = ''; }
     if(!hasDragged&&toggle) tpTogglePosPanel();
   }
 
