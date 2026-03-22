@@ -5303,6 +5303,7 @@ function tpCheckPendingOrders(){
     tpRenderPositions();
     tpRenderOrders();
     tpUpdateStats();
+    _tpUpdateOrderBadge();
   }
 }
 
@@ -5354,6 +5355,7 @@ function tpCancelOrder(id){
   TP_STATE.pendingOrders.splice(idx,1);
   tpSaveState();
   tpRenderOrders();
+  _tpUpdateOrderBadge();
   showToast('Order cancelled', 'info');
 }
 
@@ -5386,6 +5388,22 @@ function tpCheckAlerts(){
 // handled via CSS — see media queries
 
 // ══════════════════════════════════════════════════════
+
+function _tpUpdateOrderBadge(){
+  const count = (TP_STATE.pendingOrders||[]).length;
+  const countEl = document.getElementById('tp-orders-count');
+  if(countEl) countEl.textContent = count;
+  // show count on left toggle
+  const toggle = document.getElementById('tp-pos-toggle');
+  if(toggle){
+    const icon = toggle.querySelector('.tp-pos-panel-toggle-icon');
+    if(icon) icon.textContent = count > 0 ? count + ' ORD' : (_tpPosOpen ? '◀' : 'POS');
+    toggle.style.background = count > 0
+      ? 'linear-gradient(180deg,#5b7fff,#3b5bd9)'
+      : 'linear-gradient(180deg,#00c47a,#1D9E75)';
+  }
+}
+
 // ── END ORDER ENGINE ──
 // ══════════════════════════════════════════════════════
 
@@ -10875,7 +10893,12 @@ function tpPlaceOrder() {
     TP_STATE.pendingOrders.push(order);
     tpSaveState();
     tpRenderOrders();
-    // switch to orders tab to show the new order
+    _tpUpdateOrderBadge();
+    // auto-open left panel and switch to orders tab
+    const _posPanel = document.getElementById('tp-pos-panel');
+    if(_posPanel && _posPanel.classList.contains('collapsed')){
+      tpTogglePosPanel();
+    }
     tpShowTab('orders');
     showToast(`${TP_STATE.orderType.toUpperCase()} order placed @ ${fmtPrice(limitPrice)}`, 'success');
     return;
