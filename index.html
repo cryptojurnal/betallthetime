@@ -9883,201 +9883,120 @@ var _tpWSReconnectTimer = null;
 
 function tpStartWebSocket(){
   tpStopWebSocket();
-  // clear stale price immediately so user doesn't see wrong data
-  const priceEl = document.getElementById('tp-price-main');
-  const changeEl = document.getElementById('tp-price-change');
-  const highEl = document.getElementById('tp-high');
-  const lowEl = document.getElementById('tp-low');
-  const volEl = document.getElementById('tp-vol');
-  if(priceEl) priceEl.textContent = '--';
-  if(changeEl){ changeEl.textContent = '--'; changeEl.className = 'tp-price-change'; }
-  if(highEl) highEl.textContent = '--';
-  if(lowEl) lowEl.textContent = '--';
-  if(volEl) volEl.textContent = '--';
-  // fetch via REST immediately while WS is connecting
-  tpFetchPrices().then(()=>tpFetchOrderBook());
-  // keep REST as 3s fallback in case WS drops silently
   if(window._tpPriceInterval) clearInterval(window._tpPriceInterval);
+
+  // clear display
+  ['tp-price-main','tp-high','tp-low','tp-vol'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.textContent='--';
+  });
+  const ce=document.getElementById('tp-price-change');
+  if(ce){ce.textContent='--';ce.className='tp-price-change';}
+
+  // REST immediately for fast first load
+  tpFetchPrices().then(()=>{ tpFetchOrderBook(); });
+
+  // REST fallback every 2s (always runs — WS is bonus on top)
   window._tpPriceInterval = setInterval(()=>{
-    // only use REST if WS is not connected
-    if(!_tpWS || _tpWS.readyState !== WebSocket.OPEN){
-      tpFetchPrices();
-      tpFetchOrderBook();
+    tpFetchPrices();
+    tpFetchOrderBook();
+  }, 2000);
+
+  // try WS on top — if it works, data flows faster
+  _tpTryWS();
+}
+
+function _tpTryWS(){
+  const ex = TP_STATE.exchange||'binance';
+  const isSpot = TP_STATE.marketType==='spot';
+  const pair = (TP_STATE.pair||'BTCUSDT').toLowerCase();
+  const pairUp = TP_STATE.pair||'BTCUSDT';
+  const dot = document.getElementById('tp-ws-status');
+
+  try{
+    let url, onopen, onmsg;
+
+    if(ex==='binance'){
+      const base = isSpot ? 'wss://stream.binance.com/stream?streams=' : 'wss://fstream.binance.com/stream?streams=';
+      url = base + pair + '@ticker/' + pair + '@depth10@100ms';
+      onmsg = (msg)=>{
+        const s = msg.stream||'';
+        if(s.includes('@ticker')){
+          const d=msg.data;
+          const price=parseFloat(d.c)||0, change=parseFloat(d.P)||0;
+          const prev=TP_STATE.prices[pairUp]?.price||0;
+          TP_STATE.prices[pairUp]={symbol:pairUp,price,change,high:parseFloat(d.h)||0,low:parseFloat(d.l)||0,volume:parseFloat(d.q)||0};
+          tpUpdatePriceDisplay();
+          tpUpdatePositionsPnL();
+          _tpFlashPrice(price,prev);
+        }
+        if(s.includes('@depth')&&msg.data.asks&&msg.data.bids){
+          tpRenderOrderBookData(msg.data.asks, msg.data.bids);
+        }
+      };
+    } else if(ex==='bybit'){
+      url = isSpot ? 'wss://stream.bybit.com/v5/public/spot' : 'wss://stream.bybit.com/v5/public/linear';
+      onopen = ()=>{ _tpWS.send(JSON.stringify({op:'subscribe',args:[`tickers.${pairUp}`,`orderbook.50.${pairUp}`]})); };
+      onmsg = (msg)=>{
+        const t=msg.topic||'';
+        if(t.startsWith('tickers')&&msg.data){
+          const d=msg.data;
+          const price=parseFloat(d.lastPrice)||0, change=parseFloat(d.price24hPcnt||0)*100;
+          const prev=TP_STATE.prices[pairUp]?.price||0;
+          TP_STATE.prices[pairUp]={symbol:pairUp,price,change,high:parseFloat(d.highPrice24h)||0,low:parseFloat(d.lowPrice24h)||0,volume:parseFloat(d.turnover24h)||0};
+          tpUpdatePriceDisplay();
+          tpUpdatePositionsPnL();
+          _tpFlashPrice(price,prev);
+        }
+        if(t.startsWith('orderbook')&&msg.data){
+          const d=msg.data;
+          if(msg.type==='snapshot'){ _obBook={asks:{},bids:{}}; }
+          _obApplyDelta(d.a||[],d.b||[]);
+          const {asks,bids}=_obGetSorted();
+          if(asks.length&&bids.length) tpRenderOrderBookData(asks,bids);
+        }
+      };
+    } else if(ex==='okx'){
+      url = 'wss://ws.okx.com:8443/ws/v5/public';
+      const instId = isSpot ? pairUp.replace('USDT','-USDT') : pairUp.replace('USDT','-USDT-SWAP');
+      onopen = ()=>{ _tpWS.send(JSON.stringify({op:'subscribe',args:[{channel:'tickers',instId},{channel:'books',instId}]})); };
+      onmsg = (msg)=>{
+        const ch=msg.arg?.channel||'';
+        if(ch==='tickers'&&msg.data?.[0]){
+          const d=msg.data[0];
+          const price=parseFloat(d.last)||0;
+          const open24=parseFloat(d.open24h)||price;
+          const change=open24?((price-open24)/open24*100):0;
+          const prev=TP_STATE.prices[pairUp]?.price||0;
+          TP_STATE.prices[pairUp]={symbol:pairUp,price,change,high:parseFloat(d.high24h)||0,low:parseFloat(d.low24h)||0,volume:parseFloat(d.volCcy24h)||0};
+          tpUpdatePriceDisplay();
+          tpUpdatePositionsPnL();
+          _tpFlashPrice(price,prev);
+        }
+        if((ch==='books'||ch==='books5')&&msg.data?.[0]){
+          const d=msg.data[0];
+          if(msg.action==='snapshot'){ _obBook={asks:{},bids:{}}; }
+          _obApplyDelta((d.asks||[]).map(a=>[a[0],a[1]]),(d.bids||[]).map(b=>[b[0],b[1]]));
+          const {asks,bids}=_obGetSorted();
+          if(asks.length&&bids.length) tpRenderOrderBookData(asks,bids);
+        }
+      };
     }
-  }, 3000);
-  const ex = TP_STATE.exchange || 'binance';
-  const isSpot = TP_STATE.marketType === 'spot';
-  const pair = (TP_STATE.pair || 'BTCUSDT').toLowerCase();
-  const pairUp = TP_STATE.pair || 'BTCUSDT';
 
-  if(ex === 'binance'){
-    const base = isSpot
-      ? 'wss://stream.binance.com/stream?streams='
-      : 'wss://fstream.binance.com/stream?streams=';
-    // combine ticker + orderbook in one connection
-    const streams = `${pair}@ticker/${pair}@depth10@100ms`;
-    _tpWS = new WebSocket(base + streams);
-    _tpWS.onopen = () => {
-      const d=document.getElementById('tp-ws-status'); if(d) d.style.background='#00c47a';
-      // keep alive ping every 20s
-      _tpWS._ping = setInterval(()=>{ if(_tpWS.readyState===1) _tpWS.send(JSON.stringify({method:'ping'})); },20000);
-    };
-    _tpWS.onclose = _tpWS.onerror = () => {
-      if(_tpWS._ping) clearInterval(_tpWS._ping);
-      const d=document.getElementById('tp-ws-status'); if(d) d.style.background='#e24b4a';
-      _tpWSReconnectTimer = setTimeout(()=>{ if(TP_STATE.exchange==='binance') tpStartWebSocket(); },3000);
-    };
+    _tpWS = new WebSocket(url);
+    if(onopen) _tpWS.onopen = ()=>{ if(dot) dot.style.background='#00c47a'; onopen(); _tpWS._ping=setInterval(()=>{ if(_tpWS.readyState===1) _tpWS.send(ex==='okx'?'ping':JSON.stringify({op:'ping'})); },20000); };
+    else _tpWS.onopen = ()=>{ if(dot) dot.style.background='#00c47a'; _tpWS._ping=setInterval(()=>{ if(_tpWS.readyState===1) _tpWS.send(JSON.stringify({op:'ping'})); },20000); };
+    _tpWS.onmessage = (e)=>{ try{ const msg=JSON.parse(e.data); if(msg&&msg!=='pong') onmsg(msg); }catch(err){} };
+    _tpWS.onclose = _tpWS.onerror = ()=>{ if(_tpWS._ping) clearInterval(_tpWS._ping); if(dot) dot.style.background='#e24b4a'; };
+  } catch(err){ if(dot) dot.style.background='#e24b4a'; }
+}
 
-    _tpWS.onmessage = (e) => {
-      try {
-        const msg = JSON.parse(e.data);
-        const data = msg.data;
-        const stream = msg.stream || '';
-        if(stream.includes('@ticker')){
-          const price = parseFloat(data.c)||0;
-          const change = parseFloat(data.P)||0;
-          const high = parseFloat(data.h)||0;
-          const low = parseFloat(data.l)||0;
-          const vol = parseFloat(data.q)||0;
-          const _prevPB = TP_STATE.prices[pairUp]?.price||0;
-          TP_STATE.prices[pairUp] = {symbol:pairUp,price,change,high,low,volume:vol};
-          tpUpdatePriceDisplay();
-          tpUpdatePositionsPnL();
-          const _tpEl = document.getElementById('tp-price-main');
-          if(_tpEl && _prevPB && price!==_prevPB){
-            _tpEl.style.transition='color .15s';
-            _tpEl.style.color=price>_prevPB?'#00c47a':'#e24b4a';
-            setTimeout(()=>{_tpEl.style.color='';},300);
-          }
-        }
-        if(stream.includes('@depth')){
-          if(data.asks && data.bids){
-            // binance depth@100ms sends full L10 snapshot each time
-            _obBook.asks = {};
-            _obBook.bids = {};
-            _obApplyDelta(data.asks, data.bids);
-            const {asks,bids} = _obGetSorted();
-            tpRenderOrderBookData(asks, bids);
-          }
-        }
-      } catch(err){}
-    };
-
-  } else if(ex === 'bybit'){
-    const wsUrl = isSpot
-      ? 'wss://stream.bybit.com/v5/public/spot'
-      : 'wss://stream.bybit.com/v5/public/linear';
-    _tpWS = new WebSocket(wsUrl);
-
-    _tpWS.onopen = () => {
-      const d=document.getElementById('tp-ws-status'); if(d) d.style.background='#00c47a';
-      _tpWS.send(JSON.stringify({op:'subscribe',args:[`tickers.${pairUp}`,`orderbook.25.${pairUp}`]}));
-      _tpWS._ping = setInterval(()=>{ if(_tpWS.readyState===1) _tpWS.send(JSON.stringify({op:'ping'})); },20000);
-    };
-    _tpWS.onclose = _tpWS.onerror = ()=>{
-      if(_tpWS._ping) clearInterval(_tpWS._ping);
-      const d=document.getElementById('tp-ws-status'); if(d) d.style.background='#e24b4a';
-      _tpWSReconnectTimer=setTimeout(()=>{ if(TP_STATE.exchange==='bybit') tpStartWebSocket(); },3000);
-    };
-
-    _tpWS.onmessage = (e) => {
-      try {
-        const msg = JSON.parse(e.data);
-        if(!msg.data) return;
-        const topic = msg.topic || '';
-        if(topic.startsWith('tickers')){
-          const d = msg.data;
-          const price = parseFloat(d.lastPrice)||0;
-          const change = parseFloat(d.price24hPcnt||0)*100;
-          const high = parseFloat(d.highPrice24h)||0;
-          const low = parseFloat(d.lowPrice24h)||0;
-          const vol = parseFloat(d.turnover24h)||0;
-          const _prevPB = TP_STATE.prices[pairUp]?.price||0;
-          TP_STATE.prices[pairUp] = {symbol:pairUp,price,change,high,low,volume:vol};
-          tpUpdatePriceDisplay();
-          tpUpdatePositionsPnL();
-          const _tpEl = document.getElementById('tp-price-main');
-          if(_tpEl && _prevPB && price!==_prevPB){
-            _tpEl.style.transition='color .15s';
-            _tpEl.style.color=price>_prevPB?'#00c47a':'#e24b4a';
-            setTimeout(()=>{_tpEl.style.color='';},300);
-          }
-        }
-        if(topic.startsWith('orderbook')){
-          const d = msg.data;
-          const type = msg.type; // 'snapshot' or 'delta'
-          if(type==='snapshot'){
-            _obBook.asks = {};
-            _obBook.bids = {};
-          }
-          _obApplyDelta(d.a||[], d.b||[]);
-          const {asks,bids} = _obGetSorted();
-          if(asks.length && bids.length) tpRenderOrderBookData(asks, bids);
-        }
-      } catch(err){}
-    };
-
-    _tpWS.onclose = () => {
-      _tpWSReconnectTimer = setTimeout(()=>{
-        if(TP_STATE.exchange==='bybit') tpStartWebSocket();
-      }, 3000);
-    };
-    _tpWS.onerror = () => _tpWS.close();
-
-  } else if(ex === 'okx'){
-    _tpWS = new WebSocket('wss://ws.okx.com:8443/ws/v5/public');
-    const instId = isSpot
-      ? pairUp.replace('USDT','-USDT')
-      : pairUp.replace('USDT','-USDT-SWAP');
-
-    _tpWS.onopen = () => {
-      const d=document.getElementById('tp-ws-status'); if(d) d.style.background='#00c47a';
-      _tpWS.send(JSON.stringify({op:'subscribe',args:[{channel:'tickers',instId},{channel:'books5',instId}]}));
-      _tpWS._ping = setInterval(()=>{ if(_tpWS.readyState===1) _tpWS.send('ping'); },25000);
-    };
-    _tpWS.onclose = _tpWS.onerror = ()=>{
-      if(_tpWS._ping) clearInterval(_tpWS._ping);
-      const d=document.getElementById('tp-ws-status'); if(d) d.style.background='#e24b4a';
-      _tpWSReconnectTimer=setTimeout(()=>{ if(TP_STATE.exchange==='okx') tpStartWebSocket(); },3000);
-    };
-
-    _tpWS.onmessage = (e) => {
-      try {
-        const msg = JSON.parse(e.data);
-        if(!msg.data?.[0]) return;
-        const d = msg.data[0];
-        const ch = msg.arg?.channel || '';
-        if(ch === 'tickers'){
-          const price = parseFloat(d.last)||0;
-          const open24 = parseFloat(d.open24h)||price;
-          const change = open24 ? ((price-open24)/open24*100) : 0;
-          TP_STATE.prices[pairUp] = {symbol:pairUp,price,change,high:parseFloat(d.high24h)||0,low:parseFloat(d.low24h)||0,volume:parseFloat(d.volCcy24h)||0};
-          tpUpdatePriceDisplay();
-          tpUpdatePositionsPnL();
-        }
-        if(ch==='books5'||ch==='books'){
-          const type = msg.action; // 'snapshot' or 'update'
-          if(type==='snapshot'){
-            _obBook.asks = {};
-            _obBook.bids = {};
-          }
-          _obApplyDelta(
-            (d.asks||[]).map(a=>[a[0],a[1]]),
-            (d.bids||[]).map(b=>[b[0],b[1]])
-          );
-          const {asks,bids} = _obGetSorted();
-          if(asks.length && bids.length) tpRenderOrderBookData(asks, bids);
-        }
-      } catch(err){}
-    };
-
-    _tpWS.onclose = () => {
-      _tpWSReconnectTimer = setTimeout(()=>{
-        if(TP_STATE.exchange==='okx') tpStartWebSocket();
-      }, 3000);
-    };
-    _tpWS.onerror = () => _tpWS.close();
-  }
+function _tpFlashPrice(price, prev){
+  if(!prev||price===prev) return;
+  const el=document.getElementById('tp-price-main');
+  if(!el) return;
+  el.style.transition='color .15s';
+  el.style.color=price>prev?'#00c47a':'#e24b4a';
+  setTimeout(()=>{el.style.color='';},300);
 }
 
 function tpStopWebSocket(){
