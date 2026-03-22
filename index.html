@@ -9023,6 +9023,9 @@ function closeTradeHub(){
 function openSimulation(){
   const hub = document.getElementById('trade-hub');
   if(hub){ hub.style.opacity='0'; hub.style.transform='scale(0.98)'; setTimeout(()=>{ hub.style.display='none'; hub.style.opacity=''; hub.style.transform=''; },300); }
+  // own history entry so back goes to hub
+  history.pushState({batt:'simulate'}, '', '#simulate');
+  document.title = 'BATT · Simulator';
   tpLoadState();
   const page = document.getElementById('trading-page');
   if(page){
@@ -9078,7 +9081,8 @@ function closeDexSelector(){
 
 function closeTradingPage() {
   document.body.style.overflow='auto';
-  battNav('trade');
+  history.replaceState({batt:'trade'}, '', '#trade');
+  document.title = 'BATT · Trade Hub';
   const page = document.getElementById('trading-page');
   if (page) {
     page.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
@@ -9088,7 +9092,7 @@ function closeTradingPage() {
       page.classList.remove('visible');
       page.style.opacity = '';
       page.style.transform = '';
-      // show trade hub again
+      mbnSetActive('trade');
       const hub = document.getElementById('trade-hub');
       if(hub){
         hub.style.display='flex';
@@ -13221,8 +13225,12 @@ window.addEventListener('popstate', function(){
     if(account){ account.classList.add('visible'); if(typeof loadAccountPage==='function') loadAccountPage(); }
     document.body.style.overflow='auto';
     if(typeof mbnSetActive==='function') mbnSetActive('account');
+  } else if(hash === 'simulate'){
+    // back from simulate stays on simulator — re-push to block
+    history.pushState({batt:'simulate'}, '', '#simulate');
+    return;
   } else if(hash === 'trade'){
-    // show trade hub, not simulator directly
+    // show trade hub
     var hub = document.getElementById('trade-hub');
     if(trading){ trading.classList.remove('visible'); trading.style.opacity=''; trading.style.transform=''; }
     if(l3) l3.classList.remove('visible');
