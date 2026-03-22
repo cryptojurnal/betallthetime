@@ -6344,12 +6344,18 @@ function authForceLogout(){
   setTimeout(()=>{ if(typeof setSpotMode==='function') try{setSpotMode(false);}catch(e){} },100);
   localStorage.removeItem('batt_token');
   localStorage.removeItem('wz_user');
-  localStorage.removeItem('wz_sync_count');
+  localStorage.removeItem('batt_sync_count');
   localStorage.removeItem('wz_last_sync');
   localStorage.removeItem('wz_auth_google');
-  // reset in-memory badge state — server is source of truth
+  // reset in-memory badge + stats state — server is source of truth
   if(typeof _badgeData !== 'undefined'){ _badgeData = {}; }
   if(typeof _badgeNewList !== 'undefined'){ _badgeNewList = []; }
+  // clear cached stat counters
+  localStorage.removeItem('batt_sync_count');
+  localStorage.removeItem('batt_badge_presets');
+  // also clear old wz_ keys if still present
+  localStorage.removeItem('wz_sync_count');
+  localStorage.removeItem('wz_badge_presets');
   // hide user bar
   const ub=document.getElementById('auth-user-bar');
   if(ub) ub.classList.add('hidden');
@@ -6610,8 +6616,11 @@ async function authSaveWithToast(){
     const d=await r.json();
     if(d.ok){
       // increment sync count
-      let syncCount=parseInt(localStorage.getItem('wz_sync_count')||'0')+1;
-      localStorage.setItem('wz_sync_count',syncCount);
+      // increment sync count on server
+      let syncCount = parseInt(localStorage.getItem('batt_sync_count')||'0')+1;
+      localStorage.setItem('batt_sync_count', syncCount); // keep local as cache
+      const tok = _battToken();
+      if(tok) fetch(AUTH_URL+'/stats/increment',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok},body:JSON.stringify({key:'sync_count'})}).then(r=>r.json()).then(d=>{ if(d.ok){ localStorage.setItem('batt_sync_count', d.value); } }).catch(()=>{});
       localStorage.setItem('wz_last_sync',Date.now());
       updateMemberStats();
       if(btn){btn.innerHTML='✓ synced';btn.style.opacity='1';setTimeout(()=>{btn.innerHTML='↑ sync';btn.disabled=false;},1500);}
@@ -6653,7 +6662,7 @@ async function updateMemberStats(){
   const syncsEl=document.getElementById('l3-stat-syncs');
   const syncsSub=document.getElementById('l3-stat-syncs-sub');
   if(syncsEl){
-    syncsEl.textContent=localStorage.getItem('wz_sync_count')||'0';
+    syncsEl.textContent=localStorage.getItem('batt_sync_count')||'0';
   }
   // last sync
   const syncStatus=document.getElementById('l3-sync-status');
@@ -6764,7 +6773,9 @@ async function presetSaveConfirm(){
       updateMemberStats();
       showToast('Preset "'+name+'" saved to cloud!','success');
       if(typeof logActivity==='function') logActivity('preset_save',{name});
-      if(typeof incrementBadgeCounter==='function') incrementBadgeCounter('wz_badge_presets');
+      if(typeof incrementBadgeCounter==='function') incrementBadgeCounter('batt_badge_presets');
+      // also increment on server
+      const _ptok=_battToken(); if(_ptok) fetch(AUTH_URL+'/stats/increment',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+_ptok},body:JSON.stringify({key:'preset_count'})}).catch(()=>{});
     }else{
       errEl.textContent=d.error||'Failed to save';
     }
@@ -7381,7 +7392,7 @@ async function loadAccountPage(){
   const statPresets=document.getElementById('acc-stat-presets');
   const statSyncs=document.getElementById('acc-stat-syncs');
   const statDays=document.getElementById('acc-stat-days');
-  if(statSyncs) statSyncs.textContent=localStorage.getItem('wz_sync_count')||'0';
+  if(statSyncs) statSyncs.textContent=localStorage.getItem('batt_sync_count')||'0';
   if(statDays && user.created_at){
     const days=Math.floor((Date.now()-user.created_at)/(1000*60*60*24))+1;
     statDays.textContent=days;
@@ -7717,8 +7728,9 @@ function goLayer3(){
   }
   // show/hide ☰ menu based on allowed usernames
   if(typeof initL3MenuVisibility==='function') initL3MenuVisibility();
-  // load badges from server
+  // load badges + stats from server
   if(typeof loadBadgesFromServer==='function') loadBadgesFromServer().then(()=>{ if(typeof checkBadges==='function') checkBadges(); });
+  if(typeof loadStatsFromServer==='function') loadStatsFromServer();
   // update stats
   updateMemberStats();
   // hide layer2 if visible
@@ -8215,6 +8227,19 @@ const BADGES=[
 var _badgeData = {}; // { badge_id: unlocked_at_timestamp }
 var _badgeNewList = []; // badges newly unlocked this session
 
+async function loadStatsFromServer(){
+  const tok = _battToken();
+  if(!tok) return;
+  try{
+    const r = await fetch(AUTH_URL+'/stats/load', { headers:{'Authorization':'Bearer '+tok} });
+    const d = await r.json();
+    if(d.ok){
+      if(d.stats.sync_count   !== undefined) localStorage.setItem('batt_sync_count',    d.stats.sync_count);
+      if(d.stats.preset_count !== undefined) localStorage.setItem('batt_badge_presets', d.stats.preset_count);
+    }
+  }catch(e){}
+}
+
 async function loadBadgesFromServer(){
   const tok = _battToken();
   if(!tok){ _badgeData = {}; return; }
@@ -8281,8 +8306,8 @@ async function unlockBadge(badgeId){
 
 async function checkBadges(){
   // called after actions — check counter-based badges
-  const syncCount = parseInt(localStorage.getItem('wz_sync_count')||'0');
-  const presetCount = parseInt(localStorage.getItem('wz_badge_presets')||'0');
+  const syncCount = parseInt(localStorage.getItem('batt_sync_count')||'0');
+  const presetCount = parseInt(localStorage.getItem('batt_badge_presets')||'0');
   if(presetCount >= 1)  await unlockBadge('saver');
   if(presetCount >= 10) await unlockBadge('power_user');
   if(syncCount >= 1)    await unlockBadge('cloud_sync');
