@@ -10380,7 +10380,26 @@ function tpCalcPnL(pos, currentPrice) {
 
 // Update positions PnL
 function tpUpdatePositionsPnL() {
-  tpRenderPositions();
+  // only do full re-render if positions panel is visible
+  // otherwise just update PnL numbers in-place
+  const container = document.getElementById('tp-positions');
+  if(container){
+    TP_STATE.positions.forEach(pos => {
+      const card = container.querySelector(`[data-id="${pos.id}"]`);
+      if(!card) return;
+      const currentPrice = TP_STATE.prices[pos.pair]?.price;
+      if(!currentPrice) return;
+      const pnl = tpCalcPnL(pos, currentPrice);
+      const pnlPct = (pnl / pos.size) * 100;
+      const isUp = pnl >= 0;
+      const pnlVal = card.querySelector('.tp-pos-pnl-value');
+      const pnlPer = card.querySelector('.tp-pos-pnl-percent');
+      const markEl = card.querySelector('.tp-pos-mark');
+      if(pnlVal){ pnlVal.textContent=(isUp?'+':'')+'$'+pnl.toFixed(2); pnlVal.className='tp-pos-pnl-value '+(isUp?'up':'down'); }
+      if(pnlPer){ pnlPer.textContent=(isUp?'+':'')+pnlPct.toFixed(2)+'%'; }
+      if(markEl){ markEl.textContent='$'+currentPrice.toLocaleString(); }
+    });
+  }
   tpUpdateUI();
   
   // Check TP/SL/Liquidation
@@ -10417,11 +10436,12 @@ function tpUpdateUI() {
   const balEl = document.getElementById('tp-balance');
   const pnlEl = document.getElementById('tp-pnl');
   
-  if (balEl) balEl.textContent = '$' + totalEquity.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const newBal = '$' + totalEquity.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (balEl && balEl.textContent !== newBal) balEl.textContent = newBal;
   if (pnlEl) {
     const isUp = totalPnL >= 0;
-    pnlEl.textContent = (isUp ? '+' : '') + '$' + totalPnL.toFixed(2) + ' (' + (isUp ? '+' : '') + pnlPercent.toFixed(2) + '%)';
-    pnlEl.className = 'tp-balance-pnl ' + (isUp ? 'up' : 'down');
+    const newPnl = (isUp ? '+' : '') + '$' + totalPnL.toFixed(2) + ' (' + (isUp ? '+' : '') + pnlPercent.toFixed(2) + '%)';
+    if(pnlEl.textContent !== newPnl){ pnlEl.textContent = newPnl; pnlEl.className = 'tp-balance-pnl ' + (isUp ? 'up' : 'down'); }
   }
   
   document.getElementById('tp-pos-count').textContent = TP_STATE.positions.length;
@@ -10493,7 +10513,7 @@ function tpRenderPositions() {
           ` : `
             <div class="tp-pos-stat">Size<span>$${pos.size}</span></div>
             <div class="tp-pos-stat">Entry<span>$${pos.entryPrice.toLocaleString()}</span></div>
-            <div class="tp-pos-stat">Mark<span>$${currentPrice.toLocaleString()}</span></div>
+            <div class="tp-pos-stat">Mark<span class="tp-pos-mark">$${currentPrice.toLocaleString()}</span></div>
             <div class="tp-pos-stat">Liq<span style="color:#E24B4A">$${liqPrice.toLocaleString()}</span></div>
           `}
         </div>
