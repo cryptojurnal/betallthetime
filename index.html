@@ -776,10 +776,8 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
 .tp-trade-row .t-size,.tp-trade-row .t-time{color:#555;text-align:right}
 .tp-ob-spread{font-size:8px;color:#333;margin-top:2px;letter-spacing:.02em}
 .tp-ob-spread span{color:#444;font-weight:600}
-/* ob rows — see flash css block */
+.tp-ob-row{display:grid;grid-template-columns:2fr 1.5fr 1.5fr;padding:2px 6px;font-size:9px;font-family:"SF Mono",ui-monospace,monospace;position:relative;cursor:pointer;user-select:none}
 .tp-ob-row:hover{background:rgba(255,255,255,0.05)}
-.tp-ob-row.ask{color:#e0e0e0}
-.tp-ob-row.bid{color:#e0e0e0}
 .tp-ob-row.ask .price{color:#e24b4a;font-weight:700}
 .tp-ob-row.bid .price{color:#00c47a;font-weight:700}
 .tp-ob-row .size{color:#888;text-align:right}
@@ -792,9 +790,9 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
 .ob-price-pulse{animation:obPricePulse .3s ease-in-out}
 .tp-ob-mid-price.up{color:#00c47a}
 .tp-ob-mid-price.dn{color:#e24b4a}
-.tp-ob-row .price{flex:1;font-weight:600}
-.tp-ob-row .size{flex:1;text-align:right;color:#555}
-/* ob depth — see flash css block */
+.tp-ob-row .depth{position:absolute;right:0;top:0;bottom:0;opacity:0.12;pointer-events:none}
+.tp-ob-row.ask .depth{background:#e24b4a}
+.tp-ob-row.bid .depth{background:#00c47a}
 .tp-ob-mid{padding:4px 6px;background:#111;text-align:center;border-top:0.5px solid #1a1a1a;border-bottom:0.5px solid #1a1a1a;flex-shrink:0}
 /* ob mid price — see flash css block */
 .tp-ob-mid-change{font-size:10px;margin-top:2px}
@@ -9884,7 +9882,16 @@ function tpStartWebSocket(){
     // combine ticker + orderbook in one connection
     const streams = `${pair}@ticker/${pair}@depth10@100ms`;
     _tpWS = new WebSocket(base + streams);
-    _tpWS.onopen = () => { const d=document.getElementById('tp-ws-status'); if(d) d.style.background='#00c47a'; };
+    _tpWS.onopen = () => {
+      const d=document.getElementById('tp-ws-status'); if(d) d.style.background='#00c47a';
+      // keep alive ping every 20s
+      _tpWS._ping = setInterval(()=>{ if(_tpWS.readyState===1) _tpWS.send(JSON.stringify({method:'ping'})); },20000);
+    };
+    _tpWS.onclose = _tpWS.onerror = () => {
+      if(_tpWS._ping) clearInterval(_tpWS._ping);
+      const d=document.getElementById('tp-ws-status'); if(d) d.style.background='#e24b4a';
+      _tpWSReconnectTimer = setTimeout(()=>{ if(TP_STATE.exchange==='binance') tpStartWebSocket(); },3000);
+    };
 
     _tpWS.onmessage = (e) => {
       try {
@@ -9913,14 +9920,6 @@ function tpStartWebSocket(){
         }
       } catch(err){}
     };
-
-    _tpWS.onclose = () => {
-      // reconnect after 3s if still on same exchange
-      _tpWSReconnectTimer = setTimeout(()=>{
-        if(TP_STATE.exchange==='binance') tpStartWebSocket();
-      }, 3000);
-    };
-    _tpWS.onerror = () => _tpWS.close();
 
   } else if(ex === 'bybit'){
     const wsUrl = isSpot
