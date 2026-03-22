@@ -4959,7 +4959,9 @@ function tpTogglePosPanel(){
     if(Math.abs(deltaY)<5)return;
     hasDragged=true;
     var H=window.innerHeight, toggleH=toggle.offsetHeight;
-    _lastY=Math.max(20,Math.min(startTop+deltaY, H-toggleH-20));
+    var topBar=document.getElementById('tp-topbar')||document.querySelector('.tp-topbar');
+    var minY=(topBar?topBar.getBoundingClientRect().bottom:60)+4;
+    _lastY=Math.max(minY,Math.min(startTop+deltaY, H-toggleH-8));
     if(!_rafId) _rafId=requestAnimationFrame(function(){
       if(toggle){toggle.style.top=_lastY+'px';toggle.style.transform='none';}
       _rafId=null;
@@ -5049,7 +5051,9 @@ function tpToggleRightPanel(){
     if(Math.abs(deltaY)<5)return;
     hasDragged=true;
     var H=window.innerHeight, toggleH=toggle.offsetHeight;
-    _lastY=Math.max(20,Math.min(startTop+deltaY, H-toggleH-20));
+    var topBar=document.getElementById('tp-topbar')||document.querySelector('.tp-topbar');
+    var minY=(topBar?topBar.getBoundingClientRect().bottom:60)+4;
+    _lastY=Math.max(minY,Math.min(startTop+deltaY, H-toggleH-8));
     if(!_rafId) _rafId=requestAnimationFrame(function(){
       if(toggle){toggle.style.top=_lastY+'px';toggle.style.transform='none';}
       _rafId=null;
