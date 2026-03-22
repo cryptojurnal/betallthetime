@@ -2804,7 +2804,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
   <div class="tp-topbar">
     <div class="tp-topbar-left">
       <div class="tp-logo">⚡ BATT <span>PAPER</span></div>
-      <div id="tp-ws-status" style="width:6px;height:6px;border-radius:50%;background:#333;flex-shrink:0;margin-left:-8px;title:'WebSocket status'"></div>
+      <div id="tp-ws-status" onclick="tpReconnectWS()" title="WebSocket status — click to reconnect" style="width:8px;height:8px;border-radius:50%;background:#333;flex-shrink:0;margin-left:-8px;cursor:pointer;transition:transform .1s" onmouseover="this.style.transform='scale(1.5)'" onmouseout="this.style.transform=''"></div>
       <div class="tp-pair-selector" onclick="tpShowPairModal()">
         <span class="tp-pair-selector-icon" id="tp-pair-icon"><img src="https://assets.coingecko.com/coins/images/1/small/bitcoin.png" width="20" height="20" style="border-radius:50%;object-fit:cover;flex-shrink:0" alt="" loading="lazy" onerror="this.style.display='none'"></span>
         <div class="tp-pair-selector-info">
@@ -9994,6 +9994,14 @@ function _tpFlashPrice(price, prev){
   setTimeout(()=>{el.style.color='';},300);
 }
 
+function tpReconnectWS(){
+  const dot = document.getElementById('tp-ws-status');
+  if(dot){ dot.style.background='#EF9F27'; } // amber = reconnecting
+  _obReset();
+  tpStartWebSocket();
+  showToast('reconnecting...', 'info');
+}
+
 function tpStopWebSocket(){
   if(_tpWSReconnectTimer){ clearTimeout(_tpWSReconnectTimer); _tpWSReconnectTimer=null; }
   if(_tpWS){ try{ _tpWS.close(); }catch(e){} _tpWS=null; }
@@ -10068,6 +10076,16 @@ function tpUpdatePriceDisplay() {
     const isUp = priceData.change >= 0;
     changeEl.textContent = (isUp ? '+' : '') + priceData.change.toFixed(2) + '%';
     changeEl.className = 'tp-price-change ' + (isUp ? 'up' : 'down');
+  }
+  // sync OB mid change% with same ticker data
+  const obChangeEl = document.getElementById('tp-ob-change');
+  if(obChangeEl && priceData.change !== undefined){
+    const isUp2 = priceData.change >= 0;
+    const chgTxt = (isUp2?'+':'')+priceData.change.toFixed(2)+'%';
+    if(obChangeEl.textContent !== chgTxt){
+      obChangeEl.textContent = chgTxt;
+      obChangeEl.className = 'tp-ob-mid-change '+(isUp2?'up':'down');
+    }
   }
   
   if(priceData.high) document.getElementById('tp-high').textContent = fmtPrice(priceData.high);
@@ -11033,17 +11051,7 @@ function _tpRenderOBData(asks, bids) {
     }
     _obPrevMidPrice = midPrice;
   }
-  if(changeEl){
-    const _chg = priceData.change;
-    if(_chg !== undefined && _chg !== null){
-      const isUp = _chg>=0;
-      const newChg = (isUp?'+':'')+_chg.toFixed(2)+'%';
-      if(changeEl.textContent !== newChg){
-        changeEl.textContent = newChg;
-        changeEl.className='tp-ob-mid-change '+(isUp?'up':'down');
-      }
-    }
-  }
+  // change% is updated by ticker WS only, not OB render
   if(spreadEl){
     const pct = midPrice?((spread/midPrice)*100).toFixed(4):'0';
     spreadEl.textContent=`${fmtPrice(spread,false)} (${pct}%)`;
