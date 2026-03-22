@@ -2440,6 +2440,116 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
   </nav>
 </div>
 
+<!-- TRADE HUB — landing page before entering any trade mode -->
+<div id="trade-hub" style="display:none;position:fixed;inset:0;z-index:9650;background:#000;flex-direction:column;opacity:0;transform:scale(0.98);transition:opacity .35s ease,transform .35s ease">
+  <div style="flex:1;overflow-y:auto;padding:24px;max-width:880px;width:100%;margin:0 auto">
+    <!-- topbar -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px">
+      <button onclick="closeTradeHub()" style="font-size:11px;color:#555;background:#111;border:0.5px solid #1a1a1a;border-radius:6px;padding:6px 12px;cursor:pointer;font-family:inherit">← back</button>
+      <div style="text-align:center">
+        <div style="font-size:16px;font-weight:900;color:#fff;letter-spacing:-.02em">⚡ BATT <span style="color:#00c47a">TRADE</span></div>
+        <div style="font-size:10px;color:#444;margin-top:2px">choose your trading mode</div>
+      </div>
+      <div style="width:60px"></div>
+    </div>
+    <!-- 4 cards -->
+    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px">
+
+      <!-- simulation -->
+      <div onclick="openSimulation()" style="background:#0d0d0d;border:0.5px solid #1a1a1a;border-radius:14px;padding:20px;cursor:pointer;transition:border-color .2s;position:relative" onmouseover="this.style.borderColor='#00c47a'" onmouseout="this.style.borderColor='#1a1a1a'">
+        <span style="position:absolute;top:14px;right:14px;font-size:8px;font-weight:700;padding:2px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:.05em;background:#0a2a1a;color:#00c47a">live</span>
+        <div style="width:44px;height:44px;border-radius:10px;background:#0a2a1a;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:14px">📊</div>
+        <div style="font-size:14px;font-weight:800;color:#00c47a;margin-bottom:4px">Simulation</div>
+        <div style="font-size:11px;color:#555;line-height:1.6;margin-bottom:14px">Plan and backtest your strategy with no real money. Full chart, paper trading, position sizing and risk calculator.</div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:14px">
+          <span style="font-size:9px;font-weight:600;padding:2px 7px;border-radius:4px;background:#0a2a1a;color:#00c47a">no real funds</span>
+          <span style="font-size:9px;font-weight:600;padding:2px 7px;border-radius:4px;background:#0a2a1a;color:#00c47a">paper trading</span>
+          <span style="font-size:9px;font-weight:600;padding:2px 7px;border-radius:4px;background:#0a2a1a;color:#00c47a">chart</span>
+        </div>
+        <div style="border-top:0.5px solid #1a1a1a;padding-top:12px;display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div style="font-size:10px;font-weight:700;color:#00c47a">open simulator →</div>
+            <div style="font-size:9px;color:#333;margin-top:2px">no wallet or api needed</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- cex -->
+      <div style="background:#0d0d0d;border:0.5px solid #1a1a1a;border-radius:14px;padding:20px;cursor:default;position:relative;opacity:.6">
+        <span style="position:absolute;top:14px;right:14px;font-size:8px;font-weight:700;padding:2px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:.05em;background:#1a1a1a;color:#444">coming soon</span>
+        <div style="width:44px;height:44px;border-radius:10px;background:#0a1a2a;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:14px">🏦</div>
+        <div style="font-size:14px;font-weight:800;color:#3b82f6;margin-bottom:4px">CEX Trading</div>
+        <div style="font-size:11px;color:#555;line-height:1.6;margin-bottom:14px">Connect your Bybit, Binance or OKX account via API key. Trade real markets with your exchange account.</div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:14px">
+          <span style="font-size:9px;font-weight:600;padding:2px 7px;border-radius:4px;background:#0a1a2a;color:#3b82f6">bybit</span>
+          <span style="font-size:9px;font-weight:600;padding:2px 7px;border-radius:4px;background:#0a1a2a;color:#3b82f6">binance</span>
+          <span style="font-size:9px;font-weight:600;padding:2px 7px;border-radius:4px;background:#0a1a2a;color:#3b82f6">real funds</span>
+        </div>
+        <div style="border-top:0.5px solid #1a1a1a;padding-top:12px">
+          <div style="font-size:9px;color:#333">requires api key · in development</div>
+        </div>
+      </div>
+
+      <!-- dex -->
+      <div onclick="openDexSelector()" style="background:#0d0d0d;border:0.5px solid #1a1a1a;border-radius:14px;padding:20px;cursor:pointer;transition:border-color .2s;position:relative" onmouseover="this.style.borderColor='#a855f7'" onmouseout="this.style.borderColor='#1a1a1a'">
+        <span style="position:absolute;top:14px;right:14px;font-size:8px;font-weight:700;padding:2px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:.05em;background:#1a0a2a;color:#a855f7">beta</span>
+        <div style="width:44px;height:44px;border-radius:10px;background:#1a0a2a;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:14px">⛓️</div>
+        <div style="font-size:14px;font-weight:800;color:#a855f7;margin-bottom:4px">DEX Trading</div>
+        <div style="font-size:11px;color:#555;line-height:1.6;margin-bottom:14px">Trade on-chain with your wallet. Choose between perpetual futures (Hyperliquid) or spot trading (Jupiter, Drift).</div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:14px">
+          <span style="font-size:9px;font-weight:600;padding:2px 7px;border-radius:4px;background:#1a0a2a;color:#a855f7">hyperliquid</span>
+          <span style="font-size:9px;font-weight:600;padding:2px 7px;border-radius:4px;background:#1a0a2a;color:#a855f7">spot + perp</span>
+          <span style="font-size:9px;font-weight:600;padding:2px 7px;border-radius:4px;background:#1a0a2a;color:#a855f7">self custody</span>
+        </div>
+        <div style="border-top:0.5px solid #1a1a1a;padding-top:12px;display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div style="font-size:10px;font-weight:700;color:#a855f7">connect wallet →</div>
+            <div style="font-size:9px;color:#333;margin-top:2px">requires web3 wallet</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- swap -->
+      <div style="background:#0d0d0d;border:0.5px solid #1a1a1a;border-radius:14px;padding:20px;cursor:default;position:relative;opacity:.6">
+        <span style="position:absolute;top:14px;right:14px;font-size:8px;font-weight:700;padding:2px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:.05em;background:#1a1a1a;color:#444">coming soon</span>
+        <div style="width:44px;height:44px;border-radius:10px;background:#2a1a0a;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:14px">🔄</div>
+        <div style="font-size:14px;font-weight:800;color:#f59e0b;margin-bottom:4px">DEX Swap</div>
+        <div style="font-size:11px;color:#555;line-height:1.6;margin-bottom:14px">Instantly swap tokens via Uniswap or PancakeSwap. No account, no order book — just connect your wallet and swap.</div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:14px">
+          <span style="font-size:9px;font-weight:600;padding:2px 7px;border-radius:4px;background:#2a1a0a;color:#f59e0b">uniswap</span>
+          <span style="font-size:9px;font-weight:600;padding:2px 7px;border-radius:4px;background:#2a1a0a;color:#f59e0b">instant swap</span>
+          <span style="font-size:9px;font-weight:600;padding:2px 7px;border-radius:4px;background:#2a1a0a;color:#f59e0b">0.1% fee</span>
+        </div>
+        <div style="border-top:0.5px solid #1a1a1a;padding-top:12px">
+          <div style="font-size:9px;color:#333">requires web3 wallet · in development</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- DEX sub-selector modal -->
+<div id="dex-selector" style="display:none;position:fixed;inset:0;z-index:9660;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;padding:20px">
+  <div style="background:#0d0d0d;border:0.5px solid #2a1a3a;border-radius:16px;padding:24px;max-width:360px;width:100%">
+    <div style="font-size:14px;font-weight:800;color:#a855f7;margin-bottom:4px">DEX Trading</div>
+    <div style="font-size:10px;color:#555;margin-bottom:20px">choose your market type</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px">
+      <div style="background:#100a1a;border:0.5px solid #2a1a3a;border-radius:10px;padding:14px;cursor:pointer;transition:border-color .2s" onmouseover="this.style.borderColor='#a855f7'" onmouseout="this.style.borderColor='#2a1a3a'">
+        <div style="font-size:12px;font-weight:700;color:#a855f7;margin-bottom:2px">⚡ Perpetual futures</div>
+        <div style="font-size:10px;color:#555">Hyperliquid, GMX — leverage trading, funding rates, liquidations</div>
+        <div style="font-size:8px;color:#a855f7;margin-top:6px;font-weight:600">connect wallet →</div>
+      </div>
+      <div style="background:#100a1a;border:0.5px solid #2a1a3a;border-radius:10px;padding:14px;cursor:pointer;transition:border-color .2s" onmouseover="this.style.borderColor='#a855f7'" onmouseout="this.style.borderColor='#2a1a3a'">
+        <div style="font-size:12px;font-weight:700;color:#a855f7;margin-bottom:2px">🪙 Spot trading</div>
+        <div style="font-size:10px;color:#555">Jupiter, Drift — buy/sell tokens, no leverage, on-chain order book</div>
+        <div style="font-size:8px;color:#a855f7;margin-top:6px;font-weight:600">connect wallet →</div>
+      </div>
+    </div>
+    <button onclick="closeDexSelector()" style="width:100%;padding:8px;background:transparent;border:0.5px solid #1a1a1a;border-radius:8px;color:#555;font-size:11px;cursor:pointer;font-family:inherit">cancel</button>
+  </div>
+</div>
+
 <!-- PAPER TRADING PAGE -->
 <div id="trading-page">
   <!-- Top Bar -->
@@ -8886,55 +8996,87 @@ function openTradingPage() {
   document.body.style.overflow='auto';
   battNav('trade');
   mbnSetActive('trade');
+  // show trade hub instead of going directly to simulation
+  const hub = document.getElementById('trade-hub');
+  const l3 = document.getElementById('layer3');
+  if(hub){
+    hub.style.display='flex';
+    if(l3) l3.classList.remove('visible');
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      hub.style.opacity='1';
+      hub.style.transform='scale(1)';
+    }));
+  }
+}
+
+function closeTradeHub(){
+  const hub = document.getElementById('trade-hub');
+  if(hub){
+    hub.style.opacity='0';
+    hub.style.transform='scale(0.98)';
+    setTimeout(()=>{
+      hub.style.display='none';
+      hub.style.opacity='';
+      hub.style.transform='';
+    },350);
+  }
+  battNav('member');
+  mbnSetActive('member');
+  const l3 = document.getElementById('layer3');
+  if(l3){ l3.classList.remove('hidden'); requestAnimationFrame(()=>l3.classList.add('visible')); }
+}
+
+function openSimulation(){
+  const hub = document.getElementById('trade-hub');
+  if(hub){ hub.style.opacity='0'; setTimeout(()=>{ hub.style.display='none'; hub.style.opacity=''; hub.style.transform=''; },300); }
   tpLoadState();
   const page = document.getElementById('trading-page');
-  const l3 = document.getElementById('layer3');
-  if (page) {
+  if(page){
     page.classList.add('visible');
-    l3.classList.remove('visible');
     tpFetchPrices();
     tpInitChart();
     tpUpdateUI();
     tpRenderPositions();
     tpRenderHistory();
     tpRenderPairList();
-    // Start price updates
-    if (!window._tpPriceInterval) {
+    if(!window._tpPriceInterval){
       window._tpPriceInterval = setInterval(tpFetchPrices, 5000);
     }
   }
 }
 
+function openDexSelector(){
+  const sel = document.getElementById('dex-selector');
+  if(sel){ sel.style.display='flex'; }
+}
+
+function closeDexSelector(){
+  const sel = document.getElementById('dex-selector');
+  if(sel){ sel.style.display='none'; }
+}
+
 function closeTradingPage() {
   document.body.style.overflow='auto';
-  battNav('member');
-  mbnSetActive('member');
+  battNav('trade');
   const page = document.getElementById('trading-page');
-  const l3 = document.getElementById('layer3');
   if (page) {
-    // Smooth fade out with pro easing
-    page.style.transition = 'opacity 0.5s cubic-bezier(0.4,0,0.2,1), transform 0.5s cubic-bezier(0.4,0,0.2,1)';
+    page.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
     page.style.opacity = '0';
     page.style.transform = 'scale(0.96) translateY(10px)';
-    
-    // Show layer3 with smooth entrance
     setTimeout(() => {
       page.classList.remove('visible');
       page.style.opacity = '';
       page.style.transform = '';
-      l3.classList.add('visible');
-      
-      // Show user bar only (AI fab is only for dashboard, not member area)
-      const userBar = document.getElementById('auth-user-bar');
-      if (userBar && AUTH_TOKEN) userBar.style.display = '';
-      
-      // Keep AI fab hidden - it's only for the cockpit dashboard
-      const aiFab = document.getElementById('ai-fab');
-      if (aiFab) {
-        aiFab.style.opacity = '0';
-        aiFab.style.pointerEvents = 'none';
+      // show trade hub again
+      const hub = document.getElementById('trade-hub');
+      if(hub){
+        hub.style.display='flex';
+        requestAnimationFrame(()=>requestAnimationFrame(()=>{
+          hub.style.opacity='1';
+          hub.style.transform='scale(1)';
+        }));
       }
-    }, 400);
+    }, 300);
   }
   if (window._tpPriceInterval) {
     clearInterval(window._tpPriceInterval);
@@ -13114,6 +13256,8 @@ window.addEventListener('popstate', function(){
     if(account) account.classList.remove('visible');
     if(trading){ trading.classList.remove('visible'); trading.style.opacity=''; trading.style.transform=''; }
     if(about){ about.style.display='none'; about.style.opacity='0'; about.classList.remove('acj-visible'); }
+    var hub = document.getElementById('trade-hub');
+    if(hub){ hub.style.display='none'; hub.style.opacity=''; hub.style.transform=''; }
     if(app) app.style.opacity='0';
     document.body.style.overflow='auto';
     if(l3){ l3.classList.remove('hidden'); requestAnimationFrame(function(){ l3.classList.add('visible'); }); }
