@@ -6113,39 +6113,62 @@ function goLayer2(){
 }
 function launchApp(){
   const l2=document.getElementById('layer2');if(!l2)return;
-  // mark risk disclosure as shown for this session
-  window.RISK_SHOWN = true;
-  // always default to leverage mode
-  if(typeof setSpotMode==='function') setSpotMode(false);
-  // sync trade toggle position
-  setTimeout(_syncTradeToggleLeft, 500);
-  const app=document.querySelector('.app');
-  if(app) app.style.opacity='1';
-  const fab=document.getElementById('ai-fab');
-  if(fab){fab.style.opacity='1';fab.style.pointerEvents='all';}
-  if(window._attachAiFabDrag) window._attachAiFabDrag();
-  document.documentElement.style.overflow='auto';
-  document.body.style.overflow='auto';
-  // Show left panel toggle and trade panel toggle for ALL users
-  const leftToggle=document.getElementById('left-panel-toggle');
-  if(leftToggle) leftToggle.classList.add('visible');
-  const tradeToggle=document.getElementById('trade-panel-toggle');
-  if(tradeToggle) tradeToggle.classList.add('visible');
-  if(typeof _syncTradeToggleLeft==='function') _syncTradeToggleLeft();
-  // show back button, keyboard hints, and presets toggle for logged-in users
-  if(localStorage.getItem('batt_token')){
-    const backBtn=document.getElementById('back-to-member');
-    if(backBtn) backBtn.style.display='flex';
-    const kbdHint=document.getElementById('kbd-hint');
-    if(kbdHint) setTimeout(()=>{kbdHint.classList.add('visible');},2000);
-    const presetsBtn=document.getElementById('presets-toggle-btn');
-    if(presetsBtn) presetsBtn.classList.add('visible');
-  }
-  document.body.style.overflow='hidden';
-  // update guest UI (login button + spot switch visibility)
-  if(typeof battUpdateGuestUI==='function') battUpdateGuestUI();
+  // prevent double-tap
+  const lb=l2.querySelector('.launch-btn');
+  if(lb && lb.disabled) return;
+  if(lb) lb.disabled=true;
+
+  // ── START FADE IMMEDIATELY — nothing heavy before this ──
   l2.classList.add('out');
-  setTimeout(()=>{l2.classList.add('hidden');showGuidePopup();},900);
+
+  // ── DEFER everything else until after fade starts (next frame) ──
+  requestAnimationFrame(()=>{
+    window.RISK_SHOWN = true;
+    battNav('cockpit');
+    mbnSetActive('cockpit');
+
+    const app=document.querySelector('.app');
+    if(app) app.style.opacity='1';
+
+    // show toggles
+    const leftToggle=document.getElementById('left-panel-toggle');
+    if(leftToggle) leftToggle.classList.add('visible');
+    const tradeToggle=document.getElementById('trade-panel-toggle');
+    if(tradeToggle) tradeToggle.classList.add('visible');
+
+    document.body.style.overflow='hidden';
+    document.documentElement.style.overflow='auto';
+
+    // ── HEAVY WORK after fade completes (900ms) ──
+    setTimeout(()=>{
+      l2.classList.add('hidden');
+
+      // setSpotMode triggers render — do AFTER cockpit is visible
+      if(typeof setSpotMode==='function') setSpotMode(false);
+
+      const fab=document.getElementById('ai-fab');
+      if(fab){
+        fab.style.display='';
+        fab.style.opacity='1';
+        fab.style.pointerEvents='all';
+      }
+      if(window._attachAiFabDrag) window._attachAiFabDrag();
+
+      if(typeof _syncTradeToggleLeft==='function') _syncTradeToggleLeft();
+
+      if(localStorage.getItem('batt_token')){
+        const backBtn=document.getElementById('back-to-member');
+        if(backBtn) backBtn.style.display='flex';
+        const kbdHint=document.getElementById('kbd-hint');
+        if(kbdHint) setTimeout(()=>{kbdHint.classList.add('visible');},2000);
+        const presetsBtn=document.getElementById('presets-toggle-btn');
+        if(presetsBtn){ presetsBtn.classList.remove('visible'); setTimeout(()=>presetsBtn.classList.add('visible'),50); }
+      }
+
+      if(typeof battUpdateGuestUI==='function') battUpdateGuestUI();
+      showGuidePopup();
+    },900);
+  });
 }
 </script>
 <script>
@@ -12900,6 +12923,31 @@ function battSetTitle(page){ battNav(page); }
 
 window.addEventListener('popstate', function(){
   if(_battInAppNav) return;
+
+  // ── PRO APPROACH: if any overlay/popup is visible, dismiss it and re-push current state ──
+  // browser back should close overlays, not navigate away from the page
+  var guidePopup = document.getElementById('guide-popup');
+  var layer2 = document.getElementById('layer2');
+  var confirmOverlay = document.getElementById('confirm-overlay') || document.querySelector('.confirm-overlay');
+
+  // if guide popup is visible — dismiss it, stay on cockpit
+  if(guidePopup && guidePopup.classList.contains('visible')){
+    if(typeof dismissPopup==='function') dismissPopup();
+    history.pushState({batt:'cockpit'}, '', '#cockpit');
+    return;
+  }
+  // if risk disclosure (layer2) is visible — do nothing, user must click launch
+  if(layer2 && !layer2.classList.contains('hidden') && !layer2.classList.contains('out')){
+    history.pushState({}, '', window.location.hash||''); // re-push to prevent leaving
+    return;
+  }
+  // if confirm/alert popup is open — close it
+  if(confirmOverlay && confirmOverlay.style.display !== 'none' && confirmOverlay.offsetParent !== null){
+    if(typeof closeConfirm==='function') closeConfirm();
+    history.pushState({}, '', window.location.hash||'');
+    return;
+  }
+
   var hash = (window.location.hash||'').replace('#','');
   var titles = {'member':'BATT · Member Area','cockpit':'BATT · Cockpit','trade':'BATT · Trade Panel','account':'BATT · Account','about':'BATT · About CJ'};
   if(titles[hash]) document.title = titles[hash];
