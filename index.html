@@ -189,7 +189,7 @@ function _spotlightGuideTab(){
   attempt();
 }
 
-function dismissPopup(){
+function dismissPopup(instant){
   const p=document.getElementById('guide-popup');
   const sl=document.getElementById('guide-spotlight');
   const svg=document.getElementById('popup-arrow-svg');
@@ -206,16 +206,29 @@ function dismissPopup(){
     const guestBanner=document.getElementById('guest-mode-banner');
     if(guestBanner) guestBanner.style.display='flex';
   }
-  // remove resize listener
   window.removeEventListener('resize',_onPopupResize);
-  if(p){p.classList.remove('visible');setTimeout(()=>p.style.display='none',400);}
-  if(sl){sl.classList.remove('visible');setTimeout(()=>{sl.style.display='none';},500);}
-  if(svg){svg.classList.remove('visible');setTimeout(()=>{svg.style.display='none';},500);}
-  if(lbl){lbl.style.opacity='0';setTimeout(()=>{lbl.style.display='none';},500);}
-  ['bl-top','bl-bot','bl-lft','bl-rgt'].forEach(id=>{
-    const el=document.getElementById(id);
-    if(el){el.classList.remove('visible');setTimeout(()=>{el.style.display='none';},500);}
-  });
+
+  if(instant){
+    // back button dismiss — hide everything instantly, cockpit unfreezes immediately
+    if(p){p.classList.remove('visible');p.style.display='none';}
+    if(sl){sl.classList.remove('visible');sl.style.display='none';}
+    if(svg){svg.classList.remove('visible');svg.style.display='none';}
+    if(lbl){lbl.style.opacity='0';lbl.style.display='none';}
+    ['bl-top','bl-bot','bl-lft','bl-rgt'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el){el.classList.remove('visible');el.style.display='none';}
+    });
+  } else {
+    // button dismiss — smooth fade out
+    if(p){p.classList.remove('visible');setTimeout(()=>p.style.display='none',400);}
+    if(sl){sl.classList.remove('visible');setTimeout(()=>{sl.style.display='none';},500);}
+    if(svg){svg.classList.remove('visible');setTimeout(()=>{svg.style.display='none';},500);}
+    if(lbl){lbl.style.opacity='0';setTimeout(()=>{lbl.style.display='none';},500);}
+    ['bl-top','bl-bot','bl-lft','bl-rgt'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el){el.classList.remove('visible');setTimeout(()=>{el.style.display='none';},500);}
+    });
+  }
 }
 
 function _onPopupResize(){
@@ -12943,11 +12956,9 @@ window.addEventListener('popstate', function(){
   var layer2 = document.getElementById('layer2');
   var confirmOverlay = document.getElementById('confirm-overlay') || document.querySelector('.confirm-overlay');
 
-  // if guide popup is visible — dismiss it, stay on cockpit
+  // if guide popup is visible — block back entirely, only "okay" can dismiss it
   if(guidePopup && guidePopup.classList.contains('visible')){
-    if(typeof dismissPopup==='function') dismissPopup();
-    history.replaceState({batt:'cockpit'}, '', '#cockpit');
-    document.title = 'BATT · Cockpit';
+    history.pushState({batt:'guide-lock'}, '', window.location.hash||'#cockpit');
     return;
   }
   // if risk disclosure (layer2) is visible — go back to member area
