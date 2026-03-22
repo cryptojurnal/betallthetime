@@ -7919,8 +7919,14 @@ function goLayer3(){
   // show/hide ☰ menu based on allowed usernames
   if(typeof initL3MenuVisibility==='function') initL3MenuVisibility();
   // load badges + stats from server
-  if(typeof loadBadgesFromServer==='function') loadBadgesFromServer().then(()=>{ if(typeof checkBadges==='function') checkBadges(); });
-  if(typeof loadStatsFromServer==='function') loadStatsFromServer();
+  // load badges + stats together — only checkBadges after BOTH complete to prevent false toast
+  if(typeof loadBadgesFromServer==='function' && typeof loadStatsFromServer==='function'){
+    Promise.all([loadBadgesFromServer(), loadStatsFromServer()]).then(()=>{
+      if(typeof checkBadges==='function') checkBadges();
+    });
+  } else if(typeof loadBadgesFromServer==='function'){
+    loadBadgesFromServer().then(()=>{ if(typeof checkBadges==='function') checkBadges(); });
+  }
   if(typeof loadAllUserDataFromServer==='function') loadAllUserDataFromServer();
   // update stats
   updateMemberStats();
@@ -8570,7 +8576,10 @@ function showBadgeInfo(id, name, desc, unlocked){
 function incrementBadgeCounter(key){
   const count = parseInt(localStorage.getItem(key)||'0')+1;
   localStorage.setItem(key, count);
-  setTimeout(checkBadges, 100);
+  // only checkBadges if _badgeData is populated (badges loaded from server)
+  if(Object.keys(_badgeData).length > 0 || count === 1){
+    setTimeout(checkBadges, 100);
+  }
 }
 
 // ── PRESET SHARING ──
