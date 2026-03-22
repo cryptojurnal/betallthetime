@@ -861,20 +861,20 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
 #tp-chart-container{flex:1;width:100%;min-height:250px}
 
 /* Order Form */
-.tp-order-form{padding:12px;flex:1;overflow-y:auto;min-height:0;scrollbar-width:none}
-.tp-order-tabs{display:flex;gap:4px;margin-bottom:12px}
+.tp-order-form{padding:8px;flex:1;overflow-y:auto;min-height:0;scrollbar-width:none;display:flex;flex-direction:column;gap:6px}
+.tp-order-tabs{display:flex;gap:3px;margin-bottom:0}
 .tp-order-tab{font-family:'Trebuchet MS', 'Trebuchet', sans-serif;flex:1;padding:10px;background:#111;border:none;color:#555;font-size:11px;font-weight:700;cursor:pointer;border-radius:6px;transition:all .2s}
 .tp-order-tab:hover{color:#888}
 .tp-order-tab.active{background:#1a1a1a;color:#fff}
 
-.tp-side-btns{display:flex;gap:6px;margin-bottom:12px}
+.tp-side-btns{display:flex;gap:4px}
 .tp-side-btn{flex:1;padding:12px;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s}
 .tp-side-btn.long{background:#0d1f16;color:#00c47a;border:1px solid #0a2a1a}
 .tp-side-btn.long:hover,.tp-side-btn.long.active{background:#00c47a;color:#000;border-color:#00c47a}
 .tp-side-btn.short{background:#1f0d0d;color:#E24B4A;border:1px solid #2a0a0a}
 .tp-side-btn.short:hover,.tp-side-btn.short.active{background:#E24B4A;color:#fff;border-color:#E24B4A}
 
-.tp-input-group{margin-bottom:10px}
+.tp-input-group{margin-bottom:0}
 .tp-input-label{display:flex;justify-content:space-between;font-size:9px;color:#555;margin-bottom:4px;text-transform:uppercase;letter-spacing:.03em}
 .tp-input-label span{color:#00c47a;cursor:pointer}
 .tp-input-wrap{display:flex;background:#111;border:1px solid #1a1a1a;border-radius:6px;overflow:hidden}
@@ -897,12 +897,12 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
 .tp-tpsl-row .tp-input-group{flex:1;margin-bottom:0}
 
 .tp-order-summary{background:#111;border-radius:6px;padding:10px;margin-bottom:12px;font-size:10px}
-.tp-summary-row{display:flex;justify-content:space-between;padding:4px 0;color:#555}
+.tp-summary-row{display:flex;justify-content:space-between;padding:2px 0;color:#555;font-size:10px}
 .tp-summary-row span:last-child{color:#888;font-weight:600}
 .tp-summary-row.highlight span:last-child{color:#00c47a}
 .tp-summary-row.warn span:last-child{color:#E24B4A}
 
-.tp-submit-btn{font-family:'Trebuchet MS', 'Trebuchet', sans-serif;width:100%;padding:14px;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;transition:all .15s}
+.tp-submit-btn{font-family:'Trebuchet MS','Trebuchet',sans-serif;width:100%;padding:11px;border:none;border-radius:8px;font-size:12px;font-weight:800;cursor:pointer;transition:all .15s;margin-top:auto;flex-shrink:0}
 .tp-submit-btn.long{background:linear-gradient(135deg,#00c47a,#00a866);color:#000}
 .tp-submit-btn.short{background:linear-gradient(135deg,#E24B4A,#c43a3a);color:#fff}
 .tp-submit-btn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,196,122,.3)}
@@ -982,10 +982,10 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
 .tp-pair-item-change.down{color:#E24B4A}
 
 /* Exchange Tabs in Modal */
-.tp-ex-tabs{display:flex;gap:4px;padding:0 16px 12px;border-bottom:1px solid #1a1a1a}
-.tp-ex-tabs button{padding:8px 16px;background:#0a0a0a;border:1px solid #1a1a1a;border-radius:6px;color:#555;font-size:10px;font-weight:700;cursor:pointer;transition:all .2s}
+.tp-ex-tabs{display:flex;gap:3px;padding:0}
+.tp-ex-tabs button{flex:1;padding:5px 4px;background:#0a0a0a;border:0.5px solid #1a1a1a;border-radius:5px;color:#555;font-size:9px;font-weight:700;cursor:pointer;font-family:'Trebuchet MS',sans-serif}
 .tp-ex-tabs button:hover{border-color:#333;color:#888}
-.tp-ex-tabs button.active{background:#1a1a1a;border-color:#333;color:#fff}
+.tp-ex-tabs button.active{background:#1a1a2a;border-color:#5b7fff;color:#5b7fff}
 
 body.t-lavender{--bg:#f0eef8;--panel:#fff;--bd:#d8d4f0;--bd2:#e4e0f4;--sf:#f8f6ff;--sf2:#f0eef8;--tx:#2a1a4a;--tx2:#8070b0;--tx3:#c0b0e0;--acc:#7050c0;--acc2:#5060e0;--mh:#4030a0;--mhc:#fff;--mhs:#c0b8f0;--inp:#f8f6ff;--btn:#f0eef8;--btno:#e0d8f8;--btonc:#7050c0;--tog:#fff;--togon:#4030a0;--togonc:#fff;--tabact:#4030a0;--tabactc:#fff;--wd-on:#e0d8f8;--wd-onc:#7050c0}
 
@@ -3012,44 +3012,49 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
           </div>
         </div>
 
-        <!-- Leverage (only for perpetual) -->
-        <div class="tp-leverage-row" id="tp-leverage-row">
-          <span class="tp-leverage-label">Leverage</span>
-          <input type="range" class="tp-leverage-slider" id="tp-leverage-slider" min="1" max="125" value="10" oninput="tpSetLeverageSlider(this.value)">
-          <span class="tp-leverage-value" id="tp-leverage-value">10x</span>
+        <!-- Leverage -->
+        <div class="tp-leverage-row" id="tp-leverage-row" style="display:flex;align-items:center;gap:6px;padding:4px 0">
+          <span style="font-size:9px;color:#555;font-family:'Trebuchet MS',sans-serif;flex-shrink:0">Leverage</span>
+          <input type="range" class="tp-leverage-slider" id="tp-leverage-slider" min="1" max="125" value="10" oninput="tpSetLeverageSlider(this.value)" style="flex:1">
+          <span style="font-size:10px;font-weight:800;color:#00c47a;min-width:28px;text-align:right;font-family:'Trebuchet MS',sans-serif" id="tp-leverage-value">10x</span>
         </div>
 
-        <!-- TP/SL -->
-        <div class="tp-tpsl-row" id="tp-tpsl-row">
-          <div class="tp-input-group">
-            <div class="tp-input-label">Take Profit %</div>
-            <div class="tp-input-wrap">
-              <input type="number" class="tp-input" id="tp-tp" placeholder="10" value="10" oninput="tpCalculate()">
-              <span class="tp-input-suffix">%</span>
-            </div>
+        <!-- TP/SL inline -->
+        <div id="tp-tpsl-row" style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+          <div>
+            <div style="font-size:8px;color:#555;font-family:'Trebuchet MS',sans-serif;margin-bottom:2px;text-transform:uppercase;letter-spacing:.05em">TP %</div>
+            <div class="tp-input-wrap"><input type="number" class="tp-input" id="tp-tp" placeholder="10" value="10" oninput="tpCalculate()" style="font-size:11px;padding:5px 8px"><span class="tp-input-suffix" style="font-size:9px">%</span></div>
           </div>
-          <div class="tp-input-group">
-            <div class="tp-input-label">Stop Loss %</div>
-            <div class="tp-input-wrap">
-              <input type="number" class="tp-input" id="tp-sl" placeholder="5" value="5" oninput="tpCalculate()">
-              <span class="tp-input-suffix">%</span>
-            </div>
+          <div>
+            <div style="font-size:8px;color:#555;font-family:'Trebuchet MS',sans-serif;margin-bottom:2px;text-transform:uppercase;letter-spacing:.05em">SL %</div>
+            <div class="tp-input-wrap"><input type="number" class="tp-input" id="tp-sl" placeholder="5" value="5" oninput="tpCalculate()" style="font-size:11px;padding:5px 8px"><span class="tp-input-suffix" style="font-size:9px">%</span></div>
           </div>
         </div>
 
-        <div class="tp-order-summary">
-          <div class="tp-summary-row"><span>Entry Price</span><span id="tp-sum-entry">$69,420.50</span></div>
-          <div class="tp-summary-row"><span id="tp-sum-value-label">Position Value</span><span id="tp-sum-value">$1,000.00</span></div>
-          <div class="tp-summary-row" id="tp-sum-margin-row"><span>Margin Required</span><span id="tp-sum-margin">$100.00</span></div>
-          <div class="tp-summary-row warn" id="tp-sum-liq-row"><span>Liquidation</span><span id="tp-sum-liq">$62,478.45</span></div>
-          <div class="tp-summary-row highlight" id="tp-sum-tp-row"><span>Take Profit</span><span id="tp-sum-tp">$76,362.55</span></div>
-          <div class="tp-summary-row warn" id="tp-sum-sl-row"><span>Stop Loss</span><span id="tp-sum-sl">$65,949.48</span></div>
-          <div class="tp-summary-row"><span>Est. Fee</span><span id="tp-sum-fee">~$0.10</span></div>
+        <!-- Summary — compact inline grid -->
+        <div class="tp-order-summary" style="background:#050505;border:0.5px solid #1a1a1a;border-radius:6px;padding:6px 8px;display:grid;grid-template-columns:1fr 1fr;gap:0">
+          <div class="tp-summary-row" style="grid-column:1/-1;border-bottom:0.5px solid #111;padding-bottom:4px;margin-bottom:2px">
+            <span style="font-size:10px;color:#444">Entry</span>
+            <span style="font-size:10px;color:#888;font-weight:700" id="tp-sum-entry">--</span>
+          </div>
+          <div class="tp-summary-row" id="tp-sum-margin-row">
+            <span>Margin</span><span id="tp-sum-margin">--</span>
+          </div>
+          <div class="tp-summary-row warn" id="tp-sum-liq-row">
+            <span>Liq</span><span id="tp-sum-liq" style="color:#e24b4a">--</span>
+          </div>
+          <div class="tp-summary-row highlight" id="tp-sum-tp-row">
+            <span>TP</span><span id="tp-sum-tp" style="color:#00c47a">--</span>
+          </div>
+          <div class="tp-summary-row warn" id="tp-sum-sl-row">
+            <span>SL</span><span id="tp-sum-sl" style="color:#e24b4a">--</span>
+          </div>
+          <div class="tp-summary-row" style="grid-column:1/-1;border-top:0.5px solid #111;padding-top:4px;margin-top:2px">
+            <span>Fee</span><span id="tp-sum-fee">--</span>
+          </div>
         </div>
 
-        <button class="tp-submit-btn long" id="tp-submit" onclick="tpPlaceOrder()">
-          Buy BTC
-        </button>
+        <button class="tp-submit-btn long" id="tp-submit" onclick="tpPlaceOrder()">Buy BTC</button>
       </div>
 
       </div><!-- end sidebar-inner -->
