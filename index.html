@@ -778,8 +778,20 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
 .tp-ob-spread span{color:#444;font-weight:600}
 /* ob rows — see flash css block */
 .tp-ob-row:hover{background:rgba(255,255,255,0.05)}
-.tp-ob-row.ask{color:#E24B4A}
-.tp-ob-row.bid{color:#00c47a}
+.tp-ob-row.ask{color:#e0e0e0}
+.tp-ob-row.bid{color:#e0e0e0}
+.tp-ob-row.ask .price{color:#e24b4a;font-weight:700}
+.tp-ob-row.bid .price{color:#00c47a;font-weight:700}
+.tp-ob-row .size{color:#888;text-align:right}
+.tp-ob-row .usdt{color:#444;text-align:right}
+@keyframes flashGreen{0%{background:rgba(0,196,122,0.3)}100%{background:transparent}}
+@keyframes flashRed{0%{background:rgba(226,75,74,0.3)}100%{background:transparent}}
+@keyframes obPricePulse{0%{opacity:1}40%{opacity:0.4}100%{opacity:1}}
+.ob-flash-up{animation:flashGreen .5s ease-out}
+.ob-flash-dn{animation:flashRed .5s ease-out}
+.ob-price-pulse{animation:obPricePulse .3s ease-in-out}
+.tp-ob-mid-price.up{color:#00c47a}
+.tp-ob-mid-price.dn{color:#e24b4a}
 .tp-ob-row .price{flex:1;font-weight:600}
 .tp-ob-row .size{flex:1;text-align:right;color:#555}
 /* ob depth — see flash css block */
@@ -9867,7 +9879,7 @@ function tpStartWebSocket(){
 
   if(ex === 'binance'){
     const base = isSpot
-      ? 'wss://stream.binance.com:9443/stream?streams='
+      ? 'wss://stream.binance.com/stream?streams='
       : 'wss://fstream.binance.com/stream?streams=';
     // combine ticker + orderbook in one connection
     const streams = `${pair}@ticker/${pair}@depth10@100ms`;
