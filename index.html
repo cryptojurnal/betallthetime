@@ -447,17 +447,16 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
 
 
 /* ── SIMULATOR LEFT POSITIONS PANEL ── */
-.tp-pos-panel{position:absolute;left:0;top:0;bottom:0;width:280px;background:#0a0a0a;border-right:0.5px solid #1a1a1a;display:flex;flex-direction:column;z-index:10;transition:width .3s cubic-bezier(.4,0,.2,1);overflow:hidden;will-change:width}
-.tp-pos-panel.collapsed{width:0;border-right:none}
-.tp-pos-panel-toggle{position:absolute;left:0;top:50%;transform:translateY(-50%);width:18px;height:80px;background:linear-gradient(180deg,#00c47a,#1D9E75);border:none;border-radius:0 10px 10px 0;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:11;transition:left .3s cubic-bezier(.4,0,.2,1),opacity .3s;opacity:0;pointer-events:none}
-.tp-pos-panel-toggle.visible{opacity:1;pointer-events:all}
-.tp-pos-panel-toggle.open{left:280px}
-.tp-pos-panel-toggle-icon{font-size:10px;color:#fff;writing-mode:vertical-rl;letter-spacing:1px;font-weight:800;font-family:'Trebuchet MS',sans-serif;font-size:8px;text-transform:uppercase}
-.tp-pos-panel-inner{width:280px;flex-shrink:0;display:flex;flex-direction:column;height:100%;overflow:hidden}
+.tp-pos-panel{width:260px;min-width:260px;background:#0a0a0a;border-right:0.5px solid #1a1a1a;display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;transition:width .35s cubic-bezier(.4,0,.2,1),min-width .35s cubic-bezier(.4,0,.2,1);will-change:width}
+.tp-pos-panel.collapsed{width:0;min-width:0;border-right:none;overflow:hidden}
+.tp-pos-panel-inner{width:260px;flex-shrink:0;display:flex;flex-direction:column;height:100%;overflow:hidden}
 .tp-pos-panel-header{padding:8px 12px;border-bottom:0.5px solid #1a1a1a;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
 .tp-pos-panel-title{font-size:10px;font-weight:700;color:#555;text-transform:uppercase;letter-spacing:.08em;font-family:'Trebuchet MS',sans-serif}
-/* shift chart section when panel open */
-.tp-chart-section{position:relative;transition:margin-left .3s cubic-bezier(.4,0,.2,1)}
+.tp-pos-panel-toggle{position:fixed;left:0;top:50%;transform:translateY(-50%);width:18px;height:80px;background:linear-gradient(180deg,#00c47a,#1D9E75);border:none;border-radius:0 10px 10px 0;cursor:grab;display:flex;align-items:center;justify-content:center;z-index:9999;transition:left .35s cubic-bezier(.4,0,.2,1),opacity .3s,width .2s;opacity:0;pointer-events:none;user-select:none;touch-action:none;will-change:left,opacity}
+.tp-pos-panel-toggle.visible{opacity:1;pointer-events:all}
+.tp-pos-panel-toggle.open{left:260px}
+.tp-pos-panel-toggle.dragging{cursor:grabbing;width:22px;box-shadow:4px 0 20px rgba(0,196,122,0.4)}
+.tp-pos-panel-toggle-icon{color:#fff;writing-mode:vertical-rl;font-weight:800;font-family:'Trebuchet MS',sans-serif;font-size:8px;text-transform:uppercase;letter-spacing:1px}
 /* ── END SIMULATOR LEFT POSITIONS PANEL ── */
 
 /* trade panel toggle button — mirrors panel-left-toggle exactly but different color + position */
@@ -2853,7 +2852,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
   </div>
 
   <!-- Main Layout -->
-  <div style="position:relative;flex:1;display:flex;min-height:0;overflow:hidden">
+  <div style="flex:1;display:flex;min-height:0;overflow:hidden;position:relative">
   <!-- Left Positions Panel -->
   <div class="tp-pos-panel collapsed" id="tp-pos-panel">
     <div class="tp-pos-panel-inner">
@@ -2896,8 +2895,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
       </div>
     </div>
   </div>
-  <!-- Panel Toggle -->
-  <button class="tp-pos-panel-toggle visible" id="tp-pos-toggle" onclick="tpTogglePosPanel()">
+  <button class="tp-pos-panel-toggle visible" id="tp-pos-toggle">
     <span class="tp-pos-panel-toggle-icon">POS</span>
   </button>
   <div class="tp-main">
@@ -4825,22 +4823,96 @@ function fmtPrice(price, withDollar=true){
 // ── END SMART PRICE FORMATTER ──
 
 
-// ── POSITIONS PANEL TOGGLE ──
+// ── POSITIONS PANEL TOGGLE + DRAG (cockpit style) ──
 var _tpPosOpen = false;
-function tpTogglePosPanel(){
-  _tpPosOpen = !_tpPosOpen;
+
+function _tpSyncPosToggle(){
   const panel = document.getElementById('tp-pos-panel');
   const toggle = document.getElementById('tp-pos-toggle');
-  if(!panel||!toggle) return;
+  if(!toggle) return;
+  const open = panel && !panel.classList.contains('collapsed');
+  toggle.style.left = open ? '260px' : '0px';
+  const icon = toggle.querySelector('.tp-pos-panel-toggle-icon');
+  if(icon) icon.textContent = open ? '◀' : 'POS';
+}
+
+function tpTogglePosPanel(){
+  const panel = document.getElementById('tp-pos-panel');
+  if(!panel) return;
+  _tpPosOpen = panel.classList.contains('collapsed');
   if(_tpPosOpen){
+    panel.style.overflow = 'hidden';
     panel.classList.remove('collapsed');
-    toggle.classList.add('open');
-    toggle.querySelector('.tp-pos-panel-toggle-icon').textContent = '◀';
+    setTimeout(()=>{ panel.style.overflow = ''; }, 380);
   } else {
     panel.classList.add('collapsed');
-    toggle.classList.remove('open');
-    toggle.querySelector('.tp-pos-panel-toggle-icon').textContent = 'POS';
   }
+  setTimeout(_tpSyncPosToggle, 10);
+  // resize TV chart after transition
+  setTimeout(()=>{
+    if(_tvWidget && _tvWidget.iframe){
+      try{ _tvWidget.iframe.contentWindow.dispatchEvent(new Event('resize')); }catch(e){}
+    }
+  }, 380);
+}
+
+// ── DRAG SYSTEM ──
+(function(){
+  var toggle, startY, startTop, dragging=false, hasDragged=false;
+  var _rafId=null, _lastY=0;
+
+  function isPosToggle(el){
+    return el && (el.id==='tp-pos-toggle' || el.closest('#tp-pos-toggle'));
+  }
+
+  function onDown(e){
+    toggle = document.getElementById('tp-pos-toggle');
+    if(!toggle || !toggle.classList.contains('visible')) return;
+    var pt = e.touches ? e.touches[0] : e;
+    startY = pt.clientY;
+    var computedTop = toggle.style.top
+      ? parseInt(toggle.style.top)
+      : (window.innerHeight/2 - toggle.offsetHeight/2);
+    startTop = computedTop;
+    dragging = true; hasDragged = false;
+    toggle.classList.add('dragging');
+    e.preventDefault();
+  }
+
+  function onMove(e){
+    if(!dragging || !toggle) return;
+    var pt = e.touches ? e.touches[0] : e;
+    var deltaY = pt.clientY - startY;
+    if(Math.abs(deltaY) < 4) return;
+    hasDragged = true;
+    var H = window.innerHeight, tH = toggle.offsetHeight;
+    _lastY = Math.max(20, Math.min(startTop + deltaY, H - tH - 20));
+    if(!_rafId) _rafId = requestAnimationFrame(function(){
+      if(toggle){ toggle.style.top = _lastY + 'px'; toggle.style.transform = 'none'; }
+      _rafId = null;
+    });
+    e.preventDefault();
+  }
+
+  function onUp(e){
+    if(!dragging) return;
+    dragging = false;
+    if(toggle) toggle.classList.remove('dragging');
+    if(!hasDragged) tpTogglePosPanel();
+  }
+
+  document.addEventListener('mousedown', function(e){ if(isPosToggle(e.target)) onDown(e); });
+  document.addEventListener('touchstart', function(e){ if(isPosToggle(e.target)) onDown(e); }, {passive:false});
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('touchmove', onMove, {passive:false});
+  document.addEventListener('mouseup', onUp);
+  document.addEventListener('touchend', onUp);
+})();
+
+// init toggle position when simulator opens
+function _tpInitPosPanel(){
+  const toggle = document.getElementById('tp-pos-toggle');
+  if(toggle){ toggle.style.left='0px'; toggle.style.top=''; toggle.style.transform=''; }
 }
 // ── END POSITIONS PANEL TOGGLE ──
 
