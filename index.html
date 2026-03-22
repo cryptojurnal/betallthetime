@@ -9671,6 +9671,8 @@ function tpStartWebSocket(){
   if(highEl) highEl.textContent = '--';
   if(lowEl) lowEl.textContent = '--';
   if(volEl) volEl.textContent = '--';
+  // fetch via REST immediately while WS is connecting
+  tpFetchPrices().then(()=>tpFetchOrderBook());
   const ex = TP_STATE.exchange || 'binance';
   const isSpot = TP_STATE.marketType === 'spot';
   const pair = (TP_STATE.pair || 'BTCUSDT').toLowerCase();
