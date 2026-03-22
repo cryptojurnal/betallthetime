@@ -85,7 +85,8 @@ function goLayer2(){
 function showGuidePopup(){
   const p=document.getElementById('guide-popup');
   if(!p) return;
-  // guide popup is a UI overlay — no history entry needed
+  // push ONE sentinel so back button has something to absorb — replaceState never grows stack
+  try{ history.replaceState({batt:'guide-lock'}, '', '#cockpit'); }catch(e){}
   // reset display in case it was hidden from a previous session
   p.style.display='';
   p.classList.remove('visible');
@@ -12958,7 +12959,7 @@ window.addEventListener('popstate', function(){
 
   // if guide popup is visible — block back entirely, only "okay" can dismiss it
   if(guidePopup && guidePopup.classList.contains('visible')){
-    history.pushState({batt:'guide-lock'}, '', window.location.hash||'#cockpit');
+    history.replaceState({batt:'guide-lock'}, '', '#cockpit');
     return;
   }
   // if risk disclosure (layer2) is visible — go back to member area
