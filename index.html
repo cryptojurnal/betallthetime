@@ -2319,9 +2319,20 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
       </div>
     </div>
 
-    <div class="l3-welcome">
-      <h1>welcome back, <span id="l3-welcome-name">trader</span></h1>
-      <p>your personal trading hub — explore features below</p>
+    <div class="l3-welcome" style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+      <div>
+        <h1>welcome back, <span id="l3-welcome-name">trader</span></h1>
+        <p>your personal trading hub — explore features below</p>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;margin-top:4px">
+        <span style="font-size:9px;font-weight:700;color:#333;text-transform:uppercase;letter-spacing:.08em">theme</span>
+        <div style="display:flex;gap:3px;background:#0a0a0a;border:0.5px solid #1a1a1a;border-radius:10px;padding:3px">
+          <button onclick="l3SetTheme('ma-dark')" id="l3t-dark" title="dark" style="width:28px;height:28px;border-radius:7px;border:none;background:#111;cursor:pointer;transition:all .15s;font-size:14px">🌑</button>
+          <button onclick="l3SetTheme('ma-light')" id="l3t-light" title="light" style="width:28px;height:28px;border-radius:7px;border:none;background:transparent;cursor:pointer;transition:all .15s;font-size:14px">☀️</button>
+          <button onclick="l3SetTheme('ma-midnight')" id="l3t-midnight" title="midnight" style="width:28px;height:28px;border-radius:7px;border:none;background:transparent;cursor:pointer;transition:all .15s;font-size:14px">🌌</button>
+          <button onclick="l3SetTheme('ma-emerald')" id="l3t-emerald" title="emerald" style="width:28px;height:28px;border-radius:7px;border:none;background:transparent;cursor:pointer;transition:all .15s;font-size:14px">💚</button>
+        </div>
+      </div>
     </div>
 
     <!-- QUICK STATS -->
@@ -2341,16 +2352,6 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
       </div>
     </div>
 
-    <!-- theme quick switcher -->
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
-      <span style="font-size:9px;font-weight:700;color:#333;text-transform:uppercase;letter-spacing:.08em;white-space:nowrap">theme</span>
-      <div style="display:flex;gap:4px;background:#0a0a0a;border:0.5px solid #1a1a1a;border-radius:10px;padding:3px">
-        <button onclick="l3SetTheme('ma-dark')" id="l3t-dark" title="dark" style="width:26px;height:26px;border-radius:7px;border:none;background:#111;cursor:pointer;transition:all .15s;font-size:13px">🌑</button>
-        <button onclick="l3SetTheme('ma-light')" id="l3t-light" title="light" style="width:26px;height:26px;border-radius:7px;border:none;background:transparent;cursor:pointer;transition:all .15s;font-size:13px">☀️</button>
-        <button onclick="l3SetTheme('ma-midnight')" id="l3t-midnight" title="midnight" style="width:26px;height:26px;border-radius:7px;border:none;background:transparent;cursor:pointer;transition:all .15s;font-size:13px">🌌</button>
-        <button onclick="l3SetTheme('ma-emerald')" id="l3t-emerald" title="emerald" style="width:26px;height:26px;border-radius:7px;border:none;background:transparent;cursor:pointer;transition:all .15s;font-size:13px">💚</button>
-      </div>
-    </div>
     <div class="l3-section-title">📦 tools & features</div>
     <div class="l3-grid">
       <div class="l3-card" onclick="openAccountPage()">
@@ -7652,9 +7653,9 @@ async function loadAccountPage(){
   if(prefTheme) prefTheme.value=prefs.ma_theme||'ma-dark';
   if(prefLang) prefLang.value=prefs.lang||'en';
   // sync pill active states
-  if(typeof accSetTheme==='function') accSetTheme(prefs.ma_theme||'ma-dark');
+  if(typeof _syncThemePills==='function') _syncThemePills(prefs.ma_theme||'ma-dark');
   if(typeof accSetLang==='function') accSetLang(prefs.lang||'en');
-  if(typeof l3SetTheme==='function') l3SetTheme(prefs.ma_theme||'ma-dark');
+  if(typeof l3SetTheme==='function') l3SetTheme(prefs.ma_theme||'ma-dark', true);
   // Apply member theme
   if(prefs.ma_theme) applyMemberTheme(prefs.ma_theme);
   
@@ -7665,11 +7666,11 @@ async function loadAccountPage(){
   if(typeof renderBadges==='function') renderBadges();
 }
 
-function l3SetTheme(val){
+function l3SetTheme(val, silent){
   applyMemberTheme(val);
-  savePref('ma_theme', val);
-  // sync account panel pills
-  if(typeof accSetTheme==='function') accSetTheme(val);
+  if(!silent) savePrefSilent('ma_theme', val);
+  // sync account panel pills without triggering save
+  _syncThemePills(val);
   // update member area switcher active state
   ['dark','light','midnight','emerald'].forEach(t=>{
     const btn = document.getElementById('l3t-'+t);
@@ -7677,8 +7678,9 @@ function l3SetTheme(val){
     btn.style.background = ('ma-'+t === val) ? '#00c47a22' : 'transparent';
     btn.style.outline = ('ma-'+t === val) ? '1.5px solid #00c47a' : 'none';
   });
+  if(!silent) showToast('Theme changed','success',1200);
 }
-function accSetTheme(val){
+function _syncThemePills(val){
   document.querySelectorAll('#acc-theme-pills button').forEach(b=>{
     const active = b.dataset.theme === val;
     b.style.background = active ? '#00c47a' : '#0a0a0a';
@@ -7687,7 +7689,19 @@ function accSetTheme(val){
   });
   const inp = document.getElementById('acc-pref-theme');
   if(inp) inp.value = val;
-  savePref('ma_theme', val);
+}
+function accSetTheme(val){
+  _syncThemePills(val);
+  // also sync l3 switcher
+  ['dark','light','midnight','emerald'].forEach(t=>{
+    const btn = document.getElementById('l3t-'+t);
+    if(!btn) return;
+    btn.style.background = ('ma-'+t === val) ? '#00c47a22' : 'transparent';
+    btn.style.outline = ('ma-'+t === val) ? '1.5px solid #00c47a' : 'none';
+  });
+  applyMemberTheme(val);
+  savePrefSilent('ma_theme', val);
+  showToast('Theme changed','success',1200);
 }
 function accSetLang(val){
   document.querySelectorAll('#acc-lang-pills button').forEach(b=>{
@@ -7699,6 +7713,16 @@ function accSetLang(val){
   const inp = document.getElementById('acc-pref-lang');
   if(inp) inp.value = val;
   savePref('lang', val);
+}
+function savePrefSilent(key,value){
+  const prefs=JSON.parse(localStorage.getItem('batt_prefs')||'{}');
+  prefs[key]=value;
+  localStorage.setItem('batt_prefs',JSON.stringify(prefs));
+  if(key==='ma_theme') applyMemberTheme(value);
+  if(key==='lang'&&typeof aiSetLang==='function') aiSetLang(value);
+  if(AUTH_TOKEN){
+    fetch(AUTH_URL+'/prefs/save',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+AUTH_TOKEN},body:JSON.stringify({prefs})}).catch(()=>{});
+  }
 }
 function savePref(key,value){
   const prefs=JSON.parse(localStorage.getItem('batt_prefs')||'{}');
