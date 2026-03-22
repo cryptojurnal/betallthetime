@@ -2999,16 +2999,20 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 
         <div class="tp-input-group">
           <div class="tp-input-label">
-            <span id="tp-size-label">Size</span>
-            <span onclick="tpSetMaxSize()">Max</span>
+            <span id="tp-size-label">Size (USDT)</span>
+            <span onclick="tpSetMaxSize()" style="color:#00c47a;cursor:pointer;font-size:8px">MAX</span>
           </div>
-          <div class="tp-input-wrap">
-            <input type="number" class="tp-input" id="tp-size" placeholder="100" value="100" oninput="tpCalculate()">
-            <span class="tp-input-suffix">USDT</span>
-            <div class="tp-input-btns">
-              <button onclick="tpAdjustSize(10)">+</button>
-              <button onclick="tpAdjustSize(-10)">−</button>
+          <div style="display:flex;gap:4px;align-items:center">
+            <div class="tp-input-wrap" style="flex:1">
+              <input type="number" class="tp-input" id="tp-size" placeholder="100" value="100" oninput="tpCalculate()">
+              <span class="tp-input-suffix">USDT</span>
             </div>
+          </div>
+          <div style="display:flex;gap:3px;margin-top:3px">
+            <button onclick="tpSetSizePct(25)" style="flex:1;padding:3px;font-size:8px;background:#111;border:0.5px solid #1a1a1a;border-radius:4px;color:#555;cursor:pointer;font-family:'Trebuchet MS',sans-serif">25%</button>
+            <button onclick="tpSetSizePct(50)" style="flex:1;padding:3px;font-size:8px;background:#111;border:0.5px solid #1a1a1a;border-radius:4px;color:#555;cursor:pointer;font-family:'Trebuchet MS',sans-serif">50%</button>
+            <button onclick="tpSetSizePct(75)" style="flex:1;padding:3px;font-size:8px;background:#111;border:0.5px solid #1a1a1a;border-radius:4px;color:#555;cursor:pointer;font-family:'Trebuchet MS',sans-serif">75%</button>
+            <button onclick="tpSetSizePct(100)" style="flex:1;padding:3px;font-size:8px;background:#111;border:0.5px solid #1a1a1a;border-radius:4px;color:#555;cursor:pointer;font-family:'Trebuchet MS',sans-serif">100%</button>
           </div>
         </div>
 
@@ -10805,12 +10809,15 @@ function tpCalculate() {
   
   const fmt = (n) => fmtPrice(n);
   
-  document.getElementById('tp-sum-entry').textContent = fmt(price);
-  document.getElementById('tp-sum-value').textContent = fmt(posValue);
-  document.getElementById('tp-sum-margin').textContent = fmt(margin);
-  document.getElementById('tp-sum-liq').textContent = fmt(liqPrice);
-  document.getElementById('tp-sum-tp').textContent = fmt(tpPrice);
-  document.getElementById('tp-sum-sl').textContent = fmt(slPrice);
+  const fee = posValue * 0.00055; // 0.055% taker fee
+  const el = id => document.getElementById(id);
+  if(el('tp-sum-entry')) el('tp-sum-entry').textContent = fmt(price);
+  if(el('tp-sum-margin')) el('tp-sum-margin').textContent = fmt(margin);
+  if(el('tp-sum-liq')) el('tp-sum-liq').textContent = fmt(liqPrice);
+  if(el('tp-sum-tp')) el('tp-sum-tp').textContent = fmt(tpPrice);
+  if(el('tp-sum-sl')) el('tp-sum-sl').textContent = fmt(slPrice);
+  if(el('tp-sum-fee')) el('tp-sum-fee').textContent = '~' + fmt(fee);
+  if(el('tp-sum-value')) el('tp-sum-value').textContent = fmt(posValue);
 }
 
 // Place order
