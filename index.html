@@ -776,17 +776,15 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
 .tp-trade-row .t-size,.tp-trade-row .t-time{color:#555;text-align:right}
 .tp-ob-spread{font-size:8px;color:#333;margin-top:2px;letter-spacing:.02em}
 .tp-ob-spread span{color:#444;font-weight:600}
-.tp-ob-row{display:flex;justify-content:space-between;padding:3px 10px;font-size:10px;font-family:monospace;position:relative;cursor:pointer;transition:background .1s}
+/* ob rows — see flash css block */
 .tp-ob-row:hover{background:rgba(255,255,255,0.05)}
 .tp-ob-row.ask{color:#E24B4A}
 .tp-ob-row.bid{color:#00c47a}
 .tp-ob-row .price{flex:1;font-weight:600}
 .tp-ob-row .size{flex:1;text-align:right;color:#555}
-.tp-ob-row .depth{position:absolute;right:0;top:0;bottom:0;opacity:0.15;transition:width .3s}
-.tp-ob-row.ask .depth{background:#E24B4A}
-.tp-ob-row.bid .depth{background:#00c47a}
+/* ob depth — see flash css block */
 .tp-ob-mid{padding:4px 6px;background:#111;text-align:center;border-top:0.5px solid #1a1a1a;border-bottom:0.5px solid #1a1a1a;flex-shrink:0}
-.tp-ob-mid-price{font-size:16px;font-weight:800;color:#fff}
+/* ob mid price — see flash css block */
 .tp-ob-mid-change{font-size:10px;margin-top:2px}
 .tp-ob-mid-change.up{color:#00c47a}
 .tp-ob-mid-change.down{color:#E24B4A}
@@ -9887,9 +9885,16 @@ function tpStartWebSocket(){
           const high = parseFloat(data.h)||0;
           const low = parseFloat(data.l)||0;
           const vol = parseFloat(data.q)||0;
+          const _prevPB = TP_STATE.prices[pairUp]?.price||0;
           TP_STATE.prices[pairUp] = {symbol:pairUp,price,change,high,low,volume:vol};
           tpUpdatePriceDisplay();
           tpUpdatePositionsPnL();
+          const _tpEl = document.getElementById('tp-price-main');
+          if(_tpEl && _prevPB && price!==_prevPB){
+            _tpEl.style.transition='color .15s';
+            _tpEl.style.color=price>_prevPB?'#00c47a':'#e24b4a';
+            setTimeout(()=>{_tpEl.style.color='';},300);
+          }
         }
         if(stream.includes('@depth')){
           if(data.asks && data.bids) tpRenderOrderBookData(data.asks, data.bids);
@@ -9930,9 +9935,16 @@ function tpStartWebSocket(){
           const high = parseFloat(d.highPrice24h)||0;
           const low = parseFloat(d.lowPrice24h)||0;
           const vol = parseFloat(d.turnover24h)||0;
+          const _prevPB = TP_STATE.prices[pairUp]?.price||0;
           TP_STATE.prices[pairUp] = {symbol:pairUp,price,change,high,low,volume:vol};
           tpUpdatePriceDisplay();
           tpUpdatePositionsPnL();
+          const _tpEl = document.getElementById('tp-price-main');
+          if(_tpEl && _prevPB && price!==_prevPB){
+            _tpEl.style.transition='color .15s';
+            _tpEl.style.color=price>_prevPB?'#00c47a':'#e24b4a';
+            setTimeout(()=>{_tpEl.style.color='';},300);
+          }
         }
         if(topic.startsWith('orderbook')){
           const d = msg.data;
@@ -10942,72 +10954,87 @@ async function tpFetchOrderBook() {
   }
 }
 
+var _obPrevMidPrice = 0;
+var _obPrevRows = {asks:{},bids:{}};
+
 function tpRenderOrderBookData(asks, bids) {
   const asksContainer = document.getElementById('tp-ob-asks');
   const bidsContainer = document.getElementById('tp-ob-bids');
   const priceEl = document.getElementById('tp-ob-price');
   const changeEl = document.getElementById('tp-ob-change');
   const spreadEl = document.getElementById('tp-ob-spread');
-  
-  if (!asksContainer || !bidsContainer) return;
-  
-  const priceData = TP_STATE.prices[TP_STATE.pair] || { price: 69000, change: 0 };
-  const change = priceData.change;
-  
-  // Calculate max size for depth visualization
-  const allSizes = [...asks, ...bids].map(o => parseFloat(o[1]));
-  const maxSize = Math.max(...allSizes);
-  
-  // format helpers
-  const fmtSize = (s) => s >= 1000 ? (s/1000).toFixed(2)+'K' : s.toFixed(3);
-  const fmtUsdt = (v) => v >= 1000000 ? (v/1000000).toFixed(2)+'M' : v >= 1000 ? (v/1000).toFixed(1)+'K' : v.toFixed(0);
+  if(!asksContainer || !bidsContainer) return;
 
-  // Top 8 asks (reversed - lowest at bottom)
-  const topAsks = asks.slice(0, 8).reverse();
-  asksContainer.innerHTML = topAsks.map(a => {
-    const price = parseFloat(a[0]);
-    const size = parseFloat(a[1]);
-    const usdt = price * size;
-    const depth = (size / maxSize) * 100;
-    return `<div class="tp-ob-row ask" onclick="tpFillPrice(${price})" title="Click to set limit price">
-        <span class="price">${fmtPrice(price,false)}</span>
-        <span class="size">${fmtSize(size)}</span>
-        <span class="size" style="color:#555">${fmtUsdt(usdt)}</span>
-        <div class="depth" style="width:${depth}%"></div>
-      </div>`;
-  }).join('');
+  const priceData = TP_STATE.prices[TP_STATE.pair] || {price:0,change:0};
+  const fmtSize = (s) => s>=1000?(s/1000).toFixed(2)+'K':s.toFixed(3);
+  const fmtUsdt = (v) => v>=1000000?(v/1000000).toFixed(2)+'M':v>=1000?(v/1000).toFixed(1)+'K':v.toFixed(0);
+  const allSizes = [...asks,...bids].map(o=>parseFloat(o[1]));
+  const maxSize = Math.max(...allSizes)||1;
 
-  // Top 8 bids
-  const topBids = bids.slice(0, 8);
-  bidsContainer.innerHTML = topBids.map(b => {
-    const price = parseFloat(b[0]);
-    const size = parseFloat(b[1]);
-    const usdt = price * size;
-    const depth = (size / maxSize) * 100;
-    return `<div class="tp-ob-row bid" onclick="tpFillPrice(${price})" title="Click to set limit price">
-        <span class="price">${fmtPrice(price,false)}</span>
-        <span class="size">${fmtSize(size)}</span>
-        <span class="size" style="color:#555">${fmtUsdt(usdt)}</span>
-        <div class="depth" style="width:${depth}%"></div>
-      </div>`;
-  }).join('');
-  
-  // Mid price (average of best bid/ask)
-  const bestAsk = parseFloat(asks[0]?.[0] || 0);
-  const bestBid = parseFloat(bids[0]?.[0] || 0);
-  const midPrice = (bestAsk + bestBid) / 2;
-  const spread = bestAsk - bestBid;
-  
-  if (priceEl) priceEl.textContent = fmtPrice(midPrice);
-  if (changeEl) {
-    const isUp = change >= 0;
-    changeEl.textContent = (isUp ? '+' : '') + change.toFixed(2) + '%';
-    changeEl.className = 'tp-ob-mid-change ' + (isUp ? 'up' : 'down');
+  function updateRows(container, rows, side){
+    rows.forEach((r,i) => {
+      const price = parseFloat(r[0]);
+      const size = parseFloat(r[1]);
+      const usdt = price*size;
+      const depth = Math.min((size/maxSize)*100,100);
+      const key = r[0];
+      const prevSize = _obPrevRows[side][key];
+      const changed = prevSize!==undefined && prevSize!==size;
+      _obPrevRows[side][key] = size;
+      let row = container.children[i];
+      if(!row){
+        row = document.createElement('div');
+        row.className = 'tp-ob-row '+side;
+        row.innerHTML = '<span class="price"></span><span class="size"></span><span class="usdt"></span><div class="depth"></div>';
+        container.appendChild(row);
+      }
+      row.onclick = ()=>tpFillPrice(price);
+      const spans = row.querySelectorAll('span');
+      const newP = fmtPrice(price,false);
+      const newS = fmtSize(size);
+      const newU = fmtUsdt(usdt);
+      if(spans[0].textContent!==newP) spans[0].textContent=newP;
+      if(spans[1].textContent!==newS) spans[1].textContent=newS;
+      if(spans[2].textContent!==newU) spans[2].textContent=newU;
+      const d = row.querySelector('.depth');
+      if(d) d.style.width=depth+'%';
+      if(changed){
+        row.classList.remove('ob-flash-up','ob-flash-dn');
+        void row.offsetWidth;
+        row.classList.add(size>prevSize?'ob-flash-up':'ob-flash-dn');
+      }
+    });
+    while(container.children.length>rows.length) container.removeChild(container.lastChild);
   }
-  
-  if (spreadEl) {
-    const spreadPercent = ((spread / midPrice) * 100).toFixed(4);
-    spreadEl.textContent = `$${spread.toFixed(2)} (${spreadPercent}%)`;
+
+  updateRows(asksContainer, asks.slice(0,8).reverse(), 'asks');
+  updateRows(bidsContainer, bids.slice(0,8), 'bids');
+
+  const bestAsk = parseFloat(asks[0]?.[0]||0);
+  const bestBid = parseFloat(bids[0]?.[0]||0);
+  const midPrice = (bestAsk+bestBid)/2;
+  const spread = bestAsk-bestBid;
+
+  if(priceEl){
+    const newTxt = fmtPrice(midPrice);
+    if(priceEl.textContent !== newTxt){
+      priceEl.textContent = newTxt;
+      if(_obPrevMidPrice && midPrice!==_obPrevMidPrice){
+        priceEl.classList.remove('up','dn','ob-price-pulse');
+        void priceEl.offsetWidth;
+        priceEl.classList.add(midPrice>_obPrevMidPrice?'up':'dn','ob-price-pulse');
+      }
+    }
+    _obPrevMidPrice = midPrice;
+  }
+  if(changeEl){
+    const isUp = priceData.change>=0;
+    changeEl.textContent=(isUp?'+':'')+priceData.change.toFixed(2)+'%';
+    changeEl.className='tp-ob-mid-change '+(isUp?'up':'down');
+  }
+  if(spreadEl){
+    const pct = midPrice?((spread/midPrice)*100).toFixed(4):'0';
+    spreadEl.textContent=`${fmtPrice(spread,false)} (${pct}%)`;
   }
 }
 
