@@ -10890,10 +10890,12 @@ function tpSetMarketType(type) {
   
   tpCalculate();
   tpSaveState();
-  // sync everything — spot vs perp uses different endpoints
+  // full restart — spot/perp use different WS streams and REST endpoints
+  _obReset();
+  _tpTrades = [];
+  if(typeof tpStartWebSocket==='function') tpStartWebSocket();
   if(typeof tpInitTVChart==='function') tpInitTVChart();
-  if(typeof tpFetchPrices==='function') tpFetchPrices();
-  if(typeof tpFetchOrderBook==='function') tpFetchOrderBook();
+  if(_tpObMode==='trades' && typeof tpStartTradeWS==='function') tpStartTradeWS();
 }
 
 // Update submit button based on mode and side
