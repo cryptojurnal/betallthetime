@@ -2826,7 +2826,9 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
       <!-- Chart + Order Book -->
       <div class="tp-chart-area">
         <div class="tp-chart-wrap">
-          <div id="tp-tv-widget" style="flex:1;min-height:0;width:100%"></div>
+          <div style="flex:1;min-height:0;width:100%;overflow:hidden;position:relative">
+            <div id="tp-tv-widget" style="position:absolute;inset:-38px 0 0 0"></div>
+          </div>
         </div>
         
         <!-- Order Book -->
@@ -9437,6 +9439,11 @@ function tpInitTVChart(){
         'display_market_status',
         'header_undo_redo',
         'header_screenshot',
+        'header_saveload',
+        'header_settings',
+        'header_fullscreen_button',
+        'header_chart_type',
+        'timeframes_toolbar',
       ],
     });
   };
