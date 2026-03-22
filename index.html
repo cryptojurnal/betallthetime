@@ -5325,26 +5325,29 @@ function tpRenderOrders(){
   const countEl = document.getElementById('tp-orders-count');
   if(countEl) countEl.textContent = orders.length;
   if(!orders.length){
-    container.innerHTML = '<div class="tp-empty"><div class="tp-empty-icon">📋</div><div class="tp-empty-text">No pending orders</div></div>';
+    container.innerHTML = '<div class="tp-empty"><div class="tp-empty-icon">📋</div><div class="tp-empty-text">No pending orders<br><span style="font-size:9px;color:#333">Place a limit or stop order to see it here</span></div></div>';
     return;
   }
-  container.innerHTML = orders.map(o => `
-    <div class="tp-position-card" style="padding:8px 10px">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <div class="tp-pos-symbol">
-          <span class="tp-pos-symbol-name" style="font-size:12px">${o.pair.replace('USDT','')}/USDT</span>
-          <span class="tp-pos-badge ${o.side}">${o.side.toUpperCase()}</span>
-          <span class="tp-pos-badge" style="background:#1a1a2a;color:#888;text-transform:uppercase">${o.type}</span>
+  container.innerHTML = orders.map(o => {
+    const sideColor = o.side==='long' ? '#00c47a' : '#e24b4a';
+    const typeColor = o.type==='stop' ? '#EF9F27' : '#5b7fff';
+    return `<div class="tp-position-card" style="padding:10px;border-left:3px solid ${sideColor}">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="font-size:13px;font-weight:700;color:#e0e0e0">${o.pair.replace('USDT','')}/USDT</span>
+          <span style="font-size:9px;font-weight:800;padding:2px 6px;border-radius:4px;background:${sideColor}22;color:${sideColor}">${o.side.toUpperCase()}</span>
+          <span style="font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;background:${typeColor}22;color:${typeColor}">${o.type.toUpperCase()}</span>
         </div>
-        <button onclick="tpCancelOrder('${o.id}')" style="font-size:9px;padding:3px 8px;background:#2a0a0a;color:#e24b4a;border:0.5px solid #3a1a1a;border-radius:4px;cursor:pointer;font-family:'Trebuchet MS',sans-serif">cancel</button>
+        <button onclick="tpCancelOrder('${o.id}')" style="font-size:9px;padding:3px 10px;background:#2a0a0a;color:#e24b4a;border:0.5px solid #3a1a1a;border-radius:4px;cursor:pointer;font-family:'Trebuchet MS',sans-serif">✕ cancel</button>
       </div>
-      <div class="tp-pos-row2" style="margin-top:6px">
-        <div class="tp-pos-stat">Limit<span>${fmtPrice(o.limitPrice)}</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px">
+        <div class="tp-pos-stat">Price<span style="color:#e0e0e0">${fmtPrice(o.limitPrice)}</span></div>
         <div class="tp-pos-stat">Size<span>$${o.size}</span></div>
         <div class="tp-pos-stat">Lev<span>${o.leverage}x</span></div>
-        <div class="tp-pos-stat">Slip<span style="color:#888">${(tpCalcSlippage(o.pair,o.size)*100).toFixed(3)}%</span></div>
       </div>
-    </div>`).join('');
+      <div style="font-size:8px;color:#333;margin-top:4px">${(o.exchange||'').toUpperCase()} · ${o.marketType||'spot'} · ${new Date(o.createdAt).toLocaleTimeString()}</div>
+    </div>`;
+  }).join('');
 }
 
 function tpCancelOrder(id){
