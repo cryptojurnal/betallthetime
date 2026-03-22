@@ -9880,28 +9880,22 @@ function _obReset(){
 var _tpWS = null;
 var _tpOBWS = null;
 var _tpWSReconnectTimer = null;
+var _tpWSLive = false; // true when WS is sending price data
 
 function tpStartWebSocket(){
   tpStopWebSocket();
   if(window._tpPriceInterval) clearInterval(window._tpPriceInterval);
 
-  // clear display
-  ['tp-price-main','tp-high','tp-low','tp-vol'].forEach(id=>{
-    const el=document.getElementById(id); if(el) el.textContent='--';
-  });
-  const ce=document.getElementById('tp-price-change');
-  if(ce){ce.textContent='--';ce.className='tp-price-change';}
-
   // REST immediately for fast first load
   tpFetchPrices().then(()=>{ tpFetchOrderBook(); });
 
-  // REST fallback every 2s (always runs — WS is bonus on top)
+  // REST fallback every 2s — skips if WS is delivering data
   window._tpPriceInterval = setInterval(()=>{
-    tpFetchPrices();
-    tpFetchOrderBook();
+    if(!_tpWSLive) tpFetchPrices();
+    if(!_tpWSLive) tpFetchOrderBook();
   }, 2000);
 
-  // try WS on top — if it works, data flows faster
+  // WS on top for real-time
   _tpTryWS();
 }
 
@@ -9924,6 +9918,7 @@ function _tpTryWS(){
           const d=msg.data;
           const price=parseFloat(d.c)||0, change=parseFloat(d.P)||0;
           const prev=TP_STATE.prices[pairUp]?.price||0;
+          _tpWSLive=true;
           TP_STATE.prices[pairUp]={symbol:pairUp,price,change,high:parseFloat(d.h)||0,low:parseFloat(d.l)||0,volume:parseFloat(d.q)||0};
           tpUpdatePriceDisplay();
           tpUpdatePositionsPnL();
@@ -9986,7 +9981,7 @@ function _tpTryWS(){
     if(onopen) _tpWS.onopen = ()=>{ if(dot) dot.style.background='#00c47a'; onopen(); _tpWS._ping=setInterval(()=>{ if(_tpWS.readyState===1) _tpWS.send(ex==='okx'?'ping':JSON.stringify({op:'ping'})); },20000); };
     else _tpWS.onopen = ()=>{ if(dot) dot.style.background='#00c47a'; _tpWS._ping=setInterval(()=>{ if(_tpWS.readyState===1) _tpWS.send(JSON.stringify({op:'ping'})); },20000); };
     _tpWS.onmessage = (e)=>{ try{ const msg=JSON.parse(e.data); if(msg&&msg!=='pong') onmsg(msg); }catch(err){} };
-    _tpWS.onclose = _tpWS.onerror = ()=>{ if(_tpWS._ping) clearInterval(_tpWS._ping); if(dot) dot.style.background='#e24b4a'; };
+    _tpWS.onclose = _tpWS.onerror = ()=>{ if(_tpWS._ping) clearInterval(_tpWS._ping); if(dot) dot.style.background='#e24b4a'; _tpWSLive=false; };
   } catch(err){ if(dot) dot.style.background='#e24b4a'; }
 }
 
