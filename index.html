@@ -4702,6 +4702,53 @@ function softUpdate(){
     _softUpdateCore();
   });
 }
+// ── BATT ICON SYSTEM ──
+const BATT_ICONS = {
+  BTC:  'https://cryptologos.cc/logos/bitcoin-btc-logo.png',
+  ETH:  'https://cryptologos.cc/logos/ethereum-eth-logo.png',
+  SOL:  'https://cryptologos.cc/logos/solana-sol-logo.png',
+  BNB:  'https://cryptologos.cc/logos/bnb-bnb-logo.png',
+  USDC: 'https://cryptologos.cc/logos/usd-coin-usdc-logo.png',
+  USDT: 'https://cryptologos.cc/logos/tether-usdt-logo.png',
+  XRP:  'https://cryptologos.cc/logos/xrp-xrp-logo.png',
+  DOGE: 'https://cryptologos.cc/logos/dogecoin-doge-logo.png',
+  ADA:  'https://cryptologos.cc/logos/cardano-ada-logo.png',
+  AVAX: 'https://cryptologos.cc/logos/avalanche-avax-logo.png',
+  LINK: 'https://cryptologos.cc/logos/chainlink-link-logo.png',
+  MATIC:'https://cryptologos.cc/logos/polygon-matic-logo.png',
+  eth:  'https://cryptologos.cc/logos/ethereum-eth-logo.png',
+  base: 'https://s2.coinmarketcap.com/static/img/coins/64x64/30966.png',
+  arb:  'https://cryptologos.cc/logos/arbitrum-arb-logo.png',
+  op:   'https://cryptologos.cc/logos/optimism-ethereum-op-logo.png',
+  pol:  'https://cryptologos.cc/logos/polygon-matic-logo.png',
+  bnb:  'https://cryptologos.cc/logos/bnb-bnb-logo.png',
+  avax: 'https://cryptologos.cc/logos/avalanche-avax-logo.png',
+  ftm:  'https://cryptologos.cc/logos/fantom-ftm-logo.png',
+  zks:  'https://cryptologos.cc/logos/zksync-zk-logo.png',
+  stark:'https://cryptologos.cc/logos/starknet-strk-logo.png',
+  linea:'https://s2.coinmarketcap.com/static/img/coins/64x64/27657.png',
+  sol:  'https://cryptologos.cc/logos/solana-sol-logo.png',
+  sui:  'https://cryptologos.cc/logos/sui-sui-logo.png',
+  apt:  'https://cryptologos.cc/logos/aptos-apt-logo.png',
+  ton:  'https://cryptologos.cc/logos/toncoin-ton-logo.png',
+};
+const DEX_LOGOS = {
+  'Uniswap v3': 'https://cryptologos.cc/logos/uniswap-uni-logo.png',
+  'PancakeSwap':'https://cryptologos.cc/logos/pancakeswap-cake-logo.png',
+  'Jupiter':    'https://assets.coingecko.com/coins/images/34188/small/jup.png',
+  'Velodrome':  'https://assets.coingecko.com/coins/images/25783/small/velo.png',
+  'Aerodrome':  'https://assets.coingecko.com/coins/images/31745/small/token.png',
+  'QuickSwap':  'https://assets.coingecko.com/coins/images/13970/small/1_pOU6pBMEmiL-ZJVb0CYRjQ.png',
+  'SyncSwap':   'https://assets.coingecko.com/coins/images/29498/small/SyncSwap.png',
+  'Avnu':       'https://assets.coingecko.com/exchanges/images/895/small/avnu.png',
+  'Cetus':      'https://assets.coingecko.com/coins/images/30256/small/cetus.png',
+  'Trader Joe': 'https://cryptologos.cc/logos/joe-joe-logo.png',
+  'SpookySwap': 'https://assets.coingecko.com/exchanges/images/518/small/SpookySwap.png',
+  'DeDust':     'https://assets.coingecko.com/exchanges/images/778/small/dedust.png',
+  'Liquidswap': 'https://assets.coingecko.com/exchanges/images/609/small/liquidswap.png',
+};
+// ── END ICON SYSTEM ──
+
 function _softUpdateCore(){
   const s=gs();
   const _liqT1=s.P/s.NOT*100;
@@ -9575,7 +9622,7 @@ function tpUpdatePriceDisplay() {
   const priceData = TP_STATE.prices[TP_STATE.pair] || { price: 0, change: 0 };
   const pairInfo = TP_PAIRS.find(p => p.symbol === TP_STATE.pair) || TP_PAIRS[0];
   
-  const _piEl=document.getElementById('tp-pair-icon'); if(_piEl) _piEl.innerHTML=pairInfo.icon;
+  const _piEl=document.getElementById('tp-pair-icon'); if(_piEl){ const _src=BATT_ICONS[pairInfo.icon]; _piEl.innerHTML=_src?`<img src="${_src}" width="20" height="20" style="border-radius:50%;object-fit:cover" alt="${pairInfo.icon}" onerror="this.style.display='none'">`:pairInfo.icon; }
   document.getElementById('tp-pair-name').textContent = TP_STATE.pair.replace('USDT', '/USDT');
   document.getElementById('tp-pair-exchange').textContent = `${TP_STATE.marketType} · ${TP_STATE.exchange}`;
   
@@ -10897,10 +10944,10 @@ async function fetchLivePrices(){
   if(!container)return;
   
   const coins=[
-    {sym:'BTC',pair:'BTCUSDT',icon:`<img src="https://cryptologos.cc/logos/bitcoin-btc-logo.png" width="18" height="18" style="border-radius:50%;object-fit:cover;flex-shrink:0" alt="BTC" loading="lazy" onerror="this.style.display='none'">`},
-    {sym:'ETH',pair:'ETHUSDT',icon:`<img src="https://cryptologos.cc/logos/ethereum-eth-logo.png" width="18" height="18" style="border-radius:50%;object-fit:cover;flex-shrink:0" alt="ETH" loading="lazy" onerror="this.style.display='none'">`},
-    {sym:'SOL',pair:'SOLUSDT',icon:`<img src="https://cryptologos.cc/logos/solana-sol-logo.png" width="18" height="18" style="border-radius:50%;object-fit:cover;flex-shrink:0" alt="SOL" loading="lazy" onerror="this.style.display='none'">`},
-    {sym:'BNB',pair:'BNBUSDT',icon:`<img src="https://cryptologos.cc/logos/bnb-bnb-logo.png" width="18" height="18" style="border-radius:50%;object-fit:cover;flex-shrink:0" alt="BNB" loading="lazy" onerror="this.style.display='none'">`}
+    {sym:'BTC',pair:'BTCUSDT',icon:'BTC'},
+    {sym:'ETH',pair:'ETHUSDT',icon:'ETH'},
+    {sym:'SOL',pair:'SOLUSDT',icon:'SOL'},
+    {sym:'BNB',pair:'BNBUSDT',icon:'BNB'}
   ];
   
   // Helper to fetch with timeout
