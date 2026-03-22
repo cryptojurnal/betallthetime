@@ -10519,7 +10519,9 @@ function _tpTryWS(){
           TP_STATE.prices[pairUp]={symbol:pairUp,price,change,high:parseFloat(d.h)||0,low:parseFloat(d.l)||0,volume:parseFloat(d.q)||0};
           tpUpdatePriceDisplay();
           tpUpdatePositionsPnL();
+          if(typeof tpCheckPendingOrders==="function") tpCheckPendingOrders();
           _tpFlashPrice(price,prev);
+          if(typeof tpCheckPendingOrders==="function") tpCheckPendingOrders();
         }
         if(s.includes('@depth')&&msg.data.asks&&msg.data.bids){
           tpRenderOrderBookData(msg.data.asks, msg.data.bids);
@@ -10537,7 +10539,9 @@ function _tpTryWS(){
           TP_STATE.prices[pairUp]={symbol:pairUp,price,change,high:parseFloat(d.highPrice24h)||0,low:parseFloat(d.lowPrice24h)||0,volume:parseFloat(d.turnover24h)||0};
           tpUpdatePriceDisplay();
           tpUpdatePositionsPnL();
+          if(typeof tpCheckPendingOrders==="function") tpCheckPendingOrders();
           _tpFlashPrice(price,prev);
+          if(typeof tpCheckPendingOrders==="function") tpCheckPendingOrders();
         }
         if(t.startsWith('orderbook')&&msg.data){
           const d=msg.data;
@@ -10562,7 +10566,9 @@ function _tpTryWS(){
           TP_STATE.prices[pairUp]={symbol:pairUp,price,change,high:parseFloat(d.high24h)||0,low:parseFloat(d.low24h)||0,volume:parseFloat(d.volCcy24h)||0};
           tpUpdatePriceDisplay();
           tpUpdatePositionsPnL();
+          if(typeof tpCheckPendingOrders==="function") tpCheckPendingOrders();
           _tpFlashPrice(price,prev);
+          if(typeof tpCheckPendingOrders==="function") tpCheckPendingOrders();
         }
         if((ch==='books'||ch==='books5')&&msg.data?.[0]){
           const d=msg.data[0];
@@ -10866,9 +10872,10 @@ function tpPlaceOrder() {
   if(TP_STATE.orderType === 'limit' || TP_STATE.orderType === 'stop'){
     const limitPriceEl = document.getElementById('tp-limit-price');
     const stopPriceEl = document.getElementById('tp-stop-price');
-    const limitPrice = parseFloat(limitPriceEl?.value) || parseFloat(stopPriceEl?.value) || price;
-    if(!limitPrice){
-      showToast('Enter a limit/stop price', 'error');
+    const limitPrice = parseFloat(limitPriceEl?.value) || parseFloat(stopPriceEl?.value);
+    if(!limitPrice || limitPrice <= 0){
+      showToast('Enter a limit price first', 'error');
+      if(limitPriceEl) limitPriceEl.focus();
       return;
     }
     if(size > TP_STATE.balance){
