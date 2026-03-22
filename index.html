@@ -4906,7 +4906,8 @@ function tpTogglePosPanel(){
   var _rafId=null, _lastY=0;
 
   function isPosToggle(el){
-    return el && (el.id==='tp-pos-toggle' || el.closest('#tp-pos-toggle'));
+    try{ return el && el.nodeType===1 && (el.id==='tp-pos-toggle' || !!el.closest('#tp-pos-toggle')); }
+    catch(e){ return false; }
   }
 
   function onDown(e){
@@ -4943,7 +4944,10 @@ function tpTogglePosPanel(){
     if(!hasDragged&&toggle) tpTogglePosPanel();
   }
 
-  document.addEventListener('mousedown', function(e){ if(isPosToggle(e.target)) onDown(e); });
+  document.addEventListener('mousedown', function(e){
+    if(isPosToggle(e.target)) onDown(e);
+    else if(dragging){ dragging=false; if(toggle) toggle.classList.remove('dragging'); }
+  });
   document.addEventListener('touchstart', function(e){ if(isPosToggle(e.target)) onDown(e); }, {passive:false});
   document.addEventListener('mousemove', onMove);
   document.addEventListener('touchmove', onMove, {passive:false});
