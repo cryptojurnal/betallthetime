@@ -778,8 +778,8 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
 .tp-ob-spread span{color:#444;font-weight:600}
 .tp-ob-row{display:grid;grid-template-columns:2fr 1.5fr 1.5fr;padding:2px 6px;font-size:9px;font-family:"SF Mono","Fira Mono","Consolas",ui-monospace,monospace;font-variant-numeric:tabular-nums;position:relative;cursor:pointer;user-select:none;letter-spacing:0}
 .tp-ob-row:hover{background:rgba(255,255,255,0.05)}
-.tp-ob-row.ask .price{color:#e24b4a;font-weight:700}
-.tp-ob-row.bid .price{color:#00c47a;font-weight:700}
+.tp-ob-row.ask .price{color:#e24b4a!important;font-weight:700}
+.tp-ob-row.bid .price{color:#00c47a!important;font-weight:700}
 .tp-ob-row .size{color:#888;text-align:right}
 .tp-ob-row .usdt{color:#444;text-align:right}
 @keyframes flashGreen{0%{background:rgba(0,196,122,0.3)}100%{background:transparent}}
@@ -9842,6 +9842,40 @@ function tpUpdateChartData() {
 
 // Fetch live prices
 
+
+// ── LOCAL ORDERBOOK STATE — merges delta updates ──
+var _obBook = {asks:{}, bids:{}};
+
+function _obApplyDelta(asks, bids){
+  // merge asks
+  (asks||[]).forEach(([p,s])=>{
+    if(parseFloat(s)===0) delete _obBook.asks[p];
+    else _obBook.asks[p] = s;
+  });
+  // merge bids
+  (bids||[]).forEach(([p,s])=>{
+    if(parseFloat(s)===0) delete _obBook.bids[p];
+    else _obBook.bids[p] = s;
+  });
+}
+
+function _obGetSorted(){
+  const asks = Object.entries(_obBook.asks)
+    .map(([p,s])=>[p,s])
+    .sort((a,b)=>parseFloat(a[0])-parseFloat(b[0]))
+    .slice(0,12);
+  const bids = Object.entries(_obBook.bids)
+    .map(([p,s])=>[p,s])
+    .sort((a,b)=>parseFloat(b[0])-parseFloat(a[0]))
+    .slice(0,12);
+  return {asks, bids};
+}
+
+function _obReset(){
+  _obBook = {asks:{}, bids:{}};
+}
+// ── END OB STATE ──
+
 // ── WEBSOCKET REAL-TIME PRICE + ORDERBOOK ──
 var _tpWS = null;
 var _tpOBWS = null;
@@ -9917,7 +9951,14 @@ function tpStartWebSocket(){
           }
         }
         if(stream.includes('@depth')){
-          if(data.asks && data.bids) tpRenderOrderBookData(data.asks, data.bids);
+          if(data.asks && data.bids){
+            // binance depth@100ms sends full L10 snapshot each time
+            _obBook.asks = {};
+            _obBook.bids = {};
+            _obApplyDelta(data.asks, data.bids);
+            const {asks,bids} = _obGetSorted();
+            tpRenderOrderBookData(asks, bids);
+          }
         }
       } catch(err){}
     };
@@ -9964,8 +10005,13 @@ function tpStartWebSocket(){
         }
         if(topic.startsWith('orderbook')){
           const d = msg.data;
-          const asks = (d.a||[]).slice(0,10);
-          const bids = (d.b||[]).slice(0,10);
+          const type = msg.type; // 'snapshot' or 'delta'
+          if(type==='snapshot'){
+            _obBook.asks = {};
+            _obBook.bids = {};
+          }
+          _obApplyDelta(d.a||[], d.b||[]);
+          const {asks,bids} = _obGetSorted();
           if(asks.length && bids.length) tpRenderOrderBookData(asks, bids);
         }
       } catch(err){}
@@ -10009,9 +10055,17 @@ function tpStartWebSocket(){
           tpUpdatePriceDisplay();
           tpUpdatePositionsPnL();
         }
-        if(ch === 'books5'){
-          const asks = (d.asks||[]).map(a=>[a[0],a[1]]);
-          const bids = (d.bids||[]).map(b=>[b[0],b[1]]);
+        if(ch==='books5'||ch==='books'){
+          const type = msg.action; // 'snapshot' or 'update'
+          if(type==='snapshot'){
+            _obBook.asks = {};
+            _obBook.bids = {};
+          }
+          _obApplyDelta(
+            (d.asks||[]).map(a=>[a[0],a[1]]),
+            (d.bids||[]).map(b=>[b[0],b[1]])
+          );
+          const {asks,bids} = _obGetSorted();
           if(asks.length && bids.length) tpRenderOrderBookData(asks, bids);
         }
       } catch(err){}
@@ -10112,7 +10166,7 @@ function tpSelectPair(symbol) {
   tpHidePairModal();
   tpUpdateSubmitButton();
   tpSaveState();
-  // restart WebSocket for new pair — syncs price + OB instantly
+  _obReset();
   if(typeof tpStartWebSocket==='function') tpStartWebSocket();
   if(typeof tpInitTVChart==='function') tpInitTVChart();
 }
