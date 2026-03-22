@@ -12950,8 +12950,13 @@ window.addEventListener('popstate', function(){
   }
   // if risk disclosure (layer2) is visible — go back to member area
   if(layer2 && !layer2.classList.contains('hidden') && !layer2.classList.contains('out')){
-    layer2.classList.add('out');
-    setTimeout(()=>{ layer2.classList.add('hidden'); layer2.style.opacity=''; },500);
+    // hide instantly — no fade, prevent any visual linger
+    layer2.classList.add('hidden');
+    layer2.classList.remove('out');
+    layer2.style.opacity='';
+    // reset launch button for next visit
+    var lb2 = layer2.querySelector('.launch-btn');
+    if(lb2){ lb2.disabled=false; lb2.style.opacity=''; }
     // show member area
     var l3b = document.getElementById('layer3');
     document.body.style.overflow='auto';
@@ -13100,3 +13105,4 @@ document.addEventListener('click',function(e){
 
 </body>
 </html>
+    
