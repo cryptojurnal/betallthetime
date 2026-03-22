@@ -709,14 +709,14 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
 .tp-balance-pnl.down{color:#E24B4A}
 
 /* Main Layout */
-.tp-main{display:flex;flex:1;overflow:hidden;min-height:0}
-.tp-chart-section{flex:1;display:flex;flex-direction:column;min-height:0}
+.tp-main{display:grid;grid-template-columns:1fr 300px;flex:1;overflow:hidden;min-height:0}
+.tp-chart-section{display:flex;flex-direction:column;min-height:0;border-right:0.5px solid #1a1a1a}
 .tp-chart-area{flex:1;display:flex;border-right:1px solid #1a1a1a;min-height:0}
-.tp-chart-wrap{flex:1;display:flex;flex-direction:column;min-height:0}
+.tp-chart-wrap{flex:1;min-width:0;display:flex;flex-direction:column;min-height:0}
 .tp-orderbook{width:200px;background:#0a0a0a;border-left:1px solid #1a1a1a;display:flex;flex-direction:column;min-height:0}
-.tp-sidebar{width:320px;display:flex;flex-direction:column;background:#0a0a0a;flex-shrink:0;min-height:0;overflow:hidden}
+.tp-sidebar{display:flex;flex-direction:column;background:#0a0a0a;min-height:0;overflow:hidden;border-left:0.5px solid #1a1a1a}
 @media(max-width:1200px){.tp-orderbook{width:160px}}
-@media(max-width:1100px){.tp-sidebar{width:280px}}
+@media(max-width:900px){.tp-main{grid-template-columns:1fr}.tp-sidebar{border-left:none;border-top:0.5px solid #1a1a1a;max-height:380px}}
 @media(max-width:900px){
   .tp-main{flex-direction:column}
   .tp-chart-section{min-height:300px}
@@ -2794,6 +2794,10 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
         </div>
         <span class="tp-pair-selector-arrow">▼</span>
       </div>
+      <div class="tp-market-type" style="margin-left:4px">
+        <button class="active" onclick="tpSetMarketType('spot')">Spot</button>
+        <button class="perp" onclick="tpSetMarketType('perpetual')">Perpetual</button>
+      </div>
       <div class="tp-price-display">
         <div class="tp-price-main" id="tp-price-main">$69,420.50</div>
         <div class="tp-price-change up" id="tp-price-change">+2.45%</div>
@@ -2810,6 +2814,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
         <div class="tp-balance-value" id="tp-balance">$10,000.00</div>
         <div class="tp-balance-pnl up" id="tp-pnl">+$0.00 (0.00%)</div>
       </div>
+      <button class="tp-back-btn" onclick="closeTradingPage()">← back</button>
     </div>
   </div>
 
@@ -2818,14 +2823,6 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
     <!-- Chart Section -->
     <div class="tp-chart-section">
       <!-- Back Button + Market Type Toggle Row -->
-      <div class="tp-controls-row">
-        <button class="tp-back-btn" onclick="closeTradingPage()">← back</button>
-        <div class="tp-market-type">
-          <button class="active" onclick="tpSetMarketType('spot')">Spot</button>
-          <button class="perp" onclick="tpSetMarketType('perpetual')">Perpetual</button>
-        </div>
-      </div>
-      
       <!-- Chart + Order Book -->
       <div class="tp-chart-area">
         <div class="tp-chart-wrap">
