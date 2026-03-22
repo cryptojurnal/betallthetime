@@ -1931,27 +1931,27 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
       <div class="acc-section">
         <div class="acc-sec-title">⚙️ preferences</div>
         <div class="acc-card">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-            <div>
-              <div style="font-size:12px;color:#e0e0e0;font-weight:600">Member area theme</div>
-              <div style="font-size:10px;color:#444">Style for member pages</div>
+          <!-- theme picker -->
+          <div style="margin-bottom:14px">
+            <div style="font-size:11px;font-weight:700;color:#e0e0e0;margin-bottom:3px">member area theme</div>
+            <div style="font-size:9px;color:#444;margin-bottom:8px">style for member pages</div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px" id="acc-theme-pills">
+              <button onclick="accSetTheme('ma-dark')" data-theme="ma-dark" style="padding:7px 4px;font-size:9px;font-weight:700;border-radius:8px;border:0.5px solid #222;background:#0a0a0a;color:#e0e0e0;cursor:pointer;transition:all .2s;letter-spacing:.03em">dark</button>
+              <button onclick="accSetTheme('ma-light')" data-theme="ma-light" style="padding:7px 4px;font-size:9px;font-weight:700;border-radius:8px;border:0.5px solid #222;background:#0a0a0a;color:#e0e0e0;cursor:pointer;transition:all .2s;letter-spacing:.03em">light</button>
+              <button onclick="accSetTheme('ma-midnight')" data-theme="ma-midnight" style="padding:7px 4px;font-size:9px;font-weight:700;border-radius:8px;border:0.5px solid #222;background:#0a0a0a;color:#e0e0e0;cursor:pointer;transition:all .2s;letter-spacing:.03em">midnight</button>
+              <button onclick="accSetTheme('ma-emerald')" data-theme="ma-emerald" style="padding:7px 4px;font-size:9px;font-weight:700;border-radius:8px;border:0.5px solid #222;background:#0a0a0a;color:#e0e0e0;cursor:pointer;transition:all .2s;letter-spacing:.03em">emerald</button>
             </div>
-            <select id="acc-pref-theme" style="appearance:none;-webkit-appearance:none;border-radius:10px" onchange="savePref('ma_theme',this.value)" style="font-size:11px;padding:6px 10px;background:#0a0a0a;border:0.5px solid #222;border-radius:6px;color:#e0e0e0;cursor:pointer">
-              <option value="ma-dark">Dark</option>
-              <option value="ma-light">Light</option>
-              <option value="ma-midnight">Midnight</option>
-              <option value="ma-emerald">Emerald</option>
-            </select>
+            <input type="hidden" id="acc-pref-theme" value="ma-dark">
           </div>
-          <div style="display:flex;align-items:center;justify-content:space-between">
-            <div>
-              <div style="font-size:12px;color:#e0e0e0;font-weight:600">Default language</div>
-              <div style="font-size:10px;color:#444">For AI assistant (Kira)</div>
+          <!-- language picker -->
+          <div>
+            <div style="font-size:11px;font-weight:700;color:#e0e0e0;margin-bottom:3px">default language</div>
+            <div style="font-size:9px;color:#444;margin-bottom:8px">for AI assistant (Kira)</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px" id="acc-lang-pills">
+              <button onclick="accSetLang('en')" data-lang="en" style="padding:7px 4px;font-size:9px;font-weight:700;border-radius:8px;border:0.5px solid #222;background:#0a0a0a;color:#e0e0e0;cursor:pointer;transition:all .2s;letter-spacing:.03em">🇺🇸 english</button>
+              <button onclick="accSetLang('id')" data-lang="id" style="padding:7px 4px;font-size:9px;font-weight:700;border-radius:8px;border:0.5px solid #222;background:#0a0a0a;color:#e0e0e0;cursor:pointer;transition:all .2s;letter-spacing:.03em">🇮🇩 indonesia</button>
             </div>
-            <select id="acc-pref-lang" style="appearance:none;-webkit-appearance:none;border-radius:10px" onchange="savePref('lang',this.value)" style="font-size:11px;padding:6px 10px;background:#0a0a0a;border:0.5px solid #222;border-radius:6px;color:#e0e0e0;cursor:pointer">
-              <option value="en">English</option>
-              <option value="id">Bahasa Indonesia</option>
-            </select>
+            <input type="hidden" id="acc-pref-lang" value="en">
           </div>
         </div>
       </div>
@@ -2341,6 +2341,16 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
       </div>
     </div>
 
+    <!-- theme quick switcher -->
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+      <span style="font-size:9px;font-weight:700;color:#333;text-transform:uppercase;letter-spacing:.08em;white-space:nowrap">theme</span>
+      <div style="display:flex;gap:4px;background:#0a0a0a;border:0.5px solid #1a1a1a;border-radius:10px;padding:3px">
+        <button onclick="l3SetTheme('ma-dark')" id="l3t-dark" title="dark" style="width:26px;height:26px;border-radius:7px;border:none;background:#111;cursor:pointer;transition:all .15s;font-size:13px">🌑</button>
+        <button onclick="l3SetTheme('ma-light')" id="l3t-light" title="light" style="width:26px;height:26px;border-radius:7px;border:none;background:transparent;cursor:pointer;transition:all .15s;font-size:13px">☀️</button>
+        <button onclick="l3SetTheme('ma-midnight')" id="l3t-midnight" title="midnight" style="width:26px;height:26px;border-radius:7px;border:none;background:transparent;cursor:pointer;transition:all .15s;font-size:13px">🌌</button>
+        <button onclick="l3SetTheme('ma-emerald')" id="l3t-emerald" title="emerald" style="width:26px;height:26px;border-radius:7px;border:none;background:transparent;cursor:pointer;transition:all .15s;font-size:13px">💚</button>
+      </div>
+    </div>
     <div class="l3-section-title">📦 tools & features</div>
     <div class="l3-grid">
       <div class="l3-card" onclick="openAccountPage()">
@@ -7641,6 +7651,10 @@ async function loadAccountPage(){
   const prefs=JSON.parse(localStorage.getItem('batt_prefs')||'{}');
   if(prefTheme) prefTheme.value=prefs.ma_theme||'ma-dark';
   if(prefLang) prefLang.value=prefs.lang||'en';
+  // sync pill active states
+  if(typeof accSetTheme==='function') accSetTheme(prefs.ma_theme||'ma-dark');
+  if(typeof accSetLang==='function') accSetLang(prefs.lang||'en');
+  if(typeof l3SetTheme==='function') l3SetTheme(prefs.ma_theme||'ma-dark');
   // Apply member theme
   if(prefs.ma_theme) applyMemberTheme(prefs.ma_theme);
   
@@ -7651,6 +7665,41 @@ async function loadAccountPage(){
   if(typeof renderBadges==='function') renderBadges();
 }
 
+function l3SetTheme(val){
+  applyMemberTheme(val);
+  savePref('ma_theme', val);
+  // sync account panel pills
+  if(typeof accSetTheme==='function') accSetTheme(val);
+  // update member area switcher active state
+  ['dark','light','midnight','emerald'].forEach(t=>{
+    const btn = document.getElementById('l3t-'+t);
+    if(!btn) return;
+    btn.style.background = ('ma-'+t === val) ? '#00c47a22' : 'transparent';
+    btn.style.outline = ('ma-'+t === val) ? '1.5px solid #00c47a' : 'none';
+  });
+}
+function accSetTheme(val){
+  document.querySelectorAll('#acc-theme-pills button').forEach(b=>{
+    const active = b.dataset.theme === val;
+    b.style.background = active ? '#00c47a' : '#0a0a0a';
+    b.style.color = active ? '#000' : '#e0e0e0';
+    b.style.borderColor = active ? '#00c47a' : '#222';
+  });
+  const inp = document.getElementById('acc-pref-theme');
+  if(inp) inp.value = val;
+  savePref('ma_theme', val);
+}
+function accSetLang(val){
+  document.querySelectorAll('#acc-lang-pills button').forEach(b=>{
+    const active = b.dataset.lang === val;
+    b.style.background = active ? '#00c47a' : '#0a0a0a';
+    b.style.color = active ? '#000' : '#e0e0e0';
+    b.style.borderColor = active ? '#00c47a' : '#222';
+  });
+  const inp = document.getElementById('acc-pref-lang');
+  if(inp) inp.value = val;
+  savePref('lang', val);
+}
 function savePref(key,value){
   const prefs=JSON.parse(localStorage.getItem('batt_prefs')||'{}');
   prefs[key]=value;
