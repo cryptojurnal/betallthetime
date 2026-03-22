@@ -776,7 +776,7 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
 .tp-trade-row .t-size,.tp-trade-row .t-time{color:#555;text-align:right}
 .tp-ob-spread{font-size:8px;color:#333;margin-top:2px;letter-spacing:.02em}
 .tp-ob-spread span{color:#444;font-weight:600}
-.tp-ob-row{display:grid;grid-template-columns:2fr 1.5fr 1.5fr;padding:2px 6px;font-size:9px;font-family:"SF Mono",ui-monospace,monospace;position:relative;cursor:pointer;user-select:none}
+.tp-ob-row{display:grid;grid-template-columns:2fr 1.5fr 1.5fr;padding:2px 6px;font-size:9px;font-family:"SF Mono","Fira Mono","Consolas",ui-monospace,monospace;font-variant-numeric:tabular-nums;position:relative;cursor:pointer;user-select:none;letter-spacing:0}
 .tp-ob-row:hover{background:rgba(255,255,255,0.05)}
 .tp-ob-row.ask .price{color:#e24b4a;font-weight:700}
 .tp-ob-row.bid .price{color:#00c47a;font-weight:700}
@@ -10973,8 +10973,26 @@ async function tpFetchOrderBook() {
 
 var _obPrevMidPrice = 0;
 var _obPrevRows = {asks:{},bids:{}};
+var _obPendingAsks = null;
+var _obPendingBids = null;
+var _obRAF = null;
 
-function tpRenderOrderBookData(asks, bids) {
+function tpRenderOrderBookData(asks, bids){
+  // store latest data
+  _obPendingAsks = asks;
+  _obPendingBids = bids;
+  // schedule one render per frame
+  if(!_obRAF) _obRAF = requestAnimationFrame(_obFlush);
+}
+function _obFlush(){
+  _obRAF = null;
+  if(!_obPendingAsks || !_obPendingBids) return;
+  _tpRenderOBData(_obPendingAsks, _obPendingBids);
+  _obPendingAsks = null;
+  _obPendingBids = null;
+}
+
+function _tpRenderOBData(asks, bids) {
   const asksContainer = document.getElementById('tp-ob-asks');
   const bidsContainer = document.getElementById('tp-ob-bids');
   const priceEl = document.getElementById('tp-ob-price');
