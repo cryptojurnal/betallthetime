@@ -4904,6 +4904,7 @@ function tpTogglePosPanel(){
 (function(){
   var toggle, startY, startTop, dragging=false, hasDragged=false;
   var _rafId=null, _lastY=0;
+  var _pointerDown=false; // tracks if pointer was actually pressed on toggle
 
   function isPosToggle(el){
     return el && (el.id==='tp-pos-toggle' || el.closest('#tp-pos-toggle'));
@@ -4912,23 +4913,27 @@ function tpTogglePosPanel(){
   function onDown(e){
     toggle = document.getElementById('tp-pos-toggle');
     if(!toggle || !toggle.classList.contains('visible')) return;
+    if(!isPosToggle(e.target)) return; // must click exactly on toggle
+    _pointerDown = true;
     var pt = e.touches ? e.touches[0] : e;
     startY = pt.clientY;
-    var computedTop = toggle.style.top
-      ? parseInt(toggle.style.top)
-      : (window.innerHeight/2 - toggle.offsetHeight/2);
-    startTop = computedTop;
-    dragging = true; hasDragged = false;
+    var rect = toggle.getBoundingClientRect();
+    startTop = rect.top;
+    dragging = false; hasDragged = false;
     toggle.classList.add('dragging');
     e.preventDefault();
+    e.stopPropagation();
   }
 
   function onMove(e){
-    if(!dragging || !toggle) return;
+    if(!_pointerDown || !toggle) return;
     var pt = e.touches ? e.touches[0] : e;
     var deltaY = pt.clientY - startY;
-    if(Math.abs(deltaY) < 4) return;
-    hasDragged = true;
+    if(Math.abs(deltaY) < 6){
+      e.preventDefault();
+      return;
+    }
+    dragging = true; hasDragged = true;
     var H = window.innerHeight, tH = toggle.offsetHeight;
     _lastY = Math.max(20, Math.min(startTop + deltaY, H - tH - 20));
     if(!_rafId) _rafId = requestAnimationFrame(function(){
@@ -4939,18 +4944,37 @@ function tpTogglePosPanel(){
   }
 
   function onUp(e){
-    if(!dragging) return;
+    if(!_pointerDown) return;
+    _pointerDown = false;
     dragging = false;
+    if(_rafId){ cancelAnimationFrame(_rafId); _rafId=null; }
     if(toggle) toggle.classList.remove('dragging');
     if(!hasDragged) tpTogglePosPanel();
+    hasDragged = false;
   }
 
-  document.addEventListener('mousedown', function(e){ if(isPosToggle(e.target)) onDown(e); });
-  document.addEventListener('touchstart', function(e){ if(isPosToggle(e.target)) onDown(e); }, {passive:false});
-  document.addEventListener('mousemove', onMove);
+  var posToggleEl = document.getElementById('tp-pos-toggle');
+  // attach on first use — toggle exists after simulator opens
+  var _posListenerAttached = false;
+  var _origPosInit = window._tpInitPosPanel;
+  window._tpInitPosPanel = function(){
+    if(_origPosInit) _origPosInit();
+    if(!_posListenerAttached){
+      var t = document.getElementById('tp-pos-toggle');
+      if(t){
+        t.addEventListener('mousedown', onDown);
+        t.addEventListener('touchstart', onDown, {passive:false});
+        _posListenerAttached = true;
+      }
+    }
+  };
+  // but move/up on document so drag works outside toggle bounds
+  document.addEventListener('mousemove', onMove, {passive:false});
   document.addEventListener('touchmove', onMove, {passive:false});
   document.addEventListener('mouseup', onUp);
   document.addEventListener('touchend', onUp);
+  // safety reset — if mouse leaves window while dragging
+  document.addEventListener('mouseleave', onUp);
 })();
 
 // init toggle position when simulator opens
@@ -5001,26 +5025,28 @@ function tpToggleRightPanel(){
     return el && (el.id==='tp-right-toggle' || el.closest('#tp-right-toggle'));
   }
 
+  var _rPointerDown = false;
+
   function onDown(e){
     toggle = document.getElementById('tp-right-toggle');
     if(!toggle || !toggle.classList.contains('visible')) return;
+    _rPointerDown = true;
     var pt = e.touches ? e.touches[0] : e;
     startY = pt.clientY;
-    var computedTop = toggle.style.top
-      ? parseInt(toggle.style.top)
-      : (window.innerHeight/2 - toggle.offsetHeight/2);
-    startTop = computedTop;
-    dragging = true; hasDragged = false;
+    var rect = toggle.getBoundingClientRect();
+    startTop = rect.top;
+    dragging = false; hasDragged = false;
     toggle.classList.add('dragging');
     e.preventDefault();
+    e.stopPropagation();
   }
 
   function onMove(e){
-    if(!dragging || !toggle) return;
+    if(!_rPointerDown || !toggle) return;
     var pt = e.touches ? e.touches[0] : e;
     var deltaY = pt.clientY - startY;
-    if(Math.abs(deltaY) < 4) return;
-    hasDragged = true;
+    if(Math.abs(deltaY) < 6){ e.preventDefault(); return; }
+    dragging = true; hasDragged = true;
     var H = window.innerHeight, tH = toggle.offsetHeight;
     _lastY = Math.max(20, Math.min(startTop + deltaY, H - tH - 20));
     if(!_rafId) _rafId = requestAnimationFrame(function(){
@@ -5031,18 +5057,33 @@ function tpToggleRightPanel(){
   }
 
   function onUp(e){
-    if(!dragging) return;
+    if(!_rPointerDown) return;
+    _rPointerDown = false;
     dragging = false;
+    if(_rafId){ cancelAnimationFrame(_rafId); _rafId=null; }
     if(toggle) toggle.classList.remove('dragging');
     if(!hasDragged) tpToggleRightPanel();
+    hasDragged = false;
   }
 
-  document.addEventListener('mousedown', function(e){ if(isRightToggle(e.target)) onDown(e); });
-  document.addEventListener('touchstart', function(e){ if(isRightToggle(e.target)) onDown(e); }, {passive:false});
-  document.addEventListener('mousemove', onMove);
+  var _rightListenerAttached = false;
+  var _origRightInit = window._tpInitRightPanel;
+  window._tpInitRightPanel = function(){
+    if(_origRightInit) _origRightInit();
+    if(!_rightListenerAttached){
+      var t = document.getElementById('tp-right-toggle');
+      if(t){
+        t.addEventListener('mousedown', onDown);
+        t.addEventListener('touchstart', onDown, {passive:false});
+        _rightListenerAttached = true;
+      }
+    }
+  };
+  document.addEventListener('mousemove', onMove, {passive:false});
   document.addEventListener('touchmove', onMove, {passive:false});
   document.addEventListener('mouseup', onUp);
   document.addEventListener('touchend', onUp);
+  document.addEventListener('mouseleave', onUp);
 })();
 
 function _tpInitRightPanel(){
