@@ -10849,17 +10849,16 @@ function tpPlaceOrder() {
   const priceData = TP_STATE.prices[TP_STATE.pair];
   const isSpot = TP_STATE.marketType === 'spot';
   const isSell = TP_STATE.side === 'short';
-  
-  // Validate price data
-  if (!priceData || !priceData.price) {
+  const isLimitOrStop = TP_STATE.orderType === 'limit' || TP_STATE.orderType === 'stop';
+
+  // limit/stop don't need live price to place
+  if (!isLimitOrStop && (!priceData || !priceData.price)) {
     showToast('Loading prices... please wait', 'info');
-    tpFetchPrices().then(() => {
-      showToast('Prices loaded. Try again.', 'success');
-    });
+    tpFetchPrices();
     return;
   }
-  
-  const price = priceData.price;
+
+  const price = priceData?.price || 0;
   const leverage = parseInt(document.getElementById('tp-leverage')?.value) || TP_STATE.leverage;
 
   if (size <= 0) {
