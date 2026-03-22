@@ -1019,9 +1019,9 @@ body.t-lavender{--bg:#f0eef8;--panel:#fff;--bd:#d8d4f0;--bd2:#e4e0f4;--sf:#f8f6f
 .spot-badge.spot{background:#1A3A1A;color:#5DC96A;border:0.5px solid #3A6A3A}
 .spot-badge.back{display:none;margin:0;margin-left:8px;align-self:stretch;flex-direction:column;align-items:center;justify-content:center;border-radius:6px 0 0 6px;cursor:pointer;background:#0a1a10;color:#00c47a;border:0.5px solid #004d30;transition:all .25s ease}
 .spot-badge.back:hover{background:#0d2818;border-color:#00c47a;box-shadow:0 0 12px rgba(0,196,122,0.25)}
-.mode-switcher{display:flex;align-items:center;gap:0;border:0.5px solid var(--bd2);border-radius:6px;overflow:hidden;margin:4px 0}
-.msw-btn{flex:1;padding:4px 6px;font-size:9px;font-weight:700;border:none;cursor:pointer;background:transparent;color:var(--tx3);letter-spacing:.04em;text-transform:uppercase;transition:all .2s}
-.msw-btn.on{background:var(--acc2);color:#fff}
+.mode-switcher{display:flex;align-items:center;gap:0;border:0.5px solid var(--bd2);border-radius:10px;overflow:hidden;margin:4px 0;padding:2px;background:var(--sf2)}
+.msw-btn{flex:1;padding:4px 8px;font-size:9px;font-weight:700;border:none;cursor:pointer;background:transparent;color:var(--tx3);letter-spacing:.04em;text-transform:uppercase;transition:all .2s;border-radius:8px}
+.msw-btn.on{background:var(--acc2);color:#fff;box-shadow:0 1px 4px rgba(0,0,0,.2)}
 .disabled-overlay{opacity:.35;pointer-events:none;user-select:none}
 .spot-note{font-size:8px;color:var(--tx3);padding:3px 1px;line-height:1.6;font-style:italic}
 
@@ -1161,7 +1161,7 @@ input[type=number]:focus{outline:none;border-color:var(--acc)}
 #fee-live-btn{font-size:10px;padding:1px 7px;border:0.5px solid var(--acc2);background:var(--btno);color:var(--acc2);border-radius:4px;cursor:pointer;font-weight:700;transition:all .2s}
 #fee-live-btn:hover{opacity:.8}
 #fee-live-status{font-size:8px;color:var(--tx3)}
-select.fee-sel{font-size:9px;padding:1px 3px;border:0.5px solid var(--bd2);border-radius:4px;background:var(--inp);color:var(--tx);cursor:pointer}
+select.fee-sel{font-size:9px;padding:3px 20px 3px 8px;border:0.5px solid var(--bd2);border-radius:8px;background:var(--inp);color:var(--tx);cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23666'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 5px center}
 /* fee cols in detail table */
 .fee-neg{color:#E24B4A}
 .fee-net{color:var(--acc2);font-weight:700}
@@ -1905,7 +1905,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
               <div style="font-size:12px;color:#e0e0e0;font-weight:600">Member area theme</div>
               <div style="font-size:10px;color:#444">Style for member pages</div>
             </div>
-            <select id="acc-pref-theme" onchange="savePref('ma_theme',this.value)" style="font-size:11px;padding:6px 10px;background:#0a0a0a;border:0.5px solid #222;border-radius:6px;color:#e0e0e0;cursor:pointer">
+            <select id="acc-pref-theme" style="appearance:none;-webkit-appearance:none;border-radius:10px" onchange="savePref('ma_theme',this.value)" style="font-size:11px;padding:6px 10px;background:#0a0a0a;border:0.5px solid #222;border-radius:6px;color:#e0e0e0;cursor:pointer">
               <option value="ma-dark">Dark</option>
               <option value="ma-light">Light</option>
               <option value="ma-midnight">Midnight</option>
@@ -1917,7 +1917,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
               <div style="font-size:12px;color:#e0e0e0;font-weight:600">Default language</div>
               <div style="font-size:10px;color:#444">For AI assistant (Kira)</div>
             </div>
-            <select id="acc-pref-lang" onchange="savePref('lang',this.value)" style="font-size:11px;padding:6px 10px;background:#0a0a0a;border:0.5px solid #222;border-radius:6px;color:#e0e0e0;cursor:pointer">
+            <select id="acc-pref-lang" style="appearance:none;-webkit-appearance:none;border-radius:10px" onchange="savePref('lang',this.value)" style="font-size:11px;padding:6px 10px;background:#0a0a0a;border:0.5px solid #222;border-radius:6px;color:#e0e0e0;cursor:pointer">
               <option value="en">English</option>
               <option value="id">Bahasa Indonesia</option>
             </select>
@@ -2846,7 +2846,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
     <div style="display:flex;align-items:center;gap:6px">
       <div class="seclbl" style="margin-bottom:0">notional (trade 1)</div>
       <span style="font-size:8px;color:var(--tx3)">link</span>
-      <button id="not-link-btn" onclick="event.stopPropagation();toggleNotLink()" title="link notional to capital" style="font-size:9px;padding:1px 5px;border-radius:10px;border:0.5px solid var(--bd2);background:var(--btn);color:var(--tx3);cursor:pointer;font-weight:700">off</button>
+      <button id="not-link-btn" onclick="event.stopPropagation();toggleNotLink()" title="link notional to capital" style="font-size:9px;padding:3px 10px;border-radius:10px;border:0.5px solid var(--bd2);background:var(--sf2);color:var(--tx3);cursor:pointer;font-weight:700;transition:all .2s;letter-spacing:.03em">off</button>
     </div>
     <span class="sec-toggle">▾</span>
   </div>
@@ -3009,7 +3009,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
     <!-- global mode toggle row -->
     <div style="display:flex;align-items:center;gap:6px;padding:8px 10px 4px">
       <span style="font-size:9px;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;font-weight:700">global mode</span>
-      <button id="global-toggle" onclick="toggleGlobal()" style="font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;border:0.5px solid var(--acc2);background:var(--btno);color:var(--acc2);cursor:pointer">● on</button>
+      <button id="global-toggle" onclick="toggleGlobal()" style="font-size:9px;font-weight:700;padding:3px 10px;border-radius:10px;border:0.5px solid var(--acc2);background:var(--sf2);color:var(--acc2);cursor:pointer;transition:all .2s;letter-spacing:.03em">● on</button>
       <span style="font-size:9px;color:var(--tx3)">off = per-month</span>
     </div>
 
