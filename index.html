@@ -9414,7 +9414,7 @@ function tpInitTVChart(){
       theme: 'dark',
       style: '1',
       locale: 'en',
-      toolbar_bg: '#0a0a0a',
+      toolbar_bg: '#000000',
       enable_publishing: false,
       allow_symbol_change: true,
       withdateranges: true,
@@ -9433,6 +9433,10 @@ function tpInitTVChart(){
         'header_symbol_search',
         'header_compare',
         'border_around_the_chart',
+        'symbol_search_hot_key',
+        'display_market_status',
+        'header_undo_redo',
+        'header_screenshot',
       ],
     });
   };
@@ -9717,10 +9721,11 @@ function tpSelectPair(symbol) {
   TP_STATE.pair = symbol;
   tpHidePairModal();
   tpUpdatePriceDisplay();
-  tpUpdateChartData();
-  tpUpdateSubmitButton(); // Update button with new pair name
-  tpFetchOrderBook(); // Fetch order book for new pair
+  tpUpdateSubmitButton();
+  tpFetchOrderBook();
   tpSaveState();
+  // sync TradingView chart to new pair + current exchange + market type
+  if(typeof tpInitTVChart==='function') tpInitTVChart();
 }
 
 // Pair modal
@@ -9776,8 +9781,9 @@ function tpSelectExchange(ex) {
   event.target.classList.add('active');
   const isSpot = TP_STATE.marketType === 'spot';
   document.getElementById('tp-pair-exchange').textContent = `${isSpot?'spot':'perpetual'} · ${ex}`;
-  // sync chart to new exchange
+  // sync chart and orderbook to new exchange
   if(typeof tpInitTVChart==='function') tpInitTVChart();
+  if(typeof tpFetchOrderBook==='function') tpFetchOrderBook();
 }
 
 // Order type
@@ -10529,15 +10535,45 @@ function tpFillPrice(price) {
 async function tpFetchOrderBook() {
   try {
     const symbol = TP_STATE.pair;
-    const url = `https://api.binance.com/api/v3/depth?symbol=${symbol}&limit=10`;
-    const response = await fetch(url);
-    const data = await response.json();
-    
-    if (data.asks && data.bids) {
-      tpRenderOrderBookData(data.asks, data.bids);
+    const ex = TP_STATE.exchange || 'binance';
+    const isSpot = TP_STATE.marketType === 'spot';
+    let url, data, asks, bids;
+
+    if(ex === 'binance'){
+      if(isSpot){
+        url = `https://api.binance.com/api/v3/depth?symbol=${symbol}&limit=10`;
+        data = await fetch(url).then(r=>r.json());
+        asks = data.asks; bids = data.bids;
+      } else {
+        url = `https://fapi.binance.com/fapi/v1/depth?symbol=${symbol}&limit=10`;
+        data = await fetch(url).then(r=>r.json());
+        asks = data.asks; bids = data.bids;
+      }
+    } else if(ex === 'bybit'){
+      const cat = isSpot ? 'spot' : 'linear';
+      url = `https://api.bybit.com/v5/market/orderbook?category=${cat}&symbol=${symbol}&limit=10`;
+      data = await fetch(url).then(r=>r.json());
+      asks = data.result?.a; bids = data.result?.b;
+    } else if(ex === 'okx'){
+      const instId = isSpot
+        ? symbol.replace('USDT','-USDT')
+        : symbol.replace('USDT','-USDT-SWAP');
+      url = `https://www.okx.com/api/v5/market/books?instId=${instId}&sz=10`;
+      data = await fetch(url).then(r=>r.json());
+      const book = data.data?.[0];
+      asks = book?.asks?.map(a=>[a[0],a[1]]);
+      bids = book?.bids?.map(b=>[b[0],b[1]]);
+    } else {
+      // fallback to binance spot
+      url = `https://api.binance.com/api/v3/depth?symbol=${symbol}&limit=10`;
+      data = await fetch(url).then(r=>r.json());
+      asks = data.asks; bids = data.bids;
     }
-  } catch (e) {
-    // Fallback to simulated data
+
+    if(asks && bids) {
+      tpRenderOrderBookData(asks, bids);
+    }
+  } catch(e) {
     tpRenderOrderBook();
   }
 }
