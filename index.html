@@ -1515,80 +1515,135 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 /* ── LAYER 3: MEMBER AREA PAGE ── */
 #layer3{position:fixed;inset:0;z-index:9500;background:#000;display:flex;flex-direction:column;opacity:0;transform:scale(1.02) translateY(-10px);transition:opacity .5s cubic-bezier(0.4,0,0.2,1),transform .5s cubic-bezier(0.4,0,0.2,1),background .3s;pointer-events:none;will-change:opacity,transform}
 #layer3.visible{opacity:1;transform:scale(1) translateY(0);pointer-events:all}
-/* Member Area Themes */
-#layer3.ma-dark,#account-page.ma-dark{background:#000}
-#layer3.ma-dark .l3-card,#account-page.ma-dark .acc-card{background:#0d0d0d;border-color:#1a1a1a}
-#layer3.ma-dark .l3-card:hover{border-color:#00c47a}
+/* ── MEMBER AREA THEMES ── 3 clean themes via CSS vars ──────── */
+/* Default vars (Carbon dark) */
+#layer3,#account-page{
+  --ma-bg:#0a0a0a;--ma-surface:#111;--ma-surface2:#161616;
+  --ma-bd:#1e1e1e;--ma-bd2:#252525;
+  --ma-tx:#e8e8e8;--ma-tx2:#666;--ma-tx3:#333;
+  --ma-acc:#00c47a;--ma-acc-bg:#041a10;--ma-acc-bd:#0a3020;
+  --ma-danger-bd:#2a0808;
+}
+#layer3,#account-page{background:var(--ma-bg);color:var(--ma-tx)}
 
-#layer3.ma-light,#account-page.ma-light{background:#f5f5f5}
-#layer3.ma-light .l3-container{color:#111}
-#layer3.ma-light .l3-user-info h2,#layer3.ma-light .l3-welcome h1,#layer3.ma-light .l3-card h3{color:#111}
-#layer3.ma-light .l3-user-info p,#layer3.ma-light .l3-welcome p,#layer3.ma-light .l3-card p,#layer3.ma-light .l3-section-title{color:#555}
-#layer3.ma-light .l3-card{background:#fff;border-color:#ddd}
-#layer3.ma-light .l3-card:hover{border-color:#00c47a;box-shadow:0 8px 32px rgba(0,196,122,0.15)}
-#layer3.ma-light .l3-header{border-color:#ddd}
-#account-page.ma-light{background:#f5f5f5}
-#account-page.ma-light .acc-container{color:#111}
-#account-page.ma-light .acc-header h1{color:#111}
-#account-page.ma-light .acc-sec-title{color:#555}
-#account-page.ma-light .acc-card{background:#fff;border-color:#ddd}
-#account-page.ma-light .acc-card *{color:#333}
-#account-page.ma-light .acc-stat-card{background:#fff;border-color:#ddd}
-#account-page.ma-light .acc-back{color:#00c47a;border-color:#ddd;background:#fff}
+/* CARBON — deep, high-contrast dark */
+#layer3.ma-dark,#account-page.ma-dark{
+  --ma-bg:#0a0a0a;--ma-surface:#111;--ma-surface2:#161616;
+  --ma-bd:#1e1e1e;--ma-bd2:#252525;
+  --ma-tx:#e8e8e8;--ma-tx2:#666;--ma-tx3:#333;
+  --ma-acc:#00c47a;--ma-acc-bg:#041a10;--ma-acc-bd:#0a3020;
+}
 
-#layer3.ma-midnight,#account-page.ma-midnight{background:#0a0a1a}
-#layer3.ma-midnight .l3-card{background:#0d0d20;border-color:#1a1a3a}
-#layer3.ma-midnight .l3-card:hover{border-color:#5b7fff}
-#layer3.ma-midnight .l3-card-badge.live{background:#0a1a3a;color:#5b7fff;border-color:#2a3a6a}
-#account-page.ma-midnight .acc-card{background:#0d0d20;border-color:#1a1a3a}
-#account-page.ma-midnight .acc-stat-card{background:#0d0d20;border-color:#1a1a3a}
-#account-page.ma-midnight .acc-stat-value{color:#5b7fff}
+/* SLATE — soft dim, easier on the eyes, slate-blue undertone */
+#layer3.ma-midnight,#account-page.ma-midnight{
+  --ma-bg:#111418;--ma-surface:#181c22;--ma-surface2:#1e2330;
+  --ma-bd:#252c38;--ma-bd2:#2e3848;
+  --ma-tx:#d8e0ec;--ma-tx2:#5a6880;--ma-tx3:#2e3848;
+  --ma-acc:#7c9fff;--ma-acc-bg:#0f1830;--ma-acc-bd:#1e3060;
+}
 
-#layer3.ma-emerald,#account-page.ma-emerald{background:#001a0a}
-#layer3.ma-emerald .l3-card{background:#002010;border-color:#003a20}
-#layer3.ma-emerald .l3-card:hover{border-color:#00c47a}
-#account-page.ma-emerald .acc-card{background:#002010;border-color:#003a20}
-#account-page.ma-emerald .acc-stat-card{background:#002010;border-color:#003a20}
-/* AI Box Theme Variations */
-#layer3.ma-light .l3-ai-box{background:#f8f8f8;border-color:#ddd}
-#layer3.ma-light .l3-ai-header .l3-ai-title{color:#111}
-#layer3.ma-light .l3-ai-desc{color:#666}
-#layer3.ma-light .l3-ai-chips button{background:#fff;border-color:#ddd;color:#555}
-#layer3.ma-light .l3-ai-chips button:hover{border-color:#00c47a;color:#00c47a;background:#f0fff8}
-#layer3.ma-light .l3-ai-response{background:#fff;border-color:#ddd;color:#333}
-#layer3.ma-light .l3-ai-lang{background:#eee}
-#layer3.ma-midnight .l3-ai-box{background:#0a0a20;border-color:#1a1a3a}
-#layer3.ma-midnight .l3-ai-chips button:hover{border-color:#5b7fff;color:#5b7fff;background:#0a0a30}
-#layer3.ma-midnight .l3-ai-lang button.active{background:#5b7fff}
-#layer3.ma-emerald .l3-ai-box{background:#001a10;border-color:#003a20}
+/* PAPER — clean off-white, serious editorial feel */
+#layer3.ma-light,#account-page.ma-light{
+  --ma-bg:#f5f5f0;--ma-surface:#ffffff;--ma-surface2:#f0efea;
+  --ma-bd:#e0ddd8;--ma-bd2:#d0cdc8;
+  --ma-tx:#1a1a1a;--ma-tx2:#888;--ma-tx3:#bbb;
+  --ma-acc:#008f58;--ma-acc-bg:#e6f5ee;--ma-acc-bd:#b3ddc8;
+}
+
+/* Apply vars to all themed elements */
+#layer3 .l3-container,#layer3 .l3-header,#layer3 .l3-welcome h1{color:var(--ma-tx)}
+#layer3 .l3-header{border-color:var(--ma-bd)}
+#layer3 .l3-welcome p,#layer3 .l3-section-title{color:var(--ma-tx2)}
+#layer3 .l3-card{background:var(--ma-surface);border-color:var(--ma-bd)}
+#layer3 .l3-card h3{color:var(--ma-tx)}
+#layer3 .l3-card p{color:var(--ma-tx2)}
+#layer3 .l3-card:hover{border-color:var(--ma-acc);box-shadow:0 8px 32px rgba(0,0,0,0.15);transform:translateY(-2px)}
+#layer3 .l3-stat{background:var(--ma-surface);border-color:var(--ma-bd)}
+#layer3 .l3-stat-value{color:var(--ma-acc)}
+#layer3 .l3-stat-label{color:var(--ma-tx3)}
+#layer3 .l3-ai-box{background:var(--ma-surface);border-color:var(--ma-bd)}
+#layer3 .l3-ai-title{color:var(--ma-tx)}
+#layer3 .l3-ai-desc{color:var(--ma-tx2)}
+#layer3 .l3-ai-chips button{background:var(--ma-surface2);border-color:var(--ma-bd2);color:var(--ma-tx2)}
+#layer3 .l3-ai-chips button:hover{border-color:var(--ma-acc);color:var(--ma-acc);background:var(--ma-acc-bg)}
+#layer3 .l3-ai-response{background:var(--ma-surface2);border-color:var(--ma-bd);color:var(--ma-tx)}
+#layer3 .l3-ai-lang{background:var(--ma-surface2)}
+#layer3 .l3-ai-lang button.active{background:var(--ma-acc);color:#fff}
+#layer3 .l3-card-badge.live{background:var(--ma-acc-bg);color:var(--ma-acc);border-color:var(--ma-acc-bd)}
+#layer3 .l3-welcome h1 span{color:var(--ma-acc)}
+/* Sidebar inherits same vars */
+#layer3 .l3-sb{background:var(--ma-surface);border-color:var(--ma-bd)}
+#layer3 .l3-sb-tab{background:var(--ma-surface);border-color:var(--ma-bd)}
+#layer3 .l3-sb-inner{color:var(--ma-tx)}
+#layer3 .l3-sb-section{border-color:var(--ma-bd)}
+#layer3 .l3-sb-profile{border-color:var(--ma-bd)}
+#layer3 .l3-sb-stat{background:var(--ma-bg);border-color:var(--ma-bd)}
+#layer3 .l3-sb-stat-val{color:var(--ma-acc)}
+#layer3 .l3-sb-username{color:var(--ma-tx)}
+#layer3 .l3-sb-email{color:var(--ma-tx2)}
+#layer3 .l3-sb-section-title{color:var(--ma-tx3)}
+#layer3 .l3-sb-brand-label{color:var(--ma-tx)}
+#layer3 .l3-footer p,#layer3 .l3-footer a{color:var(--ma-tx3)}
+#layer3 .l3-footer a:hover{color:var(--ma-acc)}
+/* topbar strip */
+#layer3 .l3-topbar{border-color:var(--ma-bd);background:var(--ma-bg)}
+#layer3 .l3-topbar-greeting{color:var(--ma-tx2)}
+#layer3 .l3-topbar-date{color:var(--ma-tx3)}
+/* Account page */
+#account-page{background:var(--ma-bg)}
+#account-page .acc-card{background:var(--ma-surface);border-color:var(--ma-bd)}
+#account-page .acc-card *{color:var(--ma-tx)}
+#account-page .acc-header h1{color:var(--ma-tx)}
+#account-page .acc-sec-title{color:var(--ma-tx2)}
+#account-page .acc-stat-card{background:var(--ma-surface);border-color:var(--ma-bd)}
+#account-page .acc-stat-value{color:var(--ma-acc)}
+#account-page .acc-back{color:var(--ma-acc)}
 #layer3.visible{opacity:1;transform:scale(1);pointer-events:all}
 #layer3.hidden{display:none}
-.l3-container{flex:1;display:flex;flex-direction:column;max-width:960px;width:100%;margin:0 auto;padding:24px 24px 16px;overflow-y:auto;scrollbar-width:none}
+.l3-container{flex:1;display:flex;flex-direction:column;max-width:960px;width:100%;margin:0 auto;padding:0 0 16px;overflow-y:auto;scrollbar-width:none}
 .l3-container::-webkit-scrollbar{display:none}
-.l3-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding-bottom:16px;border-bottom:0.5px solid #1a1a1a}
-.l3-profile{display:flex;align-items:center;gap:14px}
-.l3-avatar{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#00c47a,#00a060);display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:#000;text-transform:uppercase;overflow:hidden}
-.l3-avatar img{width:100%;height:100%;object-fit:cover}
-.l3-user-info h2{font-size:16px;font-weight:700;color:#fff;margin:0 0 2px}
-.l3-user-info p{font-size:11px;color:#555;margin:0}
-.l3-header-right{display:flex;flex-direction:row;align-items:center;gap:16px}
-.l3-header-right .live-prices{margin:0;gap:6px}
-.l3-header-right .price-card{min-width:85px;padding:6px 10px}
-.l3-header-right .price-card-price{font-size:11px}
-.l3-header-right .price-card-sym{font-size:8px}
-.l3-header-right .price-card-change{font-size:8px}
-.l3-header-right .price-card-icon{font-size:12px}
-.l3-header-right .l3-actions-wrap{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
-.l3-actions{display:flex;gap:10px}
-.l3-btn{padding:7px 14px;border-radius:8px;font-size:10px;font-weight:700;cursor:pointer;transition:all .2s;text-transform:uppercase;letter-spacing:.04em}
-.l3-btn-sync{background:#0a2a1a;border:0.5px solid #004d30;color:#00c47a}
-.l3-btn-sync:hover{background:#0d3a22}
+
+/* ── TOPBAR ── */
+.l3-topbar{display:flex;align-items:center;gap:16px;padding:18px 24px 16px;border-bottom:0.5px solid #1e1e1e;flex-shrink:0;flex-wrap:wrap}
+.l3-topbar-left{flex:0 0 auto;min-width:160px}
+.l3-topbar-greeting{font-size:10px;font-weight:600;color:#444;text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px}
+.l3-topbar-name{font-size:20px;font-weight:800;color:#e8e8e8;line-height:1.15;letter-spacing:-.02em}
+.l3-topbar-name span{color:#00c47a}
+.l3-topbar-center{flex:1;min-width:0;display:flex;justify-content:center}
+.l3-topbar-center .live-prices{margin:0;gap:5px}
+.l3-topbar-center .price-card{min-width:82px;padding:6px 10px}
+.l3-topbar-center .price-card-price{font-size:11px}
+.l3-topbar-center .price-card-sym{font-size:8px}
+.l3-topbar-center .price-card-change{font-size:8px}
+.l3-topbar-center .price-card-icon{font-size:12px}
+.l3-topbar-right{display:flex;align-items:center;gap:10px;flex-shrink:0}
+
+/* Theme switcher — 3 minimalist pills */
+.l3-theme-switcher{display:flex;gap:3px;background:transparent;border:0.5px solid #1e1e1e;border-radius:20px;padding:3px 6px}
+.l3-theme-pill{width:20px;height:20px;border-radius:50%;border:1.5px solid transparent;background:transparent;cursor:pointer;font-size:12px;line-height:1;transition:all .15s;color:#333;display:flex;align-items:center;justify-content:center;padding:0}
+.l3-theme-pill:hover{color:#888}
+.l3-theme-pill.active{border-color:currentColor;color:#e8e8e8}
+#l3t-dark{color:#555}
+#l3t-dark.active{color:#e8e8e8;border-color:#555}
+#l3t-midnight{color:#5a7aaa}
+#l3t-midnight.active{color:#7c9fff;border-color:#7c9fff}
+#l3t-light{color:#aaa}
+#l3t-light.active{color:#008f58;border-color:#008f58}
+
+/* Actions */
+.l3-actions{display:flex;gap:8px;align-items:center}
+.l3-btn{padding:7px 14px;border-radius:8px;font-size:10px;font-weight:700;cursor:pointer;transition:all .2s;text-transform:uppercase;letter-spacing:.04em;font-family:inherit}
+.l3-btn-sync{background:var(--ma-acc-bg,#041a10);border:0.5px solid var(--ma-acc-bd,#0a3020);color:var(--ma-acc,#00c47a)}
+.l3-btn-sync:hover{opacity:.85}
 .l3-btn-logout{background:transparent;border:0.5px solid #2a0a0a;color:#E24B4A}
 .l3-btn-logout:hover{background:#1a0808}
-.l3-welcome{margin-bottom:16px}
-.l3-welcome h1{font-size:24px;font-weight:900;color:#fff;margin:0 0 4px;line-height:1.2}
-.l3-welcome h1 span{color:#00c47a}
-.l3-welcome p{font-size:12px;color:#555;margin:0}
+
+/* Main area padding */
+.l3-main-body{padding:20px 24px;flex:1}
+
+/* Section title */
+.l3-section-title{font-size:9px;font-weight:700;color:var(--ma-tx3,#333);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.l3-section-title::after{content:'';flex:1;height:0.5px;background:var(--ma-bd,#1e1e1e)}
 .l3-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
 .l3-card{background:#0d0d0d;border:0.5px solid #1a1a1a;border-radius:12px;padding:16px;cursor:pointer;transition:all .25s cubic-bezier(0.4,0,0.2,1);position:relative;overflow:hidden}
 .l3-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.3)}
@@ -2069,11 +2124,10 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
           <div style="margin-bottom:14px">
             <div style="font-size:11px;font-weight:700;color:#e0e0e0;margin-bottom:3px">member area theme</div>
             <div style="font-size:9px;color:#444;margin-bottom:8px">style for member pages</div>
-            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px" id="acc-theme-pills">
-              <button onclick="accSetTheme('ma-dark')" data-theme="ma-dark" style="padding:7px 4px;font-size:9px;font-weight:700;border-radius:8px;border:0.5px solid #222;background:#0a0a0a;color:#e0e0e0;cursor:pointer;transition:all .2s;letter-spacing:.03em">dark</button>
-              <button onclick="accSetTheme('ma-light')" data-theme="ma-light" style="padding:7px 4px;font-size:9px;font-weight:700;border-radius:8px;border:0.5px solid #222;background:#0a0a0a;color:#e0e0e0;cursor:pointer;transition:all .2s;letter-spacing:.03em">light</button>
-              <button onclick="accSetTheme('ma-midnight')" data-theme="ma-midnight" style="padding:7px 4px;font-size:9px;font-weight:700;border-radius:8px;border:0.5px solid #222;background:#0a0a0a;color:#e0e0e0;cursor:pointer;transition:all .2s;letter-spacing:.03em">midnight</button>
-              <button onclick="accSetTheme('ma-emerald')" data-theme="ma-emerald" style="padding:7px 4px;font-size:9px;font-weight:700;border-radius:8px;border:0.5px solid #222;background:#0a0a0a;color:#e0e0e0;cursor:pointer;transition:all .2s;letter-spacing:.03em">emerald</button>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px" id="acc-theme-pills">
+              <button onclick="accSetTheme('ma-dark')" data-theme="ma-dark" style="padding:7px 4px;font-size:9px;font-weight:700;border-radius:8px;border:0.5px solid #222;background:#0a0a0a;color:#e0e0e0;cursor:pointer;transition:all .2s;letter-spacing:.03em">Carbon</button>
+              <button onclick="accSetTheme('ma-midnight')" data-theme="ma-midnight" style="padding:7px 4px;font-size:9px;font-weight:700;border-radius:8px;border:0.5px solid #222;background:#0a0a0a;color:#e0e0e0;cursor:pointer;transition:all .2s;letter-spacing:.03em">Slate</button>
+              <button onclick="accSetTheme('ma-light')" data-theme="ma-light" style="padding:7px 4px;font-size:9px;font-weight:700;border-radius:8px;border:0.5px solid #222;background:#0a0a0a;color:#e0e0e0;cursor:pointer;transition:all .2s;letter-spacing:.03em">Paper</button>
             </div>
             <input type="hidden" id="acc-pref-theme" value="ma-dark">
           </div>
@@ -2491,11 +2545,10 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
         <div class="l3-sb-section-title"><span class="l3-sb-section-title-icon">⚙️</span> Preferences</div>
         <div class="l3-sb-section-content">
           <div style="font-size:9px;color:#444;margin-bottom:5px">member area theme</div>
-          <div class="l3-sb-theme-grid" id="sb-theme-pills">
-            <button class="l3-sb-theme-btn" onclick="accSetTheme('ma-dark')" data-theme="ma-dark">dark</button>
-            <button class="l3-sb-theme-btn" onclick="accSetTheme('ma-light')" data-theme="ma-light">light</button>
-            <button class="l3-sb-theme-btn" onclick="accSetTheme('ma-midnight')" data-theme="ma-midnight">midnight</button>
-            <button class="l3-sb-theme-btn" onclick="accSetTheme('ma-emerald')" data-theme="ma-emerald">emerald</button>
+          <div class="l3-sb-theme-grid" id="sb-theme-pills" style="grid-template-columns:repeat(3,1fr)">
+            <button class="l3-sb-theme-btn" onclick="accSetTheme('ma-dark')" data-theme="ma-dark">Carbon</button>
+            <button class="l3-sb-theme-btn" onclick="accSetTheme('ma-midnight')" data-theme="ma-midnight">Slate</button>
+            <button class="l3-sb-theme-btn" onclick="accSetTheme('ma-light')" data-theme="ma-light">Paper</button>
           </div>
           <div style="font-size:9px;color:#444;margin-top:10px;margin-bottom:5px">AI assistant language</div>
           <div class="l3-sb-lang-grid" id="sb-lang-pills">
@@ -2582,81 +2635,57 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 ══════════════════════════════════════════════════════════ -->
 <div class="l3-sb-main">
   <div class="l3-container">
-    <div class="l3-header">
-      <div class="l3-profile">
-        <div class="l3-avatar" id="l3-avatar">U</div>
-        <div class="l3-user-info">
-          <h2 id="l3-username">@username</h2>
-          <p id="l3-email"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="6c191f091e2c09010d0500420f0301">[email&#160;protected]</a></p>
-        </div>
+
+    <!-- ── TOPBAR: greeting + live prices + actions ── -->
+    <div class="l3-topbar">
+      <div class="l3-topbar-left">
+        <div class="l3-topbar-greeting" id="l3-topbar-greeting">Good morning</div>
+        <div class="l3-topbar-name">welcome back, <span id="l3-welcome-name">trader</span></div>
       </div>
-      <div class="l3-header-right">
-        <!-- LIVE PRICES in header -->
+      <div class="l3-topbar-center">
+        <!-- LIVE PRICES -->
         <div class="live-prices prices-loading" id="live-prices">
           <div class="price-card"><div class="skeleton" style="width:60px;height:32px"></div></div>
           <div class="price-card"><div class="skeleton" style="width:60px;height:32px"></div></div>
           <div class="price-card"><div class="skeleton" style="width:60px;height:32px"></div></div>
           <div class="price-card"><div class="skeleton" style="width:60px;height:32px"></div></div>
         </div>
-        <div class="l3-actions-wrap">
-          <div class="l3-sync-status" id="l3-sync-status" style="font-size:8px;color:#444;text-align:right;margin-bottom:3px"></div>
-          <div class="l3-actions">
-            <button class="l3-btn l3-btn-sync" id="l3-sync-btn" onclick="authSaveWithToast()">↑ sync</button>
-            <div class="l3-menu-wrap" id="l3-menu-wrap" style="display:none">
-              <button class="l3-btn l3-btn-menu" id="l3-menu-btn" onclick="toggleL3Menu(event)" title="more">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <rect y="1.5" width="14" height="1.5" rx="0.75" fill="currentColor"/>
-                  <rect y="6.25" width="14" height="1.5" rx="0.75" fill="currentColor"/>
-                  <rect y="11" width="14" height="1.5" rx="0.75" fill="currentColor"/>
-                </svg>
-              </button>
-              <div class="l3-menu-dropdown" id="l3-menu-dropdown">
-                <div class="l3-menu-item" onclick="openAboutCJ()">
-                  <span class="l3-menu-item-icon">📖</span>
-                  <span>about crypto jurnal</span>
-                </div>
+      </div>
+      <div class="l3-topbar-right">
+        <!-- Theme switcher — 3 pills -->
+        <div class="l3-theme-switcher">
+          <button class="l3-theme-pill" id="l3t-dark" onclick="l3SetTheme('ma-dark')" title="Carbon">●</button>
+          <button class="l3-theme-pill" id="l3t-midnight" onclick="l3SetTheme('ma-midnight')" title="Slate">◐</button>
+          <button class="l3-theme-pill" id="l3t-light" onclick="l3SetTheme('ma-light')" title="Paper">○</button>
+        </div>
+        <!-- Actions -->
+        <div class="l3-actions">
+          <button class="l3-btn l3-btn-sync" id="l3-sync-btn" onclick="authSaveWithToast()">↑ sync</button>
+          <div class="l3-menu-wrap" id="l3-menu-wrap" style="display:none">
+            <button class="l3-btn l3-btn-menu" id="l3-menu-btn" onclick="toggleL3Menu(event)" title="more">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><rect y="1.5" width="14" height="1.5" rx="0.75" fill="currentColor"/><rect y="6.25" width="14" height="1.5" rx="0.75" fill="currentColor"/><rect y="11" width="14" height="1.5" rx="0.75" fill="currentColor"/></svg>
+            </button>
+            <div class="l3-menu-dropdown" id="l3-menu-dropdown">
+              <div class="l3-menu-item" onclick="openAboutCJ()">
+                <span class="l3-menu-item-icon">📖</span>
+                <span>about crypto jurnal</span>
               </div>
             </div>
-            <button class="l3-btn l3-btn-logout" onclick="authLogout()">logout</button>
           </div>
+          <button class="l3-btn l3-btn-logout" onclick="authLogout()">logout</button>
         </div>
       </div>
     </div>
 
-    <div class="l3-welcome" style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
-      <div>
-        <h1>welcome back, <span id="l3-welcome-name">trader</span></h1>
-        <p>your personal trading hub — explore features below</p>
-      </div>
-      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;margin-top:4px">
-        <span style="font-size:9px;font-weight:700;color:#333;text-transform:uppercase;letter-spacing:.08em">theme</span>
-        <div style="display:flex;gap:3px;background:#0a0a0a;border:0.5px solid #1a1a1a;border-radius:10px;padding:3px">
-          <button onclick="l3SetTheme('ma-dark')" id="l3t-dark" title="dark" style="width:28px;height:28px;border-radius:7px;border:1.5px solid transparent;background:transparent;cursor:pointer;transition:all .15s;padding:0;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 20 20"><rect width="20" height="20" rx="5" fill="#0d0d0d"/><rect x="0" y="0" width="20" height="7" rx="5" fill="#1a1a1a"/><rect x="0" y="0" width="20" height="7" rx="0" fill="#1a1a1a" y="5"/><circle cx="10" cy="13" r="3" fill="#00c47a" opacity=".8"/></svg></button>
-          <button onclick="l3SetTheme('ma-light')" id="l3t-light" title="light" style="width:28px;height:28px;border-radius:7px;border:1.5px solid transparent;background:transparent;cursor:pointer;transition:all .15s;padding:0;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 20 20"><rect width="20" height="20" rx="5" fill="#f5f5f5"/><rect x="0" y="0" width="20" height="7" rx="0" fill="#e0e0e0"/><rect x="0" y="0" width="20" height="7" rx="5" fill="#e0e0e0"/><circle cx="10" cy="13" r="3" fill="#00c47a" opacity=".8"/></svg></button>
-          <button onclick="l3SetTheme('ma-midnight')" id="l3t-midnight" title="midnight" style="width:28px;height:28px;border-radius:7px;border:1.5px solid transparent;background:transparent;cursor:pointer;transition:all .15s;padding:0;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 20 20"><rect width="20" height="20" rx="5" fill="#0a0a1a"/><rect x="0" y="0" width="20" height="7" rx="0" fill="#12123a"/><rect x="0" y="0" width="20" height="7" rx="5" fill="#12123a"/><circle cx="10" cy="13" r="3" fill="#818cf8" opacity=".9"/></svg></button>
-          <button onclick="l3SetTheme('ma-emerald')" id="l3t-emerald" title="emerald" style="width:28px;height:28px;border-radius:7px;border:1.5px solid transparent;background:transparent;cursor:pointer;transition:all .15s;padding:0;display:flex;align-items:center;justify-content:center"><svg width="20" height="20" viewBox="0 0 20 20"><rect width="20" height="20" rx="5" fill="#0a1a12"/><rect x="0" y="0" width="20" height="7" rx="0" fill="#0d2a1a"/><rect x="0" y="0" width="20" height="7" rx="5" fill="#0d2a1a"/><circle cx="10" cy="13" r="3" fill="#34d399" opacity=".9"/></svg></button>
-        </div>
-      </div>
-    </div>
+    <!-- hidden ids kept for JS compatibility — stats live in sidebar now -->
+    <span id="l3-stat-presets" style="display:none">0</span>
+    <span id="l3-stat-days" style="display:none">0</span>
+    <span id="l3-stat-syncs" style="display:none">0</span>
+    <span id="l3-stat-syncs-sub" style="display:none"></span>
+    <span id="l3-sync-status" style="display:none"></span>
 
-    <!-- QUICK STATS -->
-    <div class="l3-stats">
-      <div class="l3-stat">
-        <div class="l3-stat-value" id="l3-stat-presets">0</div>
-        <div class="l3-stat-label">saved presets</div>
-      </div>
-      <div class="l3-stat">
-        <div class="l3-stat-value" id="l3-stat-days">0</div>
-        <div class="l3-stat-label">days active</div>
-      </div>
-      <div class="l3-stat">
-        <div class="l3-stat-value" id="l3-stat-syncs">0</div>
-        <div class="l3-stat-label">total syncs</div>
-        <div class="l3-stat-sub" id="l3-stat-syncs-sub"></div>
-      </div>
-    </div>
-
-    <div class="l3-section-title">📦 tools & features</div>
+    <div class="l3-main-body">
+    <div class="l3-section-title">Tools & Features</div>
     <div class="l3-grid">
       <div class="l3-card l3-card-soon" onclick="showToast('Market Update coming soon! Stay tuned.','info')" style="cursor:default">
         <span class="l3-card-badge soon">soon</span>
@@ -2702,7 +2731,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
     </div>
 
     <!-- AI ASSISTANT FOR MEMBER AREA -->
-    <div class="l3-section-title">🤖 need help?</div>
+    <div class="l3-section-title" style="margin-top:20px">Need Help?</div>
     <div class="l3-ai-box" id="l3-ai-box">
       <div class="l3-ai-header">
         <span class="l3-ai-icon">🤖</span>
@@ -2721,6 +2750,8 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
       </div>
       <div class="l3-ai-response" id="l3-ai-response"></div>
     </div>
+
+    </div><!-- /l3-main-body -->
 
     <div class="l3-footer">
       <p>built with 🤍 by <a href="https://t.me/CryptoJurnal" target="_blank">@cryptojurnal</a> · <span onclick="openAdminPage()" style="cursor:default" title="Admin">bet all the time</span>, bet with style</p>
@@ -9223,16 +9254,13 @@ function renderSidebarBadges(){
 function l3SetTheme(val, silent){
   applyMemberTheme(val);
   if(!silent) savePrefSilent('ma_theme', val);
-  // sync account panel pills without triggering save
   _syncThemePills(val);
-  // sync sidebar pills
   if(typeof _syncSidebarThemePills==='function') _syncSidebarThemePills(val);
-  // update member area switcher active state
-  ['dark','light','midnight','emerald'].forEach(t=>{
-    const btn = document.getElementById('l3t-'+t);
+  // update topbar pills
+  ['dark','midnight','light'].forEach(t=>{
+    var btn=document.getElementById('l3t-'+t);
     if(!btn) return;
-    btn.style.borderColor = ('ma-'+t === val) ? '#00c47a' : 'transparent';
-    btn.style.transform = ('ma-'+t === val) ? 'scale(1.15)' : 'scale(1)';
+    btn.classList.toggle('active', 'ma-'+t === val);
   });
   if(!silent) showToast('Theme changed','success',1200);
 }
@@ -9603,6 +9631,19 @@ function goLayer3(){
   if(typeof fetchLivePrices==='function') fetchLivePrices();
   // Populate sidebar with user data
   if(typeof loadSidebarData==='function') loadSidebarData();
+  // Time-based greeting
+  var greetEl=document.getElementById('l3-topbar-greeting');
+  if(greetEl){
+    var h=new Date().getHours();
+    greetEl.textContent=h<12?'Good morning':h<17?'Good afternoon':'Good evening';
+  }
+  // Sync active theme pill
+  var prefs2=JSON.parse(localStorage.getItem('batt_prefs')||'{}');
+  var curTheme=prefs2.ma_theme||'ma-dark';
+  ['dark','midnight','light'].forEach(function(t){
+    var btn=document.getElementById('l3t-'+t);
+    if(btn) btn.classList.toggle('active','ma-'+t===curTheme);
+  });
 }
 
 // Track if risk disclosure was shown this session
