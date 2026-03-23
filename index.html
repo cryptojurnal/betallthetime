@@ -1627,91 +1627,82 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 /* ── MEMBER AREA SIDEBAR ── */
 #layer3{flex-direction:row!important}
 .l3-sb-main{flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden}
-.l3-sb{width:280px;min-width:280px;background:#080808;border-right:0.5px solid #1a1a1a;display:flex;flex-direction:column;flex-shrink:0;transition:width .3s cubic-bezier(.4,0,.2,1),min-width .3s cubic-bezier(.4,0,.2,1);overflow:hidden;z-index:10;position:relative}
-.l3-sb.collapsed{width:52px;min-width:52px;border-right:1.5px solid #00c47a22}
-.l3-sb-inner{width:280px;display:flex;flex-direction:column;flex:1;overflow:hidden}
-.l3-sb-header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:0.5px solid #1a1a1a;flex-shrink:0;gap:8px;min-height:52px}
-.l3-sb.collapsed .l3-sb-header{justify-content:center;padding:12px 0}
-.l3-sb.collapsed .l3-sb-brand{display:none}
+/* Sidebar container — overflow:visible so tab can poke out */
+.l3-sb{width:280px;min-width:280px;background:#080808;border-right:0.5px solid #1a1a1a;display:flex;flex-direction:column;flex-shrink:0;transition:width .3s cubic-bezier(.4,0,.2,1),min-width .3s cubic-bezier(.4,0,.2,1);overflow:visible;z-index:10;position:relative}
+.l3-sb.collapsed{width:0px;min-width:0px;border-right:none}
+/* ▸ Protruding toggle tab — ALWAYS visible regardless of collapse state */
+.l3-sb-tab{position:absolute;top:50%;right:-28px;transform:translateY(-50%);width:28px;height:56px;background:#0d0d0d;border:0.5px solid #1a1a1a;border-left:none;border-radius:0 8px 8px 0;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#555;transition:all .2s;z-index:20;padding:0;flex-shrink:0}
+.l3-sb-tab:hover{background:#141414;color:#00c47a;border-color:#00c47a55}
+.l3-sb.collapsed .l3-sb-tab{color:#00c47a99;border-color:#00c47a44;background:#041a10}
+.l3-sb.collapsed .l3-sb-tab:hover{color:#00c47a;border-color:#00c47a;background:#082a18}
+.l3-sb-chevron{transition:transform .3s;pointer-events:none}
+.l3-sb.collapsed .l3-sb-chevron{transform:rotate(180deg)}
+/* Inner container fades out when collapsed */
+.l3-sb-inner{width:280px;display:flex;flex-direction:column;flex:1;overflow:hidden;transition:opacity .2s}
+.l3-sb.collapsed .l3-sb-inner{opacity:0;pointer-events:none}
+/* Header */
+.l3-sb-header{display:flex;align-items:center;padding:14px 14px 12px;border-bottom:0.5px solid #1a1a1a;flex-shrink:0;min-height:52px}
 .l3-sb-brand{display:flex;align-items:center;gap:8px;overflow:hidden}
 .l3-sb-brand-icon{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#00c47a22,#00c47a44);border:0.5px solid #00c47a44;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.l3-sb-brand-label{font-size:11px;font-weight:800;color:#e0e0e0;text-transform:uppercase;letter-spacing:.1em;white-space:nowrap;transition:opacity .2s}
-.l3-sb.collapsed .l3-sb-brand-label{opacity:0;width:0;overflow:hidden}
-.l3-sb-toggle{width:28px;height:28px;border-radius:7px;background:transparent;border:0.5px solid #1a1a1a;color:#444;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
-.l3-sb-toggle:hover{background:#111;border-color:#333;color:#888}
-.l3-sb.collapsed .l3-sb-toggle{width:32px;height:32px;border-color:#00c47a33;color:#00c47a88;background:#041a10}
-.l3-sb.collapsed .l3-sb-toggle:hover{border-color:#00c47a;color:#00c47a;background:#082a18}
-.l3-sb-body{flex:1;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;padding:12px 0;display:flex;flex-direction:column;gap:0}
+.l3-sb-brand-label{font-size:11px;font-weight:800;color:#e0e0e0;text-transform:uppercase;letter-spacing:.1em;white-space:nowrap}
+/* Body */
+.l3-sb-body{flex:1;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;padding:12px 0;display:flex;flex-direction:column}
 .l3-sb-body::-webkit-scrollbar{display:none}
 /* Profile block */
 .l3-sb-profile{padding:10px 14px 14px;border-bottom:0.5px solid #111;flex-shrink:0}
 .l3-sb-avatar-row{display:flex;align-items:center;gap:10px;overflow:hidden;margin-bottom:10px}
 .l3-sb-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#00c47a,#00a060);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#000;flex-shrink:0;overflow:hidden}
 .l3-sb-avatar img{width:100%;height:100%;object-fit:cover}
-.l3-sb-user{overflow:hidden;flex:1;min-width:0;transition:opacity .2s,width .2s}
-.l3-sb.collapsed .l3-sb-user{opacity:0;width:0;overflow:hidden}
-.l3-sb.collapsed .l3-sb-profile .l3-sb-stats-row{display:none}
+.l3-sb-user{overflow:hidden;flex:1;min-width:0}
 .l3-sb-username{font-size:12px;font-weight:700;color:#e0e0e0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .l3-sb-email{font-size:9px;color:#444;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
 .l3-sb-badge{font-size:7px;font-weight:700;padding:2px 6px;border-radius:3px;background:#0a2a1a;color:#00c47a;border:0.5px solid #004d30;text-transform:uppercase;letter-spacing:.05em;display:inline-block;margin-top:4px}
-.l3-sb-stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-top:0}
+.l3-sb-stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
 .l3-sb-stat{background:#0d0d0d;border:0.5px solid #1a1a1a;border-radius:6px;padding:6px 4px;text-align:center}
 .l3-sb-stat-val{font-size:13px;font-weight:800;color:#00c47a}
 .l3-sb-stat-lbl{font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.04em;margin-top:1px}
-/* Section groups */
+/* Sections */
 .l3-sb-section{padding:10px 14px;border-bottom:0.5px solid #111}
-.l3-sb.collapsed .l3-sb-section-content{display:none}
-.l3-sb.collapsed .l3-sb-section-title{display:none}
 .l3-sb-section-title{font-size:8px;font-weight:700;color:#2a2a2a;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;display:flex;align-items:center;gap:5px}
 .l3-sb-section-title-icon{font-size:10px}
 /* Sync */
-.l3-sb-sync-btn{width:100%;padding:8px 12px;background:#0a2a1a;border:0.5px solid #004d30;border-radius:7px;color:#00c47a;font-size:10px;font-weight:700;cursor:pointer;transition:all .2s;text-align:center}
+.l3-sb-sync-btn{width:100%;padding:8px 12px;background:#0a2a1a;border:0.5px solid #004d30;border-radius:7px;color:#00c47a;font-size:10px;font-weight:700;cursor:pointer;transition:all .2s;text-align:center;font-family:inherit}
 .l3-sb-sync-btn:hover{background:#0d3a22}
 .l3-sb-sync-sub{font-size:8px;color:#2a2a2a;text-align:center;margin-top:5px}
-/* Theme pills */
+/* Theme/Lang pills */
 .l3-sb-theme-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
-.l3-sb-theme-btn{padding:6px 3px;font-size:8px;font-weight:700;border-radius:6px;border:0.5px solid #1a1a1a;background:#0a0a0a;color:#555;cursor:pointer;transition:all .2s;letter-spacing:.02em}
+.l3-sb-theme-btn{padding:6px 3px;font-size:8px;font-weight:700;border-radius:6px;border:0.5px solid #1a1a1a;background:#0a0a0a;color:#555;cursor:pointer;transition:all .2s;letter-spacing:.02em;font-family:inherit}
 .l3-sb-theme-btn.active,.l3-sb-theme-btn:hover{border-color:#00c47a;color:#00c47a;background:#041a10}
-/* Lang pills */
 .l3-sb-lang-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:6px}
-.l3-sb-lang-btn{padding:6px 4px;font-size:8px;font-weight:700;border-radius:6px;border:0.5px solid #1a1a1a;background:#0a0a0a;color:#555;cursor:pointer;transition:all .2s}
+.l3-sb-lang-btn{padding:6px 4px;font-size:8px;font-weight:700;border-radius:6px;border:0.5px solid #1a1a1a;background:#0a0a0a;color:#555;cursor:pointer;transition:all .2s;font-family:inherit}
 .l3-sb-lang-btn.active,.l3-sb-lang-btn:hover{border-color:#00c47a;color:#00c47a;background:#041a10}
-/* Data management */
+/* Data */
 .l3-sb-data-row{display:flex;gap:6px;margin-bottom:6px}
-.l3-sb-data-btn{flex:1;padding:7px 6px;border-radius:6px;font-size:9px;font-weight:700;cursor:pointer;transition:all .2s;text-align:center}
+.l3-sb-data-btn{flex:1;padding:7px 6px;border-radius:6px;font-size:9px;font-weight:700;cursor:pointer;transition:all .2s;text-align:center;font-family:inherit}
 .l3-sb-data-export{background:#041a10;border:0.5px solid #004d30;color:#00c47a}
 .l3-sb-data-import{background:#0a0a1a;border:0.5px solid #1a1a4d;color:#5555c4}
-.l3-sb-data-clear{width:100%;padding:7px;background:transparent;border:0.5px solid #1a1a1a;border-radius:6px;color:#333;font-size:9px;font-weight:700;cursor:pointer;transition:all .2s}
+.l3-sb-data-clear{width:100%;padding:7px;background:transparent;border:0.5px solid #1a1a1a;border-radius:6px;color:#333;font-size:9px;font-weight:700;cursor:pointer;transition:all .2s;font-family:inherit}
 .l3-sb-data-clear:hover{border-color:#333;color:#666}
 /* Security */
 .l3-sb-pass-input{width:100%;padding:7px 10px;background:#0a0a0a;border:0.5px solid #1a1a1a;border-radius:6px;color:#e0e0e0;font-size:10px;margin-bottom:5px;box-sizing:border-box;font-family:inherit}
 .l3-sb-pass-input:focus{outline:none;border-color:#00c47a}
-.l3-sb-pass-btn{width:100%;padding:7px;background:#111;border:0.5px solid #222;border-radius:6px;color:#aaa;font-size:9px;font-weight:700;cursor:pointer;margin-top:2px;transition:all .2s}
+.l3-sb-pass-btn{width:100%;padding:7px;background:#111;border:0.5px solid #222;border-radius:6px;color:#aaa;font-size:9px;font-weight:700;cursor:pointer;margin-top:2px;transition:all .2s;font-family:inherit}
 .l3-sb-pass-btn:hover{background:#1a1a1a;color:#e0e0e0}
-/* Activity log */
+/* Activity */
 .l3-sb-activity{max-height:160px;overflow-y:auto;scrollbar-width:none}
 .l3-sb-activity::-webkit-scrollbar{display:none}
-/* Danger zone */
+/* Danger */
 .l3-sb-danger{background:#0d0505;border:0.5px solid #2a0808;border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:5px}
-.l3-sb-danger-btn{width:100%;padding:7px 10px;background:transparent;border:0.5px solid #3a1010;border-radius:5px;color:#E24B4A;font-size:9px;font-weight:700;cursor:pointer;transition:all .2s}
+.l3-sb-danger-btn{width:100%;padding:7px 10px;background:transparent;border:0.5px solid #3a1010;border-radius:5px;color:#E24B4A;font-size:9px;font-weight:700;cursor:pointer;transition:all .2s;font-family:inherit}
 .l3-sb-danger-btn:hover{background:#1a0505}
 .l3-sb-danger-del{background:#E24B4A!important;border:none!important;color:#fff!important}
 .l3-sb-danger-del:hover{opacity:.85}
-/* Collapsed icon-only strip */
-.l3-sb.collapsed .l3-sb-icon-strip{display:flex}
-.l3-sb-icon-strip{display:none;flex-direction:column;align-items:center;gap:6px;padding:8px 0}
-.l3-sb-icon-btn{width:36px;height:36px;border-radius:8px;background:transparent;border:0.5px solid #111;color:#333;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;position:relative}
-.l3-sb-icon-btn:hover{background:#111;border-color:#222;color:#888}
-.l3-sb-icon-btn[title]:hover::after{content:attr(title);position:absolute;left:calc(100% + 8px);top:50%;transform:translateY(-50%);background:#111;border:0.5px solid #222;color:#e0e0e0;font-size:9px;font-weight:600;padding:4px 8px;border-radius:5px;white-space:nowrap;z-index:9999;pointer-events:none}
-/* Achievements in sidebar */
+/* Badges */
 .l3-sb-badges-summary{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
 .l3-sb-badges-count{font-size:9px;color:#444}
 .l3-sb-badges-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:3px}
-/* Collapse icon arrow */
-.l3-sb-chevron{transition:transform .3s}
-.l3-sb.collapsed .l3-sb-chevron{transform:rotate(180deg)}
 /* Responsive */
-@media(max-width:768px){.l3-sb{display:none}.l3-sb-main{width:100%}}
+@media(max-width:768px){.l3-sb{display:none!important}.l3-sb-main{width:100%}}
 
 /* ── MOBILE BOTTOM NAV ── */
 .mobile-bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:9200;background:#0a0a0a;border-top:1px solid #1a1a1a;padding:6px 0 max(6px,env(safe-area-inset-bottom));grid-template-columns:repeat(4,1fr)}
@@ -2425,8 +2416,15 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
      MEMBER AREA SIDEBAR
 ══════════════════════════════════════════════════════════ -->
 <div class="l3-sb" id="l3-sb">
-  <div class="l3-sb-inner">
 
+  <!-- ▸ Protruding toggle tab — sticks out from right edge, ALWAYS visible -->
+  <button class="l3-sb-tab" id="l3-sb-tab" onclick="toggleL3Sidebar()">
+    <svg class="l3-sb-chevron" width="10" height="10" viewBox="0 0 10 10" fill="none">
+      <path d="M7 1L3 5l4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </button>
+
+  <div class="l3-sb-inner">
     <!-- Header -->
     <div class="l3-sb-header">
       <div class="l3-sb-brand">
@@ -2435,21 +2433,6 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
         </div>
         <span class="l3-sb-brand-label">Account</span>
       </div>
-      <button class="l3-sb-toggle" id="l3-sb-toggle" onclick="toggleL3Sidebar()" title="Collapse">
-        <svg class="l3-sb-chevron" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M8 2L4 6l4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </button>
-    </div>
-
-    <!-- Icon strip (visible when collapsed) -->
-    <div class="l3-sb-icon-strip">
-      <button class="l3-sb-icon-btn" onclick="toggleL3Sidebar()" title="Expand">
-        <svg width="14" height="14" viewBox="0 0 12 12" fill="none"><path d="M4 2l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </button>
-      <button class="l3-sb-icon-btn" title="Profile">👤</button>
-      <button class="l3-sb-icon-btn" onclick="authSaveWithToast()" title="Sync to cloud">☁️</button>
-      <button class="l3-sb-icon-btn" title="Preferences">⚙️</button>
-      <button class="l3-sb-icon-btn" onclick="exportAllData()" title="Export data">💾</button>
-      <button class="l3-sb-icon-btn" onclick="authLogout()" title="Logout" style="color:#E24B4A;border-color:#2a0a0a">🚪</button>
     </div>
 
     <!-- Scrollable body -->
