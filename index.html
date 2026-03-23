@@ -2935,7 +2935,22 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
       <!-- Chart + Order Book -->
       <div class="tp-chart-area">
         <div class="tp-chart-wrap">
-          <div id="tp-tv-widget" style="flex:1;min-height:400px;width:100%"></div>
+          <div style="position:relative;flex:1;min-height:400px;display:flex;flex-direction:column">
+          <div id="tp-tv-widget" style="flex:1;width:100%"></div>
+          <!-- real-time price overlay — always in sync with WS/REST -->
+          <div id="tp-chart-price-overlay" style="position:absolute;top:8px;left:8px;z-index:10;pointer-events:none;display:flex;flex-direction:column;gap:2px">
+            <div style="display:flex;align-items:baseline;gap:6px;background:rgba(0,0,0,0.72);backdrop-filter:blur(4px);border:0.5px solid #1a1a1a;border-radius:6px;padding:5px 10px">
+              <span id="tp-chart-price" style="font-family:'Trebuchet MS',sans-serif;font-size:18px;font-weight:800;color:#fff;letter-spacing:-.01em">—</span>
+              <span id="tp-chart-change" style="font-family:'Trebuchet MS',sans-serif;font-size:11px;font-weight:700;padding:2px 6px;border-radius:4px">—</span>
+              <span id="tp-chart-source" style="font-size:8px;color:#333;font-weight:600;letter-spacing:.04em;text-transform:uppercase">WS</span>
+            </div>
+            <div style="display:flex;gap:8px;background:rgba(0,0,0,0.55);backdrop-filter:blur(4px);border-radius:4px;padding:3px 8px">
+              <span style="font-size:9px;color:#444">H <span id="tp-chart-high" style="color:#555">—</span></span>
+              <span style="font-size:9px;color:#444">L <span id="tp-chart-low" style="color:#555">—</span></span>
+              <span style="font-size:9px;color:#444">Vol <span id="tp-chart-vol" style="color:#555">—</span></span>
+            </div>
+          </div>
+        </div>
         </div>
         
         <!-- Order Book -->
@@ -10832,8 +10847,56 @@ function tpUpdatePriceDisplay() {
   if(priceData.high) document.getElementById('tp-high').textContent = fmtPrice(priceData.high);
   if(priceData.low) document.getElementById('tp-low').textContent = fmtPrice(priceData.low);
   if(priceData.volume) document.getElementById('tp-vol').textContent = '$' + (priceData.volume).toLocaleString(undefined, { notation: 'compact', maximumFractionDigits: 1 });
-  
+
+  // ── sync chart overlay ──
+  _tpSyncChartOverlay(priceData);
+
   tpCalculate();
+}
+
+// keep chart overlay in sync with WS price — runs on every tick
+function _tpSyncChartOverlay(priceData){
+  if(!priceData || !priceData.price) return;
+  const cp  = document.getElementById('tp-chart-price');
+  const cc  = document.getElementById('tp-chart-change');
+  const ch  = document.getElementById('tp-chart-high');
+  const cl  = document.getElementById('tp-chart-low');
+  const cv  = document.getElementById('tp-chart-vol');
+  const src = document.getElementById('tp-chart-source');
+
+  if(cp){
+    const prev = cp.dataset.prev ? parseFloat(cp.dataset.prev) : 0;
+    cp.textContent = fmtPrice(priceData.price);
+    // flash color on tick
+    if(prev && priceData.price !== prev){
+      cp.style.color = priceData.price > prev ? '#00c47a' : '#e24b4a';
+      clearTimeout(cp._ft);
+      cp._ft = setTimeout(()=>{ cp.style.color='#fff'; }, 280);
+    }
+    cp.dataset.prev = priceData.price;
+  }
+  if(cc){
+    const isUp = (priceData.change||0) >= 0;
+    cc.textContent = (isUp?'+':'')+priceData.change.toFixed(2)+'%';
+    cc.style.background = isUp ? 'rgba(0,196,122,0.15)' : 'rgba(226,75,74,0.15)';
+    cc.style.color      = isUp ? '#00c47a' : '#e24b4a';
+  }
+  if(ch && priceData.high)  ch.textContent = fmtPrice(priceData.high);
+  if(cl && priceData.low)   cl.textContent = fmtPrice(priceData.low);
+  if(cv && priceData.volume) cv.textContent = '$'+(priceData.volume).toLocaleString(undefined,{notation:'compact',maximumFractionDigits:1});
+  // source indicator — WS = live, REST = polling
+  if(src) src.textContent = _tpWSLive ? 'WS ●' : 'REST ○';
+  if(src) src.style.color = _tpWSLive ? '#00c47a' : '#EF9F27';
+
+  // also sync orderbook mid price to match WS exactly
+  const obPriceEl = document.getElementById('tp-ob-price');
+  if(obPriceEl && _tpWSLive){
+    // only sync ob mid if no real OB data has come in (OB updates its own mid)
+    // use WS price as fallback when OB hasn't rendered yet
+    if(obPriceEl.textContent === '$69,420.50' || obPriceEl.textContent === '—'){
+      obPriceEl.textContent = fmtPrice(priceData.price);
+    }
+  }
 }
 
 // Select pair
