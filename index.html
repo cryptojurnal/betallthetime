@@ -2910,6 +2910,12 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
             <div class="tp-pnl-chart-title">Cumulative PnL</div>
             <canvas id="tp-pnl-canvas" height="120"></canvas>
           </div>
+          <div class="tp-stats-grid" style="grid-template-columns:repeat(2,1fr);gap:6px;margin-top:6px">
+            <div class="tp-stat-box"><div class="tp-stat-value" id="tp-stat-profit-factor">0.00</div><div class="tp-stat-label">Profit Factor</div></div>
+            <div class="tp-stat-box"><div class="tp-stat-value down" id="tp-stat-max-dd">$0</div><div class="tp-stat-label">Max Drawdown</div></div>
+            <div class="tp-stat-box"><div class="tp-stat-value down" id="tp-stat-fees">$0</div><div class="tp-stat-label">Total Fees</div></div>
+            <div class="tp-stat-box"><div class="tp-stat-value" id="tp-stat-liquidations">0</div><div class="tp-stat-label">Liquidations</div></div>
+          </div>
           <button onclick="tpResetAccount()" class="tp-reset-btn">Reset Paper Account</button>
         </div>
       </div>
@@ -3023,39 +3029,49 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
           <span style="font-size:10px;font-weight:800;color:#00c47a;min-width:28px;text-align:right;font-family:'Trebuchet MS',sans-serif" id="tp-leverage-value">10x</span>
         </div>
 
-        <!-- TP/SL inline -->
+        <!-- Margin Mode (perp only) -->
+        <div id="tp-margin-mode-row" style="display:flex;gap:3px;margin-bottom:4px">
+          <button id="tp-mm-cross" onclick="tpSetMarginMode('cross')" style="flex:1;padding:4px;font-size:9px;font-weight:700;border:0.5px solid #00c47a;background:#0a2a1a;color:#00c47a;border-radius:4px;cursor:pointer;font-family:'Trebuchet MS',sans-serif">Cross</button>
+          <button id="tp-mm-iso" onclick="tpSetMarginMode('isolated')" style="flex:1;padding:4px;font-size:9px;font-weight:700;border:0.5px solid #1a1a1a;background:transparent;color:#555;border-radius:4px;cursor:pointer;font-family:'Trebuchet MS',sans-serif">Isolated</button>
+          <div id="tp-fee-badge" style="flex:1;padding:4px;font-size:8px;font-weight:700;color:#EF9F27;background:#1a1200;border:0.5px solid #3a3000;border-radius:4px;text-align:center;cursor:default">Taker 0.050%</div>
+        </div>
+
+        <!-- TP/SL absolute price -->
         <div id="tp-tpsl-row" style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
           <div>
-            <div style="font-size:8px;color:#555;font-family:'Trebuchet MS',sans-serif;margin-bottom:2px;text-transform:uppercase;letter-spacing:.05em">TP %</div>
-            <div class="tp-input-wrap"><input type="number" class="tp-input" id="tp-tp" placeholder="10" value="10" oninput="tpCalculate()" style="font-size:11px;padding:5px 8px"><span class="tp-input-suffix" style="font-size:9px">%</span></div>
+            <div style="font-size:8px;color:#00c47a;font-family:'Trebuchet MS',sans-serif;margin-bottom:2px;text-transform:uppercase;letter-spacing:.05em">TP Price $</div>
+            <div class="tp-input-wrap"><input type="number" class="tp-input" id="tp-tp-price" placeholder="0 = off" oninput="tpCalculate()" style="font-size:11px;padding:5px 8px"></div>
           </div>
           <div>
-            <div style="font-size:8px;color:#555;font-family:'Trebuchet MS',sans-serif;margin-bottom:2px;text-transform:uppercase;letter-spacing:.05em">SL %</div>
-            <div class="tp-input-wrap"><input type="number" class="tp-input" id="tp-sl" placeholder="5" value="5" oninput="tpCalculate()" style="font-size:11px;padding:5px 8px"><span class="tp-input-suffix" style="font-size:9px">%</span></div>
+            <div style="font-size:8px;color:#e24b4a;font-family:'Trebuchet MS',sans-serif;margin-bottom:2px;text-transform:uppercase;letter-spacing:.05em">SL Price $</div>
+            <div class="tp-input-wrap"><input type="number" class="tp-input" id="tp-sl-price" placeholder="0 = off" oninput="tpCalculate()" style="font-size:11px;padding:5px 8px"></div>
           </div>
         </div>
 
-        <!-- Summary — compact inline grid -->
-        <div class="tp-order-summary" style="background:#050505;border:0.5px solid #1a1a1a;border-radius:6px;padding:6px 8px;display:grid;grid-template-columns:1fr 1fr;gap:0">
-          <div class="tp-summary-row" style="grid-column:1/-1;border-bottom:0.5px solid #111;padding-bottom:4px;margin-bottom:2px">
-            <span style="font-size:10px;color:#444">Entry</span>
-            <span style="font-size:10px;color:#888;font-weight:700" id="tp-sum-entry">--</span>
+        <!-- CEX-standard order summary -->
+        <div class="tp-order-summary" style="background:#050505;border:0.5px solid #1a1a1a;border-radius:6px;padding:6px 8px;font-size:10px">
+          <div class="tp-summary-row" style="border-bottom:0.5px solid #111;padding-bottom:3px;margin-bottom:3px">
+            <span style="color:#444">Fill Price</span><span id="tp-sum-entry" style="color:#888;font-weight:700">--</span>
           </div>
           <div class="tp-summary-row" id="tp-sum-margin-row">
             <span>Margin</span><span id="tp-sum-margin">--</span>
           </div>
           <div class="tp-summary-row warn" id="tp-sum-liq-row">
-            <span>Liq</span><span id="tp-sum-liq" style="color:#e24b4a">--</span>
+            <span>Liq Price</span><span id="tp-sum-liq" style="color:#e24b4a">--</span>
           </div>
-          <div class="tp-summary-row highlight" id="tp-sum-tp-row">
+          <div class="tp-summary-row" id="tp-sum-tp-row">
             <span>TP</span><span id="tp-sum-tp" style="color:#00c47a">--</span>
           </div>
-          <div class="tp-summary-row warn" id="tp-sum-sl-row">
+          <div class="tp-summary-row" id="tp-sum-sl-row">
             <span>SL</span><span id="tp-sum-sl" style="color:#e24b4a">--</span>
           </div>
-          <div class="tp-summary-row" style="grid-column:1/-1;border-top:0.5px solid #111;padding-top:4px;margin-top:2px">
-            <span>Fee</span><span id="tp-sum-fee">--</span>
+          <div class="tp-summary-row" style="border-top:0.5px solid #111;padding-top:3px;margin-top:3px">
+            <span>Open Fee</span><span id="tp-sum-fee">--</span>
           </div>
+          <div class="tp-summary-row">
+            <span>Notional</span><span id="tp-sum-value">--</span>
+          </div>
+          <div style="font-size:8px;color:#555;margin-top:2px;text-align:right" id="tp-sum-roe"></div>
         </div>
 
         <button class="tp-submit-btn long" id="tp-submit" onclick="tpPlaceOrder()">Buy BTC</button>
@@ -5285,47 +5301,50 @@ function tpCheckPendingOrders(){
     const priceData = TP_STATE.prices[order.pair];
     if(!priceData || !priceData.price) return;
     const price = priceData.price;
-
     let triggered = false;
+
     if(order.type === 'limit'){
-      // long limit: fill when price drops to or below limit
-      // short limit: fill when price rises to or above limit
-      if(order.side === 'long' && price <= order.limitPrice) triggered = true;
+      // long limit: fill when price <= limitPrice (buy cheap)
+      // short limit: fill when price >= limitPrice (sell high)
+      if(order.side === 'long'  && price <= order.limitPrice) triggered = true;
       if(order.side === 'short' && price >= order.limitPrice) triggered = true;
     } else if(order.type === 'stop'){
-      // long stop: fill when price rises to or above stop
-      // short stop: fill when price drops to or below stop
-      if(order.side === 'long' && price >= order.limitPrice) triggered = true;
+      // long stop (stop-buy): fill when price >= stopPrice
+      // short stop (stop-sell): fill when price <= stopPrice
+      if(order.side === 'long'  && price >= order.limitPrice) triggered = true;
       if(order.side === 'short' && price <= order.limitPrice) triggered = true;
     }
 
     if(triggered){
       filled.push(order);
-      // apply slippage
       const slippage = tpCalcSlippage(order.pair, order.size);
       const fillPrice = order.side === 'long'
         ? order.limitPrice * (1 + slippage)
         : order.limitPrice * (1 - slippage);
-
-      // open position
+      const openFee   = order.size * (order.feeRate||0.05) / 100;
       const pos = {
-        id: 'pos_' + now + '_' + Math.random().toString(36).slice(2,6),
+        id: 'pos_'+now+'_'+Math.random().toString(36).slice(2,6),
         pair: order.pair,
         side: order.side,
         size: order.size,
         leverage: order.leverage,
+        marginMode: order.marginMode || 'cross',
+        initialMargin: order.marginNeeded || order.size/order.leverage,
         entryPrice: fillPrice,
         marketType: order.marketType,
         exchange: order.exchange,
-        tpPercent: order.tpPercent || 10,
-        slPercent: order.slPercent || 5,
+        tpPrice: order.tpPrice || 0,
+        slPrice: order.slPrice || 0,
+        openFee,
+        feeRate: order.feeRate || 0.05,
         openedAt: now,
+        slippage: slippage * fillPrice,
       };
-      TP_STATE.balance -= order.size;
+      pos.liqPrice = tpCalcLiqPrice(pos);
+      TP_STATE.totalFeesPaid += openFee;
       TP_STATE.positions.push(pos);
-
-      const slippagePct = (slippage * 100).toFixed(3);
-      showToast(`✅ ${order.pair.replace('USDT','')} ${order.type.toUpperCase()} filled @ ${fmtPrice(fillPrice)} (slip ${slippagePct}%)`, 'success');
+      const slipTxt = (slippage*100).toFixed(3)+'%';
+      showToast(order.type.toUpperCase()+' filled: '+order.pair.replace('USDT','')+'  '+order.side.toUpperCase()+' @ '+fmtPrice(fillPrice)+' | slip: '+slipTxt, 'success');
     }
   });
 
@@ -5339,15 +5358,6 @@ function tpCheckPendingOrders(){
   }
 }
 
-function tpCalcSlippage(pair, size){
-  // simulate realistic slippage based on size
-  const priceData = TP_STATE.prices[pair];
-  if(!priceData) return 0.0002;
-  // larger order = more slippage, capped at 0.1%
-  const base = 0.0001; // 0.01% base
-  const impact = Math.min(size / 100000, 0.0009); // size impact
-  return base + impact;
-}
 
 // ── RENDER ORDERS TAB ──
 function tpRenderOrders(){
@@ -9976,12 +9986,48 @@ async function loadSharedPreset(shareCode){
 }
 
 // ── PAPER TRADING SYSTEM ──
+// ── CEX STANDARD FEE STRUCTURES ──
+// Real VIP0 fees per exchange (maker/taker %)
+var CEX_FEES = {
+  binance: {
+    spot:   { maker: 0.1,   taker: 0.1   },
+    perp:   { maker: 0.02,  taker: 0.05  },
+    // BNB discount 25% if BNB held
+    bnbDiscount: 0.25,
+    // funding every 8h, typical 0.01%
+    fundingInterval: 8,
+    defaultFunding: 0.01,
+  },
+  bybit: {
+    spot:   { maker: 0.1,   taker: 0.1   },
+    perp:   { maker: 0.02,  taker: 0.055 },
+    fundingInterval: 8,
+    defaultFunding: 0.01,
+  },
+  okx: {
+    spot:   { maker: 0.08,  taker: 0.1   },
+    perp:   { maker: 0.02,  taker: 0.05  },
+    fundingInterval: 8,
+    defaultFunding: 0.01,
+  },
+};
+
+// ── CEX STANDARD MARGIN MODES ──
+var CEX_MARGIN_MODES = { cross: 'cross', isolated: 'isolated' };
+// ── CEX STANDARD POSITION MODES ──
+var CEX_POSITION_MODES = { oneway: 'one-way', hedge: 'hedge' };
+
+// ── LIVE FUNDING RATES CACHE ──
+var _tpFundingCache = {}; // { 'BTCUSDT': { rate: 0.01, nextTime: ts } }
+
 var TP_STATE = {
   exchange: 'binance',
   pair: 'BTCUSDT',
   side: 'long',
   orderType: 'market',
-  marketType: 'spot', // 'spot' or 'perpetual'
+  marketType: 'spot',   // 'spot' | 'perpetual'
+  marginMode: 'cross',  // 'cross' | 'isolated'
+  positionMode: 'oneway', // 'oneway' | 'hedge'
   leverage: 10,
   balance: 10000,
   startBalance: 10000,
@@ -9989,8 +10035,15 @@ var TP_STATE = {
   history: [],
   pendingOrders: [],
   prices: {},
+  fundingRates: {},     // live funding per symbol
+  markPrices: {},       // mark price (can differ from last price)
   timeframe: '15m',
-  chartType: 'candle'
+  chartType: 'candle',
+  useBnbFee: false,     // binance BNB fee discount
+  feeTier: 'vip0',      // vip0..vip9 — affects rates
+  totalFeesPaid: 0,
+  totalFundingPaid: 0,
+  sessionTrades: 0,
 };
 
 var TP_PAIRS = [
@@ -10095,6 +10148,10 @@ function openSimulation(){
     tpRenderHistory();
     tpRenderOrders();
     tpRenderPairList();
+    tpUpdateFeeBadge();
+    tpSetMarginMode(TP_STATE.marginMode||'cross');
+    // fetch live funding rate
+    if(TP_STATE.marketType==='perpetual') tpFetchFundingRate(TP_STATE.pair);
     // open left panel on start
     const _pp = document.getElementById('tp-pos-panel');
     if(_pp && _pp.classList.contains('collapsed')){ _pp.classList.remove('collapsed'); setTimeout(_tpSyncPosToggle,10); }
@@ -10820,6 +10877,7 @@ function tpSelectExchange(ex) {
   document.getElementById('tp-pair-exchange').textContent = `${isSpot?'spot':'perpetual'} · ${ex}`;
   _obReset();
   _tpTrades = [];
+  tpUpdateFeeBadge();
   if(typeof tpStartWebSocket==='function') tpStartWebSocket();
   if(typeof tpInitTVChart==='function') tpInitTVChart();
   if(_tpObMode==='trades' && typeof tpStartTradeWS==='function') tpStartTradeWS();
@@ -10863,79 +10921,90 @@ function tpSetMaxSize() {
 
 // Calculate summary
 function tpCalculate() {
-  const size = parseFloat(document.getElementById('tp-size')?.value) || 0;
-  const tp = parseFloat(document.getElementById('tp-tp')?.value) || 10;
-  const sl = parseFloat(document.getElementById('tp-sl')?.value) || 5;
+  const size      = parseFloat(document.getElementById('tp-size')?.value) || 0;
   const priceData = TP_STATE.prices[TP_STATE.pair] || { price: 69000 };
-  const price = (TP_STATE.orderType === 'limit' || TP_STATE.orderType === 'stop')
+  const isSpot    = TP_STATE.marketType === 'spot';
+  const side      = TP_STATE.side;
+  const lev       = isSpot ? 1 : TP_STATE.leverage;
+  const fees      = tpGetFees(TP_STATE.exchange, TP_STATE.marketType, TP_STATE.orderType);
+
+  const entryPrice = (TP_STATE.orderType === 'limit' || TP_STATE.orderType === 'stop')
     ? (parseFloat(document.getElementById('tp-limit-price')?.value) || parseFloat(document.getElementById('tp-stop-price')?.value) || priceData.price)
     : priceData.price;
-  const lev = TP_STATE.leverage;
-  const side = TP_STATE.side;
-  
-  const posValue = size * lev;
-  const margin = size;
-  const liqMove = 100 / lev * 0.9;
-  const liqPrice = side === 'long' ? price * (1 - liqMove / 100) : price * (1 + liqMove / 100);
-  const tpPrice = side === 'long' ? price * (1 + tp / 100) : price * (1 - tp / 100);
-  const slPrice = side === 'long' ? price * (1 - sl / 100) : price * (1 + sl / 100);
-  
-  const fmt = (n) => fmtPrice(n);
-  
-  const fee = posValue * 0.00055; // 0.055% taker fee
+
+  const slippage     = tpCalcSlippage(TP_STATE.pair, size);
+  const fillPrice    = (side === 'long' || isSpot) ? entryPrice*(1+slippage) : entryPrice*(1-slippage);
+  const notional     = size;
+  const margin       = isSpot ? size : tpCalcMarginRequired(notional, lev, TP_STATE.marginMode);
+  const openFee      = notional * (fees.active / 100);
+
+  // liq price
+  const mmRate = 0.005;
+  let liqPrice = null;
+  if(!isSpot && lev > 1){
+    if(side === 'long') liqPrice = fillPrice * (1 - (1/lev) + mmRate);
+    else                liqPrice = fillPrice * (1 + (1/lev) - mmRate);
+  }
+
+  // TP/SL absolute price fields
+  const tpPriceEl = document.getElementById('tp-tp-price');
+  const slPriceEl = document.getElementById('tp-sl-price');
+  const tpPrice   = parseFloat(tpPriceEl?.value) || 0;
+  const slPrice   = parseFloat(slPriceEl?.value) || 0;
+
+  // potential PnL
+  const tpPnl = tpPrice > 0 ? (side==='long' ? (tpPrice-fillPrice)/fillPrice : (fillPrice-tpPrice)/fillPrice) * notional * lev : 0;
+  const slPnl = slPrice > 0 ? (side==='long' ? (slPrice-fillPrice)/fillPrice : (fillPrice-slPrice)/fillPrice) * notional * lev : 0;
+
   const el = id => document.getElementById(id);
-  if(el('tp-sum-entry')) el('tp-sum-entry').textContent = fmt(price);
-  if(el('tp-sum-margin')) el('tp-sum-margin').textContent = fmt(margin);
-  if(el('tp-sum-liq')) el('tp-sum-liq').textContent = fmt(liqPrice);
-  if(el('tp-sum-tp')) el('tp-sum-tp').textContent = fmt(tpPrice);
-  if(el('tp-sum-sl')) el('tp-sum-sl').textContent = fmt(slPrice);
-  if(el('tp-sum-fee')) el('tp-sum-fee').textContent = '~' + fmt(fee);
-  if(el('tp-sum-value')) el('tp-sum-value').textContent = fmt(posValue);
+  if(el('tp-sum-entry'))  el('tp-sum-entry').textContent  = fmtPrice(fillPrice) + (slippage > 0.0001 ? ' (slip '+((slippage*100).toFixed(3))+'%)' : '');
+  if(el('tp-sum-margin')) el('tp-sum-margin').textContent = fmtPrice(margin);
+  if(el('tp-sum-liq'))    el('tp-sum-liq').textContent    = liqPrice ? fmtPrice(liqPrice) : 'n/a';
+  if(el('tp-sum-tp'))     el('tp-sum-tp').textContent     = tpPrice > 0 ? fmtPrice(tpPrice)+' ('+(tpPnl>=0?'+':'')+fmtPrice(tpPnl)+')' : '—';
+  if(el('tp-sum-sl'))     el('tp-sum-sl').textContent     = slPrice > 0 ? fmtPrice(slPrice)+' ('+(slPnl>=0?'+':'')+fmtPrice(slPnl)+')' : '—';
+  if(el('tp-sum-fee'))    el('tp-sum-fee').textContent    = fmtPrice(openFee)+' ('+(fees.isMaker?'maker':'taker')+' '+fees.active.toFixed(3)+'%)';
+  if(el('tp-sum-value'))  el('tp-sum-value').textContent  = fmtPrice(notional);
+
+  // update ROE label
+  const roeEl = el('tp-sum-roe');
+  if(roeEl && margin > 0){
+    // show roe for tp/sl
+    const tpRoe = margin > 0 ? (tpPnl/margin*100).toFixed(1) : 0;
+    const slRoe = margin > 0 ? (slPnl/margin*100).toFixed(1) : 0;
+    roeEl.textContent = tpPrice > 0 ? 'ROE: TP '+(tpRoe>=0?'+':'')+tpRoe+'% / SL '+(slRoe>=0?'+':'')+slRoe+'%' : '';
+  }
 }
 
 // Place order
 function tpPlaceOrder() {
   const sizeInput = document.getElementById('tp-size');
   const size = parseFloat(sizeInput?.value) || 0;
-  const tp = parseFloat(document.getElementById('tp-tp')?.value) || 10;
-  const sl = parseFloat(document.getElementById('tp-sl')?.value) || 5;
   const priceData = TP_STATE.prices[TP_STATE.pair];
   const isSpot = TP_STATE.marketType === 'spot';
   const isSell = TP_STATE.side === 'short';
   const isLimitOrStop = TP_STATE.orderType === 'limit' || TP_STATE.orderType === 'stop';
+  const lev = isSpot ? 1 : TP_STATE.leverage;
+  const fees = tpGetFees(TP_STATE.exchange, TP_STATE.marketType, TP_STATE.orderType);
 
-  // limit/stop don't need live price to place
   if (!isLimitOrStop && (!priceData || !priceData.price)) {
     showToast('Loading prices... please wait', 'info');
     tpFetchPrices();
     return;
   }
+  if (size <= 0) { showToast('Enter a valid size', 'error'); sizeInput?.focus(); return; }
 
   const price = priceData?.price || 0;
-  const leverage = parseInt(document.getElementById('tp-leverage')?.value) || TP_STATE.leverage;
 
-  if (size <= 0) {
-    showToast('Enter a valid size', 'error');
-    sizeInput?.focus();
-    return;
-  }
-
-  // ── LIMIT / STOP ORDER — add to pending ──
+  // ── LIMIT / STOP ORDER ──
   if(TP_STATE.orderType === 'limit' || TP_STATE.orderType === 'stop'){
     const limitPriceEl = document.getElementById('tp-limit-price');
-    const stopPriceEl = document.getElementById('tp-stop-price');
-    const limitPrice = parseFloat(limitPriceEl?.value) || parseFloat(stopPriceEl?.value);
-    if(!limitPrice || limitPrice <= 0){
-      showToast('Enter a limit price first', 'error');
-      if(limitPriceEl) limitPriceEl.focus();
-      return;
-    }
-    if(size > TP_STATE.balance){
-      showToast('Insufficient balance', 'error');
-      return;
-    }
-    const tp = parseFloat(document.getElementById('tp-tp')?.value) || 10;
-    const sl = parseFloat(document.getElementById('tp-sl')?.value) || 5;
+    const stopPriceEl  = document.getElementById('tp-stop-price');
+    const limitPrice   = parseFloat(limitPriceEl?.value) || parseFloat(stopPriceEl?.value);
+    if(!limitPrice || limitPrice <= 0){ showToast('Enter a limit price first', 'error'); return; }
+    const marginNeeded = isSpot ? size : tpCalcMarginRequired(size, lev, TP_STATE.marginMode);
+    if(marginNeeded > TP_STATE.balance){ showToast('Insufficient balance', 'error'); return; }
+    const tpPrice = parseFloat(document.getElementById('tp-tp-price')?.value) || 0;
+    const slPrice = parseFloat(document.getElementById('tp-sl-price')?.value) || 0;
     const order = {
       id: 'ord_'+Date.now(),
       pair: TP_STATE.pair,
@@ -10943,500 +11012,580 @@ function tpPlaceOrder() {
       type: TP_STATE.orderType,
       limitPrice,
       size,
-      leverage: isSpot ? 1 : leverage,
+      leverage: lev,
+      marginMode: TP_STATE.marginMode,
+      marginNeeded,
       marketType: TP_STATE.marketType,
       exchange: TP_STATE.exchange,
-      tpPercent: tp,
-      slPercent: sl,
+      tpPrice,
+      slPrice,
+      feeRate: fees.active,
       createdAt: Date.now(),
     };
-    TP_STATE.balance -= size;
+    TP_STATE.balance -= marginNeeded;
     if(!TP_STATE.pendingOrders) TP_STATE.pendingOrders = [];
     TP_STATE.pendingOrders.push(order);
-    tpSaveState();
-    tpRenderOrders();
-    _tpUpdateOrderBadge();
-    // auto-open left panel and switch to orders tab
+    tpSaveState(); tpRenderOrders(); _tpUpdateOrderBadge();
     const _posPanel = document.getElementById('tp-pos-panel');
-    if(_posPanel && _posPanel.classList.contains('collapsed')){
-      _posPanel.classList.remove('collapsed');
-      setTimeout(_tpSyncPosToggle, 10);
-    }
+    if(_posPanel && _posPanel.classList.contains('collapsed')){ _posPanel.classList.remove('collapsed'); setTimeout(_tpSyncPosToggle,10); }
     tpShowTab('orders');
-    showToast(`${TP_STATE.orderType.toUpperCase()} order placed @ ${fmtPrice(limitPrice)}`, 'success');
+    showToast(`${TP_STATE.orderType.toUpperCase()} ${order.side.toUpperCase()} @ ${fmtPrice(limitPrice)} | margin: ${fmtPrice(marginNeeded)}`, 'success');
     return;
   }
-  
-  // Handle Spot Sell - sell existing holdings
+
+  // ── SPOT SELL ──
   if (isSpot && isSell) {
-    // Find holdings for this pair
-    const holding = TP_STATE.positions.find(p => 
-      p.pair === TP_STATE.pair && (p.marketType === 'spot' || p.leverage === 1)
-    );
-    
-    if (!holding) {
-      showToast(`No ${TP_STATE.pair.replace('USDT','')} holdings to sell`, 'error');
-      return;
-    }
-    
-    const holdingAmount = holding.size / holding.entryPrice; // coins owned
-    const sellAmount = size / price; // coins to sell
-    
-    if (sellAmount > holdingAmount * 1.001) { // small tolerance
-      showToast(`Insufficient holdings. You have ${holdingAmount.toFixed(6)} ${TP_STATE.pair.replace('USDT','')}`, 'error');
-      return;
-    }
-    
-    // Calculate proceeds
-    const proceeds = size;
-    const costBasis = sellAmount * holding.entryPrice;
-    const pnl = proceeds - costBasis;
-    
-    // Update balance
-    TP_STATE.balance += proceeds;
-    
-    // Update or remove holding
-    const remainingCoins = holdingAmount - sellAmount;
-    if (remainingCoins < 0.00001) {
-      // Close entire position
+    const holding = TP_STATE.positions.find(p => p.pair === TP_STATE.pair && (p.marketType === 'spot' || p.leverage <= 1));
+    if (!holding){ showToast('No '+TP_STATE.pair.replace('USDT','')+' holdings to sell', 'error'); return; }
+    const holdingQty  = holding.size / holding.entryPrice;
+    const sellQty     = size / price;
+    if (sellQty > holdingQty * 1.001){ showToast('Insufficient holdings. You have '+holdingQty.toFixed(6)+' '+TP_STATE.pair.replace('USDT',''), 'error'); return; }
+    const proceeds    = size;
+    const fee         = proceeds * (fees.active / 100);
+    const costBasis   = sellQty * holding.entryPrice;
+    const pnl         = proceeds - costBasis - fee;
+    TP_STATE.balance += proceeds - fee;
+    TP_STATE.totalFeesPaid += fee;
+    const remainingQty = holdingQty - sellQty;
+    if (remainingQty < 0.00001) {
       const idx = TP_STATE.positions.indexOf(holding);
       TP_STATE.positions.splice(idx, 1);
-      
-      // Add to history
-      TP_STATE.history.unshift({
-        ...holding,
-        exitPrice: price,
-        pnl: pnl,
-        closedAt: Date.now()
-      });
+      TP_STATE.history.unshift({ ...holding, exitPrice: price, pnl, fee, closedAt: Date.now() });
     } else {
-      // Partial sell - reduce holding
-      holding.size = remainingCoins * holding.entryPrice;
+      holding.size = remainingQty * holding.entryPrice;
     }
-    
-    if (TP_STATE.history.length > 50) TP_STATE.history = TP_STATE.history.slice(0, 50);
-    
-    tpSaveState();
-    tpUpdateUI();
-    tpRenderPositions();
-    tpRenderHistory();
-    
-    const pnlStr = pnl >= 0 ? `+$${pnl.toFixed(2)}` : `-$${Math.abs(pnl).toFixed(2)}`;
-    showToast(`Sold ${TP_STATE.pair.replace('USDT','')} @ $${price.toLocaleString()} (${pnlStr})`, pnl >= 0 ? 'success' : 'info');
+    if (TP_STATE.history.length > 100) TP_STATE.history = TP_STATE.history.slice(0,100);
+    TP_STATE.sessionTrades++;
+    tpSaveState(); tpUpdateUI(); tpRenderPositions(); tpRenderHistory();
+    const pnlStr = (pnl>=0?'+':'')+fmtPrice(pnl);
+    showToast('Sold '+TP_STATE.pair.replace('USDT','')+' @ '+fmtPrice(price)+' | PnL: '+pnlStr+' | Fee: '+fmtPrice(fee), pnl >= 0 ? 'success' : 'error');
     return;
   }
-  
-  // Handle Buy (Spot) or Open Position (Perpetual Long/Short)
-  if (size > TP_STATE.balance) {
-    showToast(`Insufficient balance. You have $${TP_STATE.balance.toFixed(2)}`, 'error');
-    return;
-  }
-  if (TP_STATE.positions.length >= 10) {
-    showToast('Max 10 positions allowed', 'error');
-    return;
-  }
-  
+
+  // ── SPOT BUY or PERP OPEN ──
+  const notional       = isSpot ? size : size;              // size = USDT amount
+  const marginNeeded   = isSpot ? size : tpCalcMarginRequired(notional, lev, TP_STATE.marginMode);
+  const slippage       = tpCalcSlippage(TP_STATE.pair, notional);
+  const fillPrice      = isSell
+    ? price * (1 - slippage)
+    : price * (1 + slippage);
+  const openFee        = notional * (fees.active / 100);
+
+  if (marginNeeded + openFee > TP_STATE.balance){ showToast('Insufficient balance. Need: '+fmtPrice(marginNeeded+openFee), 'error'); return; }
+  if (TP_STATE.positions.length >= 20){ showToast('Max 20 positions', 'error'); return; }
+
+  // TP/SL prices (absolute, not %)
+  const tpPrice = parseFloat(document.getElementById('tp-tp-price')?.value) || 0;
+  const slPrice = parseFloat(document.getElementById('tp-sl-price')?.value) || 0;
+
   const position = {
     id: Date.now().toString(),
     pair: TP_STATE.pair,
     side: TP_STATE.side,
     marketType: TP_STATE.marketType,
-    leverage: isSpot ? 1 : TP_STATE.leverage,
-    size,
-    entryPrice: price,
-    tpPercent: isSpot ? 0 : tp,
-    slPercent: isSpot ? 0 : sl,
+    marginMode: TP_STATE.marginMode,
+    leverage: lev,
+    size: notional,
+    entryPrice: fillPrice,
+    initialMargin: marginNeeded,
+    tpPrice,
+    slPrice,
+    openFee,
+    feeRate: fees.active,
     exchange: TP_STATE.exchange,
-    openedAt: Date.now()
+    openedAt: Date.now(),
+    slippage: slippage * fillPrice,
   };
-  
-  TP_STATE.balance -= size;
+  position.liqPrice = tpCalcLiqPrice(position);
+
+  TP_STATE.balance -= marginNeeded + openFee;
+  TP_STATE.totalFeesPaid += openFee;
   TP_STATE.positions.push(position);
-  tpSaveState();
-  tpUpdateUI();
-  tpRenderPositions();
-  
-  // Clear size input
+  tpSaveState(); tpUpdateUI(); tpRenderPositions();
   if (sizeInput) sizeInput.value = '';
   tpCalculate();
-  
-  const pairShort = position.pair.replace('USDT', '');
+
+  const pairShort = position.pair.replace('USDT','');
+  const slipTxt   = (slippage*100).toFixed(3)+'%';
   if (isSpot) {
-    showToast(`Bought ${pairShort} @ $${price.toLocaleString()}`, 'success');
+    showToast('Bought '+pairShort+' @ '+fmtPrice(fillPrice)+' | Fee: '+fmtPrice(openFee)+' | Slip: '+slipTxt, 'success');
   } else {
-    const leverageStr = position.leverage > 1 ? ` (${position.leverage}x)` : '';
-    showToast(`Opened ${position.side.toUpperCase()} ${pairShort}${leverageStr} @ $${price.toLocaleString()}`, 'success');
+    showToast(position.side.toUpperCase()+' '+pairShort+' '+lev+'x @ '+fmtPrice(fillPrice)+' | Margin: '+fmtPrice(marginNeeded)+' | Fee: '+fmtPrice(openFee), 'success');
+    // fetch live funding rate in background
+    if(TP_STATE.marketType === 'perpetual') tpFetchFundingRate(TP_STATE.pair);
   }
 }
 
-// Close position
-function tpClosePosition(id) {
+// ── CEX STANDARD: CLOSE POSITION ──
+function tpClosePosition(id, partialPct) {
   const idx = TP_STATE.positions.findIndex(p => p.id === id);
   if (idx === -1) return;
-  
   const pos = TP_STATE.positions[idx];
   const currentPrice = TP_STATE.prices[pos.pair]?.price || pos.entryPrice;
-  const pnl = tpCalcPnL(pos, currentPrice);
-  
-  TP_STATE.balance += pos.size + pnl;
-  TP_STATE.history.unshift({ ...pos, exitPrice: currentPrice, pnl, closedAt: Date.now() });
-  if (TP_STATE.history.length > 50) TP_STATE.history = TP_STATE.history.slice(0, 50);
-  TP_STATE.positions.splice(idx, 1);
-  
-  tpSaveState();
-  tpUpdateUI();
-  tpRenderPositions();
-  tpRenderHistory();
-  
-  const pnlStr = pnl >= 0 ? '+$' + pnl.toFixed(2) : '-$' + Math.abs(pnl).toFixed(2);
-  showToast(`Closed ${pos.pair.replace('USDT','')} | ${pnlStr}`, pnl >= 0 ? 'success' : 'error');
+  const pct = partialPct || 100;
+  const isPartial = pct < 100;
+
+  // size to close
+  const closeNotional = pos.size * (pct / 100);
+  const pnl           = tpCalcPnL({ ...pos, size: closeNotional }, currentPrice);
+  const funding       = tpCalcFunding({ ...pos, size: closeNotional });
+  const fees          = tpGetFees(pos.exchange, pos.marketType, 'market');
+  const closeFee      = closeNotional * (fees.taker / 100);
+  const netPnl        = pnl + funding - closeFee;
+  const returnedMargin = (pos.initialMargin || pos.size / pos.leverage) * (pct / 100);
+
+  TP_STATE.balance += returnedMargin + netPnl;
+  TP_STATE.totalFeesPaid += closeFee;
+  TP_STATE.totalFundingPaid += Math.abs(funding);
+
+  if(isPartial){
+    // reduce position
+    pos.size        -= closeNotional;
+    pos.initialMargin = (pos.initialMargin || pos.size/pos.leverage) * ((100-pct)/100);
+    pos.liqPrice    = tpCalcLiqPrice(pos);
+    TP_STATE.history.unshift({ ...pos, exitPrice: currentPrice, pnl: netPnl, fee: closeFee, funding, partial: true, pct, closedAt: Date.now() });
+  } else {
+    TP_STATE.positions.splice(idx, 1);
+    TP_STATE.history.unshift({ ...pos, exitPrice: currentPrice, pnl: netPnl, fee: closeFee, funding, closedAt: Date.now() });
+  }
+  if (TP_STATE.history.length > 100) TP_STATE.history = TP_STATE.history.slice(0,100);
+  TP_STATE.sessionTrades++;
+
+  tpSaveState(); tpUpdateUI(); tpRenderPositions(); tpRenderHistory();
+  const pnlStr = (netPnl>=0?'+':'')+fmtPrice(netPnl);
+  const label  = isPartial ? 'Closed '+pct+'%' : 'Closed';
+  showToast(label+' '+pos.pair.replace('USDT','')+' | PnL: '+pnlStr+' | Fee: '+fmtPrice(closeFee)+(funding!==0?' | Funding: '+fmtPrice(funding):''), netPnl >= 0 ? 'success' : 'error');
 }
 
-// Calculate PnL
-function tpCalcPnL(pos, currentPrice) {
+// ── CEX STANDARD: GET FEES FOR CURRENT EXCHANGE/MODE ──
+function tpGetFees(exchange, marketType, orderType){
+  const ex = exchange || TP_STATE.exchange;
+  const mt = marketType || TP_STATE.marketType;
+  const ot = orderType || TP_STATE.orderType;
+  const feeSet = CEX_FEES[ex] || CEX_FEES.binance;
+  const rates = mt === 'spot' ? feeSet.spot : feeSet.perp;
+  const isMaker = (ot === 'limit');
+  let rate = isMaker ? rates.maker : rates.taker;
+  if(ex === 'binance' && TP_STATE.useBnbFee) rate *= (1 - feeSet.bnbDiscount);
+  return { maker: rates.maker, taker: rates.taker, active: rate, isMaker };
+}
+
+// ── CEX STANDARD: CALCULATE LIQUIDATION PRICE ──
+function tpCalcLiqPrice(pos){
+  if(!pos || pos.marketType === 'spot' || pos.leverage <= 1) return null;
+  const { entryPrice, leverage, side, size, marginMode } = pos;
+  const margin = pos.initialMargin || (size / leverage);
+  if(marginMode === 'isolated'){
+    const mmRate = 0.005;
+    const notional = size;
+    if(side === 'long') return entryPrice * (1 - (margin/notional) + mmRate);
+    else return entryPrice * (1 + (margin/notional) - mmRate);
+  } else {
+    const accountBal = TP_STATE.balance + TP_STATE.positions.reduce((a,p)=>a+(p.initialMargin||p.size/p.leverage),0);
+    const notional = size;
+    const mmRate = 0.005;
+    if(side === 'long') return entryPrice - (accountBal/notional - mmRate) * entryPrice;
+    else return entryPrice + (accountBal/notional - mmRate) * entryPrice;
+  }
+}
+
+// ── CEX STANDARD: CALCULATE PNL ──
+function tpCalcPnL(pos, currentPrice){
+  if(!pos) return 0;
+  const isSpot = pos.marketType === 'spot' || pos.leverage <= 1;
+  if(isSpot){
+    const qty = pos.size / pos.entryPrice;
+    return (currentPrice - pos.entryPrice) * qty;
+  }
+  const notional = pos.size;
   const priceChange = (currentPrice - pos.entryPrice) / pos.entryPrice;
-  const pnlPercent = pos.side === 'long' ? priceChange : -priceChange;
-  return pos.size * pos.leverage * pnlPercent;
+  const pnlFactor = pos.side === 'long' ? priceChange : -priceChange;
+  return notional * pos.leverage * pnlFactor;
+}
+
+// ── CEX STANDARD: CALCULATE ROE % ──
+function tpCalcROE(pos, currentPrice){
+  if(!pos) return 0;
+  const pnl = tpCalcPnL(pos, currentPrice);
+  const margin = pos.initialMargin || (pos.size / pos.leverage);
+  return (pnl / margin) * 100;
+}
+
+// ── CEX STANDARD: ACCRUED FUNDING ──
+function tpCalcFunding(pos){
+  if(!pos || pos.marketType === 'spot') return 0;
+  const fundingRate = TP_STATE.fundingRates[pos.pair] ?? CEX_FEES[TP_STATE.exchange]?.defaultFunding ?? 0.01;
+  const hoursSinceOpen = (Date.now() - pos.openedAt) / 3600000;
+  const interval = CEX_FEES[TP_STATE.exchange]?.fundingInterval || 8;
+  const fundingPeriods = Math.floor(hoursSinceOpen / interval);
+  const notional = pos.size;
+  const fundingSign = pos.side === 'long' ? 1 : -1;
+  return -(notional * (fundingRate/100) * fundingPeriods * fundingSign);
+}
+
+// ── CEX STANDARD: FETCH LIVE FUNDING RATE ──
+async function tpFetchFundingRate(symbol){
+  const ex = TP_STATE.exchange;
+  try {
+    let rate = null;
+    if(ex === 'binance'){
+      const r = await fetch('https://fapi.binance.com/fapi/v1/premiumIndex?symbol='+symbol);
+      const d = await r.json();
+      rate = parseFloat(d.lastFundingRate) * 100;
+    } else if(ex === 'bybit'){
+      const r = await fetch('https://api.bybit.com/v5/market/tickers?category=linear&symbol='+symbol);
+      const d = await r.json();
+      rate = parseFloat(d.result?.list?.[0]?.fundingRate||0) * 100;
+    } else if(ex === 'okx'){
+      const instId = symbol.replace('USDT','-USDT-SWAP');
+      const r = await fetch('https://www.okx.com/api/v5/public/funding-rate?instId='+instId);
+      const d = await r.json();
+      rate = parseFloat(d.data?.[0]?.fundingRate||0) * 100;
+    }
+    if(rate !== null && !isNaN(rate)){
+      TP_STATE.fundingRates[symbol] = Math.abs(rate);
+      _tpFundingCache[symbol] = { rate: Math.abs(rate), ts: Date.now() };
+    }
+    return rate;
+  } catch(e){ return null; }
+}
+
+// ── CEX STANDARD: SLIPPAGE MODEL ──
+function tpCalcSlippage(pair, sizeUSDT){
+  const base = 0.0001;
+  const impact = Math.min(sizeUSDT / 500000, 0.002);
+  return base + impact;
+}
+
+// ── CEX STANDARD: MARGIN REQUIRED ──
+function tpCalcMarginRequired(sizeUSDT, leverage, marginMode){
+  return sizeUSDT / leverage;
+}
+
+// ── CEX STANDARD: MAX POSITION SIZE ──
+function tpCalcMaxSize(){
+  const leverage = TP_STATE.leverage;
+  const available = TP_STATE.balance;
+  const lockedMargin = TP_STATE.positions
+    .filter(p => p.marginMode === 'isolated')
+    .reduce((a, p) => a + (p.initialMargin || p.size/p.leverage), 0);
+  return (available - lockedMargin) * leverage;
 }
 
 // Update positions PnL
 function tpUpdatePositionsPnL() {
-  // only do full re-render if positions panel is visible
-  // otherwise just update PnL numbers in-place
   const container = document.getElementById('tp-positions');
-  if(container){
-    TP_STATE.positions.forEach(pos => {
-      const card = container.querySelector(`[data-id="${pos.id}"]`);
-      if(!card) return;
-      const currentPrice = TP_STATE.prices[pos.pair]?.price;
-      if(!currentPrice) return;
-      const pnl = tpCalcPnL(pos, currentPrice);
-      const pnlPct = (pnl / pos.size) * 100;
-      const isUp = pnl >= 0;
-      const pnlVal = card.querySelector('.tp-pos-pnl-value');
-      const pnlPer = card.querySelector('.tp-pos-pnl-percent');
-      const markEl = card.querySelector('.tp-pos-mark');
-      if(pnlVal){ pnlVal.textContent=(isUp?'+':'')+'$'+pnl.toFixed(2); pnlVal.className='tp-pos-pnl-value '+(isUp?'up':'down'); }
-      if(pnlPer){ pnlPer.textContent=(isUp?'+':'')+pnlPct.toFixed(2)+'%'; }
-      if(markEl){ markEl.textContent='$'+currentPrice.toLocaleString(); }
-    });
-  }
+  TP_STATE.positions.forEach(pos => {
+    if(!container) return;
+    const card = container.querySelector('[data-id="'+pos.id+'"]');
+    if(!card) return;
+    const currentPrice = TP_STATE.prices[pos.pair]?.price;
+    if(!currentPrice) return;
+    const pnl      = tpCalcPnL(pos, currentPrice);
+    const roe      = tpCalcROE(pos, currentPrice);
+    const funding  = tpCalcFunding(pos);
+    const netPnl   = pnl + funding;
+    const isUp     = netPnl >= 0;
+    const pnlVal   = card.querySelector('.tp-pos-pnl-value');
+    const pnlPer   = card.querySelector('.tp-pos-pnl-percent');
+    const markEl   = card.querySelector('.tp-pos-mark');
+    const fundEl   = card.querySelector('.tp-pos-funding');
+    if(pnlVal){ pnlVal.textContent=(isUp?'+':'')+fmtPrice(netPnl); pnlVal.className='tp-pos-pnl-value '+(isUp?'up':'down'); }
+    if(pnlPer){ pnlPer.textContent='ROE '+(roe>=0?'+':'')+roe.toFixed(2)+'%'; pnlPer.style.color=roe>=0?'#00c47a':'#e24b4a'; }
+    if(markEl)  markEl.textContent  = fmtPrice(currentPrice);
+    if(fundEl)  fundEl.textContent  = funding !== 0 ? 'Funding: '+(funding>=0?'+':'')+fmtPrice(funding) : '';
+    // update liq price (cross margin changes as balance changes)
+    pos.liqPrice = tpCalcLiqPrice(pos);
+    const liqEl = card.querySelector('.tp-pos-liq');
+    if(liqEl) liqEl.textContent = pos.liqPrice ? fmtPrice(pos.liqPrice) : 'n/a';
+  });
   tpUpdateUI();
-  
-  // Check TP/SL/Liquidation
+
+  // TP/SL/Liq check
   [...TP_STATE.positions].forEach(pos => {
     const currentPrice = TP_STATE.prices[pos.pair]?.price || pos.entryPrice;
-    const priceChange = ((currentPrice - pos.entryPrice) / pos.entryPrice) * 100;
-    const effectiveChange = pos.side === 'long' ? priceChange : -priceChange;
-    
-    if (effectiveChange >= pos.tpPercent) {
-      showToast(`🎯 TP Hit! ${pos.pair.replace('USDT','')}`, 'success');
+    const isLong = pos.side === 'long';
+    // TP hit
+    if(pos.tpPrice > 0 && ((isLong && currentPrice >= pos.tpPrice) || (!isLong && currentPrice <= pos.tpPrice))){
+      showToast('TP Hit! '+pos.pair.replace('USDT',''), 'success');
       tpClosePosition(pos.id);
-    } else if (effectiveChange <= -pos.slPercent) {
-      showToast(`🛑 SL Hit! ${pos.pair.replace('USDT','')}`, 'error');
+      return;
+    }
+    // SL hit
+    if(pos.slPrice > 0 && ((isLong && currentPrice <= pos.slPrice) || (!isLong && currentPrice >= pos.slPrice))){
+      showToast('SL Hit! '+pos.pair.replace('USDT',''), 'error');
       tpClosePosition(pos.id);
-    } else if (effectiveChange <= -(100 / pos.leverage * 0.9)) {
-      showToast(`💥 Liquidated! ${pos.pair.replace('USDT','')}`, 'error');
-      tpClosePosition(pos.id);
+      return;
+    }
+    // Liq hit
+    if(pos.liqPrice && ((isLong && currentPrice <= pos.liqPrice) || (!isLong && currentPrice >= pos.liqPrice))){
+      showToast('Liquidated! '+pos.pair.replace('USDT',''), 'error');
+      // on liq: return only maintenance margin (0.5%)
+      const maintMargin = (pos.initialMargin || pos.size/pos.leverage) * 0.005;
+      TP_STATE.balance += maintMargin;
+      const idx = TP_STATE.positions.findIndex(p=>p.id===pos.id);
+      if(idx!==-1){
+        TP_STATE.history.unshift({...pos, exitPrice: currentPrice, pnl: -((pos.initialMargin||pos.size/pos.leverage)*0.995), fee:0, liquidated:true, closedAt:Date.now()});
+        TP_STATE.positions.splice(idx,1);
+      }
+      tpSaveState(); tpUpdateUI(); tpRenderPositions(); tpRenderHistory();
     }
   });
 }
 
-// Update UI
+// Update UI — account summary bar
 function tpUpdateUI() {
-  let unrealizedPnL = 0;
+  const isSpot = TP_STATE.marketType === 'spot';
+  let unrealizedPnl = 0;
+  let totalFunding  = 0;
+  let marginUsed    = 0;
   let allPricesKnown = true;
+
   TP_STATE.positions.forEach(pos => {
-    const currentPrice = TP_STATE.prices[pos.pair]?.price;
-    if(!currentPrice) { allPricesKnown = false; return; }
-    unrealizedPnL += tpCalcPnL(pos, currentPrice);
+    const price = TP_STATE.prices[pos.pair]?.price;
+    if(!price){ allPricesKnown = false; return; }
+    unrealizedPnl += tpCalcPnL(pos, price);
+    totalFunding  += tpCalcFunding(pos);
+    marginUsed    += (pos.initialMargin || pos.size/pos.leverage);
   });
-  // skip portfolio update if any position price is missing — avoids flash to 0
+
   if(!allPricesKnown && TP_STATE.positions.length > 0) return;
 
-  const totalEquity = TP_STATE.balance + TP_STATE.positions.reduce((a, p) => a + p.size, 0) + unrealizedPnL;
-  const totalPnL = totalEquity - TP_STATE.startBalance;
-  const pnlPercent = (totalPnL / TP_STATE.startBalance) * 100;
-  
-  const balEl = document.getElementById('tp-balance');
-  const pnlEl = document.getElementById('tp-pnl');
-  
-  const newBal = '$' + totalEquity.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  if (balEl && balEl.textContent !== newBal) balEl.textContent = newBal;
-  if (pnlEl) {
-    const isUp = totalPnL >= 0;
-    const newPnl = (isUp ? '+' : '') + '$' + totalPnL.toFixed(2) + ' (' + (isUp ? '+' : '') + pnlPercent.toFixed(2) + '%)';
-    if(pnlEl.textContent !== newPnl){ pnlEl.textContent = newPnl; pnlEl.className = 'tp-balance-pnl ' + (isUp ? 'up' : 'down'); }
+  const posSize     = TP_STATE.positions.reduce((a,p)=>a+p.size,0);
+  const totalEquity = TP_STATE.balance + marginUsed + unrealizedPnl + totalFunding;
+  const totalPnl    = totalEquity - TP_STATE.startBalance;
+  const pnlPct      = (totalPnl / TP_STATE.startBalance) * 100;
+  const availBal    = TP_STATE.balance;
+
+  const balEl  = document.getElementById('tp-balance');
+  const pnlEl  = document.getElementById('tp-pnl');
+  if(balEl){ const v='$'+totalEquity.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}); if(balEl.textContent!==v) balEl.textContent=v; }
+  if(pnlEl){
+    const isUp = totalPnl >= 0;
+    const v = (isUp?'+':'')+'$'+totalPnl.toFixed(2)+' ('+(isUp?'+':'')+pnlPct.toFixed(2)+'%)';
+    if(pnlEl.textContent!==v){ pnlEl.textContent=v; pnlEl.className='tp-balance-pnl '+(isUp?'up':'down'); }
   }
-  
   document.getElementById('tp-pos-count').textContent = TP_STATE.positions.length;
-  
-  // Update submit button using the proper function
   tpUpdateSubmitButton();
 }
 
-// Render positions
+// Render positions — full CEX card with margin, liq, ROE, funding
 function tpRenderPositions() {
   const container = document.getElementById('tp-positions');
   if (!container) return;
-  
-  const currentMode = TP_STATE.marketType;
-  
-  // Filter positions by current market type
-  const filteredPositions = TP_STATE.positions.filter(pos => {
-    const posIsSpot = pos.marketType === 'spot' || pos.leverage === 1;
-    return currentMode === 'spot' ? posIsSpot : !posIsSpot;
-  });
-  
-  // Update position count for current mode only
   const countEl = document.getElementById('tp-pos-count');
-  if (countEl) countEl.textContent = filteredPositions.length;
-  
-  if (filteredPositions.length === 0) {
-    const modeLabel = currentMode === 'spot' ? 'Spot' : 'Perpetual';
-    container.innerHTML = `<div class="tp-empty"><div class="tp-empty-icon">📭</div><div class="tp-empty-text">No ${modeLabel} positions</div></div>`;
+  if(countEl) countEl.textContent = TP_STATE.positions.length;
+
+  if (TP_STATE.positions.length === 0) {
+    container.innerHTML = '<div class="tp-empty"><div class="tp-empty-icon">📭</div><div class="tp-empty-text">No open positions</div></div>';
     return;
   }
-  
-  container.innerHTML = filteredPositions.map(pos => {
+
+  container.innerHTML = TP_STATE.positions.map(pos => {
     const currentPrice = TP_STATE.prices[pos.pair]?.price || pos.entryPrice;
-    const pnl = tpCalcPnL(pos, currentPrice);
-    const pnlPercent = (pnl / pos.size) * 100;
-    const isUp = pnl >= 0;
-    const isSpot = pos.marketType === 'spot' || pos.leverage === 1;
-    const liqMove = 100 / pos.leverage * 0.9;
-    const liqPrice = pos.side === 'long' ? pos.entryPrice * (1 - liqMove / 100) : pos.entryPrice * (1 + liqMove / 100);
-    const tpPrice = pos.side === 'long' ? pos.entryPrice * (1 + pos.tpPercent / 100) : pos.entryPrice * (1 - pos.tpPercent / 100);
-    const slPrice = pos.side === 'long' ? pos.entryPrice * (1 - pos.slPercent / 100) : pos.entryPrice * (1 + pos.slPercent / 100);
-    
-    // Calculate holdings for spot
-    const holdings = isSpot ? (pos.size / pos.entryPrice) : null;
-    const currentValue = isSpot ? (holdings * currentPrice) : null;
-    
-    return `
-      <div class="tp-position-card" data-id="${pos.id}" onclick="tpJumpTo('${pos.pair}','${pos.exchange||TP_STATE.exchange}','${pos.marketType||'perpetual'}')" style="cursor:pointer">
-        <div class="tp-pos-row1">
-          <div class="tp-pos-symbol">
-            <span class="tp-pos-symbol-name">${pos.pair.replace('USDT', '')}/USDT</span>
-            ${isSpot ? 
-              `<span class="tp-pos-badge" style="background:#1a2a1a;color:#8ac">SPOT</span>` :
-              `<span class="tp-pos-badge ${pos.side}">${pos.side.toUpperCase()}</span>
-               <span class="tp-pos-badge lev">${pos.leverage}x</span>`
-            }
-          </div>
-          <div class="tp-pos-pnl">
-            <div class="tp-pos-pnl-value ${isUp ? 'up' : 'down'}">${isUp ? '+' : ''}$${pnl.toFixed(2)}</div>
-            <div class="tp-pos-pnl-percent">${isUp ? '+' : ''}${pnlPercent.toFixed(2)}%</div>
-          </div>
+    const pnl       = tpCalcPnL(pos, currentPrice);
+    const funding   = tpCalcFunding(pos);
+    const netPnl    = pnl + funding;
+    const roe       = tpCalcROE(pos, currentPrice);
+    const isUp      = netPnl >= 0;
+    const isSpot    = pos.marketType === 'spot' || pos.leverage <= 1;
+    const margin    = pos.initialMargin || pos.size/pos.leverage;
+    const liqP      = pos.liqPrice;
+    const fees      = tpGetFees(pos.exchange, pos.marketType, 'market');
+    const closeFee  = pos.size * (fees.taker/100);
+    const pairShort = pos.pair.replace('USDT','');
+    const durMs     = Date.now() - pos.openedAt;
+    const durStr    = durMs < 3600000 ? Math.floor(durMs/60000)+'m' : durMs < 86400000 ? Math.floor(durMs/3600000)+'h' : Math.floor(durMs/86400000)+'d';
+    const fundingRate = TP_STATE.fundingRates[pos.pair] ?? CEX_FEES[TP_STATE.exchange]?.defaultFunding ?? 0.01;
+
+    return `<div class="tp-position-card" data-id="${pos.id}" onclick="tpJumpTo('${pos.pair}','${pos.exchange||TP_STATE.exchange}','${pos.marketType||'perpetual'}')">
+      <div class="tp-pos-row1">
+        <div class="tp-pos-symbol">
+          <span class="tp-pos-symbol-name">${pairShort}/USDT</span>
+          ${isSpot
+            ? '<span class="tp-pos-badge" style="background:#1a2a1a;color:#5ac">SPOT</span>'
+            : `<span class="tp-pos-badge ${pos.side}">${pos.side.toUpperCase()}</span>
+               <span class="tp-pos-badge lev">${pos.leverage}x</span>
+               <span class="tp-pos-badge" style="background:#1a1a2a;color:#888;font-size:7px">${pos.marginMode||'cross'}</span>`}
+          <span style="font-size:8px;color:#444;margin-left:2px">${durStr}</span>
         </div>
-        <div class="tp-pos-row2">
-          ${isSpot ? `
-            <div class="tp-pos-stat">Bought<span>$${pos.size.toFixed(2)}</span></div>
-            <div class="tp-pos-stat">Holdings<span>${holdings.toFixed(6)}</span></div>
-            <div class="tp-pos-stat">Avg Price<span>$${pos.entryPrice.toLocaleString()}</span></div>
-            <div class="tp-pos-stat">Value<span>$${currentValue.toFixed(2)}</span></div>
-          ` : `
-            <div class="tp-pos-stat">Size<span>$${pos.size}</span></div>
-            <div class="tp-pos-stat">Entry<span>$${pos.entryPrice.toLocaleString()}</span></div>
-            <div class="tp-pos-stat">Mark<span class="tp-pos-mark">$${currentPrice.toLocaleString()}</span></div>
-            <div class="tp-pos-stat">Liq<span style="color:#E24B4A">$${liqPrice.toLocaleString()}</span></div>
-          `}
-        </div>
-        ${!isSpot && (pos.tpPercent || pos.slPercent) ? `
-        <div class="tp-pos-row2" style="margin-top:6px;padding-top:6px;border-top:1px solid #1a1a1a">
-          <div class="tp-pos-stat">TP<span style="color:#00c47a">${pos.tpPercent}% ($${tpPrice.toLocaleString()})</span></div>
-          <div class="tp-pos-stat">SL<span style="color:#E24B4A">${pos.slPercent}% ($${slPrice.toLocaleString()})</span></div>
-        </div>
-        ` : ''}
-        <div class="tp-pos-actions">
-          ${!isSpot ? `
-            <button onclick="event.stopPropagation();tpPartialClose('${pos.id}', 25)">25%</button>
-            <button onclick="event.stopPropagation();tpPartialClose('${pos.id}', 50)">50%</button>
-            <button onclick="event.stopPropagation();tpPartialClose('${pos.id}', 75)">75%</button>
-            <button onclick="event.stopPropagation();tpEditPosition('${pos.id}')">Edit</button>
-          ` : ''}
-          <button onclick="event.stopPropagation();tpClosePosition('${pos.id}')" class="close">${isSpot ? 'Sell All' : 'Close'}</button>
-          <button onclick="event.stopPropagation();tpSharePosition('${pos.id}')" class="share" title="Share P&L">share</button>
+        <div class="tp-pos-pnl">
+          <div class="tp-pos-pnl-value ${isUp?'up':'down'}">${isUp?'+':''}${fmtPrice(netPnl)}</div>
+          <div class="tp-pos-pnl-percent" style="font-size:9px;color:${roe>=0?'#00c47a':'#e24b4a'}">ROE ${roe>=0?'+':''}${roe.toFixed(2)}%</div>
         </div>
       </div>
-    `;
+
+      <div class="tp-pos-row2" style="grid-template-columns:repeat(3,1fr)">
+        <div class="tp-pos-stat">Size<span>$${pos.size.toLocaleString(undefined,{maximumFractionDigits:2})}</span></div>
+        ${isSpot
+          ? `<div class="tp-pos-stat">Qty<span>${(pos.size/pos.entryPrice).toFixed(6)}</span></div>`
+          : `<div class="tp-pos-stat">Margin<span>$${margin.toFixed(2)}</span></div>`}
+        <div class="tp-pos-stat">Entry<span>${fmtPrice(pos.entryPrice)}</span></div>
+      </div>
+
+      <div class="tp-pos-row2" style="grid-template-columns:repeat(3,1fr)">
+        <div class="tp-pos-stat">Mark<span class="tp-pos-mark">${fmtPrice(currentPrice)}</span></div>
+        ${isSpot
+          ? `<div class="tp-pos-stat">Value<span>$${((pos.size/pos.entryPrice)*currentPrice).toFixed(2)}</span></div>`
+          : `<div class="tp-pos-stat">Liq<span class="tp-pos-liq" style="color:#e24b4a">${liqP?fmtPrice(liqP):'n/a'}</span></div>`}
+        <div class="tp-pos-stat">Fee to close<span style="color:#e24b4a">-${fmtPrice(closeFee)}</span></div>
+      </div>
+
+      ${!isSpot ? `
+      <div style="display:flex;gap:8px;padding:4px 0;font-size:9px;color:#444;border-top:0.5px solid #1a1a1a;margin-top:4px">
+        <span class="tp-pos-funding">${funding!==0?'Funding: '+(funding>=0?'+':'')+fmtPrice(funding):''}</span>
+        <span style="margin-left:auto">Rate: ${fundingRate.toFixed(4)}% / 8h</span>
+      </div>
+      ${pos.tpPrice > 0 || pos.slPrice > 0 ? `
+      <div class="tp-pos-row2" style="grid-template-columns:1fr 1fr;margin-top:4px;border-top:0.5px solid #1a1a1a;padding-top:4px">
+        <div class="tp-pos-stat">TP<span style="color:#00c47a">${pos.tpPrice>0?fmtPrice(pos.tpPrice):'—'}</span></div>
+        <div class="tp-pos-stat">SL<span style="color:#e24b4a">${pos.slPrice>0?fmtPrice(pos.slPrice):'—'}</span></div>
+      </div>`:''}`:''}
+
+      <div class="tp-pos-actions" style="margin-top:6px">
+        ${!isSpot ? `
+          <button onclick="event.stopPropagation();tpClosePosition('${pos.id}',25)" title="Close 25%">25%</button>
+          <button onclick="event.stopPropagation();tpClosePosition('${pos.id}',50)" title="Close 50%">50%</button>
+          <button onclick="event.stopPropagation();tpClosePosition('${pos.id}',75)" title="Close 75%">75%</button>
+          <button onclick="event.stopPropagation();tpEditTpSl('${pos.id}')" title="Edit TP/SL">TP/SL</button>` : ''}
+        <button onclick="event.stopPropagation();tpClosePosition('${pos.id}')" class="close">${isSpot?'Sell All':'Close'}</button>
+        <button onclick="event.stopPropagation();tpSharePosition('${pos.id}')" title="Share P&L">share</button>
+      </div>
+    </div>`;
   }).join('');
 }
 
-// Partial close position
-function tpPartialClose(id, percent) {
-  const idx = TP_STATE.positions.findIndex(p => p.id === id);
-  if (idx === -1) return;
-  
-  const pos = TP_STATE.positions[idx];
-  const currentPrice = TP_STATE.prices[pos.pair]?.price || pos.entryPrice;
-  const closeSize = pos.size * (percent / 100);
-  const closePnl = tpCalcPnL({ ...pos, size: closeSize }, currentPrice);
-  
-  // Return partial margin + PnL
-  TP_STATE.balance += closeSize + closePnl;
-  
-  // Reduce position size
-  pos.size -= closeSize;
-  
-  // Add to history
-  TP_STATE.history.unshift({
-    ...pos,
-    size: closeSize,
-    exitPrice: currentPrice,
-    pnl: closePnl,
-    closedAt: Date.now(),
-    partial: true
-  });
-  
-  if (TP_STATE.history.length > 50) TP_STATE.history = TP_STATE.history.slice(0, 50);
-  
-  tpSaveState();
-  tpUpdateUI();
-  tpRenderPositions();
-  tpRenderHistory();
-  
-  const pnlStr = closePnl >= 0 ? '+$' + closePnl.toFixed(2) : '-$' + Math.abs(closePnl).toFixed(2);
-  showToast(`Closed ${percent}% of ${pos.pair.replace('USDT','')} | ${pnlStr}`, closePnl >= 0 ? 'success' : 'error');
-}
-
-// Edit position TP/SL
-async function tpEditPosition(id) {
-  const pos = TP_STATE.positions.find(p => p.id === id);
-  if (!pos) return;
-  
-  const newTp = await showConfirm({
-    icon: '🎯',
-    type: 'info',
-    title: 'Set Take Profit',
-    message: 'Enter take profit percentage for <strong>' + pos.pair.replace('USDT','') + '</strong>',
-    input: true,
-    inputValue: pos.tpPercent.toString(),
-    inputPlaceholder: 'e.g. 5',
-    confirmText: 'Next',
-    cancelText: 'Cancel'
-  });
-  if (newTp === false) return;
-  
-  const newSl = await showConfirm({
-    icon: '🛡️',
-    type: 'warning',
-    title: 'Set Stop Loss',
-    message: 'Enter stop loss percentage for <strong>' + pos.pair.replace('USDT','') + '</strong>',
-    input: true,
-    inputValue: pos.slPercent.toString(),
-    inputPlaceholder: 'e.g. 3',
-    confirmText: 'Save',
-    cancelText: 'Cancel'
-  });
-  if (newSl === false) return;
-  
-  pos.tpPercent = parseFloat(newTp) || pos.tpPercent || 0;
-  pos.slPercent = parseFloat(newSl) || pos.slPercent || 0;
-  
-  tpSaveState();
-  tpRenderPositions();
-  showToast(`Updated TP/SL for ${pos.pair.replace('USDT','')}`, 'success');
-}
-
-// Render history
+// Render history — full CEX trade record
 function tpRenderHistory() {
   const container = document.getElementById('tp-history');
   if (!container) return;
-  
-  const currentMode = TP_STATE.marketType;
-  
-  // Filter history by current market type
-  const filteredHistory = TP_STATE.history.filter(h => {
-    const hIsSpot = h.marketType === 'spot' || h.leverage === 1;
-    return currentMode === 'spot' ? hIsSpot : !hIsSpot;
-  });
-  
-  if (filteredHistory.length === 0) {
-    const modeLabel = currentMode === 'spot' ? 'Spot' : 'Perpetual';
-    container.innerHTML = `<div class="tp-empty"><div class="tp-empty-icon">📜</div><div class="tp-empty-text">No ${modeLabel} trade history</div></div>`;
+  if (TP_STATE.history.length === 0) {
+    container.innerHTML = '<div class="tp-empty"><div class="tp-empty-icon">📜</div><div class="tp-empty-text">No trade history</div></div>';
     return;
   }
-  
-  container.innerHTML = filteredHistory.slice(0, 20).map(h => {
-    const isUp = h.pnl >= 0;
-    const time = new Date(h.closedAt).toLocaleString();
-    const isSpot = h.marketType === 'spot' || h.leverage === 1;
-    
-    return `
-      <div class="tp-position-card" style="padding:8px 10px">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <div class="tp-pos-symbol">
-            <span class="tp-pos-symbol-name" style="font-size:12px">${h.pair.replace('USDT','')}</span>
-            ${isSpot ? 
-              `<span class="tp-pos-badge" style="background:#1a2a1a;color:#8ac">SPOT</span>` :
-              `<span class="tp-pos-badge ${h.side}">${h.side.toUpperCase()}</span>
-               <span class="tp-pos-badge lev">${h.leverage}x</span>`
-            }
-            ${h.partial ? `<span class="tp-pos-badge" style="background:#1a1a2a;color:#88f">PARTIAL</span>` : ''}
-          </div>
-          <div style="text-align:right">
-            <div class="tp-pos-pnl-value ${isUp ? 'up' : 'down'}" style="font-size:13px">${isUp ? '+' : ''}$${h.pnl.toFixed(2)}</div>
-            <div style="font-size:9px;color:#333">${time}</div>
-          </div>
+  container.innerHTML = TP_STATE.history.slice(0,50).map(h => {
+    const isUp   = h.pnl >= 0;
+    const isSpot = h.marketType === 'spot' || h.leverage <= 1;
+    const roe    = h.initialMargin > 0 ? (h.pnl / h.initialMargin * 100) : 0;
+    const time   = new Date(h.closedAt).toLocaleString();
+    const slipp  = h.slippage ? fmtPrice(h.slippage) : '—';
+    return `<div class="tp-position-card" style="padding:8px 10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+        <div class="tp-pos-symbol" style="gap:4px">
+          <span class="tp-pos-symbol-name" style="font-size:12px">${h.pair.replace('USDT','')}</span>
+          ${isSpot
+            ? '<span class="tp-pos-badge" style="background:#1a2a1a;color:#5ac;font-size:7px">SPOT</span>'
+            : `<span class="tp-pos-badge ${h.side}" style="font-size:7px">${h.side.toUpperCase()}</span>
+               <span class="tp-pos-badge lev" style="font-size:7px">${h.leverage}x</span>`}
+          ${h.partial ? '<span class="tp-pos-badge" style="background:#1a1a2a;color:#88f;font-size:7px">PARTIAL '+h.pct+'%</span>' : ''}
+          ${h.liquidated ? '<span class="tp-pos-badge" style="background:#2a0a0a;color:#f55;font-size:7px">LIQ</span>' : ''}
+        </div>
+        <div style="text-align:right">
+          <div class="tp-pos-pnl-value ${isUp?'up':'down'}" style="font-size:13px">${isUp?'+':''}${fmtPrice(h.pnl)}</div>
+          <div style="font-size:9px;color:${roe>=0?'#00c47a':'#e24b4a'}">ROE ${roe>=0?'+':''}${roe.toFixed(2)}%</div>
         </div>
       </div>
-    `;
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:4px;font-size:9px;color:#555">
+        <span>Entry: ${fmtPrice(h.entryPrice)}</span>
+        <span>Exit: ${fmtPrice(h.exitPrice)}</span>
+        <span>Size: $${(h.size||0).toFixed(2)}</span>
+        <span>Fee: ${fmtPrice(h.fee||0)}</span>
+        <span>Funding: ${fmtPrice(h.funding||0)}</span>
+        <span style="color:#333">${new Date(h.closedAt).toLocaleTimeString()}</span>
+      </div>
+    </div>`;
   }).join('');
 }
 
-// Show tab
-function tpShowTab(tab) {
-  document.querySelectorAll('.tp-pos-tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('tp-tab-' + tab)?.classList.add('active');
-  
-  document.getElementById('tp-positions').style.display = tab === 'positions' ? 'flex' : 'none';
-  document.getElementById('tp-orders').style.display = tab === 'orders' ? 'flex' : 'none';
-  document.getElementById('tp-history').style.display = tab === 'history' ? 'flex' : 'none';
-  document.getElementById('tp-stats').style.display = tab === 'stats' ? 'flex' : 'none';
-  
-  if (tab === 'stats') tpUpdateStats();
-  if (tab === 'orders') tpRenderOrders();
-  if (tab === 'history') tpRenderHistory();
-}
-
-// Update stats panel
 function tpUpdateStats() {
   const history = TP_STATE.history;
-  const totalTrades = history.length;
-  const wins = history.filter(h => h.pnl > 0);
-  const losses = history.filter(h => h.pnl < 0);
-  const winRate = totalTrades > 0 ? (wins.length / totalTrades) * 100 : 0;
-  const totalProfit = wins.reduce((a, h) => a + h.pnl, 0);
-  const totalLoss = Math.abs(losses.reduce((a, h) => a + h.pnl, 0));
-  const bestTrade = history.length > 0 ? Math.max(...history.map(h => h.pnl)) : 0;
-  const worstTrade = history.length > 0 ? Math.min(...history.map(h => h.pnl)) : 0;
-  const avgWin = wins.length > 0 ? totalProfit / wins.length : 0;
-  const avgLoss = losses.length > 0 ? totalLoss / losses.length : 0;
-  
-  document.getElementById('tp-stat-total-trades').textContent = totalTrades;
-  
-  const winRateEl = document.getElementById('tp-stat-win-rate');
-  winRateEl.textContent = winRate.toFixed(1) + '%';
-  winRateEl.className = 'tp-stat-value ' + (winRate >= 50 ? 'up' : 'down');
-  
-  document.getElementById('tp-stat-total-profit').textContent = '+$' + totalProfit.toFixed(2);
-  document.getElementById('tp-stat-total-loss').textContent = '-$' + totalLoss.toFixed(2);
-  
+  const closed  = history.filter(h => !h.liquidated);
+  const wins    = closed.filter(h => h.pnl > 0);
+  const losses  = closed.filter(h => h.pnl < 0);
+  const liqd    = history.filter(h => h.liquidated);
+
+  const winRate    = closed.length > 0 ? (wins.length / closed.length) * 100 : 0;
+  const totalProfit= wins.reduce((a,h)=>a+h.pnl, 0);
+  const totalLoss  = Math.abs(losses.reduce((a,h)=>a+h.pnl, 0));
+  const profitFactor = totalLoss > 0 ? totalProfit/totalLoss : totalProfit > 0 ? 999 : 0;
+  const bestTrade  = history.length > 0 ? Math.max(...history.map(h=>h.pnl)) : 0;
+  const worstTrade = history.length > 0 ? Math.min(...history.map(h=>h.pnl)) : 0;
+  const avgWin     = wins.length > 0 ? totalProfit / wins.length : 0;
+  const avgLoss    = losses.length > 0 ? totalLoss / losses.length : 0;
+  const maxDD      = tpCalcMaxDrawdown();
+
+  const set = (id, val, cls) => {
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.textContent = val;
+    if(cls) el.className = 'tp-stat-value '+cls;
+  };
+
+  set('tp-stat-total-trades', closed.length + liqd.length);
+  set('tp-stat-win-rate',  winRate.toFixed(1)+'%', winRate>=50?'up':'down');
+  set('tp-stat-total-profit', '+$'+totalProfit.toFixed(2));
+  set('tp-stat-total-loss',   '-$'+totalLoss.toFixed(2));
   const bestEl = document.getElementById('tp-stat-best-trade');
-  bestEl.textContent = (bestTrade >= 0 ? '+' : '') + '$' + bestTrade.toFixed(2);
-  bestEl.className = 'tp-stat-value ' + (bestTrade >= 0 ? 'up' : 'down');
-  
+  if(bestEl){ bestEl.textContent=(bestTrade>=0?'+':'')+fmtPrice(bestTrade); bestEl.className='tp-stat-value '+(bestTrade>=0?'up':'down'); }
   const worstEl = document.getElementById('tp-stat-worst-trade');
-  worstEl.textContent = (worstTrade >= 0 ? '+' : '') + '$' + worstTrade.toFixed(2);
-  worstEl.className = 'tp-stat-value ' + (worstTrade >= 0 ? 'up' : 'down');
-  
-  document.getElementById('tp-stat-avg-win').textContent = '+$' + avgWin.toFixed(2);
-  document.getElementById('tp-stat-avg-loss').textContent = '-$' + avgLoss.toFixed(2);
-  
-  // Draw PnL chart
+  if(worstEl){ worstEl.textContent=(worstTrade>=0?'+':'')+fmtPrice(worstTrade); worstEl.className='tp-stat-value '+(worstTrade>=0?'up':'down'); }
+  set('tp-stat-avg-win',  '+$'+avgWin.toFixed(2));
+  set('tp-stat-avg-loss', '-$'+avgLoss.toFixed(2));
+
+  // extra CEX stats
+  const pfEl = document.getElementById('tp-stat-profit-factor');
+  if(pfEl) pfEl.textContent = profitFactor > 100 ? '∞' : profitFactor.toFixed(2);
+  const ddEl = document.getElementById('tp-stat-max-dd');
+  if(ddEl){ ddEl.textContent = '-$'+maxDD.toFixed(2); ddEl.className='tp-stat-value down'; }
+  const feeEl = document.getElementById('tp-stat-fees');
+  if(feeEl){ feeEl.textContent = '-$'+(TP_STATE.totalFeesPaid||0).toFixed(2); feeEl.className='tp-stat-value down'; }
+  const liqEl = document.getElementById('tp-stat-liquidations');
+  if(liqEl){ liqEl.textContent = liqd.length; liqEl.className='tp-stat-value '+(liqd.length>0?'down':''); }
+
   tpDrawPnLChart();
 }
+
+function tpCalcMaxDrawdown(){
+  if(!TP_STATE.history.length) return 0;
+  const series = [...TP_STATE.history].reverse();
+  let running = 0, peak = 0, maxDD = 0;
+  series.forEach(h => {
+    running += h.pnl;
+    if(running > peak) peak = running;
+    const dd = peak - running;
+    if(dd > maxDD) maxDD = dd;
+  });
+  return maxDD;
+}
+
+// Edit TP/SL for open position
+function tpEditTpSl(id){
+  const pos = TP_STATE.positions.find(p=>p.id===id);
+  if(!pos) return;
+  const currentPrice = TP_STATE.prices[pos.pair]?.price || pos.entryPrice;
+  const isLong = pos.side === 'long';
+  const suggestTp = isLong ? currentPrice * 1.05 : currentPrice * 0.95;
+  const suggestSl = isLong ? currentPrice * 0.97 : currentPrice * 1.03;
+  showConfirm({
+    icon:'🎯',type:'info',title:'Edit TP/SL — '+pos.pair.replace('USDT',''),
+    message:`<div style="font-size:11px;margin-bottom:8px;color:#888">Current price: ${fmtPrice(currentPrice)} | Entry: ${fmtPrice(pos.entryPrice)}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div><label style="font-size:9px;color:#00c47a;display:block;margin-bottom:4px">TAKE PROFIT ($)</label>
+          <input id="edit-tp" type="number" value="${pos.tpPrice||suggestTp.toFixed(2)}" style="width:100%;padding:8px;background:#0a0a0a;border:1px solid #333;border-radius:6px;color:#fff;font-size:12px"></div>
+        <div><label style="font-size:9px;color:#e24b4a;display:block;margin-bottom:4px">STOP LOSS ($)</label>
+          <input id="edit-sl" type="number" value="${pos.slPrice||suggestSl.toFixed(2)}" style="width:100%;padding:8px;background:#0a0a0a;border:1px solid #333;border-radius:6px;color:#fff;font-size:12px"></div>
+      </div>`,
+    confirmText:'Update',cancelText:'Cancel'
+  }).then(ok=>{
+    if(!ok) return;
+    const newTp = parseFloat(document.getElementById('edit-tp')?.value)||0;
+    const newSl = parseFloat(document.getElementById('edit-sl')?.value)||0;
+    pos.tpPrice = newTp; pos.slPrice = newSl;
+    tpSaveState(); tpRenderPositions();
+    showToast('TP/SL updated for '+pos.pair.replace('USDT',''),'success');
+  });
+}
+
 
 // Draw cumulative PnL chart
 function tpDrawPnLChart() {
@@ -11552,6 +11701,9 @@ function tpSetMarketType(type) {
   TP_STATE.marketType = type;
   document.querySelectorAll('.tp-market-type button').forEach(b => b.classList.remove('active'));
   if (event && event.target) event.target.classList.add('active');
+  tpUpdateFeeBadge();
+  const mmRow = document.getElementById('tp-margin-mode-row');
+  if(mmRow) mmRow.style.display = type==='spot' ? 'none' : 'flex';
   
   const isSpot = type === 'spot';
   const leverageRow = document.getElementById('tp-leverage-row');
@@ -11598,6 +11750,30 @@ function tpSetMarketType(type) {
   if(_tpObMode==='trades' && typeof tpStartTradeWS==='function') tpStartTradeWS();
 }
 
+// ── CEX STANDARD: MARGIN MODE TOGGLE ──
+function tpSetMarginMode(mode){
+  TP_STATE.marginMode = mode;
+  const crossBtn = document.getElementById('tp-mm-cross');
+  const isoBtn   = document.getElementById('tp-mm-iso');
+  if(crossBtn){ crossBtn.style.borderColor = mode==='cross'?'#00c47a':'#1a1a1a'; crossBtn.style.background = mode==='cross'?'#0a2a1a':'transparent'; crossBtn.style.color = mode==='cross'?'#00c47a':'#555'; }
+  if(isoBtn)  { isoBtn.style.borderColor = mode==='isolated'?'#5b7fff':'#1a1a1a'; isoBtn.style.background = mode==='isolated'?'#0a0a2a':'transparent'; isoBtn.style.color = mode==='isolated'?'#5b7fff':'#555'; }
+  tpCalculate();
+  tpSaveState();
+  showToast(mode==='isolated'?'Isolated margin — only this position can be liquidated':'Cross margin — whole account is collateral','info',2000);
+}
+
+// ── CEX STANDARD: UPDATE FEE BADGE ──
+function tpUpdateFeeBadge(){
+  const badge = document.getElementById('tp-fee-badge');
+  if(!badge) return;
+  const fees = tpGetFees(TP_STATE.exchange, TP_STATE.marketType, TP_STATE.orderType);
+  badge.textContent = (fees.isMaker?'Maker':'Taker')+' '+fees.active.toFixed(3)+'%';
+  badge.style.color = fees.isMaker ? '#00c47a' : '#EF9F27';
+  badge.style.background = fees.isMaker ? '#0a2a1a' : '#1a1200';
+  badge.style.borderColor = fees.isMaker ? '#004d30' : '#3a3000';
+}
+
+
 // Update submit button based on mode and side
 function tpUpdateSubmitButton() {
   const btn = document.getElementById('tp-submit');
@@ -11624,6 +11800,7 @@ function tpSetOrderType(type) {
   TP_STATE.orderType = type;
   document.querySelectorAll('.tp-order-tab').forEach(t => t.classList.remove('active'));
   event.target.classList.add('active');
+  tpUpdateFeeBadge();
   
   document.getElementById('tp-limit-price-group').style.display = (type === 'limit' || type === 'stop') ? 'block' : 'none';
   document.getElementById('tp-stop-price-group').style.display = type === 'stop' ? 'block' : 'none';
