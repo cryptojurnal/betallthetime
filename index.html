@@ -1628,15 +1628,19 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 #layer3{flex-direction:row!important}
 .l3-sb-main{flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden}
 .l3-sb{width:280px;min-width:280px;background:#080808;border-right:0.5px solid #1a1a1a;display:flex;flex-direction:column;flex-shrink:0;transition:width .3s cubic-bezier(.4,0,.2,1),min-width .3s cubic-bezier(.4,0,.2,1);overflow:hidden;z-index:10;position:relative}
-.l3-sb.collapsed{width:52px;min-width:52px}
+.l3-sb.collapsed{width:52px;min-width:52px;border-right:1.5px solid #00c47a22}
 .l3-sb-inner{width:280px;display:flex;flex-direction:column;flex:1;overflow:hidden}
-.l3-sb-header{display:flex;align-items:center;justify-content:space-between;padding:16px 14px 12px;border-bottom:0.5px solid #1a1a1a;flex-shrink:0;gap:8px;min-height:57px}
+.l3-sb-header{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:0.5px solid #1a1a1a;flex-shrink:0;gap:8px;min-height:52px}
+.l3-sb.collapsed .l3-sb-header{justify-content:center;padding:12px 0}
+.l3-sb.collapsed .l3-sb-brand{display:none}
 .l3-sb-brand{display:flex;align-items:center;gap:8px;overflow:hidden}
 .l3-sb-brand-icon{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#00c47a22,#00c47a44);border:0.5px solid #00c47a44;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .l3-sb-brand-label{font-size:11px;font-weight:800;color:#e0e0e0;text-transform:uppercase;letter-spacing:.1em;white-space:nowrap;transition:opacity .2s}
 .l3-sb.collapsed .l3-sb-brand-label{opacity:0;width:0;overflow:hidden}
 .l3-sb-toggle{width:28px;height:28px;border-radius:7px;background:transparent;border:0.5px solid #1a1a1a;color:#444;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
 .l3-sb-toggle:hover{background:#111;border-color:#333;color:#888}
+.l3-sb.collapsed .l3-sb-toggle{width:32px;height:32px;border-color:#00c47a33;color:#00c47a88;background:#041a10}
+.l3-sb.collapsed .l3-sb-toggle:hover{border-color:#00c47a;color:#00c47a;background:#082a18}
 .l3-sb-body{flex:1;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;padding:12px 0;display:flex;flex-direction:column;gap:0}
 .l3-sb-body::-webkit-scrollbar{display:none}
 /* Profile block */
