@@ -830,6 +830,7 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
 .tp-ob-mid{padding:4px 6px;background:#111;text-align:center;border-top:0.5px solid #1a1a1a;border-bottom:0.5px solid #1a1a1a;flex-shrink:0}
 /* ob mid price — see flash css block */
 .tp-ob-mid-change{font-family:'Trebuchet MS', 'Trebuchet', sans-serif;font-size:10px;margin-top:2px}
+@keyframes wsPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.7)}}
 .tp-ob-mid-change.up{color:#00c47a}
 .tp-ob-mid-change.down{color:#E24B4A}
 
@@ -2838,7 +2839,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
   <div class="tp-topbar">
     <div class="tp-topbar-left">
       <div class="tp-logo">⚡ BATT <span>PAPER</span></div>
-      <div id="tp-ws-status" onclick="tpReconnectWS()" title="WebSocket status — click to reconnect" style="width:8px;height:8px;border-radius:50%;background:#333;flex-shrink:0;margin-left:-8px;cursor:pointer;transition:transform .1s" onmouseover="this.style.transform='scale(1.5)'" onmouseout="this.style.transform=''"></div>
+      <button id="tp-ws-status" onclick="tpReconnectWS()" style="display:flex;align-items:center;gap:5px;padding:4px 9px;border-radius:20px;border:1px solid #333;background:#111;cursor:pointer;font-family:'Trebuchet MS',sans-serif;transition:all .2s;flex-shrink:0" title="click to reconnect"><span id="tp-ws-dot" style="width:6px;height:6px;border-radius:50%;background:#444;flex-shrink:0;transition:background .3s"></span><span id="tp-ws-label" style="font-size:9px;font-weight:700;color:#444;letter-spacing:.04em;text-transform:uppercase">offline</span></button>
       <div class="tp-pair-selector" onclick="tpShowPairModal()">
         <span class="tp-pair-selector-icon" id="tp-pair-icon"><img src="https://assets.coingecko.com/coins/images/1/small/bitcoin.png" width="20" height="20" style="border-radius:50%;object-fit:cover;flex-shrink:0" alt="" loading="lazy" onerror="this.style.display='none'"></span>
         <div class="tp-pair-selector-info">
@@ -10691,11 +10692,11 @@ function _tpTryWS(){
     }
 
     _tpWS = new WebSocket(url);
-    if(onopen) _tpWS.onopen = ()=>{ if(dot) dot.style.background='#00c47a'; onopen(); _tpWS._ping=setInterval(()=>{ if(_tpWS.readyState===1) _tpWS.send(ex==='okx'?'ping':JSON.stringify({op:'ping'})); },20000); };
-    else _tpWS.onopen = ()=>{ if(dot) dot.style.background='#00c47a'; _tpWS._ping=setInterval(()=>{ if(_tpWS.readyState===1) _tpWS.send(JSON.stringify({op:'ping'})); },20000); };
+    if(onopen) _tpWS.onopen = ()=>{ if(dot) _tpSetWSStatus('live'); onopen(); _tpWS._ping=setInterval(()=>{ if(_tpWS.readyState===1) _tpWS.send(ex==='okx'?'ping':JSON.stringify({op:'ping'})); },20000); };
+    else _tpWS.onopen = ()=>{ if(dot) _tpSetWSStatus('live'); _tpWS._ping=setInterval(()=>{ if(_tpWS.readyState===1) _tpWS.send(JSON.stringify({op:'ping'})); },20000); };
     _tpWS.onmessage = (e)=>{ try{ const msg=JSON.parse(e.data); if(msg&&msg!=='pong') onmsg(msg); }catch(err){} };
-    _tpWS.onclose = _tpWS.onerror = ()=>{ if(_tpWS._ping) clearInterval(_tpWS._ping); if(dot) dot.style.background='#e24b4a'; _tpWSLive=false; };
-  } catch(err){ if(dot) dot.style.background='#e24b4a'; }
+    _tpWS.onclose = _tpWS.onerror = ()=>{ if(_tpWS._ping) clearInterval(_tpWS._ping); _tpWSLive=false; if(dot) _tpSetWSStatus('error'); };
+  } catch(err){ _tpSetWSStatus('error'); }
 }
 
 function _tpFlashPrice(price, prev){
@@ -10707,9 +10708,36 @@ function _tpFlashPrice(price, prev){
   setTimeout(()=>{el.style.color='';},300);
 }
 
+// ── WS STATUS PILL HELPER ──
+function _tpSetWSStatus(state){
+  // state: 'offline' | 'connecting' | 'live' | 'error'
+  const btn   = document.getElementById('tp-ws-status');
+  const dot   = document.getElementById('tp-ws-dot');
+  const label = document.getElementById('tp-ws-label');
+  if(!btn||!dot||!label) return;
+
+  const states = {
+    offline:    { dot:'#444',    label:'offline',      border:'#2a2a2a', bg:'#111',    color:'#555',    pulse:true  },
+    connecting: { dot:'#EF9F27', label:'connecting…',  border:'#3a2a00', bg:'#1a1200', color:'#EF9F27', pulse:true  },
+    live:       { dot:'#00c47a', label:'live',          border:'#004d30', bg:'#0a1a10', color:'#00c47a', pulse:false },
+    error:      { dot:'#e24b4a', label:'disconnected',  border:'#3a1a1a', bg:'#1a0a0a', color:'#e24b4a', pulse:true  },
+  };
+  const s = states[state] || states.offline;
+
+  dot.style.background   = s.dot;
+  label.textContent      = s.label;
+  btn.style.borderColor  = s.border;
+  btn.style.background   = s.bg;
+  label.style.color      = s.color;
+
+  // pulse animation for non-live states
+  dot.style.animation = s.pulse ? 'wsPulse 1.4s ease-in-out infinite' : 'none';
+  btn.title = state==='live' ? 'WebSocket live — click to reconnect' : 'Click to reconnect';
+}
+
 function tpReconnectWS(){
   const dot = document.getElementById('tp-ws-status');
-  if(dot){ dot.style.background='#EF9F27'; } // amber = reconnecting
+  _tpSetWSStatus('connecting');
   _obReset();
   tpStartWebSocket();
   showToast('reconnecting...', 'info');
@@ -10719,7 +10747,7 @@ function tpStopWebSocket(){
   if(_tpWSReconnectTimer){ clearTimeout(_tpWSReconnectTimer); _tpWSReconnectTimer=null; }
   if(_tpWS){ try{ _tpWS.close(); }catch(e){} _tpWS=null; }
   if(window._tpPriceInterval){ clearInterval(window._tpPriceInterval); window._tpPriceInterval=null; }
-  const d=document.getElementById('tp-ws-status'); if(d) d.style.background='#e24b4a';
+  _tpSetWSStatus('error');
 }
 // ── END WEBSOCKET ──
 
@@ -11584,6 +11612,61 @@ function tpEditTpSl(id){
     tpSaveState(); tpRenderPositions();
     showToast('TP/SL updated for '+pos.pair.replace('USDT',''),'success');
   });
+}
+
+
+// ── RESTORED: tpFillPrice — click orderbook row to set limit price ──
+function tpFillPrice(price){
+  const limitEl = document.getElementById('tp-limit-price');
+  const stopEl  = document.getElementById('tp-stop-price');
+  if(TP_STATE.orderType === 'limit' && limitEl){
+    limitEl.value = price;
+    // auto-switch to limit if market was selected
+    tpCalculate();
+    showToast('Price set: '+fmtPrice(price), 'info', 1500);
+  } else if(TP_STATE.orderType === 'stop' && stopEl){
+    stopEl.value = price;
+    tpCalculate();
+    showToast('Stop price set: '+fmtPrice(price), 'info', 1500);
+  } else {
+    // switch to limit and fill
+    tpSetOrderType('limit');
+    document.querySelectorAll('.tp-order-tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.tp-order-tab').forEach(t=>{ if(t.textContent.toLowerCase()==='limit') t.classList.add('active'); });
+    const limitEl2 = document.getElementById('tp-limit-price');
+    if(limitEl2){ limitEl2.value = price; tpCalculate(); }
+    showToast('Limit price set: '+fmtPrice(price), 'info', 1500);
+  }
+}
+
+// ── RESTORED: tpPartialClose ──
+function tpPartialClose(id, percent) {
+  tpClosePosition(id, percent);
+}
+
+// ── RESTORED: tpShowTab ──
+function tpShowTab(tab) {
+  document.querySelectorAll('.tp-pos-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tp-tab-' + tab)?.classList.add('active');
+  document.getElementById('tp-positions').style.display = tab === 'positions' ? 'flex' : 'none';
+  document.getElementById('tp-orders').style.display    = tab === 'orders'    ? 'flex' : 'none';
+  document.getElementById('tp-history').style.display   = tab === 'history'   ? 'flex' : 'none';
+  document.getElementById('tp-stats').style.display     = tab === 'stats'     ? 'flex' : 'none';
+  if (tab === 'stats')   tpUpdateStats();
+  if (tab === 'orders')  tpRenderOrders();
+  if (tab === 'history') tpRenderHistory();
+}
+
+// ── RESTORED: tpFetchPrices alias (already exists, just ensure tpSetSizePct works) ──
+function tpSetSizePct(pct){
+  const balance   = TP_STATE.balance;
+  const isSpot    = TP_STATE.marketType === 'spot';
+  const lev       = isSpot ? 1 : TP_STATE.leverage;
+  const fees      = tpGetFees(TP_STATE.exchange, TP_STATE.marketType, TP_STATE.orderType);
+  const maxUsable = balance * (1 - fees.active/100);
+  const size      = Math.floor(maxUsable * (pct/100) * lev * 100) / 100;
+  const sizeEl    = document.getElementById('tp-size');
+  if(sizeEl){ sizeEl.value = (isSpot ? Math.floor(maxUsable * (pct/100) * 100)/100 : size); tpCalculate(); }
 }
 
 
