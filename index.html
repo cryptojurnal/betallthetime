@@ -10152,6 +10152,8 @@ function openSimulation(){
   const page = document.getElementById('trading-page');
   if(page){
     page.classList.add('visible');
+    // set connecting IMMEDIATELY so pill shows right state from first render
+    requestAnimationFrame(()=> _tpSetWSStatus('connecting'));
     // hide floating elements that interfere
     const userBar = document.getElementById('auth-user-bar');
     const aiFab = document.getElementById('ai-fab');
@@ -10208,6 +10210,7 @@ function closeDexSelector(){
 function closeTradingPage() {
   if(typeof tpStopWebSocket==='function') tpStopWebSocket();
   if(typeof tpStopTradeWS==='function') tpStopTradeWS();
+  _tpSetWSStatus('offline'); // reset so next open starts clean
   document.body.style.overflow='auto';
   history.replaceState({batt:'trade'}, '', '#trade');
   document.title = 'BATT · Trade Hub';
@@ -10608,6 +10611,7 @@ var _tpWSLive = false; // true when WS is sending price data
 function tpStartWebSocket(){
   tpStopWebSocket();
   if(window._tpPriceInterval) clearInterval(window._tpPriceInterval);
+  _tpSetWSStatus('connecting');
 
   // REST immediately for fast first load
   tpFetchPrices().then(()=>{ tpFetchOrderBook(); });
@@ -10707,10 +10711,10 @@ function _tpTryWS(){
     }
 
     _tpWS = new WebSocket(url);
-    if(onopen) _tpWS.onopen = ()=>{ if(dot) _tpSetWSStatus('live'); onopen(); _tpWS._ping=setInterval(()=>{ if(_tpWS.readyState===1) _tpWS.send(ex==='okx'?'ping':JSON.stringify({op:'ping'})); },20000); };
-    else _tpWS.onopen = ()=>{ if(dot) _tpSetWSStatus('live'); _tpWS._ping=setInterval(()=>{ if(_tpWS.readyState===1) _tpWS.send(JSON.stringify({op:'ping'})); },20000); };
+    if(onopen) _tpWS.onopen = ()=>{ _tpSetWSStatus('live'); onopen(); _tpWS._ping=setInterval(()=>{ if(_tpWS.readyState===1) _tpWS.send(ex==='okx'?'ping':JSON.stringify({op:'ping'})); },20000); };
+    else _tpWS.onopen = ()=>{ _tpSetWSStatus('live'); _tpWS._ping=setInterval(()=>{ if(_tpWS.readyState===1) _tpWS.send(JSON.stringify({op:'ping'})); },20000); };
     _tpWS.onmessage = (e)=>{ try{ const msg=JSON.parse(e.data); if(msg&&msg!=='pong') onmsg(msg); }catch(err){} };
-    _tpWS.onclose = _tpWS.onerror = ()=>{ if(_tpWS._ping) clearInterval(_tpWS._ping); _tpWSLive=false; if(dot) _tpSetWSStatus('error'); };
+    _tpWS.onclose = _tpWS.onerror = ()=>{ if(_tpWS._ping) clearInterval(_tpWS._ping); _tpWSLive=false; _tpSetWSStatus('error'); };
   } catch(err){ _tpSetWSStatus('error'); }
 }
 
