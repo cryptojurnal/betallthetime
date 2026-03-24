@@ -14022,7 +14022,6 @@ function renderCompareColumn(colNum, name, data) {
 }
 
 // ── MONTE CARLO SIMULATION ──
-// ── MONTE CARLO SIMULATION ──
 function openMonteCarlo() {
   if (IS_WIPED) {
     showToast('Fix setup errors first', 'error');
@@ -14043,11 +14042,38 @@ function openMonteCarlo() {
     const originalState = S[tabId];
     console.log('originalState keys:', Object.keys(originalState));
 
-    // Helper: deep clone a state object (preserve Set for ZM)
-    function cloneState(state) {
-      const cloned = JSON.parse(JSON.stringify(state));
-      if (cloned.ZM) cloned.ZM = new Set(cloned.ZM);
-      return cloned;
+    // Helper: create a deep copy of the state that we can safely modify
+    function copyStateForSim(orig) {
+      // Basic fields
+      const copy = {
+        P: orig.P,
+        LEV: orig.LEV,
+        NOT: orig.NOT,
+        KPI: orig.KPI,
+        BT: [...orig.BT],
+        FR: [...orig.FR],
+        WD: { ...orig.WD },
+        ML: { ...orig.ML },
+        TL: { ...orig.TL },
+        MP: { ...orig.MP },
+        SPOT: orig.SPOT,
+        FEE: { ...orig.FEE },
+        ZM: new Set(orig.ZM),               // copy the Set correctly
+        MT: {},                             // will fill below
+        // Preserve any other fields that might exist (like _prevLEV)
+        ...(orig._prevLEV !== undefined && { _prevLEV: orig._prevLEV }),
+      };
+
+      // Deep copy each month's MT entry (if any)
+      for (let m in orig.MT) {
+        if (orig.MT.hasOwnProperty(m)) {
+          copy.MT[m] = {
+            bt: [...orig.MT[m].bt],
+            fr: [...orig.MT[m].fr],
+          };
+        }
+      }
+      return copy;
     }
 
     // Helper: randomize trade targets in a state
@@ -14097,8 +14123,8 @@ function openMonteCarlo() {
     for (let sim = 0; sim < numSims; sim++) {
       if (sim % 100 === 0) console.log(`Simulation ${sim} of ${numSims}`);
 
-      // Clone the current state and randomize targets
-      const simState = cloneState(originalState);
+      // Create a fresh copy of the original state
+      const simState = copyStateForSim(originalState);
       randomizeTargets(simState, totalMonths);
 
       // Temporarily replace the real state with the randomized one
