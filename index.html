@@ -13820,99 +13820,70 @@ document.getElementById('shortcuts-panel')?.addEventListener('click', (e) => {
 // ── PROJECTION CHART ──
 var projectionChart = null;
 
-function openProjectionChart() {
-  // Don't open if in wipe state
-  if (IS_WIPED) {
-    showToast('Fix setup errors first', 'error');
-    return;
-  }
-  const wrap = document.getElementById('projection-chart-wrap');
-  wrap.classList.add('show');
-  renderProjectionChart();
-  trackPowerUser('projection_chart');
-}
-
-function closeProjectionChart() {
-  document.getElementById('projection-chart-wrap').classList.remove('show');
-  if (projectionChart) {
-    projectionChart.destroy();
-    projectionChart = null;
-  }
-}
-
-document.getElementById('projection-chart-wrap')?.addEventListener('click', (e) => {
-  if (e.target.id === 'projection-chart-wrap') closeProjectionChart();
-});
-
 function renderProjectionChart() {
   const ctx = document.getElementById('projection-chart-canvas');
   if (!ctx) return;
-  
-  // Get data from current tab
-  const tabId = document.querySelector('.tab-btn.on')?.dataset?.tab || '36';
-  const state = S[tabId];
-  if (!state) return;
-  
-  // Calculate projections (simplified)
-  const months = tabId === 'q' ? 3 : 36;
-  const labels = [];
-  const data = [];
-  let balance = state.C || 1000;
-  
-  data.push(balance);
-  labels.push('Start');
-  
-  for (let m = 1; m <= months; m++) {
-    // Simplified projection (would need actual calculation logic)
-    const growth = (state.ZM[0]?.t || 2) * (state.ZM[0]?.f || 4) / 100;
-    balance = balance * (1 + growth);
-    data.push(balance);
-    labels.push(`M${m}`);
-  }
-  
+
+  // Run the real simulation for the current tab
+  const months = sim();
+  if (!months || months.length === 0) return;
+
+  const labels = ['Start', ...months.map(m => m.lb)];
+  const accountData = [gs().P, ...months.map(m => m.eA)];
+  const bankedData = [0, ...months.map(m => m.banked)];
+  const nwData = [gs().P, ...months.map(m => m.nw)];
+
   if (projectionChart) projectionChart.destroy();
-  
+
   projectionChart = new Chart(ctx, {
     type: 'line',
     data: {
       labels: labels,
-      datasets: [{
-        label: 'Account Balance',
-        data: data,
-        borderColor: '#00c47a',
-        backgroundColor: 'rgba(0,196,122,0.1)',
-        fill: true,
-        tension: 0.4,
-        pointRadius: 2,
-        pointHoverRadius: 6
-      }]
+      datasets: [
+        { label: 'Account', data: accountData, borderColor: '#1D9E75', pointRadius: 0, borderWidth: 2, tension: 0.4, fill: false },
+        { label: 'Banked',  data: bankedData,  borderColor: '#00c47a', pointRadius: 0, borderWidth: 1.5, tension: 0.4, fill: false, borderDash: [5, 3] },
+        { label: 'NW',      data: nwData,      borderColor: '#BA7517', pointRadius: 0, borderWidth: 1.5, tension: 0.4, fill: false }
+      ]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: (ctx) => '$' + ctx.raw.toLocaleString('en-US', {minimumFractionDigits: 2})
-          }
-        }
+        legend: { display: true, position: 'top', labels: { color: '#888', font: { size: 9 } } },
+        tooltip: { callbacks: { label: c => ` ${c.dataset.label}: ${fmt(c.raw)}` } }
       },
       scales: {
-        x: { 
-          grid: { color: '#1a1a1a' },
-          ticks: { color: '#555' }
-        },
-        y: { 
-          grid: { color: '#1a1a1a' },
-          ticks: { 
-            color: '#555',
-            callback: (v) => '$' + v.toLocaleString()
+        x: { grid: { display: false }, ticks: { font: { size: 9 }, color: '#888', maxTicksLimit: 12 } },
+        y: {
+          type: 'logarithmic',
+          grid: { color: 'rgba(128,128,128,0.07)' },
+          ticks: {
+            font: { size: 9 }, color: '#888',
+            callback: v => {
+              if (v >= 1e9) return '$' + (v / 1e9).toFixed(1) + 'B';
+              if (v >= 1e6) return '$' + (v / 1e6).toFixed(1) + 'M';
+              if (v >= 1000) return '$' + (v / 1000).toFixed(0) + 'k';
+              return '$' + v;
+            }
           }
         }
       }
     }
   });
+
+  // Update stats
+  const start = nwData[0];
+  const end = nwData[nwData.length - 1];
+  const growth = ((end - start) / start) * 100;
+  const maxVal = Math.max(...nwData);
+
+  document.getElementById('proj-chart-stats').innerHTML = `
+    <div class="proj-stat"><div class="proj-stat-value">${fmt(start)}</div><div class="proj-stat-label">Starting NW</div></div>
+    <div class="proj-stat"><div class="proj-stat-value${end > start ? '' : ' negative'}">${fmt(end)}</div><div class="proj-stat-label">Final NW</div></div>
+    <div class="proj-stat"><div class="proj-stat-value${growth >= 0 ? '' : ' negative'}">${growth >= 0 ? '+' : ''}${growth.toFixed(1)}%</div><div class="proj-stat-label">Total Growth</div></div>
+    <div class="proj-stat"><div class="proj-stat-value">${fmt(maxVal)}</div><div class="proj-stat-label">Peak NW</div></div>
+  `;
+}
   
   // Update stats
   const startVal = data[0];
