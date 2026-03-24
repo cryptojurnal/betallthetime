@@ -11484,55 +11484,61 @@ function tpSetMaxSize() {
 
 // Calculate summary
 function tpCalculate() {
-  const entryEl = document.getElementById('tp-sum-entry');
-  if (!entryEl) return; // Page not ready – exit early
+  const sizeInput = document.getElementById('tp-size');
+  const limitPriceInput = document.getElementById('tp-limit-price');
+  const stopPriceInput = document.getElementById('tp-stop-price');
+  const tpPriceInput = document.getElementById('tp-tp-price');
+  const slPriceInput = document.getElementById('tp-sl-price');
 
-  const size      = parseFloat(document.getElementById('tp-size')?.value) || 0;
+  const size = parseFloat(sizeInput?.value) || 0;
   const priceData = TP_STATE.prices[TP_STATE.pair] || { price: 69000 };
-  const isSpot    = TP_STATE.marketType === 'spot';
-  const side      = TP_STATE.side;
-  const lev       = isSpot ? 1 : TP_STATE.leverage;
-  const fees      = tpGetFees(TP_STATE.exchange, TP_STATE.marketType, TP_STATE.orderType);
+  const isSpot = TP_STATE.marketType === 'spot';
+  const side = TP_STATE.side;
+  const lev = isSpot ? 1 : TP_STATE.leverage;
+  const fees = tpGetFees(TP_STATE.exchange, TP_STATE.marketType, TP_STATE.orderType);
 
   const entryPrice = (TP_STATE.orderType === 'limit' || TP_STATE.orderType === 'stop')
-    ? (parseFloat(document.getElementById('tp-limit-price')?.value) || parseFloat(document.getElementById('tp-stop-price')?.value) || priceData.price)
+    ? (parseFloat(limitPriceInput?.value) || parseFloat(stopPriceInput?.value) || priceData.price)
     : priceData.price;
 
-  const slippage     = tpCalcSlippage(TP_STATE.pair, size);
-  const fillPrice    = (side === 'long' || isSpot) ? entryPrice*(1+slippage) : entryPrice*(1-slippage);
-  const notional     = size;
-  const margin       = isSpot ? size : tpCalcMarginRequired(notional, lev, TP_STATE.marginMode);
-  const openFee      = notional * (fees.active / 100);
+  const slippage = tpCalcSlippage(TP_STATE.pair, size);
+  const fillPrice = (side === 'long' || isSpot) ? entryPrice * (1 + slippage) : entryPrice * (1 - slippage);
+  const notional = size;
+  const margin = isSpot ? size : tpCalcMarginRequired(notional, lev, TP_STATE.marginMode);
+  const openFee = notional * (fees.active / 100);
 
   const mmRate = 0.005;
   let liqPrice = null;
-  if(!isSpot && lev > 1){
-    if(side === 'long') liqPrice = fillPrice * (1 - (1/lev) + mmRate);
-    else                liqPrice = fillPrice * (1 + (1/lev) - mmRate);
+  if (!isSpot && lev > 1) {
+    if (side === 'long') liqPrice = fillPrice * (1 - (1 / lev) + mmRate);
+    else liqPrice = fillPrice * (1 + (1 / lev) - mmRate);
   }
 
-  const tpPriceEl = document.getElementById('tp-tp-price');
-  const slPriceEl = document.getElementById('tp-sl-price');
-  const tpPrice   = parseFloat(tpPriceEl?.value) || 0;
-  const slPrice   = parseFloat(slPriceEl?.value) || 0;
+  const tpPrice = parseFloat(tpPriceInput?.value) || 0;
+  const slPrice = parseFloat(slPriceInput?.value) || 0;
 
-  const tpPnl = tpPrice > 0 ? (side==='long' ? (tpPrice-fillPrice)/fillPrice : (fillPrice-tpPrice)/fillPrice) * notional * lev : 0;
-  const slPnl = slPrice > 0 ? (side==='long' ? (slPrice-fillPrice)/fillPrice : (fillPrice-slPrice)/fillPrice) * notional * lev : 0;
+  const tpPnl = tpPrice > 0 ? (side === 'long' ? (tpPrice - fillPrice) / fillPrice : (fillPrice - tpPrice) / fillPrice) * notional * lev : 0;
+  const slPnl = slPrice > 0 ? (side === 'long' ? (slPrice - fillPrice) / fillPrice : (fillPrice - slPrice) / fillPrice) * notional * lev : 0;
 
-  const el = id => document.getElementById(id);
-  if(el('tp-sum-entry'))  el('tp-sum-entry').textContent  = fmtPrice(fillPrice) + (slippage > 0.0001 ? ' (slip '+((slippage*100).toFixed(3))+'%)' : '');
-  if(el('tp-sum-margin')) el('tp-sum-margin').textContent = fmtPrice(margin);
-  if(el('tp-sum-liq'))    el('tp-sum-liq').textContent    = liqPrice ? fmtPrice(liqPrice) : 'n/a';
-  if(el('tp-sum-tp'))     el('tp-sum-tp').textContent     = tpPrice > 0 ? fmtPrice(tpPrice)+' ('+(tpPnl>=0?'+':'')+fmtPrice(tpPnl)+')' : '—';
-  if(el('tp-sum-sl'))     el('tp-sum-sl').textContent     = slPrice > 0 ? fmtPrice(slPrice)+' ('+(slPnl>=0?'+':'')+fmtPrice(slPnl)+')' : '—';
-  if(el('tp-sum-fee'))    el('tp-sum-fee').textContent    = fmtPrice(openFee)+' ('+(fees.isMaker?'maker':'taker')+' '+fees.active.toFixed(3)+'%)';
-  if(el('tp-sum-value'))  el('tp-sum-value').textContent  = fmtPrice(notional);
+  // Safe update function
+  function setText(id, text) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = text;
+  }
 
-  const roeEl = el('tp-sum-roe');
-  if(roeEl && margin > 0){
-    const tpRoe = margin > 0 ? (tpPnl/margin*100).toFixed(1) : 0;
-    const slRoe = margin > 0 ? (slPnl/margin*100).toFixed(1) : 0;
-    roeEl.textContent = tpPrice > 0 ? 'ROE: TP '+(tpRoe>=0?'+':'')+tpRoe+'% / SL '+(slRoe>=0?'+':'')+slRoe+'%' : '';
+  setText('tp-sum-entry', fmtPrice(fillPrice) + (slippage > 0.0001 ? ' (slip ' + ((slippage * 100).toFixed(3)) + '%)' : ''));
+  setText('tp-sum-margin', fmtPrice(margin));
+  setText('tp-sum-liq', liqPrice ? fmtPrice(liqPrice) : 'n/a');
+  setText('tp-sum-tp', tpPrice > 0 ? fmtPrice(tpPrice) + ' (' + (tpPnl >= 0 ? '+' : '') + fmtPrice(tpPnl) + ')' : '—');
+  setText('tp-sum-sl', slPrice > 0 ? fmtPrice(slPrice) + ' (' + (slPnl >= 0 ? '+' : '') + fmtPrice(slPnl) + ')' : '—');
+  setText('tp-sum-fee', fmtPrice(openFee) + ' (' + (fees.isMaker ? 'maker' : 'taker') + ' ' + fees.active.toFixed(3) + '%)');
+  setText('tp-sum-value', fmtPrice(notional));
+
+  const roeEl = document.getElementById('tp-sum-roe');
+  if (roeEl && margin > 0) {
+    const tpRoe = margin > 0 ? (tpPnl / margin * 100).toFixed(1) : 0;
+    const slRoe = margin > 0 ? (slPnl / margin * 100).toFixed(1) : 0;
+    roeEl.textContent = tpPrice > 0 ? 'ROE: TP ' + (tpRoe >= 0 ? '+' : '') + tpRoe + '% / SL ' + (slRoe >= 0 ? '+' : '') + slRoe + '%' : '';
   }
 }
   
