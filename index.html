@@ -13819,7 +13819,7 @@ document.getElementById('shortcuts-panel')?.addEventListener('click', (e) => {
 
   // ── PROJECTION CHART ──
 var projectionChart = null;
-  
+
 function renderProjectionChart() {
   const ctx = document.getElementById('projection-chart-canvas');
   if (!ctx) return;
@@ -13868,9 +13868,9 @@ function renderProjectionChart() {
         }
       }
     }
-  });   // ← add this closing parenthesis and semicolon
+  });
 }
-
+  
   // Update stats
   const start = nwData[0];
   const end = nwData[nwData.length - 1];
