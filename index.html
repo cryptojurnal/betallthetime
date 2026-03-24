@@ -11272,25 +11272,36 @@ async function tpFetchPrices() {
 
 // Update price display
 function tpUpdatePriceDisplay() {
+  const priceEl = document.getElementById('tp-price-main');
+  if (!priceEl) return; // Not ready
+
   const priceData = TP_STATE.prices[TP_STATE.pair] || { price: 0, change: 0 };
   const pairInfo = TP_PAIRS.find(p => p.symbol === TP_STATE.pair) || TP_PAIRS[0];
   
-  const _piEl=document.getElementById('tp-pair-icon'); if(_piEl){ const _src=BATT_ICONS[pairInfo.icon]; _piEl.innerHTML=_src?`<img src="${_src}" width="20" height="20" style="border-radius:50%;object-fit:cover" alt="${pairInfo.icon}" onerror="this.style.display='none'">`:pairInfo.icon; }
-  document.getElementById('tp-pair-name').textContent = TP_STATE.pair.replace('USDT', '/USDT');
-  document.getElementById('tp-pair-exchange').textContent = `${TP_STATE.marketType} · ${TP_STATE.exchange}`;
+  const _piEl=document.getElementById('tp-pair-icon'); 
+  if(_piEl){ 
+    const _src=BATT_ICONS[pairInfo.icon]; 
+    _piEl.innerHTML=_src?`<img src="${_src}" width="20" height="20" style="border-radius:50%;object-fit:cover" alt="${pairInfo.icon}" onerror="this.style.display='none'">`:pairInfo.icon; 
+  }
+  
+  const nameEl = document.getElementById('tp-pair-name');
+  if (nameEl) nameEl.textContent = TP_STATE.pair.replace('USDT', '/USDT');
+  
+  const exchangeEl = document.getElementById('tp-pair-exchange');
+  if (exchangeEl) exchangeEl.textContent = `${TP_STATE.marketType} · ${TP_STATE.exchange}`;
   
   // skip if no real data yet — keep whatever is already displayed
   if(!priceData.price || priceData.price === 0) return;
 
-  const priceEl = document.getElementById('tp-price-main');
-  const changeEl = document.getElementById('tp-price-change');
-  
   if (priceEl) priceEl.textContent = fmtPrice(priceData.price);
+  
+  const changeEl = document.getElementById('tp-price-change');
   if (changeEl) {
     const isUp = priceData.change >= 0;
     changeEl.textContent = (isUp ? '+' : '') + priceData.change.toFixed(2) + '%';
     changeEl.className = 'tp-price-change ' + (isUp ? 'up' : 'down');
   }
+  
   // sync OB mid change% with same ticker data
   const obChangeEl = document.getElementById('tp-ob-change');
   if(obChangeEl && priceData.change !== undefined){
@@ -11302,9 +11313,12 @@ function tpUpdatePriceDisplay() {
     }
   }
   
-  if(priceData.high) document.getElementById('tp-high').textContent = fmtPrice(priceData.high);
-  if(priceData.low) document.getElementById('tp-low').textContent = fmtPrice(priceData.low);
-  if(priceData.volume) document.getElementById('tp-vol').textContent = '$' + (priceData.volume).toLocaleString(undefined, { notation: 'compact', maximumFractionDigits: 1 });
+  const highEl = document.getElementById('tp-high');
+  if(highEl && priceData.high) highEl.textContent = fmtPrice(priceData.high);
+  const lowEl = document.getElementById('tp-low');
+  if(lowEl && priceData.low) lowEl.textContent = fmtPrice(priceData.low);
+  const volEl = document.getElementById('tp-vol');
+  if(volEl && priceData.volume) volEl.textContent = '$' + (priceData.volume).toLocaleString(undefined, { notation: 'compact', maximumFractionDigits: 1 });
 
   // ── sync chart overlay ──
   _tpSyncChartOverlay(priceData);
@@ -11470,6 +11484,9 @@ function tpSetMaxSize() {
 
 // Calculate summary
 function tpCalculate() {
+  const entryEl = document.getElementById('tp-sum-entry');
+  if (!entryEl) return; // Page not ready
+
   const size      = parseFloat(document.getElementById('tp-size')?.value) || 0;
   const priceData = TP_STATE.prices[TP_STATE.pair] || { price: 69000 };
   const isSpot    = TP_STATE.marketType === 'spot';
@@ -11517,13 +11534,12 @@ function tpCalculate() {
   // update ROE label
   const roeEl = el('tp-sum-roe');
   if(roeEl && margin > 0){
-    // show roe for tp/sl
     const tpRoe = margin > 0 ? (tpPnl/margin*100).toFixed(1) : 0;
     const slRoe = margin > 0 ? (slPnl/margin*100).toFixed(1) : 0;
     roeEl.textContent = tpPrice > 0 ? 'ROE: TP '+(tpRoe>=0?'+':'')+tpRoe+'% / SL '+(slRoe>=0?'+':'')+slRoe+'%' : '';
   }
 }
-
+  
 // Place order
 function tpPlaceOrder() {
   const sizeInput = document.getElementById('tp-size');
@@ -12142,7 +12158,6 @@ function tpFillPrice(price){
   const stopEl  = document.getElementById('tp-stop-price');
   if(TP_STATE.orderType === 'limit' && limitEl){
     limitEl.value = price;
-    // auto-switch to limit if market was selected
     tpCalculate();
     showToast('Price set: '+fmtPrice(price), 'info', 1500);
   } else if(TP_STATE.orderType === 'stop' && stopEl){
@@ -12150,13 +12165,13 @@ function tpFillPrice(price){
     tpCalculate();
     showToast('Stop price set: '+fmtPrice(price), 'info', 1500);
   } else {
-    // switch to limit and fill
     tpSetOrderType('limit');
-    document.querySelectorAll('.tp-order-tab').forEach(t=>t.classList.remove('active'));
-    document.querySelectorAll('.tp-order-tab').forEach(t=>{ if(t.textContent.toLowerCase()==='limit') t.classList.add('active'); });
     const limitEl2 = document.getElementById('tp-limit-price');
-    if(limitEl2){ limitEl2.value = price; tpCalculate(); }
-    showToast('Limit price set: '+fmtPrice(price), 'info', 1500);
+    if(limitEl2){ 
+      limitEl2.value = price; 
+      tpCalculate(); 
+      showToast('Limit price set: '+fmtPrice(price), 'info', 1500);
+    }
   }
 }
 
@@ -12479,11 +12494,12 @@ function tpRenderOrderBookData(asks, bids){
 function _tpRenderOBData(asks, bids) {
   const asksContainer = document.getElementById('tp-ob-asks');
   const bidsContainer = document.getElementById('tp-ob-bids');
+  if (!asksContainer || !bidsContainer) return; // Guard: page not ready
+
   const priceEl = document.getElementById('tp-ob-price');
   const changeEl = document.getElementById('tp-ob-change');
   const spreadEl = document.getElementById('tp-ob-spread');
-  if(!asksContainer || !bidsContainer) return;
-
+  
   const priceData = TP_STATE.prices[TP_STATE.pair] || {price:0,change:0};
   const fmtSize = (s) => s>=1000?(s/1000).toFixed(2)+'K':s.toFixed(3);
   const fmtUsdt = (v) => v>=1000000?(v/1000000).toFixed(2)+'M':v>=1000?(v/1000).toFixed(1)+'K':v.toFixed(0);
