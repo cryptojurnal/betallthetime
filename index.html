@@ -13869,22 +13869,6 @@ function renderProjectionChart() {
       }
     }
   });
-  
-  function openProjectionChart() {
-  const wrap = document.getElementById('projection-chart-wrap');
-  if (!wrap) return;
-  wrap.classList.add('show');
-  renderProjectionChart();
-}
-
-function closeProjectionChart() {
-  const wrap = document.getElementById('projection-chart-wrap');
-  if (wrap) wrap.classList.remove('show');
-  if (projectionChart) {
-    projectionChart.destroy();
-    projectionChart = null;
-  }
-}
 
   // Update stats
   const start = nwData[0];
@@ -13898,6 +13882,22 @@ function closeProjectionChart() {
     <div class="proj-stat"><div class="proj-stat-value${growth >= 0 ? '' : ' negative'}">${growth >= 0 ? '+' : ''}${growth.toFixed(1)}%</div><div class="proj-stat-label">Total Growth</div></div>
     <div class="proj-stat"><div class="proj-stat-value">${fmt(maxVal)}</div><div class="proj-stat-label">Peak NW</div></div>
   `;
+}
+
+function openProjectionChart() {
+  const wrap = document.getElementById('projection-chart-wrap');
+  if (!wrap) return;
+  wrap.classList.add('show');
+  renderProjectionChart();
+}
+
+function closeProjectionChart() {
+  const wrap = document.getElementById('projection-chart-wrap');
+  if (wrap) wrap.classList.remove('show');
+  if (projectionChart) {
+    projectionChart.destroy();
+    projectionChart = null;
+  }
 }
 
 // ── COMPARE PRESETS ──
