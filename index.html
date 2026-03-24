@@ -13817,7 +13817,6 @@ document.getElementById('shortcuts-panel')?.addEventListener('click', (e) => {
   if (e.target.id === 'shortcuts-panel') closeShortcutsPanel();
 });
 
-  // ── PROJECTION CHART ──
 // ── PROJECTION CHART ──
 var projectionChart = null;
 
@@ -13870,6 +13869,22 @@ function renderProjectionChart() {
       }
     }
   });
+  
+  function openProjectionChart() {
+  const wrap = document.getElementById('projection-chart-wrap');
+  if (!wrap) return;
+  wrap.classList.add('show');
+  renderProjectionChart();
+}
+
+function closeProjectionChart() {
+  const wrap = document.getElementById('projection-chart-wrap');
+  if (wrap) wrap.classList.remove('show');
+  if (projectionChart) {
+    projectionChart.destroy();
+    projectionChart = null;
+  }
+}
 
   // Update stats
   const start = nwData[0];
