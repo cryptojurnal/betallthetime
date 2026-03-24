@@ -11271,6 +11271,11 @@ async function tpFetchPrices() {
 }
 
 // Update price display
+d('tp-pair-exchange');
+  if (exchangeEl) exchangeEl.textContent = `${TP_STATE.marketType} · ${TP_STATE.exchange}`;
+  
+  // skip if no real data yet — keep whatever is already displayed
+  if(!priceData.price || priceData.price === 0) return;
 function tpUpdatePriceDisplay() {
   const priceEl = document.getElementById('tp-price-main');
   if (!priceEl) return; // Not ready
@@ -11287,12 +11292,7 @@ function tpUpdatePriceDisplay() {
   const nameEl = document.getElementById('tp-pair-name');
   if (nameEl) nameEl.textContent = TP_STATE.pair.replace('USDT', '/USDT');
   
-  const exchangeEl = document.getElementById('tp-pair-exchange');
-  if (exchangeEl) exchangeEl.textContent = `${TP_STATE.marketType} · ${TP_STATE.exchange}`;
-  
-  // skip if no real data yet — keep whatever is already displayed
-  if(!priceData.price || priceData.price === 0) return;
-
+  const exchangeEl = document.getElementByI
   if (priceEl) priceEl.textContent = fmtPrice(priceData.price);
   
   const changeEl = document.getElementById('tp-price-change');
