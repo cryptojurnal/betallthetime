@@ -11520,7 +11520,6 @@ function tpCalculate() {
   const tpPnl = tpPrice > 0 ? (side === 'long' ? (tpPrice - fillPrice) / fillPrice : (fillPrice - tpPrice) / fillPrice) * notional * lev : 0;
   const slPnl = slPrice > 0 ? (side === 'long' ? (slPrice - fillPrice) / fillPrice : (fillPrice - slPrice) / fillPrice) * notional * lev : 0;
 
-  // Safe update function
   function setText(id, text) {
     const el = document.getElementById(id);
     if (el) el.textContent = text;
@@ -11544,6 +11543,7 @@ function tpCalculate() {
   
 // Place order
 function tpPlaceOrder() {
+  console.log('tpPlaceOrder called'); // debug
   const sizeInput = document.getElementById('tp-size');
   const size = parseFloat(sizeInput?.value) || 0;
   const priceData = TP_STATE.prices[TP_STATE.pair];
@@ -11641,7 +11641,6 @@ function tpPlaceOrder() {
   if (marginNeeded + openFee > TP_STATE.balance){ showToast('Insufficient balance. Need: '+fmtPrice(marginNeeded+openFee), 'error'); return; }
   if (TP_STATE.positions.length >= 20){ showToast('Max 20 positions', 'error'); return; }
 
-  // TP/SL prices (absolute, not %)
   const tpPrice = parseFloat(document.getElementById('tp-tp-price')?.value) || 0;
   const slPrice = parseFloat(document.getElementById('tp-sl-price')?.value) || 0;
 
@@ -11678,7 +11677,6 @@ function tpPlaceOrder() {
     showToast('Bought '+pairShort+' @ '+fmtPrice(fillPrice)+' | Fee: '+fmtPrice(openFee)+' | Slip: '+slipTxt, 'success');
   } else {
     showToast(position.side.toUpperCase()+' '+pairShort+' '+lev+'x @ '+fmtPrice(fillPrice)+' | Margin: '+fmtPrice(marginNeeded)+' | Fee: '+fmtPrice(openFee), 'success');
-    // fetch live funding rate in background
     if(TP_STATE.marketType === 'perpetual') tpFetchFundingRate(TP_STATE.pair);
   }
 }
