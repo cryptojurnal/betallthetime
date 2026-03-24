@@ -14182,44 +14182,84 @@ function openMonteCarlo() {
   
 // ── RISK HEATMAP ──
 function openRiskHeatmap() {
-  // Don't open if in wipe state
   if (IS_WIPED) {
     showToast('Fix setup errors first', 'error');
     return;
   }
   trackPowerUser('risk_heatmap');
-  
-  const tabId = document.querySelector('.tab-btn.on')?.dataset?.tab || '36';
-  const months = tabId === 'q' ? 3 : 36;
-  
-  // Generate mock risk levels (would use actual calculation)
+
+  const tabId = typeof TAB !== 'undefined' ? TAB : '36';
+  const totalMonths = isQTab(tabId) ? 3 : 36;
+  const months = sim();   // run the projection once
+
+  // Determine risk metric: for leverage, use liq% of trade 1; for spot, mark as "spot"
+  const isSpot = gs().SPOT;
+  const riskLevels = [];
+  for (let i = 0; i < months.length; i++) {
+    const mo = months[i];
+    let level = 'safe', title = '';
+    if (mo.isZ) {
+      level = 'zero';
+      title = 'Zero month – no trading activity';
+    } else if (isSpot) {
+      level = 'spot';
+      title = 'Spot mode – no liquidation risk';
+    } else {
+      const liq = mo.liqT1 || 0;  // liq% for trade 1 of that month
+      if (liq < 20) {
+        level = 'extreme';
+        title = `Liq% ${liq.toFixed(0)}% – extreme risk (any move could liquidate)`;
+      } else if (liq < 40) {
+        level = 'high';
+        title = `Liq% ${liq.toFixed(0)}% – high risk (tight buffer)`;
+      } else if (liq < 60) {
+        level = 'moderate';
+        title = `Liq% ${liq.toFixed(0)}% – moderate risk`;
+      } else {
+        level = 'safe';
+        title = `Liq% ${liq.toFixed(0)}% – safe buffer`;
+      }
+    }
+    riskLevels.push({ level, title });
+  }
+
+  // Build the heatmap grid
   let heatmapHtml = '<div class="heatmap-grid">';
-  for (let m = 1; m <= months; m++) {
-    const risk = Math.random() * 100;
-    let level = 'safe';
-    if (risk > 70) level = 'extreme';
-    else if (risk > 45) level = 'high';
-    else if (risk > 20) level = 'moderate';
-    heatmapHtml += `<div class="heatmap-cell ${level}" title="Month ${m}: ${risk.toFixed(0)}% risk">${m}</div>`;
+  for (let m = 1; m <= totalMonths; m++) {
+    const r = riskLevels[m-1] || { level: 'safe', title: 'No data' };
+    let levelClass = r.level;
+    let bgColor = '';
+    if (levelClass === 'safe') bgColor = '#0a3020';
+    else if (levelClass === 'moderate') bgColor = '#3a3a10';
+    else if (levelClass === 'high') bgColor = '#4a2a10';
+    else if (levelClass === 'extreme') bgColor = '#4a1010';
+    else if (levelClass === 'spot') bgColor = '#1a2a3a';
+    else if (levelClass === 'zero') bgColor = '#2a2a2a';   // neutral grey for zero months
+
+    heatmapHtml += `<div class="heatmap-cell ${levelClass}" style="background:${bgColor};" title="${r.title}">${m}</div>`;
   }
   heatmapHtml += '</div>';
-  
+
   showConfirm({
     icon: '🔥',
     type: 'info',
-    title: 'Risk Heatmap',
-    message: `<div style="margin-bottom:12px;font-size:11px;color:#888">Risk level by month (click a cell for details)</div>${heatmapHtml}
-      <div style="display:flex;gap:12px;margin-top:16px;font-size:9px">
-        <span><span style="display:inline-block;width:12px;height:12px;background:#0a3020;border-radius:2px;vertical-align:middle;margin-right:4px"></span>Safe</span>
-        <span><span style="display:inline-block;width:12px;height:12px;background:#3a3a10;border-radius:2px;vertical-align:middle;margin-right:4px"></span>Moderate</span>
-        <span><span style="display:inline-block;width:12px;height:12px;background:#4a2a10;border-radius:2px;vertical-align:middle;margin-right:4px"></span>High</span>
-        <span><span style="display:inline-block;width:12px;height:12px;background:#4a1010;border-radius:2px;vertical-align:middle;margin-right:4px"></span>Extreme</span>
-      </div>`,
+    title: `Risk Heatmap – ${isSpot ? 'Spot' : 'Leverage'} Mode`,
+    message: `<div style="margin-bottom:12px;font-size:11px;color:#888">
+      ${isSpot ? 'No liquidation risk in spot mode.' : 'Darker red = higher risk (lower liq% buffer). Hover over a month for details.'}
+      ${totalMonths === 3 ? ' (Quarter view – 3 months)' : ''}
+    </div>${heatmapHtml}
+    <div style="display:flex;gap:12px;margin-top:16px;font-size:9px">
+      <span><span style="display:inline-block;width:12px;height:12px;background:#0a3020;border-radius:2px;vertical-align:middle;margin-right:4px"></span>Safe (liq% ≥ 60%)</span>
+      <span><span style="display:inline-block;width:12px;height:12px;background:#3a3a10;border-radius:2px;vertical-align:middle;margin-right:4px"></span>Moderate (liq% 40–60%)</span>
+      <span><span style="display:inline-block;width:12px;height:12px;background:#4a2a10;border-radius:2px;vertical-align:middle;margin-right:4px"></span>High (liq% 20–40%)</span>
+      <span><span style="display:inline-block;width:12px;height:12px;background:#4a1010;border-radius:2px;vertical-align:middle;margin-right:4px"></span>Extreme (liq% < 20%)</span>
+      <span><span style="display:inline-block;width:12px;height:12px;background:#2a2a2a;border-radius:2px;vertical-align:middle;margin-right:4px"></span>Zero month</span>
+    </div>`,
     confirmText: 'Close',
     cancelText: ''
   });
 }
-
+  
 // ── SOUNDS ──
 var SOUNDS_ENABLED = localStorage.getItem('batt_sounds') !== 'off';
 
