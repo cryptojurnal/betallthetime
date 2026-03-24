@@ -14042,9 +14042,16 @@ function openMonteCarlo() {
     const originalState = S[tabId];
     console.log('originalState keys:', Object.keys(originalState));
 
+    // Capture the simulation function (make sure it exists)
+    const simFunc = typeof sim === 'function' ? sim : window.sim;
+    if (typeof simFunc !== 'function') {
+      console.error('Simulation function not found!');
+      showToast('Simulation engine missing. Please reload the page.', 'error');
+      return;
+    }
+
     // Helper: create a deep copy of the state that we can safely modify
     function copyStateForSim(orig) {
-      // Basic fields
       const copy = {
         P: orig.P,
         LEV: orig.LEV,
@@ -14058,13 +14065,12 @@ function openMonteCarlo() {
         MP: { ...orig.MP },
         SPOT: orig.SPOT,
         FEE: { ...orig.FEE },
-        ZM: new Set(orig.ZM),               // copy the Set correctly
-        MT: {},                             // will fill below
-        // Preserve any other fields that might exist (like _prevLEV)
+        ZM: new Set(orig.ZM),               // copy Set correctly
+        MT: {},
+        // preserve any extra fields like _prevLEV
         ...(orig._prevLEV !== undefined && { _prevLEV: orig._prevLEV }),
       };
-
-      // Deep copy each month's MT entry (if any)
+      // Deep copy per‑month trade data (if any)
       for (let m in orig.MT) {
         if (orig.MT.hasOwnProperty(m)) {
           copy.MT[m] = {
@@ -14078,7 +14084,7 @@ function openMonteCarlo() {
 
     // Helper: randomize trade targets in a state
     function randomizeTargets(state, totalMonths) {
-      const globalMode = GLOBAL_MODE; // from outer scope
+      const globalMode = GLOBAL_MODE;
       console.log('randomizeTargets, globalMode:', globalMode);
 
       if (globalMode) {
@@ -14098,13 +14104,11 @@ function openMonteCarlo() {
           if (state.MT[m] && state.MT[m].bt) {
             baseBT = state.MT[m].bt;
           } else {
-            baseBT = state.BT; // fallback to global
+            baseBT = state.BT;
           }
 
-          // Create or reuse month entry
           if (!state.MT[m]) state.MT[m] = { bt: [...baseBT], fr: [...state.FR] };
 
-          // Randomize each non‑zero target in this month's BT
           for (let i = 0; i < baseBT.length; i++) {
             if (baseBT[i] !== 0) {
               const factor = 0.9 + Math.random() * 0.2;
@@ -14112,7 +14116,7 @@ function openMonteCarlo() {
               newVal = Math.max(-500, Math.min(500, newVal));
               state.MT[m].bt[i] = newVal;
             } else {
-              state.MT[m].bt[i] = 0; // keep skipped trades skipped
+              state.MT[m].bt[i] = 0;
             }
           }
         }
@@ -14120,25 +14124,21 @@ function openMonteCarlo() {
       return state;
     }
 
-    for (let sim = 0; sim < numSims; sim++) {
-      if (sim % 100 === 0) console.log(`Simulation ${sim} of ${numSims}`);
+    for (let simIdx = 0; simIdx < numSims; simIdx++) {
+      if (simIdx % 100 === 0) console.log(`Simulation ${simIdx} of ${numSims}`);
 
-      // Create a fresh copy of the original state
       const simState = copyStateForSim(originalState);
       randomizeTargets(simState, totalMonths);
 
-      // Temporarily replace the real state with the randomized one
       S[tabId] = simState;
-      const months = sim();           // runs projection using the new state
+      const months = simFunc();           // runs projection using the new state
       const finalNW = months.length ? months[months.length - 1].nw : originalState.P;
       results.push(finalNW);
 
-      // Restore original state
       S[tabId] = originalState;
     }
 
     console.log('Simulations finished, sorting results');
-    // Sort results and compute percentiles
     results.sort((a, b) => a - b);
     const p10 = results[Math.floor(numSims * 0.1)];
     const p50 = results[Math.floor(numSims * 0.5)];
@@ -14147,7 +14147,6 @@ function openMonteCarlo() {
 
     console.log('Results:', { p10, p50, p90, profitProb });
 
-    // Display results
     const message = `<div style="text-align:left;font-size:12px;line-height:1.8">
       <strong>${numSims} Simulations Complete</strong><br><br>
       <span style="color:#E24B4A">10th Percentile:</span> $${p10.toLocaleString('en-US', {minimumFractionDigits: 2})}<br>
@@ -14156,7 +14155,6 @@ function openMonteCarlo() {
       <strong>Probability of Profit:</strong> ${profitProb.toFixed(1)}%
     </div>`;
 
-    // Try to use showConfirm; fallback to alert
     if (typeof showConfirm === 'function') {
       showConfirm({
         icon: '🎲',
@@ -14171,7 +14169,7 @@ function openMonteCarlo() {
     }
   }, 500);
 }
-
+  
 // ── RISK HEATMAP ──
 function openRiskHeatmap() {
   // Don't open if in wipe state
