@@ -13818,6 +13818,7 @@ document.getElementById('shortcuts-panel')?.addEventListener('click', (e) => {
 });
 
   // ── PROJECTION CHART ──
+// ── PROJECTION CHART ──
 var projectionChart = null;
 
 function renderProjectionChart() {
@@ -13869,8 +13870,7 @@ function renderProjectionChart() {
       }
     }
   });
-}
-  
+
   // Update stats
   const start = nwData[0];
   const end = nwData[nwData.length - 1];
@@ -13882,32 +13882,6 @@ function renderProjectionChart() {
     <div class="proj-stat"><div class="proj-stat-value${end > start ? '' : ' negative'}">${fmt(end)}</div><div class="proj-stat-label">Final NW</div></div>
     <div class="proj-stat"><div class="proj-stat-value${growth >= 0 ? '' : ' negative'}">${growth >= 0 ? '+' : ''}${growth.toFixed(1)}%</div><div class="proj-stat-label">Total Growth</div></div>
     <div class="proj-stat"><div class="proj-stat-value">${fmt(maxVal)}</div><div class="proj-stat-label">Peak NW</div></div>
-  `;
-}
-  
-  // Update stats
-  const startVal = data[0];
-  const endVal = data[data.length - 1];
-  const growth = ((endVal - startVal) / startVal * 100);
-  const maxVal = Math.max(...data);
-  
-  document.getElementById('proj-chart-stats').innerHTML = `
-    <div class="proj-stat">
-      <div class="proj-stat-value">$${startVal.toLocaleString('en-US', {minimumFractionDigits: 2})}</div>
-      <div class="proj-stat-label">Starting Capital</div>
-    </div>
-    <div class="proj-stat">
-      <div class="proj-stat-value${endVal > startVal ? '' : ' negative'}">$${endVal.toLocaleString('en-US', {minimumFractionDigits: 2})}</div>
-      <div class="proj-stat-label">Final Balance</div>
-    </div>
-    <div class="proj-stat">
-      <div class="proj-stat-value${growth >= 0 ? '' : ' negative'}">${growth >= 0 ? '+' : ''}${growth.toFixed(1)}%</div>
-      <div class="proj-stat-label">Total Growth</div>
-    </div>
-    <div class="proj-stat">
-      <div class="proj-stat-value">$${maxVal.toLocaleString('en-US', {minimumFractionDigits: 2})}</div>
-      <div class="proj-stat-label">Peak Balance</div>
-    </div>
   `;
 }
 
