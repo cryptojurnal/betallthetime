@@ -11485,7 +11485,7 @@ function tpSetMaxSize() {
 // Calculate summary
 function tpCalculate() {
   const entryEl = document.getElementById('tp-sum-entry');
-  if (!entryEl) return; // Page not ready
+  if (!entryEl) return; // Page not ready – exit early
 
   const size      = parseFloat(document.getElementById('tp-size')?.value) || 0;
   const priceData = TP_STATE.prices[TP_STATE.pair] || { price: 69000 };
@@ -11503,6 +11503,38 @@ function tpCalculate() {
   const notional     = size;
   const margin       = isSpot ? size : tpCalcMarginRequired(notional, lev, TP_STATE.marginMode);
   const openFee      = notional * (fees.active / 100);
+
+  const mmRate = 0.005;
+  let liqPrice = null;
+  if(!isSpot && lev > 1){
+    if(side === 'long') liqPrice = fillPrice * (1 - (1/lev) + mmRate);
+    else                liqPrice = fillPrice * (1 + (1/lev) - mmRate);
+  }
+
+  const tpPriceEl = document.getElementById('tp-tp-price');
+  const slPriceEl = document.getElementById('tp-sl-price');
+  const tpPrice   = parseFloat(tpPriceEl?.value) || 0;
+  const slPrice   = parseFloat(slPriceEl?.value) || 0;
+
+  const tpPnl = tpPrice > 0 ? (side==='long' ? (tpPrice-fillPrice)/fillPrice : (fillPrice-tpPrice)/fillPrice) * notional * lev : 0;
+  const slPnl = slPrice > 0 ? (side==='long' ? (slPrice-fillPrice)/fillPrice : (fillPrice-slPrice)/fillPrice) * notional * lev : 0;
+
+  const el = id => document.getElementById(id);
+  if(el('tp-sum-entry'))  el('tp-sum-entry').textContent  = fmtPrice(fillPrice) + (slippage > 0.0001 ? ' (slip '+((slippage*100).toFixed(3))+'%)' : '');
+  if(el('tp-sum-margin')) el('tp-sum-margin').textContent = fmtPrice(margin);
+  if(el('tp-sum-liq'))    el('tp-sum-liq').textContent    = liqPrice ? fmtPrice(liqPrice) : 'n/a';
+  if(el('tp-sum-tp'))     el('tp-sum-tp').textContent     = tpPrice > 0 ? fmtPrice(tpPrice)+' ('+(tpPnl>=0?'+':'')+fmtPrice(tpPnl)+')' : '—';
+  if(el('tp-sum-sl'))     el('tp-sum-sl').textContent     = slPrice > 0 ? fmtPrice(slPrice)+' ('+(slPnl>=0?'+':'')+fmtPrice(slPnl)+')' : '—';
+  if(el('tp-sum-fee'))    el('tp-sum-fee').textContent    = fmtPrice(openFee)+' ('+(fees.isMaker?'maker':'taker')+' '+fees.active.toFixed(3)+'%)';
+  if(el('tp-sum-value'))  el('tp-sum-value').textContent  = fmtPrice(notional);
+
+  const roeEl = el('tp-sum-roe');
+  if(roeEl && margin > 0){
+    const tpRoe = margin > 0 ? (tpPnl/margin*100).toFixed(1) : 0;
+    const slRoe = margin > 0 ? (slPnl/margin*100).toFixed(1) : 0;
+    roeEl.textContent = tpPrice > 0 ? 'ROE: TP '+(tpRoe>=0?'+':'')+tpRoe+'% / SL '+(slRoe>=0?'+':'')+slRoe+'%' : '';
+  }
+}
 
   // liq price
   const mmRate = 0.005;
