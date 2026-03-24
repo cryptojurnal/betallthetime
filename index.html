@@ -13817,14 +13817,13 @@ document.getElementById('shortcuts-panel')?.addEventListener('click', (e) => {
   if (e.target.id === 'shortcuts-panel') closeShortcutsPanel();
 });
 
-// ── PROJECTION CHART ──
+  // ── PROJECTION CHART ──
 var projectionChart = null;
-
+  
 function renderProjectionChart() {
   const ctx = document.getElementById('projection-chart-canvas');
   if (!ctx) return;
 
-  // Run the real simulation for the current tab
   const months = sim();
   if (!months || months.length === 0) return;
 
@@ -13869,7 +13868,8 @@ function renderProjectionChart() {
         }
       }
     }
-  });
+  });   // ← add this closing parenthesis and semicolon
+}
 
   // Update stats
   const start = nwData[0];
@@ -14239,7 +14239,7 @@ function toggleSounds() {
   localStorage.setItem('batt_sounds', SOUNDS_ENABLED ? 'on' : 'off');
   showToast(`Sounds ${SOUNDS_ENABLED ? 'enabled' : 'disabled'}`, 'success');
 }
-
+  
 function playSound(type) {
   if (!SOUNDS_ENABLED) return;
   
