@@ -14147,30 +14147,23 @@ function openMonteCarlo() {
 
     console.log('Results:', { p10, p50, p90, profitProb });
 
+    // Build message with explanation
     const message = `<div style="text-align:left;font-size:12px;line-height:1.8">
       <strong>${numSims} Simulations Complete</strong><br><br>
       <span style="color:#E24B4A">10th Percentile:</span> $${p10.toLocaleString('en-US', {minimumFractionDigits: 2})}<br>
       <span style="color:#f0a030">50th Percentile:</span> $${p50.toLocaleString('en-US', {minimumFractionDigits: 2})}<br>
       <span style="color:#00c47a">90th Percentile:</span> $${p90.toLocaleString('en-US', {minimumFractionDigits: 2})}<br><br>
-      <strong>Probability of Profit:</strong> ${profitProb.toFixed(1)}%
+      <strong>Probability of Profit:</strong> ${profitProb.toFixed(1)}%<br><br>
+      <hr style="border-color:#333; margin:12px 0">
+      <div style="font-size:10px; color:#888; line-height:1.5">
+        ℹ️ <strong>What this means:</strong> Each simulation slightly varies your trade targets (±10%).
+        Your plan is strong enough that even with those variations, you never ended below your starting capital.
+        <br><br>
+        ⚠️ <strong>Reality reminder:</strong> This model doesn’t account for market crashes, exchange issues,
+        slippage, or emotional mistakes. A 100% probability here is not a guarantee – it just shows your setup
+        is very resilient to small randomness.
+      </div>
     </div>`;
-
-    const message = `<div style="text-align:left;font-size:12px;line-height:1.8">
-  <strong>${numSims} Simulations Complete</strong><br><br>
-  <span style="color:#E24B4A">10th Percentile:</span> $${p10.toLocaleString('en-US', {minimumFractionDigits: 2})}<br>
-  <span style="color:#f0a030">50th Percentile:</span> $${p50.toLocaleString('en-US', {minimumFractionDigits: 2})}<br>
-  <span style="color:#00c47a">90th Percentile:</span> $${p90.toLocaleString('en-US', {minimumFractionDigits: 2})}<br><br>
-  <strong>Probability of Profit:</strong> ${profitProb.toFixed(1)}%<br><br>
-  <hr style="border-color:#333; margin:12px 0">
-  <div style="font-size:10px; color:#888; line-height:1.5">
-    ℹ️ <strong>What this means:</strong> Each simulation slightly varies your trade targets (±10%).
-    Your plan is strong enough that even with those variations, you never ended below your starting capital.
-    <br><br>
-    ⚠️ <strong>Reality reminder:</strong> This model doesn’t account for market crashes, exchange issues,
-    slippage, or emotional mistakes. A 100% probability here is not a guarantee – it just shows your setup
-    is very resilient to small randomness.
-  </div>
-</div>`;
 
     if (typeof showConfirm === 'function') {
       showConfirm({
