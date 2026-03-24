@@ -14022,6 +14022,7 @@ function renderCompareColumn(colNum, name, data) {
 }
 
 // ── MONTE CARLO SIMULATION ──
+// ── MONTE CARLO SIMULATION ──
 function openMonteCarlo() {
   if (IS_WIPED) {
     showToast('Fix setup errors first', 'error');
@@ -14031,13 +14032,16 @@ function openMonteCarlo() {
   trackPowerUser('monte_carlo');
 
   setTimeout(() => {
+    console.log('Monte Carlo started');
     const numSims = 1000;
     const results = [];
     const tabId = typeof TAB !== 'undefined' ? TAB : '36';
     const totalMonths = isQTab(tabId) ? 3 : 36;
+    console.log('tabId:', tabId, 'totalMonths:', totalMonths);
 
     // Save original state
     const originalState = S[tabId];
+    console.log('originalState keys:', Object.keys(originalState));
 
     // Helper: deep clone a state object (preserve Set for ZM)
     function cloneState(state) {
@@ -14049,6 +14053,7 @@ function openMonteCarlo() {
     // Helper: randomize trade targets in a state
     function randomizeTargets(state, totalMonths) {
       const globalMode = GLOBAL_MODE; // from outer scope
+      console.log('randomizeTargets, globalMode:', globalMode);
 
       if (globalMode) {
         // Randomize global BT array
@@ -14078,7 +14083,6 @@ function openMonteCarlo() {
             if (baseBT[i] !== 0) {
               const factor = 0.9 + Math.random() * 0.2;
               let newVal = Math.round(baseBT[i] * factor * 10) / 10;
-              // Clamp to reasonable range (same as dashboard)
               newVal = Math.max(-500, Math.min(500, newVal));
               state.MT[m].bt[i] = newVal;
             } else {
@@ -14091,6 +14095,8 @@ function openMonteCarlo() {
     }
 
     for (let sim = 0; sim < numSims; sim++) {
+      if (sim % 100 === 0) console.log(`Simulation ${sim} of ${numSims}`);
+
       // Clone the current state and randomize targets
       const simState = cloneState(originalState);
       randomizeTargets(simState, totalMonths);
@@ -14105,6 +14111,7 @@ function openMonteCarlo() {
       S[tabId] = originalState;
     }
 
+    console.log('Simulations finished, sorting results');
     // Sort results and compute percentiles
     results.sort((a, b) => a - b);
     const p10 = results[Math.floor(numSims * 0.1)];
@@ -14112,21 +14119,30 @@ function openMonteCarlo() {
     const p90 = results[Math.floor(numSims * 0.9)];
     const profitProb = results.filter(r => r > originalState.P).length / numSims * 100;
 
+    console.log('Results:', { p10, p50, p90, profitProb });
+
     // Display results
-    showConfirm({
-      icon: '🎲',
-      type: 'info',
-      title: 'Monte Carlo Results',
-      message: `<div style="text-align:left;font-size:12px;line-height:1.8">
-        <strong>${numSims} Simulations Complete</strong><br><br>
-        <span style="color:#E24B4A">10th Percentile:</span> $${p10.toLocaleString('en-US', {minimumFractionDigits: 2})}<br>
-        <span style="color:#f0a030">50th Percentile:</span> $${p50.toLocaleString('en-US', {minimumFractionDigits: 2})}<br>
-        <span style="color:#00c47a">90th Percentile:</span> $${p90.toLocaleString('en-US', {minimumFractionDigits: 2})}<br><br>
-        <strong>Probability of Profit:</strong> ${profitProb.toFixed(1)}%
-      </div>`,
-      confirmText: 'Got it',
-      cancelText: ''
-    });
+    const message = `<div style="text-align:left;font-size:12px;line-height:1.8">
+      <strong>${numSims} Simulations Complete</strong><br><br>
+      <span style="color:#E24B4A">10th Percentile:</span> $${p10.toLocaleString('en-US', {minimumFractionDigits: 2})}<br>
+      <span style="color:#f0a030">50th Percentile:</span> $${p50.toLocaleString('en-US', {minimumFractionDigits: 2})}<br>
+      <span style="color:#00c47a">90th Percentile:</span> $${p90.toLocaleString('en-US', {minimumFractionDigits: 2})}<br><br>
+      <strong>Probability of Profit:</strong> ${profitProb.toFixed(1)}%
+    </div>`;
+
+    // Try to use showConfirm; fallback to alert
+    if (typeof showConfirm === 'function') {
+      showConfirm({
+        icon: '🎲',
+        type: 'info',
+        title: 'Monte Carlo Results',
+        message: message,
+        confirmText: 'Got it',
+        cancelText: ''
+      });
+    } else {
+      alert('Monte Carlo Results:\n' + message.replace(/<[^>]*>/g, ''));
+    }
   }, 500);
 }
 
