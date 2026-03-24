@@ -14023,53 +14023,106 @@ function renderCompareColumn(colNum, name, data) {
 
 // ── MONTE CARLO SIMULATION ──
 function openMonteCarlo() {
-  // Don't run if in wipe state
   if (IS_WIPED) {
     showToast('Fix setup errors first', 'error');
     return;
   }
   showToast('Monte Carlo: Running 1000 simulations...', 'info');
   trackPowerUser('monte_carlo');
-  
+
   setTimeout(() => {
-    // Simplified Monte Carlo
-    const tabId = document.querySelector('.tab-btn.on')?.dataset?.tab || '36';
-    const state = S[tabId];
-    if (!state) return;
-    
-    const simulations = 1000;
+    const numSims = 1000;
     const results = [];
-    const startCapital = state.C || 1000;
-    
-    for (let s = 0; s < simulations; s++) {
-      let balance = startCapital;
-      const months = tabId === 'q' ? 3 : 36;
-      
-      for (let m = 0; m < months; m++) {
-        // Add randomness to trade outcomes
-        const baseReturn = (state.ZM[0]?.t || 2) / 100;
-        const variance = Math.random() * 0.1 - 0.05; // ±5% variance
-        balance = balance * (1 + baseReturn + variance);
-      }
-      results.push(balance);
+    const tabId = typeof TAB !== 'undefined' ? TAB : '36';
+    const totalMonths = isQTab(tabId) ? 3 : 36;
+
+    // Save original state
+    const originalState = S[tabId];
+
+    // Helper: deep clone a state object (preserve Set for ZM)
+    function cloneState(state) {
+      const cloned = JSON.parse(JSON.stringify(state));
+      if (cloned.ZM) cloned.ZM = new Set(cloned.ZM);
+      return cloned;
     }
-    
+
+    // Helper: randomize trade targets in a state
+    function randomizeTargets(state, totalMonths) {
+      const globalMode = GLOBAL_MODE; // from outer scope
+
+      if (globalMode) {
+        // Randomize global BT array
+        for (let i = 0; i < state.BT.length; i++) {
+          if (state.BT[i] !== 0) {
+            const factor = 0.9 + Math.random() * 0.2; // ±10%
+            state.BT[i] = Math.round(state.BT[i] * factor * 10) / 10;
+          }
+        }
+      } else {
+        // Per-month mode: randomize each month's BT individually
+        for (let m = 1; m <= totalMonths; m++) {
+          if (state.ZM.has(m)) continue; // zero month → no trades
+
+          let baseBT;
+          if (state.MT[m] && state.MT[m].bt) {
+            baseBT = state.MT[m].bt;
+          } else {
+            baseBT = state.BT; // fallback to global
+          }
+
+          // Create or reuse month entry
+          if (!state.MT[m]) state.MT[m] = { bt: [...baseBT], fr: [...state.FR] };
+
+          // Randomize each non‑zero target in this month's BT
+          for (let i = 0; i < baseBT.length; i++) {
+            if (baseBT[i] !== 0) {
+              const factor = 0.9 + Math.random() * 0.2;
+              let newVal = Math.round(baseBT[i] * factor * 10) / 10;
+              // Clamp to reasonable range (same as dashboard)
+              newVal = Math.max(-500, Math.min(500, newVal));
+              state.MT[m].bt[i] = newVal;
+            } else {
+              state.MT[m].bt[i] = 0; // keep skipped trades skipped
+            }
+          }
+        }
+      }
+      return state;
+    }
+
+    for (let sim = 0; sim < numSims; sim++) {
+      // Clone the current state and randomize targets
+      const simState = cloneState(originalState);
+      randomizeTargets(simState, totalMonths);
+
+      // Temporarily replace the real state with the randomized one
+      S[tabId] = simState;
+      const months = sim();           // runs projection using the new state
+      const finalNW = months.length ? months[months.length - 1].nw : originalState.P;
+      results.push(finalNW);
+
+      // Restore original state
+      S[tabId] = originalState;
+    }
+
+    // Sort results and compute percentiles
     results.sort((a, b) => a - b);
-    const p10 = results[Math.floor(simulations * 0.1)];
-    const p50 = results[Math.floor(simulations * 0.5)];
-    const p90 = results[Math.floor(simulations * 0.9)];
-    const profitProb = results.filter(r => r > startCapital).length / simulations * 100;
-    
+    const p10 = results[Math.floor(numSims * 0.1)];
+    const p50 = results[Math.floor(numSims * 0.5)];
+    const p90 = results[Math.floor(numSims * 0.9)];
+    const profitProb = results.filter(r => r > originalState.P).length / numSims * 100;
+
+    // Display results
     showConfirm({
       icon: '🎲',
       type: 'info',
       title: 'Monte Carlo Results',
       message: `<div style="text-align:left;font-size:12px;line-height:1.8">
-        <strong>1000 Simulations Complete</strong><br><br>
+        <strong>${numSims} Simulations Complete</strong><br><br>
         <span style="color:#E24B4A">10th Percentile:</span> $${p10.toLocaleString('en-US', {minimumFractionDigits: 2})}<br>
         <span style="color:#f0a030">50th Percentile:</span> $${p50.toLocaleString('en-US', {minimumFractionDigits: 2})}<br>
         <span style="color:#00c47a">90th Percentile:</span> $${p90.toLocaleString('en-US', {minimumFractionDigits: 2})}<br><br>
-        <strong>Profit Probability:</strong> ${profitProb.toFixed(1)}%
+        <strong>Probability of Profit:</strong> ${profitProb.toFixed(1)}%
       </div>`,
       confirmText: 'Got it',
       cancelText: ''
