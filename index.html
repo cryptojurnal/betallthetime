@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#000000" id="theme-color-meta">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="BATT">
 <meta name="description" content="Your trading cockpit. Prepare, practice, and find your edge with dashboard tools, presets, and risk assessment.">
@@ -4866,7 +4867,7 @@ function loadAll(){
         if(sec==='wd'&&d.WD)S[tab].WD={...d.WD};
         if(sec==='labels'){if(d.ML)S[tab].ML={...d.ML};if(d.TL)S[tab].TL={...d.TL};}
         if(sec==='zero'&&d.ZM)S[tab].ZM=new Set(d.ZM);
-        if(sec==='lk'&&d.LK)S[tab].LK=new Set(d.LK);
+        if(sec==='lk')S[tab].LK=d.LK?new Set(d.LK):new Set();
         if(sec==='fee'){if(d.FEE)S[tab].FEE={...S[tab].FEE,...d.FEE};if(d.SPOT!==undefined)S[tab].SPOT=d.SPOT;}
       }catch(e){}
     });
@@ -6492,6 +6493,7 @@ async function _autoResaveActivePreset(){
 function toggleLock(m, tno){
   _captureUndo();const s=gs();
   if(!s.LK) s.LK=new Set();
+  if(Array.isArray(s.LK)) s.LK=new Set(s.LK); // heal if loaded as array
   const key=m+'-'+tno;
   if(s.LK.has(key)) s.LK.delete(key);
   else s.LK.add(key);
@@ -6553,7 +6555,9 @@ function _silentCloudSync(){
 
 function isLocked(m, tno){
   const s=gs();
-  return s.LK&&s.LK.has(m+'-'+tno);
+  if(!s.LK) return false;
+  if(Array.isArray(s.LK)){s.LK=new Set(s.LK);} // heal if loaded as array
+  return s.LK.has(m+'-'+tno);
 }
 
 function toggleZeroMonth(m){
@@ -14045,8 +14049,14 @@ function undo() {
     timestamp: Date.now(),
     data: _deepCopyS(S)
   });
-  S = state.data;
-  // sync restored state to localStorage + cloud
+  // S is const — mutate in-place
+  Object.keys(S).forEach(k=>delete S[k]);
+  Object.assign(S, state.data);
+  // ensure Sets are proper Sets after assign
+  Object.keys(S).forEach(k=>{
+    if(S[k]&&Array.isArray(S[k].ZM)) S[k].ZM=new Set(S[k].ZM);
+    if(S[k]&&Array.isArray(S[k].LK)) S[k].LK=new Set(S[k].LK);
+  });
   if(typeof saveSection==='function'){
     ['cap','pos','trades','fee'].forEach(sec=>saveSection(sec));
   }
@@ -14065,7 +14075,12 @@ function redo() {
     timestamp: Date.now(),
     data: _deepCopyS(S)
   });
-  S = state.data;
+  Object.keys(S).forEach(k=>delete S[k]);
+  Object.assign(S, state.data);
+  Object.keys(S).forEach(k=>{
+    if(S[k]&&Array.isArray(S[k].ZM)) S[k].ZM=new Set(S[k].ZM);
+    if(S[k]&&Array.isArray(S[k].LK)) S[k].LK=new Set(S[k].LK);
+  });
   if(typeof saveSection==='function'){
     ['cap','pos','trades','fee'].forEach(sec=>saveSection(sec));
   }
