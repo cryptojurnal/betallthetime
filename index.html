@@ -6109,37 +6109,9 @@ function onFeeExchangeChange(ex){
 }
 
 function setSpotMode(isSpot){
-  // guest intercept — pulse the persistent banner instead of opening a second modal
-  if(!(localStorage.getItem('batt_token')) && window.BATT_GUEST){
-    var banner=document.getElementById('guest-mode-banner');
-    if(banner){
-      // ensure visible
-      banner.style.display='flex';
-      // inject keyframe once
-      if(!document.getElementById('_guestPulseKF')){
-        var kf=document.createElement('style');
-        kf.id='_guestPulseKF';
-        kf.textContent='@keyframes _guestPulse{0%,100%{box-shadow:none;border-top-color:#1a1a1a}40%{box-shadow:0 -4px 24px rgba(239,159,39,0.45);border-top-color:#EF9F27}}';
-        document.head.appendChild(kf);
-      }
-      banner.style.animation='none';
-      // force reflow so re-applying animation fires fresh
-      void banner.offsetWidth;
-      banner.style.animation='_guestPulse 0.8s ease';
-      banner.addEventListener('animationend',function(){ banner.style.animation=''; },{once:true});
-      // show a small tooltip above the login button
-      var btn=banner.querySelector('button');
-      if(btn && !document.getElementById('_guestTip')){
-        var tip=document.createElement('span');
-        tip.id='_guestTip';
-        tip.textContent='spot / leverage switch needs an account';
-        tip.style.cssText='position:absolute;bottom:calc(100% + 8px);right:0;background:#1a1a0a;border:1px solid #EF9F27;color:#EF9F27;font-size:10px;padding:5px 10px;border-radius:6px;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .2s;font-family:inherit;z-index:10000';
-        btn.style.position='relative';
-        btn.appendChild(tip);
-        requestAnimationFrame(function(){ tip.style.opacity='1'; });
-        setTimeout(function(){ tip.style.opacity='0'; setTimeout(function(){ if(tip.parentNode) tip.parentNode.removeChild(tip); btn.style.position=''; }, 200); }, 2600);
-      }
-    }
+  // guest intercept — only block actual user-initiated switches, not internal init calls
+  if(isSpot && !(localStorage.getItem('batt_token')) && window.BATT_GUEST){
+    showToast('🔐 guest mode — login or register to switch modes','info',3000);
     return;
   }
   const s=gs();
@@ -7988,23 +7960,35 @@ function resetGoogleBtn(){
 
 function authGuest(){
   const al=document.getElementById('auth-layer');
-  // pre-hide guest banner so it never bleeds through layer2's fade-in
+  const l2=document.getElementById('layer2');
   const gb=document.getElementById('guest-mode-banner');
+
+  // kill banner before anything — never bleeds through
   if(gb) gb.style.display='none';
-  al.style.opacity='0';
-  setTimeout(()=>{
-    al.classList.add('hidden');
-    window.BATT_GUEST=true;
-    // always start in leverage mode
-    if(typeof setSpotMode==='function') setSpotMode(false);
-    // ensure layer2 is properly reset so launch btn works on re-entry
-    const l2=document.getElementById('layer2');
-    if(l2){
-      l2.classList.remove('hidden','out');
-      l2.style.opacity='0';
-    }
-    goLayer2();
-  },500);
+
+  // stage layer2 solid behind auth-layer BEFORE the fade starts — zero gap
+  if(l2){
+    l2.classList.remove('hidden','out');
+    l2.style.transition='none';
+    l2.style.opacity='1';
+    const lb=l2.querySelector('.launch-btn');
+    if(lb){ lb.disabled=false; lb.style.pointerEvents=''; }
+  }
+
+  // fade auth-layer out — layer2 is already fully opaque underneath
+  requestAnimationFrame(()=>{
+    al.style.opacity='0';
+    setTimeout(()=>{
+      al.classList.add('hidden');
+      window.BATT_GUEST=true;
+      // restore layer2 natural transition for its own exit later
+      if(l2) l2.style.transition='';
+      // always lock to leverage mode as guest default
+      if(typeof setSpotMode==='function') setSpotMode(false);
+      try{ history.replaceState({batt:'risk'},'','#risk'); }catch(e){}
+      document.title='BATT · Risk Disclosure';
+    },500);
+  });
 }
 
 async function authSave(){
