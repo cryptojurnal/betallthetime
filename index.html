@@ -3846,7 +3846,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
         <div style="font-size:9px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">⚡ quick apply to month</div>
         <div style="display:flex;align-items:center;gap:4px;margin-bottom:6px">
           <span style="font-size:9px;color:var(--tx3);white-space:nowrap">month</span>
-          <select id="qa-month" onmousedown="qaRefreshMonths()" onfocus="qaRefreshMonths()" style="flex:1;padding:4px 24px 4px 8px;font-size:10px;font-weight:700;border:0.5px solid var(--bd2);border-radius:8px;background:var(--inp);color:var(--tx);appearance:none;-webkit-appearance:none;background-image:url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23666'/%3E%3C/svg%3E&quot;);background-repeat:no-repeat;background-position:right 6px center;cursor:pointer">
+          <select id="qa-month" onmousedown="qaRefreshMonths()" onfocus="qaRefreshMonths()" onchange="qaInitSlots(parseInt(this.value))" style="flex:1;padding:4px 24px 4px 8px;font-size:10px;font-weight:700;border:0.5px solid var(--bd2);border-radius:8px;background:var(--inp);color:var(--tx);appearance:none;-webkit-appearance:none;background-image:url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23666'/%3E%3C/svg%3E&quot;);background-repeat:no-repeat;background-position:right 6px center;cursor:pointer">
             <option value="">select...</option>
           </select>
         </div>
@@ -6437,22 +6437,26 @@ function qaRefreshMonths(){
   if(cur && parseInt(cur) <= maxM) sel.value = cur;
 }
 
-function qaInitSlots(){
+function qaInitSlots(m){
   const el=document.getElementById('qa-slots');
   if(!el) return;
   const s=gs();
+  const mon=m||parseInt(document.getElementById('qa-month')?.value)||0;
   let h='';
   for(let i=0;i<10;i++){
-    h+=`<div style="display:grid;grid-template-columns:16px 1fr 1fr;gap:3px;margin-bottom:3px;align-items:center">
-      <span style="font-size:8px;color:var(--tx3);text-align:center">${i+1}</span>
-      <div class="tg-cell" style="border-color:var(--bd2)">
+    const lk=mon>0&&isLocked(mon,i+1);
+    const dimStyle=lk?'opacity:.35;pointer-events:none':'';
+    const lockTag=lk?`<span title="locked in m${String(mon).padStart(2,'0')}" style="font-size:9px;cursor:default">🔒</span>`:'';
+    h+=`<div style="display:grid;grid-template-columns:16px 1fr 1fr;gap:3px;margin-bottom:3px;align-items:center;${dimStyle}" id="qa-row-${i}">
+      <span style="font-size:8px;color:var(--tx3);text-align:center">${lk?'🔒':i+1}</span>
+      <div class="tg-cell" style="border-color:${lk?'var(--bd2)':'var(--bd2)'}">
         <button class="tg-btn" style="color:var(--acc)" onclick="qaStep('qa-bt-${i}',-0.5)" tabindex="-1">−</button>
-        <input type="number" id="qa-bt-${i}" placeholder="tgt%" step="0.5" style="flex:1;min-width:0;padding:2px 0;font-size:9px;text-align:center;border:none;background:transparent;color:var(--acc);font-weight:700;-moz-appearance:textfield">
+        <input type="number" id="qa-bt-${i}" placeholder="${lk?'locked':'tgt%'}" step="0.5" ${lk?'disabled':''} style="flex:1;min-width:0;padding:2px 0;font-size:9px;text-align:center;border:none;background:transparent;color:var(--acc);font-weight:700;-moz-appearance:textfield">
         <button class="tg-btn" style="color:var(--acc)" onclick="qaStep('qa-bt-${i}',0.5)" tabindex="-1">+</button>
       </div>
       <div class="tg-cell fi" style="border-color:var(--acc2)">
         <button class="tg-btn" style="color:var(--acc2)" onclick="qaStep('qa-fr-${i}',-1)" tabindex="-1">−</button>
-        <input type="number" id="qa-fr-${i}" placeholder="freq" step="1" min="0" max="20" style="flex:1;min-width:0;padding:2px 0;font-size:9px;text-align:center;border:none;background:transparent;color:var(--acc2);font-weight:700;-moz-appearance:textfield">
+        <input type="number" id="qa-fr-${i}" placeholder="${lk?'locked':'freq'}" step="1" min="0" max="20" ${lk?'disabled':''} style="flex:1;min-width:0;padding:2px 0;font-size:9px;text-align:center;border:none;background:transparent;color:var(--acc2);font-weight:700;-moz-appearance:textfield">
         <button class="tg-btn" style="color:var(--acc2)" onclick="qaStep('qa-fr-${i}',1)" tabindex="-1">+</button>
       </div>
     </div>`;
@@ -6472,8 +6476,9 @@ function qaApply(){
   }
   // init month state if not exists
   if(!s.MT[m]) s.MT[m]={bt:[...s.BT],fr:[...s.FR]};
-  let changed=0;
+  let changed=0, skipped=[];
   for(let i=0;i<10;i++){
+    if(isLocked(m,i+1)){skipped.push(i+1);continue;}
     const btEl=document.getElementById(`qa-bt-${i}`);
     const frEl=document.getElementById(`qa-fr-${i}`);
     const btVal=btEl?.value.trim();
@@ -6482,15 +6487,17 @@ function qaApply(){
     if(frVal!==''){s.MT[m].fr[i]=parseInt(frVal)||0;changed++;}
   }
   if(changed===0){
-    if(msg){msg.textContent='nothing to apply — fill in at least one slot';msg.style.color='var(--tx3)';}
+    const why=skipped.length===10?'all slots locked for this month':'fill in at least one unlocked slot';
+    if(msg){msg.textContent='nothing applied — '+why;msg.style.color='var(--tx3)';}
     return;
   }
   softUpdate();
-  if(typeof showToast==='function') showToast('✓ target applied to m'+m,'success',2500);
+  const skipNote=skipped.length?` · skipped locked: T${skipped.join(',T')}`:'';
+  if(typeof showToast==='function') showToast('✓ applied to m'+String(m).padStart(2,'0')+skipNote,'success',3000);
   if(msg){
-    msg.textContent='✓ applied to m'+m;
+    msg.textContent='✓ applied to m'+m+(skipped.length?' ('+skipped.length+' locked)':'');
     msg.style.color='var(--acc2)';
-    setTimeout(()=>{if(msg)msg.textContent='';},2500);
+    setTimeout(()=>{if(msg)msg.textContent='';},3000);
   }
 }
 
@@ -6515,12 +6522,14 @@ function getMonthTrades(m){
   return {bt:[...s.BT],fr:[...s.FR]};
 }
 function onManualBT(m,i,v){
+  if(isLocked(m,i+1)) return; // locked — ignore edit
   const s=gs();
   if(!s.MT[m]) s.MT[m]={bt:[...s.BT],fr:[...s.FR]};
   s.MT[m].bt[i]=parseFloat(v)||0;
   softUpdate();
 }
 function onManualFR(m,i,v){
+  if(isLocked(m,i+1)) return; // locked — ignore edit
   const s=gs();
   if(!s.MT[m]) s.MT[m]={bt:[...s.BT],fr:[...s.FR]};
   s.MT[m].fr[i]=parseInt(v)||0;
