@@ -1502,12 +1502,12 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 .auth-submit:disabled{opacity:.3;cursor:default;box-shadow:none}
 .auth-err{font-size:10px;color:#E24B4A;margin-top:4px;min-height:14px;line-height:1.4}
 .auth-ok{font-size:10px;color:#00c47a;margin-top:4px;min-height:14px}
-.auth-guest{display:block;text-align:center;margin-top:8px;font-size:10px;color:#252525;cursor:pointer;letter-spacing:.06em;transition:color .2s;background:none;border:none;width:100%}
+.auth-guest{display:block;text-align:center;margin-top:8px;font-size:10px;color:#555;cursor:pointer;letter-spacing:.06em;transition:color .2s;background:none;border:none;width:100%}
 .auth-google{display:flex;align-items:center;justify-content:center;width:100%;padding:10px;background:transparent;color:#555;border:0.5px solid #1a1a1a;border-radius:3px;font-size:11px;font-weight:600;cursor:pointer;letter-spacing:.04em;transition:all .2s}
 .auth-google:hover{border-color:#2a2a2a;color:#ccc}
-.auth-guest:hover{color:#666}
-.auth-divider{display:flex;align-items:center;gap:8px;margin:10px 0;font-size:9px;color:#1e1e1e;letter-spacing:.06em;text-transform:uppercase}
-.auth-divider::before,.auth-divider::after{content:"";flex:1;height:0.5px;background:#111}
+.auth-guest:hover{color:#aaa}
+.auth-divider{display:flex;align-items:center;gap:8px;margin:10px 0;font-size:9px;color:#333;letter-spacing:.06em;text-transform:uppercase}
+.auth-divider::before,.auth-divider::after{content:"";flex:1;height:0.5px;background:#222}
 @media(max-width:720px){.auth-brand{display:none}.auth-box{width:100%;min-width:0;padding:0 32px}}
 .auth-user-bar{display:flex;align-items:center;gap:8px;padding:4px 10px;background:#0a2a1a;border:0.5px solid #004d30;border-radius:20px;font-size:10px;color:#00c47a;font-weight:700;cursor:grab;position:fixed;top:10px;right:80px;z-index:9998;transition:background .2s,box-shadow .2s;user-select:none;touch-action:none}
 .auth-user-bar:hover{background:#0d3a22}
@@ -2480,7 +2480,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
     </button>
     <div class="auth-divider">or</div>
     <button class="auth-guest" onclick="authGuest()">continue without account →</button>
-    <div style="font-size:9px;color:#1a1a1a;text-align:center;margin-top:16px">your data syncs across devices when logged in</div>
+    <div style="font-size:9px;color:#333;text-align:center;margin-top:16px">your data syncs across devices when logged in</div>
   </div>
 </div>
 <!-- user bar shown after login (draggable) -->
