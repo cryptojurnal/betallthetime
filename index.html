@@ -7635,32 +7635,32 @@ function goLayer2(){
 }
 function launchApp(){
   const l2=document.getElementById('layer2');if(!l2)return;
-  // prevent double-tap
   const lb=l2.querySelector('.launch-btn');
   if(lb && lb.disabled) return;
   if(lb) lb.disabled=true;
 
-  // ── compositor owns the fade — zero JS on the main thread during animation ──
-  l2.classList.add('out');
+  // instantly kill layer2 — no fade, no lag
+  l2.style.transition='none';
+  l2.classList.add('hidden');
 
-  // reveal cockpit mid-fade so it's already there when layer2 finishes
-  setTimeout(()=>{
-    window.RISK_SHOWN = true;
-    battNav('cockpit');
-    mbnSetActive('cockpit');
-    document.body.style.overflow='hidden';
-    document.documentElement.style.overflow='auto';
-    const app=document.querySelector('.app');
-    if(app) app.style.opacity='1';
-    const leftToggle=document.getElementById('left-panel-toggle');
-    if(leftToggle) leftToggle.classList.add('visible');
-    const tradeToggle=document.getElementById('trade-panel-toggle');
-    if(tradeToggle) tradeToggle.classList.add('visible');
-  }, 350);
+  // set up cockpit state synchronously
+  window.RISK_SHOWN=true;
+  document.body.style.overflow='hidden';
+  document.documentElement.style.overflow='auto';
 
-  // ── cleanup + extras after fade fully done ──
-  setTimeout(()=>{
-    l2.classList.add('hidden');
+  battNav('cockpit');
+  mbnSetActive('cockpit');
+
+  const app=document.querySelector('.app');
+  if(app){ app.style.transition='none'; app.style.opacity='1'; }
+
+  const leftToggle=document.getElementById('left-panel-toggle');
+  if(leftToggle) leftToggle.classList.add('visible');
+  const tradeToggle=document.getElementById('trade-panel-toggle');
+  if(tradeToggle) tradeToggle.classList.add('visible');
+
+  // defer non-critical extras to next frame so cockpit paints first
+  requestAnimationFrame(()=>{
     if(typeof setSpotMode==='function') setSpotMode(false);
     const fab=document.getElementById('ai-fab');
     if(fab){ fab.style.display=''; fab.style.opacity='1'; fab.style.pointerEvents='all'; }
@@ -7676,7 +7676,7 @@ function launchApp(){
     }
     if(typeof battUpdateGuestUI==='function') battUpdateGuestUI();
     showGuidePopup();
-  }, 750);
+  });
 }
 </script>
 <script>
