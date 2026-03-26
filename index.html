@@ -16277,6 +16277,8 @@ function clearActivePreset(){
   const btn=document.getElementById('auth-preset-clear');
   if(lbl){lbl.textContent='';lbl.style.display='none';}
   if(btn) btn.style.display='none';
+  // refresh preset list so ● active badge disappears from card
+  if(typeof presetRenderList==='function') presetRenderList();
   showToast('Preset unlinked — auto-save disabled','info',2000);
 }
 
