@@ -6338,7 +6338,13 @@ function toggleGlobal(){
   if(perMonthPanel) perMonthPanel.style.display=GLOBAL_MODE?'none':'';
   if(!GLOBAL_MODE) qaInitSlots();
   if(!GLOBAL_MODE) qaRefreshMonths();
+  const _pr=document.querySelector('.panel-right');
+  const _sy=_pr?_pr.scrollTop:0;
+  const _rc=document.getElementById('right-content');
+  if(_rc){_rc.style.opacity='.5';}
   render();
+  if(_pr) _pr.scrollTop=_sy;
+  if(_rc){requestAnimationFrame(()=>{_rc.style.opacity='1';});}
 }
 
 // ── QUICK APPLY ──
@@ -7021,7 +7027,6 @@ function render(){
     ${isQ?idrWidget:''}
   </div>`;
 
-  if(ch){ch.destroy();ch=null;}
   const topBody=mh+(wipeBanner||bustBanner)+`<div class="note" style="${IS_WIPED?'border-color:#E24B4A;background:#FCEBEB':''}">${IS_WIPED?'':noteText}</div>`+chartH+(isQ?assessH:'');
   rc.innerHTML=`<div class="top-panel" id="top-panel">
     <div style="display:flex;align-items:stretch;gap:0;width:100%;margin-bottom:6px">
@@ -7032,6 +7037,18 @@ function render(){
     <div class="top-panel-body" id="top-panel-body" style="max-height:2000px;opacity:1"><div class="top-panel-body-inner">${topBody}</div></div>
   </div>`+togH+`<div class="tw"><table id="tbl"></table></div><div id="guide-content" style="display:none"></div><p class="ft">${LANG==='id'?'liq% = akun ÷ notional × 100 · lebih tinggi = lebih aman · target atau freq = 0 → trade dilewati':'liq% = account ÷ notional × 100 · higher = safer · 0 target or freq = trade skipped'}</p>`;
   _applyTopPanel();
+
+  // if chart already exists, transplant the live canvas back in so we don't recreate it
+  if(ch && !isQ){
+    const gcSlot=document.getElementById('gc');
+    if(gcSlot && gcSlot.parentNode){
+      // replace the fresh blank canvas with the live one
+      if(ch.canvas && ch.canvas !== gcSlot){
+        gcSlot.parentNode.replaceChild(ch.canvas, gcSlot);
+        ch.canvas.id='gc';
+      }
+    }
+  }
 
   if(!isQ){
     const lbs=['start',...months.map(r=>r.lb)];
@@ -7082,7 +7099,8 @@ function render(){
       const aside=document.getElementById('assess-side');
       if(aside) aside.innerHTML=buildAssessmentCards(months,s);
     } else {
-      ch=null;
+      // quarterly tab — destroy chart cleanly if it exists
+      if(ch){ch.destroy();ch=null;}
     }
   }catch(e){console.warn('assess cards error:',e);}
   renderTbl(months);
