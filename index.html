@@ -7640,28 +7640,28 @@ function launchApp(){
   if(lb && lb.disabled) return;
   if(lb) lb.disabled=true;
 
-  // ── START FADE IMMEDIATELY — nothing heavy before this ──
+  // ── START FADE — let browser paint it cleanly before any DOM work ──
   l2.classList.add('out');
 
-  // ── DEFER everything else until after fade starts (next frame) ──
-  requestAnimationFrame(()=>{
+  // ── 2 frames: ensures the fade actually paints before we touch anything ──
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
     window.RISK_SHOWN = true;
-    battNav('cockpit');
-    mbnSetActive('cockpit');
-
-    const app=document.querySelector('.app');
-    if(app) app.style.opacity='1';
-
-    // show toggles
-    const leftToggle=document.getElementById('left-panel-toggle');
-    if(leftToggle) leftToggle.classList.add('visible');
-    const tradeToggle=document.getElementById('trade-panel-toggle');
-    if(tradeToggle) tradeToggle.classList.add('visible');
-
     document.body.style.overflow='hidden';
     document.documentElement.style.overflow='auto';
 
-    // ── HEAVY WORK after fade completes (900ms) ──
+    // ── small gap so layout/paint of cockpit doesn't race the fade ──
+    setTimeout(()=>{
+      battNav('cockpit');
+      mbnSetActive('cockpit');
+      const app=document.querySelector('.app');
+      if(app) app.style.opacity='1';
+      const leftToggle=document.getElementById('left-panel-toggle');
+      if(leftToggle) leftToggle.classList.add('visible');
+      const tradeToggle=document.getElementById('trade-panel-toggle');
+      if(tradeToggle) tradeToggle.classList.add('visible');
+    }, 60);
+
+    // ── HEAVY WORK after fade fully completes ──
     setTimeout(()=>{
       l2.classList.add('hidden');
 
@@ -7689,8 +7689,8 @@ function launchApp(){
 
       if(typeof battUpdateGuestUI==='function') battUpdateGuestUI();
       showGuidePopup();
-    },900);
-  });
+    }, 960);
+  }));
 }
 </script>
 <script>
