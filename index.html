@@ -1164,7 +1164,7 @@ input[type=number]:focus{outline:none;border-color:var(--acc)}
 .ci{flex:1;padding:3px 2px;text-align:center;border-right:0.5px solid var(--bd2)}
 .cl{font-size:7px;color:var(--tx2);text-transform:uppercase;letter-spacing:.04em}
 .cv{font-size:10px;font-weight:600;margin-top:1px;color:var(--tx)}
-.save-btn{display:flex;align-items:center;justify-content:center;gap:4px;margin:5px 10px 0;padding:4px;border:0.5px solid var(--bd2);border-radius:6px;background:var(--btn);color:var(--tx2);font-size:9px;font-weight:600;cursor:pointer;transition:all .2s;letter-spacing:.02em}
+.save-btn{display:none}/* save buttons removed — auto-save active */
 .pr.on{background:var(--btno);color:var(--btonc);border-color:var(--acc)}
 .ci:last-child{border-right:none}
 
@@ -3645,7 +3645,6 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
     </div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin:3px 0 4px"><span style="font-size:9px;color:var(--tx3)">current</span><span style="font-size:12px;font-weight:700;color:var(--acc2);background:var(--sf2);padding:2px 6px;border-radius:4px;border:0.5px solid var(--bd2)" id="cap-vl">$1,000</span></div>
   </div>
-  <button class="save-btn" id="save-cap" onclick="saveSection('cap')">💾 save capital</button>
   </div><!-- /sec-cap -->
 
   <div class="divider"></div>
@@ -3699,7 +3698,6 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
     </div><!-- /not-controls -->
     <div id="spot-note-not" style="display:none" class="spot-note">◈ spot mode — notional = capital.<br>no leverage, no margin, no liq%.</div>
   </div>
-  <button class="save-btn" id="save-pos" onclick="saveSection('pos')">💾 save position</button>
   </div><!-- /sec-not -->
 
   <div class="divider"></div>
@@ -3836,7 +3834,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
         <div id="tg"></div>
         <div class="act-count" id="act-count"><span>10</span> active</div>
       </div>
-      <button class="save-btn" id="save-trades" onclick="saveSection('trades')" style="margin-bottom:2px">💾 save trades</button>
+
     </div>
 
     <!-- quick-apply tool (shown when global mode OFF) -->
@@ -4777,13 +4775,14 @@ function saveSection(sec){
   if(sec==='zero') data={ZM:[...s.ZM]};
   if(sec==='fee') data={FEE:{...s.FEE},SPOT:s.SPOT};
   try{localStorage.setItem(key,JSON.stringify(data));flashSave('save-'+sec);}catch(e){}
+  _silentCloudSync();
 }
 function flashSave(id){
   const el=document.getElementById(id);
   if(!el)return;
   el.classList.add('save-ok');
   el.textContent='✓ saved!';
-  setTimeout(()=>{el.classList.remove('save-ok');el.textContent='💾 save '+id.replace('save-','');},1500);
+  setTimeout(()=>{el.classList.remove('save-ok');el.textContent='✓';},1500);
 }
 function loadAll(){
   // load all known tabs (built-in + custom)
@@ -4914,8 +4913,8 @@ function updGrid(){
   const el=document.getElementById('act-count');
   if(el)el.innerHTML=`<span>${act}</span> active · ${10-act} skipped`;
 }
-function onBT(i,v){gs().BT[i]=parseFloat(v)||0;updGrid();softUpdate();}
-function onFR(i,v){gs().FR[i]=parseInt(v)||0;updGrid();softUpdate();}
+function onBT(i,v){gs().BT[i]=parseFloat(v)||0;updGrid();saveSection('trades');softUpdate();}
+function onFR(i,v){gs().FR[i]=parseInt(v)||0;updGrid();saveSection('trades');softUpdate();}
 function stepBT(i,delta){
   const inp=document.getElementById('bt'+i);
   if(!inp)return;
@@ -5165,6 +5164,7 @@ function softUpdate(){
     _softUpdateTimer=null;
     if(_softUpdatePending){ _softUpdatePending=false; _softUpdateCore(); }
   });
+  _silentCloudSync();
 }
 
 // ── LAST TRADES ──
@@ -6421,6 +6421,52 @@ function toggleLock(m, tno){
   if(_pr) requestAnimationFrame(()=>{ _pr.scrollTop=_sy; });
   // auto-resave active preset silently
   _autoResaveActivePreset();
+  // also push full state to cloud sync so LK is never lost even without a preset
+  _silentCloudSync();
+}
+
+// debounced silent cloud sync — batches rapid lock/unlock actions into one call
+var _silentSyncTimer=null;
+var _syncBtn=null;
+var _syncBtnTimer=null;
+
+function _setSyncStatus(state){ // 'saving' | 'saved' | 'error'
+  if(!_syncBtn) _syncBtn=document.querySelector('.auth-sync-btn');
+  if(!_syncBtn) return;
+  if(_syncBtnTimer){clearTimeout(_syncBtnTimer);_syncBtnTimer=null;}
+  if(state==='saving'){
+    _syncBtn.textContent='↑ ...';_syncBtn.style.opacity='.5';
+  } else if(state==='saved'){
+    _syncBtn.textContent='✓ synced';_syncBtn.style.opacity='1';
+    _syncBtnTimer=setTimeout(()=>{if(_syncBtn)_syncBtn.textContent='↑ sync';},2000);
+  } else {
+    _syncBtn.textContent='↑ sync';_syncBtn.style.opacity='1';
+  }
+}
+
+function _silentCloudSync(){
+  if(!AUTH_TOKEN) return;
+  if(_silentSyncTimer) clearTimeout(_silentSyncTimer);
+  _setSyncStatus('saving');
+  _silentSyncTimer=setTimeout(async function(){
+    _silentSyncTimer=null;
+    try{
+      const snapshot={};
+      ['36','q',...(typeof CUSTOM_TABS!=='undefined'?CUSTOM_TABS.map(t=>t.id):[])].forEach(id=>{
+        if(!S||!S[id])return;
+        const s=S[id];
+        snapshot[id]={...s,ZM:s.ZM?[...s.ZM]:[],LK:s.LK?[...s.LK]:[]};
+      });
+      const r=await fetch(AUTH_URL+'/data/save',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+AUTH_TOKEN},
+        body:JSON.stringify({data:snapshot})
+      });
+      const d=await r.json();
+      _setSyncStatus(d.ok?'saved':'error');
+      if(!d.ok&&d.error==='Unauthorized — please log in') authForceLogout();
+    }catch(e){ _setSyncStatus('error'); }
+  }, 2000); // 2s debounce — batches rapid inputs into one call
 }
 
 function isLocked(m, tno){
@@ -6433,6 +6479,7 @@ function toggleZeroMonth(m){
   if(s.ZM.has(m)) s.ZM.delete(m);
   else s.ZM.add(m);
   try{localStorage.setItem('wz_'+TAB+'_zero',JSON.stringify({ZM:[...s.ZM]}));}catch(e){}
+  _silentCloudSync();
   // save scroll before render, restore after so it never feels like a page jump
   const _pr=document.querySelector('.panel-right');
   const _sy=_pr?_pr.scrollTop:0;
@@ -6590,10 +6637,12 @@ function onManualFR(m,i,v){
 function onMonthLabel(m,v){
   gs().ML[m]=v.trim();
   try{localStorage.setItem('wz_'+TAB+'_labels',JSON.stringify({ML:{...gs().ML},TL:{...gs().TL}}));}catch(e){}
+  _silentCloudSync();
 } 
 function onTradeLabel(t,v){
   gs().TL[t]=v.trim();
   try{localStorage.setItem('wz_'+TAB+'_labels',JSON.stringify({ML:{...gs().ML},TL:{...gs().TL}}));}catch(e){}
+  _silentCloudSync();
 }
 function getML(m){return gs().ML[m]||getMLabel(m);}
 function getTL(t){return gs().TL[t]||('trade '+t);}
@@ -7618,7 +7667,7 @@ function setP(v,btn){
   document.getElementById('cap-vl').textContent='$'+v.toLocaleString();
   document.querySelectorAll('#cap-prs .pr').forEach(b=>b.classList.remove('on'));
   if(btn)btn.classList.add('on');
-  render();
+  saveSection('cap');render();
 }
 function onCapIn(v){
   const s=gs();
@@ -7632,7 +7681,7 @@ function onCapIn(v){
   }
   document.getElementById('cap-sl').value=Math.min(s.P,10000000000);
   document.getElementById('cap-vl').textContent='$'+s.P.toLocaleString();
-  document.querySelectorAll('#cap-prs .pr').forEach(b=>b.classList.remove('on'));softUpdate();
+  document.querySelectorAll('#cap-prs .pr').forEach(b=>b.classList.remove('on'));saveSection('cap');softUpdate();
 }
 function onCapSl(v){
   const s=gs();
@@ -7646,35 +7695,35 @@ function onCapSl(v){
   }
   document.getElementById('cap-in').value=s.P;
   document.getElementById('cap-vl').textContent='$'+s.P.toLocaleString();
-  document.querySelectorAll('#cap-prs .pr').forEach(b=>b.classList.remove('on'));softUpdate();
+  document.querySelectorAll('#cap-prs .pr').forEach(b=>b.classList.remove('on'));saveSection('cap');softUpdate();
 }
 function setLev(v,btn){
   const s=gs();s.LEV=v;
   document.getElementById('lv-sl').value=v;document.getElementById('lv-in').value=v;document.getElementById('lv-vl').textContent=v+'×';
   document.querySelectorAll('#lv-prs .pr').forEach(b=>b.classList.remove('on'));
-  if(btn)btn.classList.add('on');softUpdate();
+  if(btn)btn.classList.add('on');saveSection('pos');softUpdate();
 }
 function onLevIn(v){
   const s=gs();s.LEV=Math.max(1,parseInt(v)||s.LEV);
   document.getElementById('lv-sl').value=Math.min(s.LEV,50);document.getElementById('lv-vl').textContent=s.LEV+'×';
-  document.querySelectorAll('#lv-prs .pr').forEach(b=>b.classList.remove('on'));softUpdate();
+  document.querySelectorAll('#lv-prs .pr').forEach(b=>b.classList.remove('on'));saveSection('pos');softUpdate();
 }
 function onLevSl(v){
   const s=gs();s.LEV=parseInt(v);
   document.getElementById('lv-in').value=s.LEV;document.getElementById('lv-vl').textContent=s.LEV+'×';
-  document.querySelectorAll('#lv-prs .pr').forEach(b=>b.classList.remove('on'));softUpdate();
+  document.querySelectorAll('#lv-prs .pr').forEach(b=>b.classList.remove('on'));saveSection('pos');softUpdate();
 }
 function onNotIn(v){
   const s=gs();s.NOT=Math.max(1,parseFloat(v)||s.NOT);
   document.getElementById('not-sl').value=Math.min(s.NOT,100000000000);
   document.getElementById('not-vl').textContent='$'+s.NOT.toLocaleString();
-  document.querySelectorAll('#not-prs .pr').forEach(b=>b.classList.remove('on'));softUpdate();
+  document.querySelectorAll('#not-prs .pr').forEach(b=>b.classList.remove('on'));saveSection('pos');softUpdate();
 }
 function onNotSl(v){
   const s=gs();s.NOT=parseInt(v);
   document.getElementById('not-in').value=s.NOT;
   document.getElementById('not-vl').textContent='$'+s.NOT.toLocaleString();
-  document.querySelectorAll('#not-prs .pr').forEach(b=>b.classList.remove('on'));softUpdate();
+  document.querySelectorAll('#not-prs .pr').forEach(b=>b.classList.remove('on'));saveSection('pos');softUpdate();
 }
 function setNot(v,btn){
   const s=gs();s.NOT=v;
@@ -7683,7 +7732,7 @@ function setNot(v,btn){
   document.getElementById('not-vl').textContent='$'+v.toLocaleString();
   document.querySelectorAll('#not-prs .pr').forEach(b=>b.classList.remove('on'));
   if(btn)btn.classList.add('on');
-  softUpdate();
+  saveSection('pos');softUpdate();
 }
 
 function _applyChartErrorStyle(){
@@ -8183,10 +8232,11 @@ function authGuest(){
 
 async function authSave(){
   if(!AUTH_TOKEN){showToast('Please log in first to sync','error');return;}
-  const btn=document.querySelector('.auth-sync-btn');
-  if(btn){btn.textContent='↑ ...';btn.disabled=true;}
+  // flush any pending debounced sync immediately
+  if(_silentSyncTimer){clearTimeout(_silentSyncTimer);_silentSyncTimer=null;}
+  _syncBtn=document.querySelector('.auth-sync-btn');
+  _setSyncStatus('saving');
   try{
-    // serialize current state
     const snapshot={};
     ['36','q',...CUSTOM_TABS.map(t=>t.id)].forEach(id=>{
       if(!S[id])return;
@@ -8200,12 +8250,12 @@ async function authSave(){
     });
     const d=await r.json();
     if(d.ok){
-      if(btn){btn.textContent='✓ saved';setTimeout(()=>{btn.textContent='↑ sync';btn.disabled=false;},1500);}
+      _setSyncStatus('saved');
     } else {
-      if(btn){btn.textContent='↑ sync';btn.disabled=false;}
+      _setSyncStatus('error');
       if(d.error==='Unauthorized — please log in') authForceLogout();
     }
-  }catch(e){if(btn){btn.textContent='↑ sync';btn.disabled=false;}}
+  }catch(e){ _setSyncStatus('error'); }
 }
 
 async function authLogout(){
