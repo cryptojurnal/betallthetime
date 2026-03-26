@@ -4765,10 +4765,10 @@ function loadTabRegistry(){
 // ── SAVE / LOAD ──
 function saveSection(sec){
   const s=gs();
-  const key='wz_'+TAB+'_'+sec;
+  const key='batt_'+TAB+'_'+sec;
   let data={};
   if(sec==='cap') data={P:s.P};
-  if(sec==='pos') data={LEV:s.LEV,NOT:s.NOT,KPI:s.KPI};
+  if(sec==='pos') data={LEV:s.LEV,NOT:s.NOT,KPI:s.KPI,CF:s.CF};
   if(sec==='trades') data={BT:[...s.BT],FR:[...s.FR]};
   if(sec==='wd') data={WD:{...s.WD}};
   if(sec==='labels') data={ML:{...s.ML},TL:{...s.TL}};
@@ -4785,18 +4785,42 @@ function flashSave(id){
   setTimeout(()=>{el.classList.remove('save-ok');el.textContent='✓';},1500);
 }
 function loadAll(){
+  // ── ONE-TIME MIGRATION: wz_ → batt_ ──
+  // runs once, copies any wz_ keys to batt_, then marks migration done
+  if(!localStorage.getItem('batt_migrated_v2')){
+    try{
+      const allTabIds=['36','q',...CUSTOM_TABS.map(t=>t.id)];
+      allTabIds.forEach(tab=>{
+        ['cap','pos','trades','wd','labels','zero','fee','lk'].forEach(sec=>{
+          const oldKey='wz_'+tab+'_'+sec;
+          const newKey='batt_'+tab+'_'+sec;
+          // only copy if old key exists and new key doesn't yet
+          const oldVal=localStorage.getItem(oldKey);
+          if(oldVal&&!localStorage.getItem(newKey)){
+            localStorage.setItem(newKey,oldVal);
+          }
+        });
+      });
+      // also migrate standalone keys
+      [['wz_theme','batt_theme'],['wz_not_linked','batt_not_linked']].forEach(([o,n])=>{
+        const v=localStorage.getItem(o);
+        if(v&&!localStorage.getItem(n)) localStorage.setItem(n,v);
+      });
+      localStorage.setItem('batt_migrated_v2','1');
+    }catch(e){}
+  }
   // load all known tabs (built-in + custom)
   const allTabIds=['36','q',...CUSTOM_TABS.map(t=>t.id)];
   allTabIds.forEach(tab=>{
     if(!S[tab])S[tab]=mkState();
     ['cap','pos','trades','wd','labels','zero','fee','lk'].forEach(sec=>{
-      const key='wz_'+tab+'_'+sec;
+      const key='batt_'+tab+'_'+sec;
       try{
         const raw=localStorage.getItem(key);
         if(!raw)return;
         const d=JSON.parse(raw);
         if(sec==='cap'&&d.P) S[tab].P=d.P;
-        if(sec==='pos'){if(d.LEV)S[tab].LEV=d.LEV;if(d.NOT)S[tab].NOT=d.NOT;if(d.KPI)S[tab].KPI=d.KPI;}
+        if(sec==='pos'){if(d.LEV)S[tab].LEV=d.LEV;if(d.NOT)S[tab].NOT=d.NOT;if(d.KPI)S[tab].KPI=d.KPI;if(typeof d.CF!=='undefined')S[tab].CF=d.CF;}
         if(sec==='trades'){if(d.BT)S[tab].BT=[...d.BT];if(d.FR)S[tab].FR=[...d.FR];}
         if(sec==='wd'&&d.WD)S[tab].WD={...d.WD};
         if(sec==='labels'){if(d.ML)S[tab].ML={...d.ML};if(d.TL)S[tab].TL={...d.TL};}
@@ -4972,7 +4996,7 @@ function feeStep(id,mn,mx,delta,cb){
   inp.value=clamped;
   if(cb) cb();
 }
-function onKpiSl(v){gs().KPI=parseFloat(v);document.getElementById('kpi-vl').textContent=gs().KPI.toFixed(2)+'×';render();}
+function onKpiSl(v){gs().KPI=parseFloat(v);document.getElementById('kpi-vl').textContent=gs().KPI.toFixed(2)+'×';saveSection('pos');render();}
 
 // ── SIMULATION ──
 function getMLabel(m){return 'm'+String(m).padStart(2,'0');}
@@ -5092,7 +5116,7 @@ let NOT_LINKED=localStorage.getItem('batt_not_linked')==='true'; // persist link
 function toggleCarryForward(){
   const s=gs();
   s.CF = s.CF===false ? true : false;
-  try{localStorage.setItem('batt_cf_'+TAB, s.CF?'1':'0');}catch(e){}
+  saveSection('pos'); // CF is part of position state
   const btn=document.getElementById('cf-btn');
   if(btn){
     btn.textContent=s.CF?'on':'off';
@@ -5106,6 +5130,7 @@ function toggleCarryForward(){
 function toggleNotLink(){
   NOT_LINKED=!NOT_LINKED;
   localStorage.setItem('batt_not_linked',NOT_LINKED?'true':'false');
+  _silentCloudSync();
   const btn=document.getElementById('not-link-btn');
   if(btn){
     btn.textContent=NOT_LINKED?'on':'off';
@@ -5152,6 +5177,7 @@ function onMP(m,v){
   gs().MP[m]=Math.max(1,val);
   const el=document.getElementById('mp-inp-'+m);
   if(el) el.classList.toggle('active',val>1);
+  _silentCloudSync();
   softUpdate();
 }
 // ── SOFT UPDATE: re-sim + patch metrics + table without rebuilding chart ──
@@ -6023,7 +6049,8 @@ function _softUpdateCore(){
 function onWdInline(m,v){
   const val=parseFloat(v)||0;
   gs().WD[m]=val;
-  try{localStorage.setItem('wz_'+TAB+'_wd',JSON.stringify({WD:{...gs().WD}}));}catch(e){}
+  try{localStorage.setItem('batt_'+TAB+'_wd',JSON.stringify({WD:{...gs().WD}}));}catch(e){}
+  _silentCloudSync();
   softUpdate(); // renderTbl handles warnings inline
 }
 
@@ -6256,6 +6283,7 @@ function setSpotMode(isSpot){
   const flb=document.getElementById('fee-live-btn'),fls=document.getElementById('fee-live-status');
   if(flb)flb.style.display=isSpot?'none':'';
   if(fls)fls.style.display=isSpot?'none':'';
+  saveSection('fee'); // persists SPOT flag + fee state
   softUpdate();
 }
 
@@ -6373,11 +6401,10 @@ async function _autoResaveActivePreset(){
     snapshot[tid]={...s,ZM:s.ZM?[...s.ZM]:[],LK:s.LK?[...s.LK]:[]};
   });
   snapshot._meta={
-    activeTab:typeof activeTab!=='undefined'?activeTab:'36',
+    activeTab:typeof TAB!=='undefined'?TAB:'36',
     theme:document.body.className||'',
     customTabs:typeof CUSTOM_TABS!=='undefined'?JSON.parse(JSON.stringify(CUSTOM_TABS)):[],
-    notLinked:NOT_LINKED,
-    cf:gs().CF!==false
+    notLinked:NOT_LINKED
   };
   try{
     // save fresh copy
@@ -6414,7 +6441,7 @@ function toggleLock(m, tno){
   const key=m+'-'+tno;
   if(s.LK.has(key)) s.LK.delete(key);
   else s.LK.add(key);
-  try{localStorage.setItem('wz_'+TAB+'_lk',JSON.stringify({LK:[...s.LK]}));}catch(e){}
+  try{localStorage.setItem('batt_'+TAB+'_lk',JSON.stringify({LK:[...s.LK]}));}catch(e){}
   const _pr=document.querySelector('.panel-right');
   const _sy=_pr?_pr.scrollTop:0;
   softUpdate();
@@ -6478,7 +6505,7 @@ function toggleZeroMonth(m){
   const s=gs();
   if(s.ZM.has(m)) s.ZM.delete(m);
   else s.ZM.add(m);
-  try{localStorage.setItem('wz_'+TAB+'_zero',JSON.stringify({ZM:[...s.ZM]}));}catch(e){}
+  try{localStorage.setItem('batt_'+TAB+'_zero',JSON.stringify({ZM:[...s.ZM]}));}catch(e){}
   _silentCloudSync();
   // save scroll before render, restore after so it never feels like a page jump
   const _pr=document.querySelector('.panel-right');
@@ -6505,6 +6532,7 @@ function toggleGlobal(){
   if(perMonthPanel) perMonthPanel.style.display=GLOBAL_MODE?'none':'';
   if(!GLOBAL_MODE) qaInitSlots();
   if(!GLOBAL_MODE) qaRefreshMonths();
+  _silentCloudSync();
   const _pr=document.querySelector('.panel-right');
   const _sy=_pr?_pr.scrollTop:0;
   const _rc=document.getElementById('right-content');
@@ -6588,6 +6616,7 @@ function qaApply(){
     if(msg){msg.textContent='nothing applied — '+why;msg.style.color='var(--tx3)';}
     return;
   }
+  _silentCloudSync();
   softUpdate();
   const skipNote=skipped.length?` · skipped locked: T${skipped.join(',T')}`:'';
   if(typeof showToast==='function') showToast('✓ applied to m'+String(m).padStart(2,'0')+skipNote,'success',3000);
@@ -6623,6 +6652,7 @@ function onManualBT(m,i,v){
   const s=gs();
   if(!s.MT[m]) s.MT[m]={bt:[...s.BT],fr:[...s.FR]};
   s.MT[m].bt[i]=parseFloat(v)||0;
+  _silentCloudSync();
   softUpdate();
 }
 function onManualFR(m,i,v){
@@ -6630,18 +6660,19 @@ function onManualFR(m,i,v){
   const s=gs();
   if(!s.MT[m]) s.MT[m]={bt:[...s.BT],fr:[...s.FR]};
   s.MT[m].fr[i]=parseInt(v)||0;
+  _silentCloudSync();
   softUpdate();
 }
 
 // ── LABEL EDITING ──
 function onMonthLabel(m,v){
   gs().ML[m]=v.trim();
-  try{localStorage.setItem('wz_'+TAB+'_labels',JSON.stringify({ML:{...gs().ML},TL:{...gs().TL}}));}catch(e){}
+  try{localStorage.setItem('batt_'+TAB+'_labels',JSON.stringify({ML:{...gs().ML},TL:{...gs().TL}}));}catch(e){}
   _silentCloudSync();
 } 
 function onTradeLabel(t,v){
   gs().TL[t]=v.trim();
-  try{localStorage.setItem('wz_'+TAB+'_labels',JSON.stringify({ML:{...gs().ML},TL:{...gs().TL}}));}catch(e){}
+  try{localStorage.setItem('batt_'+TAB+'_labels',JSON.stringify({ML:{...gs().ML},TL:{...gs().TL}}));}catch(e){}
   _silentCloudSync();
 }
 function getML(m){return gs().ML[m]||getMLabel(m);}
