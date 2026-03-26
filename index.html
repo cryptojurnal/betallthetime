@@ -1361,7 +1361,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 .splash-name{font-size:32px;font-weight:900;color:#fff;letter-spacing:-.04em;line-height:1}
 .splash-name span{color:#00c47a}
 .splash-sub{font-size:10px;color:#333;letter-spacing:.18em;text-transform:uppercase;margin-top:8px}
-.splash-tap{position:absolute;bottom:40px;font-size:10px;color:#222;letter-spacing:.12em;text-transform:uppercase;opacity:0;animation:splashIn .4s ease 1s forwards}
+.splash-tap{position:absolute;bottom:40px;display:flex;gap:6px;align-items:center;opacity:0;animation:splashIn .4s ease .6s forwards}.splash-dot{width:4px;height:4px;border-radius:50%;background:#00c47a;opacity:.3;animation:dotPulse 1.2s ease-in-out infinite}.splash-dot:nth-child(2){animation-delay:.2s}.splash-dot:nth-child(3){animation-delay:.4s}@keyframes dotPulse{0%,100%{opacity:.2;transform:scale(0.8)}50%{opacity:1;transform:scale(1)}}
 @keyframes splashIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 .intro-quote{display:none}
 .intro-hint{display:none}
@@ -3466,7 +3466,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
     <div class="splash-name">BA<span>TT</span></div>
     <div class="splash-sub">bet all the time · bet with style</div>
   </div>
-  <div class="splash-tap">tap to continue</div>
+  <div class="splash-tap" id="splash-tap-hint"><span class="splash-dot"></span><span class="splash-dot"></span><span class="splash-dot"></span></div>
 </div>
 <!-- LAYER 2 - intro + disclaimer -->
 <div id="layer2" class="hidden" style="opacity:0;transition:opacity .9s ease">
@@ -13042,7 +13042,10 @@ document.addEventListener('DOMContentLoaded', async ()=>{
     // Check badges
     if(typeof checkBadges==='function') checkBadges();
   }
-  // if not restored — layer1 shows first (default), auth appears after click
+  // if not restored — show splash briefly then auto-proceed to auth
+  if(!restored){
+    setTimeout(()=>{ if(typeof goAuth==='function') goAuth(); }, 1200);
+  }
 });
 </script>
 
