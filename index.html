@@ -8720,7 +8720,7 @@ async function presetResave(id, name){
   const ok = await showConfirm({
     icon:'💾', type:'info',
     title:'Overwrite preset?',
-    message:`Save current cockpit state into "${name}"? This will replace the existing data.`,
+    message:`Save current cockpit state into "${name}"? This replaces the existing data.`,
     confirmText:'overwrite', cancelText:'cancel'
   });
   if(!ok) return;
@@ -8737,14 +8737,22 @@ async function presetResave(id, name){
     notLinked:NOT_LINKED
   };
   try{
-    const r=await fetch(AUTH_URL+'/presets/save',{
+    // save fresh copy first, then delete the old one — guaranteed atomic overwrite
+    const rSave=await fetch(AUTH_URL+'/presets/save',{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+AUTH_TOKEN},
-      body:JSON.stringify({id, name, snapshot})
+      body:JSON.stringify({name, snapshot})
     });
-    const d=await r.json();
-    if(d.ok){ presetRenderList(); showToast('Preset "'+name+'" updated!','success'); }
-    else showToast(d.error||'Failed to save','error');
+    const dSave=await rSave.json();
+    if(!dSave.ok){ showToast(dSave.error||'Failed to save','error'); return; }
+    // delete old
+    await fetch(AUTH_URL+'/presets/delete',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+AUTH_TOKEN},
+      body:JSON.stringify({id})
+    });
+    presetRenderList();
+    showToast('Preset "'+name+'" overwritten!','success');
   }catch(e){ showToast('Connection failed','error'); }
 }
 
