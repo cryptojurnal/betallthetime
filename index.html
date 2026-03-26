@@ -7988,6 +7988,9 @@ function resetGoogleBtn(){
 
 function authGuest(){
   const al=document.getElementById('auth-layer');
+  // pre-hide guest banner so it never bleeds through layer2's fade-in
+  const gb=document.getElementById('guest-mode-banner');
+  if(gb) gb.style.display='none';
   al.style.opacity='0';
   setTimeout(()=>{
     al.classList.add('hidden');
