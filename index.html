@@ -1065,7 +1065,12 @@ body.t-lavender{--bg:#f0eef8;--panel:#fff;--bd:#d8d4f0;--bd2:#e4e0f4;--sf:#f8f6f
 .pp-card-btn.del:hover{border-color:#E24B4A;color:#E24B4A}
 .pp-card-btn.load{background:var(--acc2);border-color:var(--acc2);color:#000}
 .pp-card-meta{font-size:9px;color:var(--tx3);display:flex;gap:10px}
-.pp-card-desc{font-size:9px;color:var(--tx2);margin-top:4px;line-height:1.4}
+.pp-card-desc{font-size:9px;color:var(--tx2);margin-top:4px;line-height:1.4;display:flex;align-items:center;gap:4px}
+.pp-desc-edit{background:none;border:none;cursor:pointer;font-size:8px;color:var(--tx3);padding:0;opacity:0;transition:opacity .2s;font-family:inherit}
+.pp-card:hover .pp-desc-edit{opacity:1}
+.pp-desc-add{background:none;border:none;cursor:pointer;font-size:8px;color:var(--tx3);padding:2px 0;font-family:inherit;letter-spacing:.04em;transition:color .2s}
+.pp-desc-add:hover{color:var(--acc2)}
+.pp-card-btn.resave:hover{border-color:var(--acc);color:var(--acc)}
 
 /* head */
 .pl-head{padding:9px 10px 7px;border-bottom:0.5px solid var(--bd2);display:flex;flex-direction:column;gap:3px}
@@ -8551,24 +8556,31 @@ async function presetRenderList(){
     
     // Generate HTML for both panels
     const html=presets.map(p=>{
-      const date=new Date(p.created_at);
-      const dateStr=date.toLocaleDateString();
+      const saved=new Date(p.updated_at||p.created_at);
+      const pad=n=>String(n).padStart(2,'0');
+      const savedStr=`${pad(saved.getDate())}/${pad(saved.getMonth()+1)}/${saved.getFullYear()} ${pad(saved.getHours())}.${pad(saved.getMinutes())}`;
       return `
         <div class="pp-card" data-id="${p.id}">
           <div class="pp-card-head">
             <button class="pp-card-name" onclick="presetLoad('${p.id}')">${escHtml(p.name)}</button>
             <div class="pp-card-actions">
               <button class="pp-card-btn" onclick="sharePreset('${p.id}','${escHtml(p.name)}')" title="Share">🔗</button>
-              <button class="pp-card-btn" onclick="presetRename('${p.id}','${escHtml(p.name)}')" title="Rename">✏️</button>
+              <button class="pp-card-btn" onclick="presetRename('${p.id}','${escHtml(p.name)}')" title="Rename name">✏️</button>
+              <button class="pp-card-btn resave" onclick="presetResave('${p.id}','${escHtml(p.name)}')" title="Overwrite with current state">💾</button>
               <button class="pp-card-btn load" onclick="presetLoad('${p.id}')">load</button>
               <button class="pp-card-btn del" onclick="presetDelete('${p.id}','${escHtml(p.name)}')">✕</button>
             </div>
           </div>
           <div class="pp-card-meta">
             <span>📊 ${p.tab_count||1} tabs</span>
-            <span>📅 ${dateStr}</span>
+            <span title="last saved">🕒 ${savedStr}</span>
           </div>
-          ${p.description?'<div class="pp-card-desc">'+escHtml(p.description)+'</div>':''}
+          <div class="pp-card-desc-wrap">
+            ${p.description
+              ? `<div class="pp-card-desc">${escHtml(p.description)} <button class="pp-desc-edit" onclick="presetEditDesc('${p.id}','${escHtml(p.description||'')}')" title="Edit description">✏️</button></div>`
+              : `<button class="pp-desc-add" onclick="presetEditDesc('${p.id}','')" title="Add description">+ add description</button>`
+            }
+          </div>
         </div>
       `;
     }).join('');
@@ -8701,6 +8713,63 @@ async function presetDelete(id,name){
   }catch(e){
     showToast('Connection failed','error');
   }
+}
+
+async function presetResave(id, name){
+  if(!AUTH_TOKEN){showToast('Please log in','error');return;}
+  const ok = await showConfirm({
+    icon:'💾', type:'info',
+    title:'Overwrite preset?',
+    message:`Save current cockpit state into "${name}"? This will replace the existing data.`,
+    confirmText:'overwrite', cancelText:'cancel'
+  });
+  if(!ok) return;
+  const snapshot={};
+  ['36','q',...(typeof CUSTOM_TABS!=='undefined'?CUSTOM_TABS.map(t=>t.id):[])].forEach(tid=>{
+    if(!S||!S[tid])return;
+    const s=S[tid];
+    snapshot[tid]={...s,ZM:s.ZM?[...s.ZM]:[]};
+  });
+  snapshot._meta={
+    activeTab:typeof activeTab!=='undefined'?activeTab:'36',
+    theme:document.body.className||'',
+    customTabs:typeof CUSTOM_TABS!=='undefined'?JSON.parse(JSON.stringify(CUSTOM_TABS)):[],
+    notLinked:NOT_LINKED
+  };
+  try{
+    const r=await fetch(AUTH_URL+'/presets/save',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+AUTH_TOKEN},
+      body:JSON.stringify({id, name, snapshot})
+    });
+    const d=await r.json();
+    if(d.ok){ presetRenderList(); showToast('Preset "'+name+'" updated!','success'); }
+    else showToast(d.error||'Failed to save','error');
+  }catch(e){ showToast('Connection failed','error'); }
+}
+
+async function presetEditDesc(id, currentDesc){
+  if(!AUTH_TOKEN){showToast('Please log in','error');return;}
+  const newDesc = await showConfirm({
+    icon:'📝', type:'info',
+    title:'Edit description',
+    message:'Update the description for this preset.',
+    input:true,
+    inputValue:currentDesc,
+    inputPlaceholder:'e.g. conservative 5x setup, low risk',
+    confirmText:'save', cancelText:'cancel'
+  });
+  if(newDesc===false||newDesc===null) return;
+  try{
+    const r=await fetch(AUTH_URL+'/presets/rename',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+AUTH_TOKEN},
+      body:JSON.stringify({id, description:newDesc.trim()})
+    });
+    const d=await r.json();
+    if(d.ok){ presetRenderList(); showToast('Description updated','success'); }
+    else showToast(d.error||'Failed to update','error');
+  }catch(e){ showToast('Connection failed','error'); }
 }
 
 async function presetRename(id,currentName){
