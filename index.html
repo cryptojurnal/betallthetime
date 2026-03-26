@@ -4808,6 +4808,7 @@ function loadAll(){
     });
   });
   try{const t=localStorage.getItem('batt_theme');if(t)THEME=t;}catch(e){}
+  try{const ap=localStorage.getItem('batt_active_preset');if(ap)window._ACTIVE_PRESET=JSON.parse(ap);}catch(e){}
 }
 
 function syncControls(){
@@ -6360,6 +6361,47 @@ function toggleTradePanel(){
 
 // ── ZERO MONTH TOGGLE ──
 // ── TRADE LOCK (executed trade — immutable) ──
+
+// silent auto-resave to active preset — no confirm, no modal
+async function _autoResaveActivePreset(){
+  if(!AUTH_TOKEN||!window._ACTIVE_PRESET) return;
+  const {id,name}=window._ACTIVE_PRESET;
+  const snapshot={};
+  ['36','q',...(typeof CUSTOM_TABS!=='undefined'?CUSTOM_TABS.map(t=>t.id):[])].forEach(tid=>{
+    if(!S||!S[tid])return;
+    const s=S[tid];
+    snapshot[tid]={...s,ZM:s.ZM?[...s.ZM]:[],LK:s.LK?[...s.LK]:[]};
+  });
+  snapshot._meta={
+    activeTab:typeof activeTab!=='undefined'?activeTab:'36',
+    theme:document.body.className||'',
+    customTabs:typeof CUSTOM_TABS!=='undefined'?JSON.parse(JSON.stringify(CUSTOM_TABS)):[],
+    notLinked:NOT_LINKED,
+    cf:gs().CF!==false
+  };
+  try{
+    const rSave=await fetch(AUTH_URL+'/presets/save',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+AUTH_TOKEN},
+      body:JSON.stringify({name,snapshot})
+    });
+    const dSave=await rSave.json();
+    if(dSave.ok){
+      // delete old entry
+      await fetch(AUTH_URL+'/presets/delete',{
+        method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+AUTH_TOKEN},
+        body:JSON.stringify({id})
+      });
+      // update active preset id if server returns new one
+      if(dSave.id) window._ACTIVE_PRESET={id:dSave.id,name};
+      try{localStorage.setItem('batt_active_preset',JSON.stringify(window._ACTIVE_PRESET));}catch(e){}
+      // refresh list silently
+      presetRenderList();
+    }
+  }catch(e){} // silent — never interrupt the user
+}
+
 function toggleLock(m, tno){
   const s=gs();
   if(!s.LK) s.LK=new Set();
@@ -6371,6 +6413,8 @@ function toggleLock(m, tno){
   const _sy=_pr?_pr.scrollTop:0;
   softUpdate();
   if(_pr) requestAnimationFrame(()=>{ _pr.scrollTop=_sy; });
+  // auto-resave active preset silently
+  _autoResaveActivePreset();
 }
 
 function isLocked(m, tno){
@@ -8141,7 +8185,7 @@ async function authSave(){
     ['36','q',...CUSTOM_TABS.map(t=>t.id)].forEach(id=>{
       if(!S[id])return;
       const s=S[id];
-      snapshot[id]={...s,ZM:[...s.ZM]};
+      snapshot[id]={...s,ZM:s.ZM?[...s.ZM]:[],LK:s.LK?[...s.LK]:[]};
     });
     const r=await fetch(AUTH_URL+'/data/save',{
       method:'POST',
@@ -8456,7 +8500,7 @@ async function authSaveWithToast(){
     ['36','q',...CUSTOM_TABS.map(t=>t.id)].forEach(id=>{
       if(!S[id])return;
       const s=S[id];
-      snapshot[id]={...s,ZM:[...s.ZM]};
+      snapshot[id]={...s,ZM:s.ZM?[...s.ZM]:[],LK:s.LK?[...s.LK]:[]};
     });
     const r=await fetch(AUTH_URL+'/data/save',{
       method:'POST',
@@ -8600,7 +8644,7 @@ async function presetSaveConfirm(){
   ['36','q',...(typeof CUSTOM_TABS!=='undefined'?CUSTOM_TABS.map(t=>t.id):[])].forEach(id=>{
     if(!S||!S[id])return;
     const s=S[id];
-    snapshot[id]={...s,ZM:s.ZM?[...s.ZM]:[]};
+    snapshot[id]={...s,ZM:s.ZM?[...s.ZM]:[],LK:s.LK?[...s.LK]:[]};
   });
   snapshot._meta={
     activeTab:typeof activeTab!=='undefined'?activeTab:'36',
@@ -8693,7 +8737,7 @@ async function presetRenderList(){
       return `
         <div class="pp-card" data-id="${p.id}">
           <div class="pp-card-head">
-            <button class="pp-card-name" onclick="presetLoad('${p.id}')">${escHtml(p.name)}</button>
+            <button class="pp-card-name" onclick="presetLoad('${p.id}')">${escHtml(p.name)}${window._ACTIVE_PRESET&&window._ACTIVE_PRESET.id===p.id?'<span style="font-size:7px;color:#00c47a;margin-left:5px;letter-spacing:.04em;font-weight:700">● active</span>':''}</button>
             <div class="pp-card-actions">
               <button class="pp-card-btn" onclick="sharePreset('${p.id}','${escHtml(p.name)}')" title="Share">🔗</button>
               <button class="pp-card-btn" onclick="presetRename('${p.id}','${escHtml(p.name)}')" title="Rename name">✏️</button>
@@ -8817,6 +8861,10 @@ async function presetLoad(id){
       openDashboard();
     }
     
+    // track active preset for auto-resave
+    window._ACTIVE_PRESET = {id: preset.id, name: preset.name};
+    try{localStorage.setItem('batt_active_preset',JSON.stringify({id:preset.id,name:preset.name}));}catch(e){}
+
     showToast('Preset "'+preset.name+'" loaded!','success');
     if(typeof logActivity==='function') logActivity('preset_load',{name:preset.name});
   }catch(e){
@@ -8839,6 +8887,11 @@ async function presetDelete(id,name){
     if(d.ok){
       presetRenderList();
       updateMemberStats();
+      // clear active preset tracker if this was the active one
+      if(window._ACTIVE_PRESET&&window._ACTIVE_PRESET.id===id){
+        window._ACTIVE_PRESET=null;
+        try{localStorage.removeItem('batt_active_preset');}catch(e){}
+      }
       showToast('Preset deleted','info');
       if(typeof logActivity==='function') logActivity('preset_delete',{name});
     }else{
@@ -8862,7 +8915,7 @@ async function presetResave(id, name){
   ['36','q',...(typeof CUSTOM_TABS!=='undefined'?CUSTOM_TABS.map(t=>t.id):[])].forEach(tid=>{
     if(!S||!S[tid])return;
     const s=S[tid];
-    snapshot[tid]={...s,ZM:s.ZM?[...s.ZM]:[]};
+    snapshot[tid]={...s,ZM:s.ZM?[...s.ZM]:[],LK:s.LK?[...s.LK]:[]};
   });
   snapshot._meta={
     activeTab:typeof activeTab!=='undefined'?activeTab:'36',
@@ -9666,7 +9719,7 @@ function exportAllData(){
   // Export current state
   ['36','q',...(typeof CUSTOM_TABS!=='undefined'?CUSTOM_TABS.map(t=>t.id):[])].forEach(id=>{
     if(S&&S[id]){
-      data.state[id]={...S[id],ZM:S[id].ZM?[...S[id].ZM]:[]};
+      data.state[id]={...S[id],ZM:S[id].ZM?[...S[id].ZM]:[],LK:S[id].LK?[...S[id].LK]:[]};
     }
   });
   
@@ -13842,11 +13895,23 @@ var UNDO_STACK = [];
 var REDO_STACK = [];
 var UNDO_MAX = 50;
 
+function _deepCopyS(src){
+  const out={};
+  Object.keys(src).forEach(tabId=>{
+    const t=src[tabId];
+    out[tabId]={...t,
+      ZM:t.ZM?new Set(t.ZM):new Set(),
+      LK:t.LK?new Set(t.LK):new Set()
+    };
+  });
+  return out;
+}
+
 function saveUndoState(action) {
   const state = {
     action: action,
     timestamp: Date.now(),
-    data: JSON.parse(JSON.stringify(S))
+    data: _deepCopyS(S)
   };
   UNDO_STACK.push(state);
   if (UNDO_STACK.length > UNDO_MAX) UNDO_STACK.shift();
@@ -13862,7 +13927,7 @@ function undo() {
   REDO_STACK.push({
     action: 'undo',
     timestamp: Date.now(),
-    data: JSON.parse(JSON.stringify(S))
+    data: _deepCopyS(S)
   });
   S = state.data;
   render();
@@ -13878,7 +13943,7 @@ function redo() {
   UNDO_STACK.push({
     action: 'redo',
     timestamp: Date.now(),
-    data: JSON.parse(JSON.stringify(S))
+    data: _deepCopyS(S)
   });
   S = state.data;
   render();
