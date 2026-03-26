@@ -6380,23 +6380,29 @@ async function _autoResaveActivePreset(){
     cf:gs().CF!==false
   };
   try{
+    // save fresh copy
     const rSave=await fetch(AUTH_URL+'/presets/save',{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+AUTH_TOKEN},
       body:JSON.stringify({name,snapshot})
     });
     const dSave=await rSave.json();
-    if(dSave.ok){
-      // delete old entry
-      await fetch(AUTH_URL+'/presets/delete',{
-        method:'POST',
-        headers:{'Content-Type':'application/json','Authorization':'Bearer '+AUTH_TOKEN},
-        body:JSON.stringify({id})
-      });
-      // update active preset id if server returns new one
-      if(dSave.id) window._ACTIVE_PRESET={id:dSave.id,name};
-      try{localStorage.setItem('batt_active_preset',JSON.stringify(window._ACTIVE_PRESET));}catch(e){}
-      // refresh list silently
+    if(!dSave.ok) return;
+    // delete old entry
+    await fetch(AUTH_URL+'/presets/delete',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+AUTH_TOKEN},
+      body:JSON.stringify({id})
+    });
+    // re-fetch list to get the new ID for this preset name — keeps tracker fresh
+    const rList=await fetch(AUTH_URL+'/presets/list',{headers:{'Authorization':'Bearer '+AUTH_TOKEN}});
+    const dList=await rList.json();
+    if(dList.ok&&dList.presets){
+      const match=dList.presets.find(p=>p.name===name);
+      if(match){
+        window._ACTIVE_PRESET={id:match.id,name};
+        try{localStorage.setItem('batt_active_preset',JSON.stringify(window._ACTIVE_PRESET));}catch(e){}
+      }
       presetRenderList();
     }
   }catch(e){} // silent — never interrupt the user
