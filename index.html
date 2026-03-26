@@ -5195,7 +5195,26 @@ function dInput(el,fn,delay){
 
 var _softUpdateTimer=null;
 var _softUpdatePending=false;
+var _undoDebounceTimer=null;
+var _undoPreState=null;
+
 function softUpdate(){
+  // capture state snapshot BEFORE mutation for undo — debounced so rapid changes = one undo step
+  if(!_undoDebounceTimer){
+    _undoPreState=_deepCopyS(S); // snapshot before change
+  }
+  if(_undoDebounceTimer) clearTimeout(_undoDebounceTimer);
+  _undoDebounceTimer=setTimeout(function(){
+    if(_undoPreState){
+      // push the pre-change snapshot onto the stack
+      UNDO_STACK.push({action:'change',timestamp:Date.now(),data:_undoPreState});
+      if(UNDO_STACK.length>UNDO_MAX) UNDO_STACK.shift();
+      REDO_STACK=[];
+      _undoPreState=null;
+    }
+    _undoDebounceTimer=null;
+  }, 600);
+
   _softUpdatePending=true;
   if(_softUpdateTimer) return; // already scheduled
   _softUpdateTimer=requestAnimationFrame(function(){
@@ -7054,6 +7073,20 @@ function render(){
   // preserve scroll so re-render doesn't feel like a page jump
   const _pr=document.querySelector('.panel-right');
   const _scrollY=_pr?_pr.scrollTop:0;
+  // capture undo state on direct render() calls (not via softUpdate)
+  if(!_undoDebounceTimer&&typeof _deepCopyS==='function'){
+    _undoPreState=_undoPreState||_deepCopyS(S);
+    clearTimeout(_undoDebounceTimer);
+    _undoDebounceTimer=setTimeout(function(){
+      if(_undoPreState){
+        UNDO_STACK.push({action:'change',timestamp:Date.now(),data:_undoPreState});
+        if(UNDO_STACK.length>UNDO_MAX) UNDO_STACK.shift();
+        REDO_STACK=[];
+        _undoPreState=null;
+      }
+      _undoDebounceTimer=null;
+    },600);
+  }
   updComp();
   const s=gs();
   const isQ=isQTab(TAB);
@@ -14031,8 +14064,12 @@ function undo() {
     data: _deepCopyS(S)
   });
   S = state.data;
+  // sync restored state to localStorage + cloud
+  if(typeof saveSection==='function'){
+    ['cap','pos','trades','fee'].forEach(sec=>saveSection(sec));
+  }
   render();
-  showToast('Undone: ' + state.action, 'success');
+  showToast('↩ undone','success',1500);
 }
 
 function redo() {
@@ -14047,8 +14084,11 @@ function redo() {
     data: _deepCopyS(S)
   });
   S = state.data;
+  if(typeof saveSection==='function'){
+    ['cap','pos','trades','fee'].forEach(sec=>saveSection(sec));
+  }
   render();
-  showToast('Redone', 'success');
+  showToast('↪ redone','success',1500);
 }
 
 // ── NUMBER ANIMATIONS ──
