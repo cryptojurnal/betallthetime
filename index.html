@@ -990,7 +990,7 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
 
 body.t-lavender{--bg:#f0eef8;--panel:#fff;--bd:#d8d4f0;--bd2:#e4e0f4;--sf:#f8f6ff;--sf2:#f0eef8;--tx:#2a1a4a;--tx2:#8070b0;--tx3:#c0b0e0;--acc:#7050c0;--acc2:#5060e0;--mh:#4030a0;--mhc:#fff;--mhs:#c0b8f0;--inp:#f8f6ff;--btn:#f0eef8;--btno:#e0d8f8;--btonc:#7050c0;--tog:#fff;--togon:#4030a0;--togonc:#fff;--tabact:#4030a0;--tabactc:#fff;--wd-on:#e0d8f8;--wd-onc:#7050c0}
 
-.app{display:flex;height:100vh;overflow:hidden;background:#000;color:var(--tx);opacity:0;}
+.app{display:flex;height:100vh;overflow:hidden;background:#000;color:var(--tx);opacity:0;transition:opacity .5s cubic-bezier(0.4,0,0.2,1);}
 .panel-left.collapsed{width:0;min-width:0;overflow:hidden;border:none}
 .panel-left.collapsed .pl-body{opacity:0;pointer-events:none}
 .panel-left.collapsed .panel-left-toggle{opacity:1;pointer-events:all}
@@ -1353,7 +1353,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 .mgrid-lbl{font-size:8px;color:var(--tx3);text-align:center;margin-bottom:1px}
 
 /* ── INTRO LAYERS ── */
-#layer1,#layer2{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;background:#000;transition:opacity .7s cubic-bezier(0.4,0,0.2,1),transform .7s cubic-bezier(0.4,0,0.2,1)}
+#layer1,#layer2{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;background:#000;transition:opacity .7s cubic-bezier(0.4,0,0.2,1),transform .7s cubic-bezier(0.4,0,0.2,1);will-change:opacity,transform}
 #layer1.out,#layer2.out{opacity:0;transform:scale(1.02);pointer-events:none}
 #layer1.hidden,#layer2.hidden{display:none}
 .intro-quote{max-width:700px;text-align:center;padding:0 40px}
@@ -7640,57 +7640,43 @@ function launchApp(){
   if(lb && lb.disabled) return;
   if(lb) lb.disabled=true;
 
-  // ── START FADE — let browser paint it cleanly before any DOM work ──
+  // ── compositor owns the fade — zero JS on the main thread during animation ──
   l2.classList.add('out');
 
-  // ── 2 frames: ensures the fade actually paints before we touch anything ──
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+  // reveal cockpit mid-fade so it's already there when layer2 finishes
+  setTimeout(()=>{
     window.RISK_SHOWN = true;
+    battNav('cockpit');
+    mbnSetActive('cockpit');
     document.body.style.overflow='hidden';
     document.documentElement.style.overflow='auto';
+    const app=document.querySelector('.app');
+    if(app) app.style.opacity='1';
+    const leftToggle=document.getElementById('left-panel-toggle');
+    if(leftToggle) leftToggle.classList.add('visible');
+    const tradeToggle=document.getElementById('trade-panel-toggle');
+    if(tradeToggle) tradeToggle.classList.add('visible');
+  }, 350);
 
-    // ── small gap so layout/paint of cockpit doesn't race the fade ──
-    setTimeout(()=>{
-      battNav('cockpit');
-      mbnSetActive('cockpit');
-      const app=document.querySelector('.app');
-      if(app) app.style.opacity='1';
-      const leftToggle=document.getElementById('left-panel-toggle');
-      if(leftToggle) leftToggle.classList.add('visible');
-      const tradeToggle=document.getElementById('trade-panel-toggle');
-      if(tradeToggle) tradeToggle.classList.add('visible');
-    }, 60);
-
-    // ── HEAVY WORK after fade fully completes ──
-    setTimeout(()=>{
-      l2.classList.add('hidden');
-
-      // setSpotMode triggers render — do AFTER cockpit is visible
-      if(typeof setSpotMode==='function') setSpotMode(false);
-
-      const fab=document.getElementById('ai-fab');
-      if(fab){
-        fab.style.display='';
-        fab.style.opacity='1';
-        fab.style.pointerEvents='all';
-      }
-      if(window._attachAiFabDrag) window._attachAiFabDrag();
-
-      if(typeof _syncTradeToggleLeft==='function') _syncTradeToggleLeft();
-
-      if(localStorage.getItem('batt_token')){
-        const backBtn=document.getElementById('back-to-member');
-        if(backBtn) backBtn.style.display='flex';
-        const kbdHint=document.getElementById('kbd-hint');
-        if(kbdHint) setTimeout(()=>{kbdHint.classList.add('visible');},2000);
-        const presetsBtn=document.getElementById('presets-toggle-btn');
-        if(presetsBtn){ presetsBtn.classList.remove('visible'); setTimeout(()=>presetsBtn.classList.add('visible'),50); }
-      }
-
-      if(typeof battUpdateGuestUI==='function') battUpdateGuestUI();
-      showGuidePopup();
-    }, 960);
-  }));
+  // ── cleanup + extras after fade fully done ──
+  setTimeout(()=>{
+    l2.classList.add('hidden');
+    if(typeof setSpotMode==='function') setSpotMode(false);
+    const fab=document.getElementById('ai-fab');
+    if(fab){ fab.style.display=''; fab.style.opacity='1'; fab.style.pointerEvents='all'; }
+    if(window._attachAiFabDrag) window._attachAiFabDrag();
+    if(typeof _syncTradeToggleLeft==='function') _syncTradeToggleLeft();
+    if(localStorage.getItem('batt_token')){
+      const backBtn=document.getElementById('back-to-member');
+      if(backBtn) backBtn.style.display='flex';
+      const kbdHint=document.getElementById('kbd-hint');
+      if(kbdHint) setTimeout(()=>{kbdHint.classList.add('visible');},2000);
+      const presetsBtn=document.getElementById('presets-toggle-btn');
+      if(presetsBtn){ presetsBtn.classList.remove('visible'); setTimeout(()=>presetsBtn.classList.add('visible'),50); }
+    }
+    if(typeof battUpdateGuestUI==='function') battUpdateGuestUI();
+    showGuidePopup();
+  }, 750);
 }
 </script>
 <script>
