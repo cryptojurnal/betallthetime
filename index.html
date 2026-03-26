@@ -14060,6 +14060,7 @@ function undo() {
   if(typeof saveSection==='function'){
     ['cap','pos','trades','fee'].forEach(sec=>saveSection(sec));
   }
+  syncControls();
   render();
   showToast('↩ undone','success',1500);
 }
@@ -14084,6 +14085,7 @@ function redo() {
   if(typeof saveSection==='function'){
     ['cap','pos','trades','fee'].forEach(sec=>saveSection(sec));
   }
+  syncControls();
   render();
   showToast('↪ redone','success',1500);
 }
