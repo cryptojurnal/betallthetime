@@ -1056,8 +1056,7 @@ body.t-lavender{--bg:#f0eef8;--panel:#fff;--bd:#d8d4f0;--bd2:#e4e0f4;--sf:#f8f6f
 .pp-empty{text-align:center;padding:30px 10px;color:var(--tx3);font-size:11px;line-height:1.6}
 .pp-empty-icon{font-size:28px;margin-bottom:8px;opacity:.5}
 .pp-card{background:var(--sf);border:0.5px solid var(--bd2);border-radius:8px;padding:10px 12px;margin-bottom:8px;transition:all .25s cubic-bezier(0.4,0,0.2,1)}
-.pp-card:hover{border-color:var(--acc);transform:translateX(-2px);box-shadow:2px 0 8px rgba(0,0,0,0.1)}
-.pp-card:hover{border-color:var(--acc2)}
+.pp-card:hover{border-color:var(--acc2);transform:translateX(-2px);box-shadow:2px 0 8px rgba(0,0,0,0.15)}
 .pp-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:4px}
 .pp-card-name{font-size:11px;font-weight:700;color:var(--tx);cursor:pointer;flex:1;background:none;border:none;padding:0;text-align:left;font-family:inherit}
 .pp-card-name:hover{color:var(--acc2)}
@@ -1166,6 +1165,12 @@ input[type=number]:focus{outline:none;border-color:var(--acc)}
 .cl{font-size:7px;color:var(--tx2);text-transform:uppercase;letter-spacing:.04em}
 .cv{font-size:10px;font-weight:600;margin-top:1px;color:var(--tx)}
 .save-btn{display:none}/* save buttons removed — auto-save active */
+.btn-hover-opacity:hover{opacity:.85!important}
+.btn-hover-green:hover{background:#0d3a22!important}
+.btn-hover-dark:hover{background:#333!important}
+.btn-hover-dim:hover{border-color:#555!important;color:#888!important}
+.btn-hover-danger:hover{background:#2a0a0a!important}
+.btn-hover-fade:hover{opacity:.85!important}
 .pr.on{background:var(--btno);color:var(--btonc);border-color:var(--acc)}
 .ci:last-child{border-right:none}
 
@@ -1212,7 +1217,11 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
 .mc.placeholder .mll{color:var(--tx3)}
 .mc.placeholder .mvv{color:var(--tx3)}
 .mll{font-size:8px;color:var(--tx2);margin-bottom:1px;text-transform:uppercase;letter-spacing:.04em}
-.mvv{font-size:12px;font-weight:700}
+.mvv{font-size:12px;font-weight:700;transition:color .3s ease}
+.mvv.flash-up{animation:flashUp .5s ease forwards}
+.mvv.flash-down{animation:flashDown .5s ease forwards}
+@keyframes flashUp{0%{color:#00c47a;transform:translateY(-3px)}100%{transform:translateY(0)}}
+@keyframes flashDown{0%{color:#E24B4A;transform:translateY(3px)}100%{transform:translateY(0)}}
 .ms{font-size:8px;color:var(--tx2);margin-top:1px}
 .note{background:var(--panel);border-left:2px solid var(--acc);padding:5px 10px;font-size:10px;color:var(--tx2);margin-bottom:8px;line-height:1.6;transition:background .25s}
 .cw{position:relative;width:100%;height:180px;margin-bottom:0;background:var(--panel);border-radius:0;padding:10px;border:0.5px solid var(--bd2);transition:background .25s}
@@ -2193,7 +2202,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
         <div class="acc-sec-title">☁️ cloud sync</div>
         <div class="acc-card">
           <div style="font-size:11px;color:#444;margin-bottom:10px">Sync your dashboard state to access from any device</div>
-          <button onclick="authSaveWithToast()" style="width:100%;padding:10px;background:#00c47a;color:#000;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;transition:opacity .2s" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">↑ sync to cloud now</button>
+          <button onclick="authSaveWithToast()" style="width:100%;padding:10px;background:#00c47a;color:#000;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;transition:opacity .2s" class="btn-hover-opacity">↑ sync to cloud now</button>
           <div style="font-size:10px;color:#333;margin-top:8px;text-align:center" id="acc-last-sync">never synced</div>
         </div>
       </div>
@@ -2206,7 +2215,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
             <div style="font-size:11px;color:#444;margin-bottom:10px">Change your password</div>
             <input type="password" id="acc-old-pass" placeholder="Current password" style="width:100%;padding:10px 12px;background:#0a0a0a;border:0.5px solid #222;border-radius:6px;color:#e0e0e0;font-size:12px;margin-bottom:8px;box-sizing:border-box">
             <input type="password" id="acc-new-pass" placeholder="New password (min 6 chars)" style="width:100%;padding:10px 12px;background:#0a0a0a;border:0.5px solid #222;border-radius:6px;color:#e0e0e0;font-size:12px;margin-bottom:10px;box-sizing:border-box">
-            <button onclick="changePassword()" style="width:100%;padding:10px;background:#222;border:none;border-radius:6px;color:#e0e0e0;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s" onmouseover="this.style.background='#333'" onmouseout="this.style.background='#222'">update password</button>
+            <button onclick="changePassword()" style="width:100%;padding:10px;background:#222;border:none;border-radius:6px;color:#e0e0e0;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s" class="btn-hover-dark">update password</button>
             <div id="acc-pass-msg" style="font-size:10px;margin-top:8px;text-align:center;min-height:16px"></div>
           </div>
           <div id="acc-security-google" style="display:none">
@@ -2226,13 +2235,13 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
         <div class="acc-sec-title">💾 data management</div>
         <div class="acc-card">
           <div style="display:flex;gap:10px;margin-bottom:12px">
-            <button onclick="exportAllData()" style="flex:1;padding:10px;background:#0a2a1a;border:0.5px solid #004d30;border-radius:6px;color:#00c47a;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s" onmouseover="this.style.background='#0d3a22'" onmouseout="this.style.background='#0a2a1a'">↓ export data</button>
+            <button onclick="exportAllData()" style="flex:1;padding:10px;background:#0a2a1a;border:0.5px solid #004d30;border-radius:6px;color:#00c47a;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s" class="btn-hover-green">↓ export data</button>
             <label style="flex:1;padding:10px;background:#1a1a2a;border:0.5px solid #30304d;border-radius:6px;color:#7070c4;font-size:11px;font-weight:700;cursor:pointer;text-align:center;transition:all .2s" onmouseover="this.style.background='#22223a'" onmouseout="this.style.background='#1a1a2a'">
               ↑ import data
               <input type="file" accept=".json" onchange="importData(event)" style="display:none">
             </label>
           </div>
-          <button onclick="clearAllPresets()" style="width:100%;padding:10px;background:transparent;border:0.5px solid #222;border-radius:6px;color:#555;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='#555';this.style.color='#888'" onmouseout="this.style.borderColor='#222';this.style.color='#555'">🗑️ clear all presets</button>
+          <button onclick="clearAllPresets()" style="width:100%;padding:10px;background:transparent;border:0.5px solid #222;border-radius:6px;color:#555;font-size:11px;font-weight:700;cursor:pointer;transition:all .2s" class="btn-hover-dim">🗑️ clear all presets</button>
         </div>
       </div>
 
@@ -2258,9 +2267,9 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
       <div class="acc-section">
         <div class="acc-sec-title" style="color:#E24B4A">⚠️ danger zone</div>
         <div class="acc-card" style="background:#1a0a0a;border-color:#2a0a0a">
-          <button onclick="authLogout()" style="width:100%;padding:10px;background:transparent;border:0.5px solid #4a1a1a;border-radius:6px;color:#E24B4A;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;margin-bottom:10px" onmouseover="this.style.background='#2a0a0a'" onmouseout="this.style.background='transparent'">logout this device</button>
-          <button onclick="logoutAllDevices()" style="width:100%;padding:10px;background:transparent;border:0.5px solid #4a1a1a;border-radius:6px;color:#E24B4A;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;margin-bottom:10px" onmouseover="this.style.background='#2a0a0a'" onmouseout="this.style.background='transparent'">logout all devices</button>
-          <button onclick="deleteAccount()" style="width:100%;padding:10px;background:#E24B4A;border:none;border-radius:6px;color:#fff;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">delete account forever</button>
+          <button onclick="authLogout()" style="width:100%;padding:10px;background:transparent;border:0.5px solid #4a1a1a;border-radius:6px;color:#E24B4A;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;margin-bottom:10px" class="btn-hover-danger">logout this device</button>
+          <button onclick="logoutAllDevices()" style="width:100%;padding:10px;background:transparent;border:0.5px solid #4a1a1a;border-radius:6px;color:#E24B4A;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s;margin-bottom:10px" class="btn-hover-danger">logout all devices</button>
+          <button onclick="deleteAccount()" style="width:100%;padding:10px;background:#E24B4A;border:none;border-radius:6px;color:#fff;font-size:12px;font-weight:700;cursor:pointer;transition:all .2s" class="btn-hover-opacity">delete account forever</button>
           <div style="font-size:9px;color:#4a2020;margin-top:10px;text-align:center">This will permanently delete your account and all data</div>
         </div>
       </div>
@@ -2500,7 +2509,8 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 <!-- user bar shown after login (draggable) -->
 <div class="auth-user-bar hidden" id="auth-user-bar">
   <span id="auth-username-lbl" style="cursor:pointer" onclick="event.stopPropagation();if(!window._ubWasDragged)memberOpen();">@user</span>
-  <button class="auth-sync-btn" onclick="event.stopPropagation();authSave()" title="sync to cloud">↑ sync</button>
+  <span id="auth-preset-lbl" style="font-size:9px;color:#00c47a;opacity:.6;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:none"></span>
+  <button class="auth-sync-btn" id="auth-sync-main-btn" onclick="event.stopPropagation();authSave()" title="auto-synced — click to force sync">↑ sync</button>
   <button class="auth-sync-btn" onclick="event.stopPropagation();backToMemberArea()" title="member area" style="color:#00c47a">☰</button>
   <button class="auth-sync-btn auth-logout-btn" onclick="event.stopPropagation();authLogout()" title="logout">← out</button>
 </div>
@@ -2511,7 +2521,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
     <span style="font-size:11px;background:#1a1a0a;border:1px solid #3a3a10;color:#EF9F27;padding:2px 8px;border-radius:4px;font-weight:700;letter-spacing:.04em">GUEST</span>
     <span style="font-size:10px;color:#555">you're in guest mode — presets, sync & spot switch require an account</span>
   </div>
-  <button onclick="guestGoLogin()" style="font-size:10px;font-weight:700;padding:6px 14px;background:#00c47a;color:#000;border:none;border-radius:6px;cursor:pointer;white-space:nowrap;font-family:inherit;transition:opacity .2s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">login / register →</button>
+  <button onclick="guestGoLogin()" style="font-size:10px;font-weight:700;padding:6px 14px;background:#00c47a;color:#000;border:none;border-radius:6px;cursor:pointer;white-space:nowrap;font-family:inherit;transition:opacity .2s" class="btn-hover-opacity">login / register →</button>
 </div>
 
 <!-- LAYER 3 - MEMBER AREA -->
@@ -3786,7 +3796,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 
   <!-- SAVE AS PRESET BUTTON -->
   <div style="padding:12px 10px;border-top:0.5px solid var(--bd2);margin-top:8px">
-    <button onclick="presetSaveModal()" style="width:100%;padding:10px;background:var(--acc2);color:#000;border:none;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.04em;display:flex;align-items:center;justify-content:center;gap:6px;transition:opacity .2s;margin-bottom:8px" onmouseover="this.style.opacity='0.85'" onmouseout="this.style.opacity='1'">💾 save as preset</button>
+    <button onclick="presetSaveModal()" style="width:100%;padding:10px;background:var(--acc2);color:#000;border:none;border-radius:8px;font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.04em;display:flex;align-items:center;justify-content:center;gap:6px;transition:opacity .2s;margin-bottom:8px" class="btn-hover-opacity">💾 save as preset</button>
     <button onclick="exportModalOpen()" style="width:100%;padding:8px;background:transparent;border:1px solid var(--bd2);color:var(--tx2);border-radius:8px;font-size:10px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .2s" onmouseover="this.style.borderColor='var(--acc2)';this.style.color='var(--acc2)'" onmouseout="this.style.borderColor='var(--bd2)';this.style.color='var(--tx2)'">📤 export dashboard</button>
     <div style="font-size:8px;color:var(--tx3);text-align:center;margin-top:6px">saves everything to cloud • access from any device</div>
   </div>
@@ -3852,7 +3862,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
         <div style="font-size:9px;color:var(--tx3);margin-bottom:4px">set all 10 slots (leave blank = keep existing)</div>
         <div id="qa-slots"></div>
         <div style="display:flex;gap:6px;margin-top:8px">
-          <button onclick="qaApply()" style="flex:1;padding:6px;background:var(--acc2);color:#000;border:none;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;transition:opacity .2s" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">apply →</button>
+          <button onclick="qaApply()" style="flex:1;padding:6px;background:var(--acc2);color:#000;border:none;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;transition:opacity .2s" class="btn-hover-opacity">apply →</button>
           <button onclick="qaClear()" style="padding:6px 10px;background:transparent;border:0.5px solid var(--bd2);color:var(--tx2);border-radius:6px;font-size:9px;cursor:pointer">clear</button>
         </div>
         <div id="qa-msg" style="font-size:9px;min-height:14px;margin-top:6px;text-align:center"></div>
@@ -5226,12 +5236,18 @@ function onMP(m,v){
 // debounced input — prevents mid-decimal-typing interference
 // usage: oninput="dInput(this,callback,400)"
 var _dInputTimers={};
+var _oldVals={};
 function dInput(el,fn,delay){
   const id=el.id||el.name||Math.random();
   if(_dInputTimers[id]) clearTimeout(_dInputTimers[id]);
   _dInputTimers[id]=setTimeout(function(){
     delete _dInputTimers[id];
     fn(el.value);
+    // micro-feedback: brief green glow on apply
+    el.style.transition='box-shadow .15s,border-color .15s';
+    el.style.boxShadow='0 0 0 2px rgba(0,196,122,0.3)';
+    el.style.borderColor='#00c47a';
+    setTimeout(()=>{el.style.boxShadow='';el.style.borderColor='';},400);
   }, delay||400);
 }
 
@@ -6042,11 +6058,11 @@ function _softUpdateCore(){
       const y1Nw = m12 ? m12.nw : s.P;
       const y1Ret = ((y1Nw / s.P) - 1) * 100;
       mh=`
-        <div class="mc"><div class="mll">${t('cagr_lbl')}</div><div class="mvv" style="color:var(--acc2)">${cagr.toFixed(1)}%</div><div class="ms">${t('cagr_sub')}</div></div>
+        <div class="mc"><div class="mll">${t('cagr_lbl')}</div><div class="mvv" style="color:var(--acc2)" data-key="cagr">${cagr.toFixed(1)}%</div><div class="ms">${t('cagr_sub')}</div></div>
         <div class="mc"><div class="mll">${t('total_ret_lbl')}</div><div class="mvv">${tr>9999?(tr/1000).toFixed(0)+'k%':tr.toFixed(0)+'%'}</div><div class="ms">${t('total_ret_sub',fmt(s.P))}</div></div>
-        <div class="mc"><div class="mll">${t('nw_lbl')}</div><div class="mvv" style="color:var(--acc2)">${fmt(last.nw)}</div><div class="ms">${t('nw_sub')} · ${fIDR(last.nw)}</div></div>
-        <div class="mc"><div class="mll">${t('banked_lbl')}</div><div class="mvv" style="color:var(--acc)">${fmt(last.banked)}</div><div class="ms">${t('banked_sub')}</div></div>
-        <div class="mc"><div class="mll">${t('end_acct_lbl')}</div><div class="mvv">${fmt(last.eA)}</div><div class="ms">${months.filter(r=>!r.isZ).length}/${months.length} active · ${fIDR(last.eA)}</div></div>
+        <div class="mc"><div class="mll">${t('nw_lbl')}</div><div class="mvv" style="color:var(--acc2)" data-key="nw">${fmt(last.nw)}</div><div class="ms">${t('nw_sub')} · ${fIDR(last.nw)}</div></div>
+        <div class="mc"><div class="mll">${t('banked_lbl')}</div><div class="mvv" style="color:var(--acc)" data-key="banked">${fmt(last.banked)}</div><div class="ms">${t('banked_sub')}</div></div>
+        <div class="mc"><div class="mll">${t('end_acct_lbl')}</div><div class="mvv" data-key="eA">${fmt(last.eA)}</div><div class="ms">${months.filter(r=>!r.isZ).length}/${months.length} active · ${fIDR(last.eA)}</div></div>
         <div class="mc"><div class="mll">₿ equivalent</div><div class="mvv" style="color:#f7931a">${endBalanceBTC.toFixed(4)}</div><div class="ms">${months.filter(r=>!r.isZ).length}/${months.length} · @ $${btcPrice.toLocaleString()}</div></div>
         <div class="mc"><div class="mll">${t('milestone_lbl')}</div><div class="mvv" style="color:${m1M?'var(--acc2)':'#E24B4A'}">${m1M?getMLabel(m1M.m):t('beyond36')}</div><div class="ms">${m1M?t('milestone_hit')+getMLabel(m1M.m):t('milestone_miss')}</div></div>
         <div class="mc"><div class="mll">${t('avg_lbl')}</div><div class="mvv">${avgPct.toFixed(1)}%</div><div class="ms">${t('avg_sub')} · ${(36-s.ZM.size)} ${t('active')}</div></div>
@@ -6484,6 +6500,8 @@ async function _autoResaveActivePreset(){
       if(match){
         window._ACTIVE_PRESET={id:match.id,name};
         try{localStorage.setItem('batt_active_preset',JSON.stringify(window._ACTIVE_PRESET));}catch(e){}
+        const _pbl=document.getElementById('auth-preset-lbl');
+        if(_pbl){_pbl.textContent='● '+name;_pbl.style.display='';}
       }
       presetRenderList();
     }
@@ -6521,7 +6539,7 @@ function _setSyncStatus(state){ // 'saving' | 'saved' | 'error'
     _syncBtn.textContent='↑ ...';_syncBtn.style.opacity='.5';
   } else if(state==='saved'){
     _syncBtn.textContent='✓ synced';_syncBtn.style.opacity='1';
-    _syncBtnTimer=setTimeout(()=>{if(_syncBtn)_syncBtn.textContent='↑ sync';},2000);
+    _syncBtnTimer=setTimeout(()=>{if(_syncBtn)_syncBtn.textContent='✓ saved';},2000);
   } else {
     _syncBtn.textContent='↑ sync';_syncBtn.style.opacity='1';
   }
@@ -7100,6 +7118,8 @@ function render(){
   const _pr=document.querySelector('.panel-right');
   const _scrollY=_pr?_pr.scrollTop:0;
   updComp();
+  // snapshot metric values before redraw for animation
+  document.querySelectorAll('.mvv[data-key]').forEach(el=>{_oldVals[el.dataset.key]=el.textContent;});
   const s=gs();
   const isQ=isQTab(TAB);
   const liqT1=s.P/s.NOT*100;
@@ -7203,11 +7223,11 @@ function render(){
     const y1Nw = m12 ? m12.nw : s.P;
     const y1Ret = ((y1Nw / s.P) - 1) * 100;
     mh+=`
-      <div class="mc"><div class="mll">${t('cagr_lbl')}</div><div class="mvv" style="color:var(--acc2)">${cagr.toFixed(1)}%</div><div class="ms">${t('cagr_sub')}</div></div>
+      <div class="mc"><div class="mll">${t('cagr_lbl')}</div><div class="mvv" style="color:var(--acc2)" data-key="cagr">${cagr.toFixed(1)}%</div><div class="ms">${t('cagr_sub')}</div></div>
       <div class="mc"><div class="mll">${t('total_ret_lbl')}</div><div class="mvv">${tr>9999?(tr/1000).toFixed(0)+'k%':tr.toFixed(0)+'%'}</div><div class="ms">${t('total_ret_sub',fmt(s.P))}</div></div>
-      <div class="mc"><div class="mll">${t('nw_lbl')}</div><div class="mvv" style="color:var(--acc2)">${fmt(last.nw)}</div><div class="ms">${t('nw_sub')} · ${fIDR(last.nw)}</div></div>
-      <div class="mc"><div class="mll">${t('banked_lbl')}</div><div class="mvv" style="color:var(--acc)">${fmt(last.banked)}</div><div class="ms">${t('banked_sub')}</div></div>
-      <div class="mc"><div class="mll">${t('end_acct_lbl')}</div><div class="mvv">${fmt(last.eA)}</div><div class="ms">${months.filter(r=>!r.isZ).length}/${months.length} active · ${fIDR(last.eA)}</div></div>
+      <div class="mc"><div class="mll">${t('nw_lbl')}</div><div class="mvv" style="color:var(--acc2)" data-key="nw">${fmt(last.nw)}</div><div class="ms">${t('nw_sub')} · ${fIDR(last.nw)}</div></div>
+      <div class="mc"><div class="mll">${t('banked_lbl')}</div><div class="mvv" style="color:var(--acc)" data-key="banked">${fmt(last.banked)}</div><div class="ms">${t('banked_sub')}</div></div>
+      <div class="mc"><div class="mll">${t('end_acct_lbl')}</div><div class="mvv" data-key="eA">${fmt(last.eA)}</div><div class="ms">${months.filter(r=>!r.isZ).length}/${months.length} active · ${fIDR(last.eA)}</div></div>
       <div class="mc"><div class="mll">₿ equivalent</div><div class="mvv" style="color:#f7931a">${endBalanceBTC.toFixed(4)}</div><div class="ms">${months.filter(r=>!r.isZ).length}/${months.length} · @ $${btcPrice.toLocaleString()}</div></div>
       <div class="mc"><div class="mll">${t('milestone_lbl')}</div><div class="mvv" style="color:${m1M?'var(--acc2)':'#E24B4A'}">${m1M?getMLabel(m1M.m):t('beyond36')}</div><div class="ms">${m1M?t('milestone_hit')+getMLabel(m1M.m):t('milestone_miss')}</div></div>
       <div class="mc"><div class="mll">${t('avg_lbl')}</div><div class="mvv">${avgPct.toFixed(1)}%</div><div class="ms">${t('avg_sub')} · ${(36-s.ZM.size)} ${t('active')}</div></div>
@@ -7371,6 +7391,16 @@ function render(){
       if(ch){ch.destroy();ch=null;}
     }
   }catch(e){console.warn('assess cards error:',e);}
+  // animate changed metric values
+  document.querySelectorAll('.mvv[data-key]').forEach(el=>{
+    const key=el.dataset.key;
+    if(_oldVals[key]&&_oldVals[key]!==el.textContent){
+      const wasUp=parseFloat(el.textContent.replace(/[^0-9.-]/g,''))>parseFloat((_oldVals[key]||'0').replace(/[^0-9.-]/g,''));
+      el.classList.remove('flash-up','flash-down');
+      void el.offsetWidth;
+      el.classList.add(wasUp?'flash-up':'flash-down');
+    }
+  });
   renderTbl(months);
   // sync guide/table visibility after render rebuilds DOM
   const _gc=document.getElementById('guide-content');
@@ -7693,10 +7723,13 @@ function setTab(t){
   syncControls();
   const _pr=document.querySelector('.panel-right');
   const _rc=document.getElementById('right-content');
-  if(_rc) _rc.style.opacity='.4';
+  if(_rc){_rc.style.transition='opacity .18s ease,transform .18s ease';_rc.style.opacity='0';_rc.style.transform='translateY(4px)';}
   render();
-  if(_pr) _pr.scrollTop=0; // tab switch — go to top
-  if(_rc) requestAnimationFrame(()=>{_rc.style.opacity='1';});
+  if(_pr) _pr.scrollTop=0;
+  if(_rc) requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    _rc.style.opacity='1';_rc.style.transform='translateY(0)';
+    setTimeout(()=>{_rc.style.transition='opacity .15s ease';},200);
+  }));
 }
 
 function setTheme(t,btn){
@@ -9010,6 +9043,8 @@ async function presetLoad(id){
     // track active preset for auto-resave
     window._ACTIVE_PRESET = {id: preset.id, name: preset.name};
     try{localStorage.setItem('batt_active_preset',JSON.stringify({id:preset.id,name:preset.name}));}catch(e){}
+    const _pbl2=document.getElementById('auth-preset-lbl');
+    if(_pbl2){_pbl2.textContent='● '+preset.name;_pbl2.style.display='';}
 
     showToast('Preset "'+preset.name+'" loaded!','success');
     if(typeof logActivity==='function') logActivity('preset_load',{name:preset.name});
@@ -14036,7 +14071,6 @@ function aiSetLang(lang){
 // ███ POWER USER FEATURES (Hidden but Discoverable) ███
 // ══════════════════════════════════════════════════════════════
 
-// ── UNDO/REDO SYSTEM moved to top ──
 
 function undo() {
   if (UNDO_STACK.length === 0) {
