@@ -3651,7 +3651,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
       <span style="font-size:8px;color:var(--tx3)">link</span>
       <button id="not-link-btn" onclick="event.stopPropagation();toggleNotLink()" title="link notional to capital" style="font-size:9px;padding:3px 10px;border-radius:10px;border:0.5px solid var(--bd2);background:var(--sf2);color:var(--tx3);cursor:pointer;font-weight:700;transition:all .2s;letter-spacing:.03em">off</button>
       <span style="font-size:8px;color:var(--tx3)">carry</span>
-      <button id="cf-btn" onclick="event.stopPropagation();toggleCarryForward()" title="carry forward ON: notional seeds from last month&#39;s end trade — position grows with wins. OFF: resets to fixed notional every month." style="font-size:9px;padding:3px 10px;border-radius:10px;border:0.5px solid var(--acc2);background:var(--btno);color:var(--acc2);cursor:pointer;font-weight:700;transition:all .2s;letter-spacing:.03em">on</button>
+      <button id="cf-btn" onclick="event.stopPropagation();toggleCarryForward()" title="carry forward ON: notional compounds within trades and across months. OFF: notional/position stays fixed at your set value — every trade, every month." style="font-size:9px;padding:3px 10px;border-radius:10px;border:0.5px solid var(--acc2);background:var(--btno);color:var(--acc2);cursor:pointer;font-weight:700;transition:all .2s;letter-spacing:.03em">on</button>
     </div>
     <span class="sec-toggle">▾</span>
   </div>
@@ -4965,21 +4965,21 @@ function onKpiSl(v){gs().KPI=parseFloat(v);document.getElementById('kpi-vl').tex
 // ── SIMULATION ──
 function getMLabel(m){return 'm'+String(m).padStart(2,'0');}
 
-function runSeq(startAcc,lev,initNot,bt,fr,kpi,isSpot){
+function runSeq(startAcc,lev,initNot,bt,fr,kpi,isSpot,cf){
+  // cf=true (default): notional compounds within month and carries forward
+  // cf=false: notional stays fixed at initNot every trade — no intra-month growth
+  const cfOn = cf!==false;
   let acc=startAcc,not=isSpot?startAcc:initNot;
   let accF=startAcc;
   const trades=[];
   for(let i=0;i<10;i++){
     const skip=bt[i]===0||fr[i]===0;
-    // spot: no leverage so am=not, fm=100%, liq=N/A(999)
     const am=isSpot?not:not/lev;
     const fm=isSpot?100:am/acc*100;
     const liq=isSpot?999:acc/not*100;
     if(skip){trades.push({no:i+1,skip:true,not,am,fm,liq,tgt:0,freq:0,sp:0,cp:0,accB:acc,accA:acc,feePaid:0,accAF:accF,isSpot});continue;}
     const tgt=bt[i]*kpi/100;
     const sp=not*tgt,cp=sp*fr[i];
-    // fee: 2 executions per trade (open + close), using chosen method rate only
-    // win or lose, both entries are paid — method = 'maker' (limit) or 'taker' (market)
     const chosenRate=(gs().FEE.method==='maker'?gs().FEE.maker:gs().FEE.taker)/100;
     const tradeFee=2*chosenRate*not*fr[i];
     const fundFee=isSpot?0:(gs().FEE.funding/100)*not*gs().FEE.holds*fr[i];
@@ -4989,9 +4989,14 @@ function runSeq(startAcc,lev,initNot,bt,fr,kpi,isSpot){
     trades.push({no:i+1,skip:false,not,am,fm,liq,tgt:bt[i]*kpi,freq:fr[i],sp,cp,accB:acc,accA:accAfter,feePaid,accAF:accAfterF,isSpot});
     acc=accAfter;
     accF=accAfterF;
-    not=isSpot?acc:not+sp; // spot: position = full account; futures: notional grows
+    // carry-forward OFF: freeze notional — never grows within or across months
+    if(cfOn){
+      not=isSpot?acc:not+sp;
+    } else {
+      not=isSpot?startAcc:initNot; // reset every trade to the fixed starting notional
+    }
   }
-  return{trades,endAcc:acc,endAccF:accF,lastNotional:not};
+  return{trades,endAcc:acc,endAccF:accF,lastNotional:cfOn?not:initNot};
 }
 
 function sim(){
@@ -5015,12 +5020,14 @@ function sim(){
     }
     // margin push up: multiplies the carried notional
     const mp=parseFloat(s.MP[m])||1.0;
-    // carry-forward: ON = notional grows from last trade's end; OFF = reset to fixed s.NOT each month
-    const cfBase=(s.CF===false)?s.NOT:prevLastNotional;
-    const initNot=s.SPOT?acc:(cfBase*mp);
+    // carry-forward: ON = notional compounds; OFF = every month AND every trade resets to fixed base
+    const cf=s.CF!==false;
+    const cfBase=cf?prevLastNotional:s.NOT;
+    // spot CF off: position resets to capital each month; spot CF on: follows account balance (default)
+    const initNot=s.SPOT?(cf?acc:s.P):(cfBase*mp);
     const liqT1=s.SPOT?100:(acc/initNot*100);
     const{bt:mBT,fr:mFR}=getMonthTrades(m);
-    const{trades,endAcc:gA,endAccF:gAF,lastNotional:ln}=runSeq(acc,s.LEV,initNot,mBT,mFR,s.KPI,s.SPOT);
+    const{trades,endAcc:gA,endAccF:gAF,lastNotional:ln}=runSeq(acc,s.LEV,initNot,mBT,mFR,s.KPI,s.SPOT,cf);
     const monthFeePaid=trades.reduce((a,t)=>a+t.feePaid,0);
     const wdAmt=parseFloat(s.WD[m])||0;
     // no cap — if withdrawal exceeds balance, account is bust
@@ -7245,7 +7252,7 @@ function renderTbl(months){
   } else {
     h=`<thead><tr>
       <th style="text-align:left;width:10%">trade</th>
-      <th style="width:8%">notional</th>
+      <th style="width:8%">${s.SPOT?'position size':'notional'}</th>
       <th style="width:7%">${s.SPOT?'pos size':'margin'}</th>
       <th style="width:6%">${s.SPOT?'—':'fm%'}</th>
       <th style="width:6%">${s.SPOT?'◈':'liq%'}</th>
