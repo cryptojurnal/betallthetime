@@ -5095,7 +5095,7 @@ function updComp(){
 function onPushUp(m,v){
   const val=parseFloat(v)||1.0;
   gs().PU[m]=val<=0?1.0:val;
-  render();
+  softUpdate();
 }
 
 function onMP(m,v){
@@ -5103,15 +5103,17 @@ function onMP(m,v){
   gs().MP[m]=Math.max(1,val);
   const el=document.getElementById('mp-inp-'+m);
   if(el) el.classList.toggle('active',val>1);
-  render();
+  softUpdate();
 }
 // ── SOFT UPDATE: re-sim + patch metrics + table without rebuilding chart ──
 var _softUpdateTimer=null;
+var _softUpdatePending=false;
 function softUpdate(){
-  if(_softUpdateTimer) return; // already queued
+  _softUpdatePending=true;
+  if(_softUpdateTimer) return; // already scheduled
   _softUpdateTimer=requestAnimationFrame(function(){
     _softUpdateTimer=null;
-    _softUpdateCore();
+    if(_softUpdatePending){ _softUpdatePending=false; _softUpdateCore(); }
   });
 }
 
@@ -6204,7 +6206,7 @@ function setSpotMode(isSpot){
   const flb=document.getElementById('fee-live-btn'),fls=document.getElementById('fee-live-status');
   if(flb)flb.style.display=isSpot?'none':'';
   if(fls)fls.style.display=isSpot?'none':'';
-  render();
+  softUpdate();
 }
 
 function toggleSec(id){
@@ -7412,7 +7414,12 @@ function setTab(t){
   ch=null;
   initGrid();
   syncControls();
+  const _pr=document.querySelector('.panel-right');
+  const _rc=document.getElementById('right-content');
+  if(_rc) _rc.style.opacity='.4';
   render();
+  if(_pr) _pr.scrollTop=0; // tab switch — go to top
+  if(_rc) requestAnimationFrame(()=>{_rc.style.opacity='1';});
 }
 
 function setTheme(t,btn){
@@ -7420,8 +7427,15 @@ function setTheme(t,btn){
   document.body.className=t;
   document.querySelectorAll('.th-btn').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
   try{localStorage.setItem('batt_theme',t);}catch(e){}
+  // destroy chart so it picks up new CSS color vars on rebuild
   if(ch){if(ch._errorPulse){clearInterval(ch._errorPulse);ch._errorPulse=null;}ch.destroy();ch=null;}
+  const _pr=document.querySelector('.panel-right');
+  const _sy=_pr?_pr.scrollTop:0;
+  const _rc=document.getElementById('right-content');
+  if(_rc) _rc.style.opacity='.5';
   render();
+  if(_pr) _pr.scrollTop=_sy;
+  if(_rc) requestAnimationFrame(()=>{_rc.style.opacity='1';});
 }
 
 function setView(v,btn){
