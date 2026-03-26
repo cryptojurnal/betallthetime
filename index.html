@@ -1374,6 +1374,76 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 .manual-grid input:disabled{opacity:.3;pointer-events:none}
 .mgrid-lbl{font-size:8px;color:var(--tx3);text-align:center;margin-bottom:1px}
 
+/* ── TRADE JOURNAL ── */
+#journal-page{position:fixed;inset:0;z-index:9600;background:#000;display:none;flex-direction:column;opacity:0;transform:translateY(8px);transition:opacity .3s cubic-bezier(0.4,0,0.2,1),transform .3s cubic-bezier(0.4,0,0.2,1)}
+#journal-page.visible{opacity:1;transform:translateY(0)}
+.jn-header{display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:0.5px solid #1a1a1a;background:#000;flex-shrink:0}
+.jn-back{background:none;border:0.5px solid #222;border-radius:8px;color:#888;font-size:11px;cursor:pointer;padding:6px 12px;font-family:inherit;transition:all .2s}
+.jn-back:hover{border-color:#444;color:#fff}
+.jn-title{font-size:15px;font-weight:800;color:#fff;letter-spacing:-.02em;flex:1}
+.jn-title span{color:#00c47a}
+.jn-body{flex:1;overflow-y:auto;padding:20px;scrollbar-width:none}
+.jn-body::-webkit-scrollbar{display:none}
+/* folder grid */
+.jn-folders{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:24px}
+.jn-folder{background:#0a0a0a;border:0.5px solid #1a1a1a;border-radius:12px;padding:16px;cursor:pointer;transition:all .2s cubic-bezier(0.4,0,0.2,1);position:relative;overflow:hidden}
+.jn-folder:hover{border-color:#00c47a;transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,196,122,0.08)}
+.jn-folder-color{width:3px;height:100%;position:absolute;left:0;top:0;border-radius:12px 0 0 12px}
+.jn-folder-name{font-size:13px;font-weight:700;color:#e0e0e0;margin-bottom:6px;padding-left:8px}
+.jn-folder-meta{font-size:10px;color:#444;padding-left:8px;display:flex;gap:10px}
+.jn-folder-pnl{font-size:12px;font-weight:700;padding-left:8px;margin-top:4px}
+.jn-folder-pnl.up{color:#00c47a}
+.jn-folder-pnl.dn{color:#E24B4A}
+.jn-folder-tags{display:flex;gap:4px;flex-wrap:wrap;padding-left:8px;margin-top:6px}
+.jn-tag{font-size:8px;padding:2px 6px;border-radius:4px;border:0.5px solid #2a2a2a;color:#555;font-weight:600;letter-spacing:.04em}
+.jn-folder-new{border-style:dashed;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;color:#333;font-size:12px;min-height:80px}
+.jn-folder-new:hover{border-color:#00c47a;color:#00c47a}
+/* trade list inside folder */
+.jn-folder-header{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.jn-folder-header-name{font-size:18px;font-weight:800;color:#fff;flex:1}
+.jn-stats-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px}
+.jn-stat{background:#0a0a0a;border:0.5px solid #1a1a1a;border-radius:8px;padding:10px 12px}
+.jn-stat-lbl{font-size:8px;color:#444;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
+.jn-stat-val{font-size:16px;font-weight:800;color:#e0e0e0}
+.jn-stat-val.up{color:#00c47a}
+.jn-stat-val.dn{color:#E24B4A}
+/* trade table */
+.jn-table{width:100%;border-collapse:collapse}
+.jn-table th{font-size:8px;color:#333;text-transform:uppercase;letter-spacing:.06em;padding:6px 10px;border-bottom:0.5px solid #1a1a1a;text-align:left;font-weight:700}
+.jn-table tr.jn-trade-row{cursor:pointer;transition:background .15s}
+.jn-table tr.jn-trade-row:hover td{background:#0d0d0d}
+.jn-table td{padding:10px;border-bottom:0.5px solid #0d0d0d;font-size:11px;color:#888;vertical-align:middle}
+.jn-table td:first-child{color:#e0e0e0;font-weight:600}
+.jn-win{color:#00c47a;font-weight:700}
+.jn-loss{color:#E24B4A;font-weight:700}
+.jn-side-long{background:#0a2a1a;color:#00c47a;font-size:8px;padding:2px 6px;border-radius:4px;font-weight:700}
+.jn-side-short{background:#2a0a0a;color:#E24B4A;font-size:8px;padding:2px 6px;border-radius:4px;font-weight:700}
+.jn-emotion{font-size:14px}
+/* trade detail */
+.jn-detail{background:#0a0a0a;border:0.5px solid #1a1a1a;border-radius:12px;padding:20px;margin-bottom:12px}
+.jn-detail-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.jn-detail-field{display:flex;flex-direction:column;gap:3px}
+.jn-detail-lbl{font-size:8px;color:#333;text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+.jn-detail-val{font-size:13px;color:#e0e0e0;font-weight:600}
+.jn-notes-area{width:100%;background:transparent;border:0.5px solid #1a1a1a;border-radius:8px;color:#e0e0e0;font-size:12px;padding:10px;font-family:inherit;resize:vertical;min-height:60px;outline:none;transition:border-color .2s;box-sizing:border-box}
+.jn-notes-area:focus{border-color:#00c47a}
+.jn-add-btn{background:#00c47a;color:#000;border:none;border-radius:8px;padding:10px 20px;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;letter-spacing:.06em;transition:all .2s}
+.jn-add-btn:hover{background:#00e88e}
+.jn-sec-title{font-size:9px;color:#333;text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.jn-sec-title::after{content:'';flex:1;height:0.5px;background:#111}
+.jn-empty{text-align:center;padding:40px 20px;color:#333;font-size:12px}
+.jn-empty-icon{font-size:32px;margin-bottom:12px}
+.jn-btn-sm{background:none;border:0.5px solid #222;border-radius:6px;color:#555;font-size:9px;cursor:pointer;padding:4px 10px;font-family:inherit;font-weight:700;transition:all .2s}
+.jn-btn-sm:hover{border-color:#444;color:#e0e0e0}
+.jn-btn-sm.danger:hover{border-color:#E24B4A;color:#E24B4A}
+.jn-btn-sm.primary{background:#00c47a;border-color:#00c47a;color:#000}
+.jn-btn-sm.primary:hover{background:#00e88e}
+.jn-breadcrumb{font-size:11px;color:#333;display:flex;align-items:center;gap:6px}
+.jn-breadcrumb span{cursor:pointer;transition:color .15s}
+.jn-breadcrumb span:hover{color:#00c47a}
+.jn-breadcrumb .sep{cursor:default;color:#222}
+.jn-import-banner{background:#0a1a0a;border:0.5px solid #004d30;border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:10px;margin-bottom:16px;font-size:11px;color:#00c47a}
+.jn-import-banner button{background:#00c47a;border:none;border-radius:6px;color:#000;font-size:10px;font-weight:700;padding:4px 10px;cursor:pointer;font-family:inherit;margin-left:auto;flex-shrink:0}
 /* ── INTRO LAYERS ── */
 #layer1,#layer2{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;background:#000;transition:opacity .7s cubic-bezier(0.4,0,0.2,1),transform .7s cubic-bezier(0.4,0,0.2,1);will-change:opacity,transform}
 #layer1.out,#layer2.out{opacity:0;transform:scale(1.02);pointer-events:none}
@@ -2777,8 +2847,8 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
         <h3>Learning Hub</h3>
         <p>Guides, tutorials, and resources to level up your trading knowledge.</p>
       </div>
-      <div class="l3-card l3-card-soon" onclick="showToast('Coming soon! Stay tuned.','info')">
-        <span class="l3-card-badge soon">soon</span>
+      <div class="l3-card" onclick="openJournal()">
+        <span class="l3-card-badge live">live</span>
         <div class="l3-card-icon" style="font-size:0"><svg width="32" height="32" viewBox="0 0 24 24" fill="none"><polyline points="3,17 9,11 13,15 21,7" stroke="#00c47a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><polyline points="17,7 21,7 21,11" stroke="#00c47a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
         <h3>Trade Journal</h3>
         <p>Log your real trades, track performance, and analyze your win rate over time.</p>
@@ -10665,6 +10735,10 @@ async function loadAllUserDataFromServer(){
       localStorage.setItem('batt_power_actions', JSON.stringify(POWER_USER_ACTIONS));
   saveUserDataToServer('power_actions', POWER_USER_ACTIONS);
     }
+    if(d.data.journal !== undefined){
+      Object.assign(JN, d.data.journal);
+      localStorage.setItem('batt_journal', JSON.stringify(JN));
+    }
   }catch(e){}
 }
 
@@ -15829,6 +15903,21 @@ document.addEventListener('keydown', (e) => {
 <div class="power-user-badge" id="power-user-badge">Power User</div>
 
 <!-- ABOUT CRYPTO JURNAL PAGE -->
+<!-- ══════════════════════════════════════════════════════════
+     TRADE JOURNAL PAGE
+══════════════════════════════════════════════════════════ -->
+<div id="journal-page">
+  <div class="jn-header">
+    <button class="jn-back" onclick="closeJournal()">← back</button>
+    <div class="jn-title">Trade <span>Journal</span></div>
+    <div id="jn-breadcrumb" class="jn-breadcrumb"></div>
+    <button class="jn-btn-sm primary" id="jn-add-btn" onclick="jnAddAction()" style="display:none">+ add trade</button>
+  </div>
+  <div class="jn-body" id="jn-body">
+    <div class="jn-empty"><div class="jn-empty-icon">📂</div>Loading...</div>
+  </div>
+</div>
+
 <div id="about-cj-page" style="display:none;opacity:0;transition:opacity .4s ease">
   <div class="acj-container">
     <div class="acj-topbar">
@@ -16296,6 +16385,374 @@ function guestGoLogin(){
 }
 
 // ── ABOUT CJ PAGE ──
+// ══════════════════════════════════════════════════════════
+// TRADE JOURNAL
+// ══════════════════════════════════════════════════════════
+var JN = {
+  folders: [],      // [{id,name,color,tags,createdAt}]
+  trades: {},       // {folderId: [{id,pair,side,leverage,size,entry,exit,pnl,fee,funding,pct,type,closedAt,note,emotion,source,tags}]}
+  view: 'folders',  // 'folders' | 'list' | 'detail'
+  activeFolder: null,
+  activeTrade: null,
+};
+
+var JN_COLORS = ['#00c47a','#5b7fff','#f59e0b','#a855f7','#E24B4A','#00c4c4','#ff6b6b','#60c030'];
+var JN_EMOTIONS = ['😤','😰','😐','😊','🔥'];
+
+async function jnSave(){
+  try{
+    localStorage.setItem('batt_journal', JSON.stringify(JN));
+    await saveUserDataToServer('journal', JN);
+  }catch(e){}
+}
+
+async function jnLoad(){
+  // local first
+  try{
+    const loc=localStorage.getItem('batt_journal');
+    if(loc) Object.assign(JN, JSON.parse(loc));
+  }catch(e){}
+  // then cloud
+  const tok=_battToken();
+  if(!tok) return;
+  try{
+    const r=await fetch(AUTH_URL+'/userdata/load',{headers:{'Authorization':'Bearer '+tok}});
+    const d=await r.json();
+    if(d.ok&&d.data&&d.data.journal){
+      Object.assign(JN, d.data.journal);
+      localStorage.setItem('batt_journal', JSON.stringify(JN));
+    }
+  }catch(e){}
+}
+
+function openJournal(){
+  const p=document.getElementById('journal-page');
+  if(!p) return;
+  battNav('journal');
+  p.style.display='flex';
+  requestAnimationFrame(()=>requestAnimationFrame(()=>p.classList.add('visible')));
+  document.body.style.overflow='auto';
+  jnLoad().then(()=>jnRender());
+}
+
+function closeJournal(){
+  const p=document.getElementById('journal-page');
+  if(!p) return;
+  p.classList.remove('visible');
+  setTimeout(()=>{p.style.display='none';},300);
+  battNav('member');
+  document.body.style.overflow='auto';
+}
+
+function jnRender(){
+  JN.view==='folders'?jnRenderFolders():
+  JN.view==='list'?jnRenderList():
+  jnRenderDetail();
+  jnUpdateHeader();
+}
+
+function jnUpdateHeader(){
+  const bc=document.getElementById('jn-breadcrumb');
+  const ab=document.getElementById('jn-add-btn');
+  if(JN.view==='folders'){
+    bc.innerHTML='';
+    ab.style.display='none';
+    ab.textContent='+ new folder';
+    ab.onclick=jnNewFolder;
+  } else if(JN.view==='list'){
+    const f=JN.folders.find(x=>x.id===JN.activeFolder);
+    bc.innerHTML=`<span onclick="jnGoFolders()">all folders</span><span class="sep">›</span><span>${f?f.name:''}</span>`;
+    ab.style.display='';
+    ab.textContent='+ add trade';
+    ab.onclick=jnNewTrade;
+  } else {
+    const f=JN.folders.find(x=>x.id===JN.activeFolder);
+    bc.innerHTML=`<span onclick="jnGoFolders()">all folders</span><span class="sep">›</span><span onclick="jnGoList(JN.activeFolder)">${f?f.name:''}</span><span class="sep">›</span><span>trade detail</span>`;
+    ab.style.display='none';
+  }
+}
+
+function jnGoFolders(){JN.view='folders';JN.activeFolder=null;JN.activeTrade=null;jnRender();}
+function jnGoList(fid){JN.view='list';JN.activeFolder=fid;JN.activeTrade=null;jnRender();}
+
+function jnRenderFolders(){
+  const body=document.getElementById('jn-body');
+  const tpCount=TP_STATE&&TP_STATE.history?TP_STATE.history.length:0;
+  let html='';
+
+  // import banner if TP has unimported trades
+  if(tpCount>0){
+    html+=`<div class="jn-import-banner">
+      <span>⚡</span>
+      <span>${tpCount} trade${tpCount>1?'s':''} from Trade Panel ready to import</span>
+      <button onclick="jnImportFromTP()">import →</button>
+    </div>`;
+  }
+
+  html+='<div class="jn-sec-title">Your Folders</div>';
+  html+='<div class="jn-folders">';
+
+  JN.folders.forEach(f=>{
+    const trades=JN.trades[f.id]||[];
+    const wins=trades.filter(t=>t.pnl>0).length;
+    const wr=trades.length?Math.round(wins/trades.length*100):0;
+    const totalPnl=trades.reduce((a,t)=>a+(t.pnl||0),0);
+    const pnlClass=totalPnl>=0?'up':'dn';
+    const pnlStr=(totalPnl>=0?'+':'')+totalPnl.toFixed(2);
+    const tags=(f.tags||[]).map(t=>`<span class="jn-tag">${t}</span>`).join('');
+    html+=`<div class="jn-folder" onclick="jnGoList('${f.id}')">
+      <div class="jn-folder-color" style="background:${f.color||'#00c47a'}"></div>
+      <div class="jn-folder-name">${escHtml(f.name)}</div>
+      <div class="jn-folder-meta">
+        <span>${trades.length} trades</span>
+        ${trades.length?`<span>${wr}% WR</span>`:''}
+      </div>
+      ${trades.length?`<div class="jn-folder-pnl ${pnlClass}">$${pnlStr}</div>`:''}
+      ${tags?`<div class="jn-folder-tags">${tags}</div>`:''}
+      <div style="position:absolute;top:8px;right:8px;display:flex;gap:4px">
+        <button class="jn-btn-sm" onclick="event.stopPropagation();jnEditFolder('${f.id}')" style="font-size:8px;padding:2px 6px">✏️</button>
+        <button class="jn-btn-sm danger" onclick="event.stopPropagation();jnDeleteFolder('${f.id}')" style="font-size:8px;padding:2px 6px">✕</button>
+      </div>
+    </div>`;
+  });
+
+  // new folder button
+  html+=`<div class="jn-folder jn-folder-new" onclick="jnNewFolder()">
+    <span style="font-size:20px">+</span>
+    <span>new folder</span>
+  </div>`;
+  html+='</div>';
+
+  if(JN.folders.length===0){
+    html+=`<div class="jn-empty">
+      <div class="jn-empty-icon">📂</div>
+      <div style="margin-bottom:8px">No folders yet</div>
+      <div style="font-size:10px;color:#222">Create a folder to start logging trades<br>e.g. "BTC Scalps", "May 2025", "High Leverage"</div>
+    </div>`;
+  }
+
+  body.innerHTML=html;
+}
+
+function jnRenderList(){
+  const body=document.getElementById('jn-body');
+  const f=JN.folders.find(x=>x.id===JN.activeFolder);
+  if(!f){jnGoFolders();return;}
+  const trades=(JN.trades[JN.activeFolder]||[]).slice().sort((a,b)=>b.closedAt-a.closedAt);
+
+  // stats
+  const wins=trades.filter(t=>t.pnl>0).length;
+  const losses=trades.filter(t=>t.pnl<=0).length;
+  const wr=trades.length?Math.round(wins/trades.length*100):0;
+  const totalPnl=trades.reduce((a,t)=>a+(t.pnl||0),0);
+  const avgPnl=trades.length?totalPnl/trades.length:0;
+  const totalFees=trades.reduce((a,t)=>a+(t.fee||0),0);
+
+  let html=`<div class="jn-stats-bar">
+    <div class="jn-stat"><div class="jn-stat-lbl">total trades</div><div class="jn-stat-val">${trades.length}</div></div>
+    <div class="jn-stat"><div class="jn-stat-lbl">win rate</div><div class="jn-stat-val ${wr>=50?'up':'dn'}">${wr}%</div></div>
+    <div class="jn-stat"><div class="jn-stat-lbl">total PnL</div><div class="jn-stat-val ${totalPnl>=0?'up':'dn'}">${totalPnl>=0?'+':''}$${totalPnl.toFixed(2)}</div></div>
+    <div class="jn-stat"><div class="jn-stat-lbl">total fees</div><div class="jn-stat-val" style="color:#E24B4A">-$${totalFees.toFixed(2)}</div></div>
+  </div>`;
+
+  if(trades.length===0){
+    html+=`<div class="jn-empty">
+      <div class="jn-empty-icon">📝</div>
+      <div style="margin-bottom:8px">No trades yet</div>
+      <div style="font-size:10px;color:#222">Add your first trade manually or import from Trade Panel</div>
+    </div>`;
+  } else {
+    html+=`<table class="jn-table"><thead><tr>
+      <th>date</th><th>pair</th><th>side</th><th>entry</th><th>exit</th><th>size</th><th>PnL</th><th>%</th><th>mood</th><th></th>
+    </tr></thead><tbody>`;
+    trades.forEach(t=>{
+      const d=new Date(t.closedAt);
+      const ds=`${d.getDate()}/${d.getMonth()+1} ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;
+      const pnlClass=t.pnl>=0?'jn-win':'jn-loss';
+      const pnlStr=(t.pnl>=0?'+':'')+t.pnl.toFixed(2);
+      const pctStr=(t.pct>=0?'+':'')+t.pct.toFixed(1)+'%';
+      html+=`<tr class="jn-trade-row" onclick="jnOpenTrade('${t.id}')">
+        <td>${ds}</td>
+        <td style="font-weight:700;color:#e0e0e0">${t.pair||'—'}</td>
+        <td><span class="${t.side==='long'?'jn-side-long':'jn-side-short'}">${(t.side||'').toUpperCase()}</span></td>
+        <td>$${parseFloat(t.entry||0).toFixed(2)}</td>
+        <td>$${parseFloat(t.exit||0).toFixed(2)}</td>
+        <td>$${parseFloat(t.size||0).toFixed(0)}</td>
+        <td class="${pnlClass}">$${pnlStr}</td>
+        <td class="${pnlClass}">${pctStr}</td>
+        <td class="jn-emotion">${t.emotion||'—'}</td>
+        <td><button class="jn-btn-sm danger" onclick="event.stopPropagation();jnDeleteTrade('${t.id}')" style="padding:2px 6px">✕</button></td>
+      </tr>`;
+    });
+    html+='</tbody></table>';
+  }
+  body.innerHTML=html;
+}
+
+function jnRenderDetail(){
+  const body=document.getElementById('jn-body');
+  const trades=JN.trades[JN.activeFolder]||[];
+  const t=trades.find(x=>x.id===JN.activeTrade);
+  if(!t){jnGoList(JN.activeFolder);return;}
+  const pnlClass=t.pnl>=0?'up':'dn';
+
+  body.innerHTML=`<div class="jn-detail">
+    <div class="jn-detail-grid">
+      <div class="jn-detail-field"><div class="jn-detail-lbl">pair</div><div class="jn-detail-val">${t.pair||'—'}</div></div>
+      <div class="jn-detail-field"><div class="jn-detail-lbl">side</div><div class="jn-detail-val"><span class="${t.side==='long'?'jn-side-long':'jn-side-short'}">${(t.side||'').toUpperCase()}</span></div></div>
+      <div class="jn-detail-field"><div class="jn-detail-lbl">type</div><div class="jn-detail-val">${t.type||'perpetual'}</div></div>
+      <div class="jn-detail-field"><div class="jn-detail-lbl">entry price</div><div class="jn-detail-val">$${parseFloat(t.entry||0).toFixed(4)}</div></div>
+      <div class="jn-detail-field"><div class="jn-detail-lbl">exit price</div><div class="jn-detail-val">$${parseFloat(t.exit||0).toFixed(4)}</div></div>
+      <div class="jn-detail-field"><div class="jn-detail-lbl">size</div><div class="jn-detail-val">$${parseFloat(t.size||0).toFixed(2)}</div></div>
+      <div class="jn-detail-field"><div class="jn-detail-lbl">leverage</div><div class="jn-detail-val">${t.leverage||1}×</div></div>
+      <div class="jn-detail-field"><div class="jn-detail-lbl">PnL</div><div class="jn-detail-val jn-stat-val ${pnlClass}">${t.pnl>=0?'+':''}$${parseFloat(t.pnl||0).toFixed(2)}</div></div>
+      <div class="jn-detail-field"><div class="jn-detail-lbl">return</div><div class="jn-detail-val jn-stat-val ${pnlClass}">${t.pct>=0?'+':''}${parseFloat(t.pct||0).toFixed(2)}%</div></div>
+      <div class="jn-detail-field"><div class="jn-detail-lbl">fee paid</div><div class="jn-detail-val" style="color:#E24B4A">-$${parseFloat(t.fee||0).toFixed(4)}</div></div>
+      <div class="jn-detail-field"><div class="jn-detail-lbl">funding paid</div><div class="jn-detail-val" style="color:#E24B4A">-$${parseFloat(t.funding||0).toFixed(4)}</div></div>
+      <div class="jn-detail-field"><div class="jn-detail-lbl">source</div><div class="jn-detail-val" style="color:#555">${t.source||'manual'}</div></div>
+    </div>
+    <div class="jn-sec-title" style="margin-bottom:8px">mood</div>
+    <div style="display:flex;gap:8px;margin-bottom:16px">${JN_EMOTIONS.map((e,i)=>`<button onclick="jnSetEmotion('${t.id}','${e}')" style="font-size:20px;background:none;border:1.5px solid ${t.emotion===e?'#00c47a':'#1a1a1a'};border-radius:8px;padding:4px 8px;cursor:pointer;transition:border-color .15s">${e}</button>`).join('')}</div>
+    <div class="jn-sec-title" style="margin-bottom:8px">setup notes</div>
+    <textarea class="jn-notes-area" placeholder="Why did you enter? What was the setup? What went wrong or right?" onchange="jnSaveNote('${t.id}',this.value)">${escHtml(t.note||'')}</textarea>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="jn-btn-sm danger" onclick="jnDeleteTrade('${t.id}')">delete trade</button>
+    </div>
+  </div>`;
+}
+
+function jnOpenTrade(id){
+  JN.view='detail';JN.activeTrade=id;jnRender();
+}
+
+async function jnSetEmotion(tid,emotion){
+  const trades=JN.trades[JN.activeFolder]||[];
+  const t=trades.find(x=>x.id===tid);
+  if(t){t.emotion=emotion;await jnSave();jnRenderDetail();}
+}
+
+async function jnSaveNote(tid,note){
+  const trades=JN.trades[JN.activeFolder]||[];
+  const t=trades.find(x=>x.id===tid);
+  if(t){t.note=note;await jnSave();}
+}
+
+async function jnNewFolder(){
+  const name=await showConfirm({icon:'📂',type:'info',title:'New Folder',message:'Name your folder — e.g. "BTC Scalps", "May 2025", "High Risk"',input:true,inputPlaceholder:'folder name',confirmText:'create',cancelText:'cancel'});
+  if(!name||!name.trim()) return;
+  const color=JN_COLORS[JN.folders.length%JN_COLORS.length];
+  const id='f'+Date.now();
+  JN.folders.push({id,name:name.trim(),color,tags:[],createdAt:Date.now()});
+  JN.trades[id]=[];
+  await jnSave();
+  jnRenderFolders();
+}
+
+async function jnEditFolder(fid){
+  const f=JN.folders.find(x=>x.id===fid);
+  if(!f) return;
+  const name=await showConfirm({icon:'✏️',type:'info',title:'Rename Folder',input:true,inputValue:f.name,inputPlaceholder:'folder name',confirmText:'save',cancelText:'cancel'});
+  if(!name||!name.trim()) return;
+  f.name=name.trim();
+  await jnSave();
+  jnRenderFolders();
+}
+
+async function jnDeleteFolder(fid){
+  const f=JN.folders.find(x=>x.id===fid);
+  if(!f) return;
+  const ok=await showConfirm({icon:'🗑️',type:'danger',title:'Delete folder?',message:`Delete "${f.name}" and all ${(JN.trades[fid]||[]).length} trades inside? This cannot be undone.`,confirmText:'delete',cancelText:'cancel'});
+  if(!ok) return;
+  JN.folders=JN.folders.filter(x=>x.id!==fid);
+  delete JN.trades[fid];
+  await jnSave();
+  jnRenderFolders();
+}
+
+async function jnNewTrade(){
+  // show a folder picker first then manual entry form
+  const result=await showConfirm({
+    icon:'📝',type:'info',title:'Add Trade',
+    message:'Fill in trade details:',
+    input:true,inputPlaceholder:'pair (e.g. BTCUSDT)',
+    confirmText:'next',cancelText:'cancel'
+  });
+  if(!result) return;
+  const pair=result.trim().toUpperCase()||'BTCUSDT';
+  const id='t'+Date.now();
+  const trade={id,pair,side:'long',leverage:1,size:100,entry:0,exit:0,pnl:0,fee:0,funding:0,pct:0,type:'spot',closedAt:Date.now(),note:'',emotion:'',source:'manual',tags:[]};
+  if(!JN.trades[JN.activeFolder]) JN.trades[JN.activeFolder]=[];
+  JN.trades[JN.activeFolder].unshift(trade);
+  await jnSave();
+  JN.view='detail';JN.activeTrade=id;jnRender();
+  showToast('Trade added — fill in the details','success',2000);
+}
+
+async function jnDeleteTrade(tid){
+  const ok=await showConfirm({icon:'🗑️',type:'danger',title:'Delete trade?',message:'This trade will be permanently removed.',confirmText:'delete',cancelText:'cancel'});
+  if(!ok) return;
+  JN.trades[JN.activeFolder]=(JN.trades[JN.activeFolder]||[]).filter(x=>x.id!==tid);
+  await jnSave();
+  if(JN.activeTrade===tid){JN.view='list';JN.activeTrade=null;}
+  jnRender();
+}
+
+function jnAddAction(){
+  if(JN.view==='list') jnNewTrade();
+  else jnNewFolder();
+}
+
+async function jnImportFromTP(){
+  if(!TP_STATE||!TP_STATE.history||TP_STATE.history.length===0){
+    showToast('No trades in Trade Panel history','info');return;
+  }
+  // pick target folder
+  if(JN.folders.length===0){
+    showToast('Create a folder first','info');
+    openJournal();
+    return;
+  }
+  const folderNames=JN.folders.map(f=>f.name);
+  const fIdx=await showConfirm({
+    icon:'⚡',type:'info',title:'Import to which folder?',
+    message:'Select a folder to import Trade Panel trades into:',
+    input:true,inputPlaceholder:folderNames.join(' / '),
+    confirmText:'import',cancelText:'cancel'
+  });
+  if(!fIdx) return;
+  const targetFolder=JN.folders.find(f=>f.name.toLowerCase()===fIdx.trim().toLowerCase())||JN.folders[0];
+  if(!JN.trades[targetFolder.id]) JN.trades[targetFolder.id]=[];
+  let imported=0;
+  TP_STATE.history.forEach(h=>{
+    const id='t'+Date.now()+Math.random().toString(36).slice(2,6);
+    const pct=(h.pnl/(h.size||1))*100;
+    JN.trades[targetFolder.id].unshift({
+      id, pair:h.pair||'BTCUSDT', side:h.side||'long',
+      leverage:h.leverage||1, size:h.size||0,
+      entry:h.entryPrice||0, exit:h.exitPrice||0,
+      pnl:h.pnl||0, fee:h.fee||0, funding:h.funding||0,
+      pct:h.pct||pct, type:h.marketType||'perpetual',
+      closedAt:h.closedAt||Date.now(),
+      note:'', emotion:'', source:'Trade Panel',
+      tags:[h.pair,h.side,h.liquidated?'liquidated':''].filter(Boolean)
+    });
+    imported++;
+  });
+  await jnSave();
+  showToast(`Imported ${imported} trade${imported>1?'s':''} to "${targetFolder.name}"`, 'success');
+  jnGoList(targetFolder.id);
+}
+
+function openJournal(){
+  const p=document.getElementById('journal-page');
+  if(!p) return;
+  battNav('journal');
+  p.style.display='flex';
+  requestAnimationFrame(()=>requestAnimationFrame(()=>p.classList.add('visible')));
+  document.body.style.overflow='auto';
+  jnLoad().then(()=>jnRender());
+}
+
 function openAboutCJ(){
   document.body.style.overflow='auto';
   closeL3Menu();
