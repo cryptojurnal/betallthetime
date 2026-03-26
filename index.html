@@ -3598,7 +3598,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
         <span class="lbl">type (×)</span>
         <div class="sp-cell">
           <button class="sp-btn" onclick="spStep('lv-in',1,100,-1,function(v){onLevIn(v)})" tabindex="-1">−</button>
-          <input type="number" class="sp-inp" id="lv-in" value="5" min="1" max="100" oninput="onLevIn(this.value)">
+          <input type="number" class="sp-inp" id="lv-in" value="5" min="1" max="100" oninput="dInput(this,v=>onLevIn(v),400)">
           <button class="sp-btn" onclick="spStep('lv-in',1,100,1,function(v){onLevIn(v)})" tabindex="-1">+</button>
         </div>
       </div>
@@ -3635,7 +3635,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
       <span class="lbl">type ($)</span>
       <div class="sp-cell">
         <button class="sp-btn" onclick="spStep('cap-in',1,10000000000,-100,function(v){onCapIn(v)})" tabindex="-1">−</button>
-        <input type="number" class="sp-inp" id="cap-in" value="1000" min="1" max="10000000000" oninput="onCapIn(this.value)">
+        <input type="number" class="sp-inp" id="cap-in" value="1000" min="1" max="10000000000" oninput="dInput(this,v=>onCapIn(v),400)">
         <button class="sp-btn" onclick="spStep('cap-in',1,10000000000,100,function(v){onCapIn(v)})" tabindex="-1">+</button>
       </div>
     </div>
@@ -3675,7 +3675,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
       <span class="lbl">type ($)</span>
       <div class="sp-cell">
         <button class="sp-btn" onclick="spStep('not-in',1,100000000000,-100,function(v){onNotIn(v)})" tabindex="-1">−</button>
-        <input type="number" class="sp-inp" id="not-in" value="2500" min="1" max="100000000000" oninput="onNotIn(this.value)">
+        <input type="number" class="sp-inp" id="not-in" value="2500" min="1" max="100000000000" oninput="dInput(this,v=>onNotIn(v),400)">
         <button class="sp-btn" onclick="spStep('not-in',1,100000000000,100,function(v){onNotIn(v)})" tabindex="-1">+</button>
       </div>
     </div>
@@ -4907,7 +4907,7 @@ function initGrid(){
     r.innerHTML=`<div class="tg-no">T${i+1}</div>
 <div class="tg-cell" id="btc${i}">
   <button class="tg-btn" onclick="stepBT(${i},-0.5)" tabindex="-1">−</button>
-  <input type="number" class="tg-in" id="bt${i}" value="${s.BT[i]}" min="-500" max="500" step="0.5" oninput="onBT(${i},this.value)">
+  <input type="number" class="tg-in" id="bt${i}" value="${s.BT[i]}" min="-500" max="500" step="0.5" oninput="dInput(this,v=>onBT(${i},v),400)">
   <button class="tg-btn" onclick="stepBT(${i},0.5)" tabindex="-1">+</button>
 </div>
 <div class="tg-cell fi" id="frc${i}">
@@ -5181,6 +5181,18 @@ function onMP(m,v){
   softUpdate();
 }
 // ── SOFT UPDATE: re-sim + patch metrics + table without rebuilding chart ──
+// debounced input — prevents mid-decimal-typing interference
+// usage: oninput="dInput(this,callback,400)"
+var _dInputTimers={};
+function dInput(el,fn,delay){
+  const id=el.id||el.name||Math.random();
+  if(_dInputTimers[id]) clearTimeout(_dInputTimers[id]);
+  _dInputTimers[id]=setTimeout(function(){
+    delete _dInputTimers[id];
+    fn(el.value);
+  }, delay||400);
+}
+
 var _softUpdateTimer=null;
 var _softUpdatePending=false;
 function softUpdate(){
@@ -6392,7 +6404,8 @@ function toggleTradePanel(){
 
 // silent auto-resave to active preset — no confirm, no modal
 async function _autoResaveActivePreset(){
-  if(!AUTH_TOKEN||!window._ACTIVE_PRESET) return;
+  const _tok=(typeof AUTH_TOKEN!=='undefined'?AUTH_TOKEN:null)||localStorage.getItem('batt_token');
+  if(!_tok||!window._ACTIVE_PRESET) return;
   const {id,name}=window._ACTIVE_PRESET;
   const snapshot={};
   ['36','q',...(typeof CUSTOM_TABS!=='undefined'?CUSTOM_TABS.map(t=>t.id):[])].forEach(tid=>{
@@ -6410,7 +6423,7 @@ async function _autoResaveActivePreset(){
     // save fresh copy
     const rSave=await fetch(AUTH_URL+'/presets/save',{
       method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+AUTH_TOKEN},
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+_tok},
       body:JSON.stringify({name,snapshot})
     });
     const dSave=await rSave.json();
@@ -6418,11 +6431,11 @@ async function _autoResaveActivePreset(){
     // delete old entry
     await fetch(AUTH_URL+'/presets/delete',{
       method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+AUTH_TOKEN},
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+_tok},
       body:JSON.stringify({id})
     });
     // re-fetch list to get the new ID for this preset name — keeps tracker fresh
-    const rList=await fetch(AUTH_URL+'/presets/list',{headers:{'Authorization':'Bearer '+AUTH_TOKEN}});
+    const rList=await fetch(AUTH_URL+'/presets/list',{headers:{'Authorization':'Bearer '+_tok}});
     const dList=await rList.json();
     if(dList.ok&&dList.presets){
       const match=dList.presets.find(p=>p.name===name);
@@ -6472,7 +6485,8 @@ function _setSyncStatus(state){ // 'saving' | 'saved' | 'error'
 }
 
 function _silentCloudSync(){
-  if(!AUTH_TOKEN) return;
+  const _tok=(typeof AUTH_TOKEN!=='undefined'?AUTH_TOKEN:null)||localStorage.getItem('batt_token');
+  if(!_tok) return;
   if(_silentSyncTimer) clearTimeout(_silentSyncTimer);
   _setSyncStatus('saving');
   _silentSyncTimer=setTimeout(async function(){
@@ -6486,7 +6500,7 @@ function _silentCloudSync(){
       });
       const r=await fetch(AUTH_URL+'/data/save',{
         method:'POST',
-        headers:{'Content-Type':'application/json','Authorization':'Bearer '+AUTH_TOKEN},
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+_tok},
         body:JSON.stringify({data:snapshot})
       });
       const d=await r.json();
@@ -7483,7 +7497,7 @@ function renderTbl(months){
         <td style="font-size:9px;padding:4px 5px">
           <div style="font-size:7px;color:var(--mhs);opacity:.7;margin-bottom:1px">${s.SPOT?'size×':'push×'}</div>
           <div style="display:flex;align-items:center;gap:3px">
-            <input type="number" class="mp-inp${(s.MP[mo.m]||1)>1?' active':''}" id="mp-inp-d-${mo.m}" value="${s.MP[mo.m]>1?s.MP[mo.m]:''}" min="1" max="10" step="0.1" placeholder="1" oninput="onMP(${mo.m},this.value)" style="width:34px;padding:1px 3px;font-size:9px;border:0.5px solid var(--mhs);border-radius:8px;background:transparent;color:var(--mhc);font-weight:700;-moz-appearance:textfield">
+            <input type="number" class="mp-inp${(s.MP[mo.m]||1)>1?' active':''}" id="mp-inp-d-${mo.m}" value="${s.MP[mo.m]>1?s.MP[mo.m]:''}" min="1" max="10" step="0.1" placeholder="1" oninput="dInput(this,v=>onMP(${mo.m},v),400)" style="width:34px;padding:1px 3px;font-size:9px;border:0.5px solid var(--mhs);border-radius:8px;background:transparent;color:var(--mhc);font-weight:700;-moz-appearance:textfield">
             ${mo.mp>1?'<span style="font-size:7px;background:#EAF3DE;color:#3B6D11;padding:0 3px;border-radius:2px;font-weight:700">⚡'+mo.mp.toFixed(1)+'×</span>':''}
           </div>
         </td>
@@ -7525,7 +7539,7 @@ function renderTbl(months){
             h+=`<tr class="skip-row">
               <td style="padding-left:8px;text-align:left"><input class="lbl-in lbl-trade" value="${tLabel}" placeholder="trade ${t.no}..." onchange="onTradeLabel(${t.no},this.value)" onclick="this.select()"></td>
               <td colspan="4" style="color:var(--tx3);font-size:9px;font-style:italic">skipped</td>
-              <td><div class="tg-cell" style="width:54px"><button class="tg-btn" onclick="manStep('bt',${mo.m},${t.no-1},-0.5)" tabindex="-1">−</button><input type="number" id="mbt-${mo.m}-${t.no-1}" value="${btVal}" min="-500" max="500" step="0.5" placeholder="tgt%" style="flex:1;min-width:0;padding:1px 0;font-size:9px;text-align:center;border:none;background:transparent;color:var(--acc);font-weight:700;-moz-appearance:textfield" oninput="onManualBT(${mo.m},${t.no-1},this.value)"><button class="tg-btn" onclick="manStep('bt',${mo.m},${t.no-1},0.5)" tabindex="-1">+</button></div></td>
+              <td><div class="tg-cell" style="width:54px"><button class="tg-btn" onclick="manStep('bt',${mo.m},${t.no-1},-0.5)" tabindex="-1">−</button><input type="number" id="mbt-${mo.m}-${t.no-1}" value="${btVal}" min="-500" max="500" step="0.5" placeholder="tgt%" style="flex:1;min-width:0;padding:1px 0;font-size:9px;text-align:center;border:none;background:transparent;color:var(--acc);font-weight:700;-moz-appearance:textfield" oninput="dInput(this,v=>onManualBT(${mo.m},${t.no-1},v),400)"><button class="tg-btn" onclick="manStep('bt',${mo.m},${t.no-1},0.5)" tabindex="-1">+</button></div></td>
               <td><div class="tg-cell fi" style="width:48px;border-color:var(--acc2)"><button class="tg-btn" style="color:var(--acc2)" onclick="manStep('fr',${mo.m},${t.no-1},-1)" tabindex="-1">−</button><input type="number" id="mfr-${mo.m}-${t.no-1}" value="${frVal}" min="0" max="20" step="1" placeholder="freq" style="flex:1;min-width:0;padding:1px 0;font-size:9px;text-align:center;border:none;background:transparent;color:var(--acc2);font-weight:700;-moz-appearance:textfield" oninput="onManualFR(${mo.m},${t.no-1},this.value)"><button class="tg-btn" style="color:var(--acc2)" onclick="manStep('fr',${mo.m},${t.no-1},1)" tabindex="-1">+</button></div></td>
               <td colspan="7" style="color:var(--tx3);font-size:9px;text-align:center;font-style:italic">set both > 0 to activate</td>
             </tr>`;
@@ -7556,7 +7570,7 @@ function renderTbl(months){
           <td>${lk
             ?'<span class="locked-overlay" style="font-size:9px">'+t.tgt.toFixed(2)+'%</span>'
             :(!GLOBAL_MODE
-              ?'<div class="tg-cell" style="width:54px"><button class="tg-btn" onclick="manStep(\'bt\','+mo.m+','+(t.no-1)+',-0.5)" tabindex="-1">−</button><input type="number" id="mbt-'+mo.m+'-'+(t.no-1)+'" value="'+((gs().MT[mo.m]?.bt[t.no-1]??t.tgt/s.KPI)).toFixed(1)+'" min="-500" max="500" step="0.5" style="flex:1;min-width:0;padding:1px 0;font-size:9px;text-align:center;border:none;background:transparent;color:var(--acc);font-weight:700;-moz-appearance:textfield" oninput="onManualBT('+mo.m+','+(t.no-1)+',this.value)"><button class="tg-btn" onclick="manStep(\'bt\','+mo.m+','+(t.no-1)+',0.5)" tabindex="-1">+</button></div>'
+              ?'<div class="tg-cell" style="width:54px"><button class="tg-btn" onclick="manStep(\'bt\','+mo.m+','+(t.no-1)+',-0.5)" tabindex="-1">−</button><input type="number" id="mbt-'+mo.m+'-'+(t.no-1)+'" value="'+((gs().MT[mo.m]?.bt[t.no-1]??t.tgt/s.KPI)).toFixed(1)+'" min="-500" max="500" step="0.5" style="flex:1;min-width:0;padding:1px 0;font-size:9px;text-align:center;border:none;background:transparent;color:var(--acc);font-weight:700;-moz-appearance:textfield" oninput="dInput(this,v=>onManualBT('+mo.m+','+(t.no-1)+',v),400)"><button class="tg-btn" onclick="manStep(\'bt\','+mo.m+','+(t.no-1)+',0.5)" tabindex="-1">+</button></div>'
               :t.tgt.toFixed(2)+'%')}</td>
           <td>${lk
             ?'<span class="locked-overlay" style="color:var(--tx2);font-size:9px">'+t.freq+'×</span>'
