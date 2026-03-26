@@ -1026,6 +1026,7 @@ body.t-lavender{--bg:#f0eef8;--panel:#fff;--bd:#d8d4f0;--bd2:#e4e0f4;--sf:#f8f6f
 .pt-head{padding:9px 10px 7px;border-bottom:0.5px solid var(--bd2);display:flex;flex-direction:column;gap:3px}
 .panel-right{flex:1;height:100vh;overflow-y:auto;background:var(--bg);padding:14px 14px 80px;transition:background .25s;min-width:0;scrollbar-width:none}
 .panel-right::-webkit-scrollbar{display:none}
+#right-content{transition:opacity .15s ease}
 
 /* PRESETS PANEL (collapsible right) */
 .panel-presets{width:0;min-width:0;background:var(--panel);border-left:0.5px solid var(--bd);flex-shrink:0;transition:width .35s cubic-bezier(0.4,0,0.2,1),min-width .35s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column;position:relative;overflow:visible;will-change:width}
@@ -6312,7 +6313,14 @@ function toggleZeroMonth(m){
   if(s.ZM.has(m)) s.ZM.delete(m);
   else s.ZM.add(m);
   try{localStorage.setItem('wz_'+TAB+'_zero',JSON.stringify({ZM:[...s.ZM]}));}catch(e){}
+  // save scroll before render, restore after so it never feels like a page jump
+  const _pr=document.querySelector('.panel-right');
+  const _sy=_pr?_pr.scrollTop:0;
+  const _rc=document.getElementById('right-content');
+  if(_rc){ _rc.style.transition='opacity .15s'; _rc.style.opacity='.5'; }
   render();
+  if(_pr) _pr.scrollTop=_sy;
+  if(_rc){ requestAnimationFrame(()=>{ _rc.style.opacity='1'; }); }
 }
 
 // ── GLOBAL / MANUAL MODE ──
@@ -6814,6 +6822,9 @@ function seqStats(s){
 
 // ── RENDER ──
 function render(){
+  // preserve scroll so re-render doesn't feel like a page jump
+  const _pr=document.querySelector('.panel-right');
+  const _scrollY=_pr?_pr.scrollTop:0;
   updComp();
   const s=gs();
   const isQ=isQTab(TAB);
