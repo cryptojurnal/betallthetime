@@ -3650,6 +3650,8 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
       <div class="seclbl" style="margin-bottom:0">notional (trade 1)</div>
       <span style="font-size:8px;color:var(--tx3)">link</span>
       <button id="not-link-btn" onclick="event.stopPropagation();toggleNotLink()" title="link notional to capital" style="font-size:9px;padding:3px 10px;border-radius:10px;border:0.5px solid var(--bd2);background:var(--sf2);color:var(--tx3);cursor:pointer;font-weight:700;transition:all .2s;letter-spacing:.03em">off</button>
+      <span style="font-size:8px;color:var(--tx3)">carry</span>
+      <button id="cf-btn" onclick="event.stopPropagation();toggleCarryForward()" title="carry forward ON: notional seeds from last month&#39;s end trade — position grows with wins. OFF: resets to fixed notional every month." style="font-size:9px;padding:3px 10px;border-radius:10px;border:0.5px solid var(--acc2);background:var(--btno);color:var(--acc2);cursor:pointer;font-weight:700;transition:all .2s;letter-spacing:.03em">on</button>
     </div>
     <span class="sec-toggle">▾</span>
   </div>
@@ -4655,7 +4657,7 @@ let FEE_LIVE={rate:null, exchange:'binance', symbol:'BTCUSDT', loading:false};
 // TABS is an ordered array of tab descriptors
 // built-in tabs: id='36' name='36-month', id='q' name='quarter'
 // custom tabs: id='c1','c2',... name=user-defined, max 5 custom per panel (built-in + custom ≤ 7 total)
-function mkState(){return{P:1000,LEV:5,NOT:2500,KPI:1.0,BT:[...DEF_BT],FR:[...DEF_FR],WD:{},ML:{},TL:{},MT:{},ZM:new Set([]),MP:{},SPOT:false,FEE:{maker:0.02,taker:0.05,funding:0.01,interval:8,holds:1,method:'taker'}};}
+function mkState(){return{P:1000,LEV:5,NOT:2500,KPI:1.0,BT:[...DEF_BT],FR:[...DEF_FR],WD:{},ML:{},TL:{},MT:{},ZM:new Set([]),MP:{},SPOT:false,CF:true,FEE:{maker:0.02,taker:0.05,funding:0.01,interval:8,holds:1,method:'taker'}};}
 const S={
   '36': mkState(),
   'q':  mkState(),
@@ -4840,6 +4842,15 @@ function syncControls(){
     nlb.style.borderColor=NOT_LINKED?'var(--acc2)':'var(--bd2)';
     nlb.style.background=NOT_LINKED?'var(--btno)':'var(--btn)';
   }
+  // sync carry-forward button
+  const cfb=document.getElementById('cf-btn');
+  if(cfb){
+    const cfOn=gs().CF!==false;
+    cfb.textContent=cfOn?'on':'off';
+    cfb.style.borderColor=cfOn?'var(--acc2)':'var(--bd2)';
+    cfb.style.color=cfOn?'var(--acc2)':'var(--tx3)';
+    cfb.style.background=cfOn?'var(--btno)':'var(--btn)';
+  }
   // sync fee inputs from this tab's FEE state
   const f=s.FEE;
   const mk=document.getElementById('fee-maker'); if(mk)mk.value=f.maker;
@@ -5004,7 +5015,9 @@ function sim(){
     }
     // margin push up: multiplies the carried notional
     const mp=parseFloat(s.MP[m])||1.0;
-    const initNot=s.SPOT?acc:(prevLastNotional*mp);
+    // carry-forward: ON = notional grows from last trade's end; OFF = reset to fixed s.NOT each month
+    const cfBase=(s.CF===false)?s.NOT:prevLastNotional;
+    const initNot=s.SPOT?acc:(cfBase*mp);
     const liqT1=s.SPOT?100:(acc/initNot*100);
     const{bt:mBT,fr:mFR}=getMonthTrades(m);
     const{trades,endAcc:gA,endAccF:gAF,lastNotional:ln}=runSeq(acc,s.LEV,initNot,mBT,mFR,s.KPI,s.SPOT);
@@ -5053,6 +5066,23 @@ function rtag(l){
 
 // ── NOTIONAL LINK TO CAPITAL ──
 let NOT_LINKED=localStorage.getItem('batt_not_linked')==='true'; // persist link state
+
+// ── CARRY FORWARD MODE ──
+// ON (default): each month's notional seeds from last trade's end notional — position grows with wins
+// OFF: every month resets to the fixed s.NOT — position stays constant regardless of results
+function toggleCarryForward(){
+  const s=gs();
+  s.CF = s.CF===false ? true : false;
+  try{localStorage.setItem('batt_cf_'+TAB, s.CF?'1':'0');}catch(e){}
+  const btn=document.getElementById('cf-btn');
+  if(btn){
+    btn.textContent=s.CF?'on':'off';
+    btn.style.color=s.CF?'var(--acc2)':'var(--tx3)';
+    btn.style.borderColor=s.CF?'var(--acc2)':'var(--bd2)';
+    btn.style.background=s.CF?'var(--btno)':'var(--btn)';
+  }
+  softUpdate();
+}
 
 function toggleNotLink(){
   NOT_LINKED=!NOT_LINKED;
@@ -8696,6 +8726,8 @@ async function presetLoad(id){
     if(snapshot._meta&&typeof snapshot._meta.notLinked==='boolean'){
       NOT_LINKED=snapshot._meta.notLinked;
       localStorage.setItem('batt_not_linked',NOT_LINKED?'true':'false');
+      // restore carry-forward per tab
+      if(typeof snapshot._meta.cf !== 'undefined') gs().CF = snapshot._meta.cf;
       const nlb=document.getElementById('not-link-btn');
       if(nlb){
         nlb.textContent=NOT_LINKED?'on':'off';
@@ -8777,7 +8809,8 @@ async function presetResave(id, name){
     activeTab:typeof activeTab!=='undefined'?activeTab:'36',
     theme:document.body.className||'',
     customTabs:typeof CUSTOM_TABS!=='undefined'?JSON.parse(JSON.stringify(CUSTOM_TABS)):[],
-    notLinked:NOT_LINKED
+    notLinked:NOT_LINKED,
+    cf:gs().CF!==false
   };
   try{
     // save fresh copy first, then delete the old one — guaranteed atomic overwrite
@@ -10562,6 +10595,8 @@ async function loadSharedPreset(shareCode){
     if(snapshot._meta&&typeof snapshot._meta.notLinked==='boolean'){
       NOT_LINKED=snapshot._meta.notLinked;
       localStorage.setItem('batt_not_linked',NOT_LINKED?'true':'false');
+      // restore carry-forward per tab
+      if(typeof snapshot._meta.cf !== 'undefined') gs().CF = snapshot._meta.cf;
     }
     
     // Re-render
