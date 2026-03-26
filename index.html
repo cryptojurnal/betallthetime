@@ -4670,6 +4670,47 @@ const S={
 let CUSTOM_TABS=[]; // [{id:'36_c1',name:'my plan'},{id:'q_c1',name:'q plan'}]
 let _nextTabId={36:1,q:1};
 
+// ── UNDO/REDO SYSTEM ──
+var UNDO_STACK = [];
+var REDO_STACK = [];
+var UNDO_MAX = 50;
+var _undoTimer = null;
+var _undoSnap = null;
+
+function _deepCopyS(src){
+  const out={};
+  Object.keys(src).forEach(tabId=>{
+    const t=src[tabId];
+    if(typeof t!=='object'||t===null){out[tabId]=t;return;}
+    out[tabId]={...t,
+      ZM:t.ZM?new Set(t.ZM):new Set(),
+      LK:t.LK?new Set(t.LK):new Set()
+    };
+  });
+  return out;
+}
+
+// Call BEFORE mutating state — captures pre-change snapshot, debounced
+function _captureUndo(){
+  if(!_undoSnap) _undoSnap=_deepCopyS(S);
+  if(_undoTimer) clearTimeout(_undoTimer);
+  _undoTimer=setTimeout(function(){
+    if(_undoSnap){
+      UNDO_STACK.push({action:'change',timestamp:Date.now(),data:_undoSnap});
+      if(UNDO_STACK.length>UNDO_MAX) UNDO_STACK.shift();
+      REDO_STACK=[];
+      _undoSnap=null;
+    }
+    _undoTimer=null;
+  },800);
+}
+
+function saveUndoState(action){
+  UNDO_STACK.push({action:action,timestamp:Date.now(),data:_deepCopyS(S)});
+  if(UNDO_STACK.length>UNDO_MAX) UNDO_STACK.shift();
+  REDO_STACK=[];
+}
+
 function gs(){
   const s=S[TAB];
   // safety: ensure FEE exists (old localStorage saves won't have it)
@@ -4937,8 +4978,8 @@ function updGrid(){
   const el=document.getElementById('act-count');
   if(el)el.innerHTML=`<span>${act}</span> active · ${10-act} skipped`;
 }
-function onBT(i,v){gs().BT[i]=parseFloat(v)||0;updGrid();saveSection('trades');softUpdate();}
-function onFR(i,v){gs().FR[i]=parseInt(v)||0;updGrid();saveSection('trades');softUpdate();}
+function onBT(i,v){_captureUndo();gs().BT[i]=parseFloat(v)||0;updGrid();saveSection('trades');softUpdate();}
+function onFR(i,v){_captureUndo();gs().FR[i]=parseInt(v)||0;updGrid();saveSection('trades');softUpdate();}
 function stepBT(i,delta){
   const inp=document.getElementById('bt'+i);
   if(!inp)return;
@@ -4996,7 +5037,7 @@ function feeStep(id,mn,mx,delta,cb){
   inp.value=clamped;
   if(cb) cb();
 }
-function onKpiSl(v){gs().KPI=parseFloat(v);document.getElementById('kpi-vl').textContent=gs().KPI.toFixed(2)+'×';saveSection('pos');render();}
+function onKpiSl(v){_captureUndo();gs().KPI=parseFloat(v);document.getElementById('kpi-vl').textContent=gs().KPI.toFixed(2)+'×';saveSection('pos');render();}
 
 // ── SIMULATION ──
 function getMLabel(m){return 'm'+String(m).padStart(2,'0');}
@@ -5114,7 +5155,7 @@ let NOT_LINKED=localStorage.getItem('batt_not_linked')==='true'; // persist link
 // ON (default): each month's notional seeds from last trade's end notional — position grows with wins
 // OFF: every month resets to the fixed s.NOT — position stays constant regardless of results
 function toggleCarryForward(){
-  const s=gs();
+  _captureUndo();const s=gs();
   s.CF = s.CF===false ? true : false;
   saveSection('pos'); // CF is part of position state
   const btn=document.getElementById('cf-btn');
@@ -5173,7 +5214,7 @@ function onPushUp(m,v){
 }
 
 function onMP(m,v){
-  const val=parseFloat(v)||1.0;
+  _captureUndo();const val=parseFloat(v)||1.0;
   gs().MP[m]=Math.max(1,val);
   const el=document.getElementById('mp-inp-'+m);
   if(el) el.classList.toggle('active',val>1);
@@ -5195,26 +5236,7 @@ function dInput(el,fn,delay){
 
 var _softUpdateTimer=null;
 var _softUpdatePending=false;
-var _undoDebounceTimer=null;
-var _undoPreState=null;
-
 function softUpdate(){
-  // capture state snapshot BEFORE mutation for undo — debounced so rapid changes = one undo step
-  if(!_undoDebounceTimer){
-    _undoPreState=_deepCopyS(S); // snapshot before change
-  }
-  if(_undoDebounceTimer) clearTimeout(_undoDebounceTimer);
-  _undoDebounceTimer=setTimeout(function(){
-    if(_undoPreState){
-      // push the pre-change snapshot onto the stack
-      UNDO_STACK.push({action:'change',timestamp:Date.now(),data:_undoPreState});
-      if(UNDO_STACK.length>UNDO_MAX) UNDO_STACK.shift();
-      REDO_STACK=[];
-      _undoPreState=null;
-    }
-    _undoDebounceTimer=null;
-  }, 600);
-
   _softUpdatePending=true;
   if(_softUpdateTimer) return; // already scheduled
   _softUpdateTimer=requestAnimationFrame(function(){
@@ -6078,7 +6100,7 @@ function _softUpdateCore(){
 }
 
 function onWdInline(m,v){
-  const val=parseFloat(v)||0;
+  _captureUndo();const val=parseFloat(v)||0;
   gs().WD[m]=val;
   try{localStorage.setItem('batt_'+TAB+'_wd',JSON.stringify({WD:{...gs().WD}}));}catch(e){}
   _silentCloudSync();
@@ -6218,7 +6240,7 @@ const FEE_PRESETS={
 };
 
 function setFeeMethod(method){
-  gs().FEE.method=method;
+  _captureUndo();gs().FEE.method=method;
   const bm=document.getElementById('fee-msw-maker');
   const bt=document.getElementById('fee-msw-taker');
   if(bm)bm.classList.toggle('on',method==='maker');
@@ -6243,7 +6265,7 @@ function onFeeExchangeChange(ex){
 }
 
 function setSpotMode(isSpot){
-  // guest intercept — only block actual user-initiated switches, not internal init calls
+  _captureUndo();// guest intercept — only block actual user-initiated switches, not internal init calls
   if(isSpot && !(localStorage.getItem('batt_token')) && window.BATT_GUEST){
     showToast('🔐 guest mode — login or register to switch modes','info',3000);
     return;
@@ -6468,7 +6490,7 @@ async function _autoResaveActivePreset(){
 }
 
 function toggleLock(m, tno){
-  const s=gs();
+  _captureUndo();const s=gs();
   if(!s.LK) s.LK=new Set();
   const key=m+'-'+tno;
   if(s.LK.has(key)) s.LK.delete(key);
@@ -6535,7 +6557,7 @@ function isLocked(m, tno){
 }
 
 function toggleZeroMonth(m){
-  const s=gs();
+  _captureUndo();const s=gs();
   if(s.ZM.has(m)) s.ZM.delete(m);
   else s.ZM.add(m);
   try{localStorage.setItem('batt_'+TAB+'_zero',JSON.stringify({ZM:[...s.ZM]}));}catch(e){}
@@ -6552,7 +6574,7 @@ function toggleZeroMonth(m){
 
 // ── GLOBAL / MANUAL MODE ──
 function toggleGlobal(){
-  GLOBAL_MODE=!GLOBAL_MODE;
+  _captureUndo();GLOBAL_MODE=!GLOBAL_MODE;
   const btn=document.getElementById('global-toggle');
   const globalPanel=document.getElementById('sec-trd-global');
   const perMonthPanel=document.getElementById('sec-trd-permonth');
@@ -6681,7 +6703,7 @@ function getMonthTrades(m){
   return {bt:[...s.BT],fr:[...s.FR]};
 }
 function onManualBT(m,i,v){
-  if(isLocked(m,i+1)) return; // locked — ignore edit
+  _captureUndo();if(isLocked(m,i+1)) return; // locked — ignore edit
   const s=gs();
   if(!s.MT[m]) s.MT[m]={bt:[...s.BT],fr:[...s.FR]};
   s.MT[m].bt[i]=parseFloat(v)||0;
@@ -6689,7 +6711,7 @@ function onManualBT(m,i,v){
   softUpdate();
 }
 function onManualFR(m,i,v){
-  if(isLocked(m,i+1)) return; // locked — ignore edit
+  _captureUndo();if(isLocked(m,i+1)) return; // locked — ignore edit
   const s=gs();
   if(!s.MT[m]) s.MT[m]={bt:[...s.BT],fr:[...s.FR]};
   s.MT[m].fr[i]=parseInt(v)||0;
@@ -7073,20 +7095,6 @@ function render(){
   // preserve scroll so re-render doesn't feel like a page jump
   const _pr=document.querySelector('.panel-right');
   const _scrollY=_pr?_pr.scrollTop:0;
-  // capture undo state on direct render() calls (not via softUpdate)
-  if(!_undoDebounceTimer&&typeof _deepCopyS==='function'){
-    _undoPreState=_undoPreState||_deepCopyS(S);
-    clearTimeout(_undoDebounceTimer);
-    _undoDebounceTimer=setTimeout(function(){
-      if(_undoPreState){
-        UNDO_STACK.push({action:'change',timestamp:Date.now(),data:_undoPreState});
-        if(UNDO_STACK.length>UNDO_MAX) UNDO_STACK.shift();
-        REDO_STACK=[];
-        _undoPreState=null;
-      }
-      _undoDebounceTimer=null;
-    },600);
-  }
   updComp();
   const s=gs();
   const isQ=isQTab(TAB);
@@ -7731,7 +7739,7 @@ function renderGuide(){
 
 // ── CONTROLS ──
 function setP(v,btn){
-  const s=gs();
+  _captureUndo();const s=gs();
   const ratio=s.NOT/s.P; // preserve current ratio
   s.P=v;
   if(NOT_LINKED){
@@ -7748,7 +7756,7 @@ function setP(v,btn){
   saveSection('cap');render();
 }
 function onCapIn(v){
-  const s=gs();
+  _captureUndo();const s=gs();
   const ratio=s.NOT/s.P; // preserve current ratio
   s.P=Math.max(1,parseFloat(v)||s.P);
   if(NOT_LINKED){
@@ -7762,7 +7770,7 @@ function onCapIn(v){
   document.querySelectorAll('#cap-prs .pr').forEach(b=>b.classList.remove('on'));saveSection('cap');softUpdate();
 }
 function onCapSl(v){
-  const s=gs();
+  _captureUndo();const s=gs();
   const ratio=s.NOT/s.P; // preserve current ratio
   s.P=parseInt(v);
   if(NOT_LINKED){
@@ -7776,35 +7784,35 @@ function onCapSl(v){
   document.querySelectorAll('#cap-prs .pr').forEach(b=>b.classList.remove('on'));saveSection('cap');softUpdate();
 }
 function setLev(v,btn){
-  const s=gs();s.LEV=v;
+  _captureUndo();const s=gs();s.LEV=v;
   document.getElementById('lv-sl').value=v;document.getElementById('lv-in').value=v;document.getElementById('lv-vl').textContent=v+'×';
   document.querySelectorAll('#lv-prs .pr').forEach(b=>b.classList.remove('on'));
   if(btn)btn.classList.add('on');saveSection('pos');softUpdate();
 }
 function onLevIn(v){
-  const s=gs();s.LEV=Math.max(1,parseInt(v)||s.LEV);
+  _captureUndo();const s=gs();s.LEV=Math.max(1,parseInt(v)||s.LEV);
   document.getElementById('lv-sl').value=Math.min(s.LEV,50);document.getElementById('lv-vl').textContent=s.LEV+'×';
   document.querySelectorAll('#lv-prs .pr').forEach(b=>b.classList.remove('on'));saveSection('pos');softUpdate();
 }
 function onLevSl(v){
-  const s=gs();s.LEV=parseInt(v);
+  _captureUndo();const s=gs();s.LEV=parseInt(v);
   document.getElementById('lv-in').value=s.LEV;document.getElementById('lv-vl').textContent=s.LEV+'×';
   document.querySelectorAll('#lv-prs .pr').forEach(b=>b.classList.remove('on'));saveSection('pos');softUpdate();
 }
 function onNotIn(v){
-  const s=gs();s.NOT=Math.max(1,parseFloat(v)||s.NOT);
+  _captureUndo();const s=gs();s.NOT=Math.max(1,parseFloat(v)||s.NOT);
   document.getElementById('not-sl').value=Math.min(s.NOT,100000000000);
   document.getElementById('not-vl').textContent='$'+s.NOT.toLocaleString();
   document.querySelectorAll('#not-prs .pr').forEach(b=>b.classList.remove('on'));saveSection('pos');softUpdate();
 }
 function onNotSl(v){
-  const s=gs();s.NOT=parseInt(v);
+  _captureUndo();const s=gs();s.NOT=parseInt(v);
   document.getElementById('not-in').value=s.NOT;
   document.getElementById('not-vl').textContent='$'+s.NOT.toLocaleString();
   document.querySelectorAll('#not-prs .pr').forEach(b=>b.classList.remove('on'));saveSection('pos');softUpdate();
 }
 function setNot(v,btn){
-  const s=gs();s.NOT=v;
+  _captureUndo();const s=gs();s.NOT=v;
   document.getElementById('not-in').value=v;
   document.getElementById('not-sl').value=Math.min(v,100000000000);
   document.getElementById('not-vl').textContent='$'+v.toLocaleString();
@@ -14024,33 +14032,7 @@ function aiSetLang(lang){
 // ███ POWER USER FEATURES (Hidden but Discoverable) ███
 // ══════════════════════════════════════════════════════════════
 
-// ── UNDO/REDO SYSTEM ──
-var UNDO_STACK = [];
-var REDO_STACK = [];
-var UNDO_MAX = 50;
-
-function _deepCopyS(src){
-  const out={};
-  Object.keys(src).forEach(tabId=>{
-    const t=src[tabId];
-    out[tabId]={...t,
-      ZM:t.ZM?new Set(t.ZM):new Set(),
-      LK:t.LK?new Set(t.LK):new Set()
-    };
-  });
-  return out;
-}
-
-function saveUndoState(action) {
-  const state = {
-    action: action,
-    timestamp: Date.now(),
-    data: _deepCopyS(S)
-  };
-  UNDO_STACK.push(state);
-  if (UNDO_STACK.length > UNDO_MAX) UNDO_STACK.shift();
-  REDO_STACK = [];
-}
+// ── UNDO/REDO SYSTEM moved to top ──
 
 function undo() {
   if (UNDO_STACK.length === 0) {
