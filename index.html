@@ -4693,9 +4693,19 @@ function _deepCopyS(src){
   Object.keys(src).forEach(tabId=>{
     const t=src[tabId];
     if(typeof t!=='object'||t===null){out[tabId]=t;return;}
-    out[tabId]={...t,
+    // deep copy all nested plain objects so mutations don't bleed into snapshots
+    out[tabId]={
+      ...t,
+      BT:t.BT?[...t.BT]:[],
+      FR:t.FR?[...t.FR]:[],
       ZM:t.ZM?new Set(t.ZM):new Set(),
-      LK:t.LK?new Set(t.LK):new Set()
+      LK:t.LK?new Set(t.LK):new Set(),
+      WD:t.WD?{...t.WD}:{},
+      MP:t.MP?{...t.MP}:{},
+      ML:t.ML?{...t.ML}:{},
+      TL:t.TL?{...t.TL}:{},
+      MT:t.MT?JSON.parse(JSON.stringify(t.MT)):{}, // nested arrays inside
+      FEE:t.FEE?{...t.FEE}:{}
     };
   });
   return out;
@@ -4989,8 +4999,8 @@ function updGrid(){
   const el=document.getElementById('act-count');
   if(el)el.innerHTML=`<span>${act}</span> active · ${10-act} skipped`;
 }
-function onBT(i,v){_captureUndo();gs().BT[i]=parseFloat(v)||0;updGrid();saveSection('trades');softUpdate();}
-function onFR(i,v){_captureUndo();gs().FR[i]=parseInt(v)||0;updGrid();saveSection('trades');softUpdate();}
+function onBT(i,v){gs().BT[i]=parseFloat(v)||0;updGrid();saveSection('trades');softUpdate();}
+function onFR(i,v){gs().FR[i]=parseInt(v)||0;updGrid();saveSection('trades');softUpdate();}
 function stepBT(i,delta){
   const inp=document.getElementById('bt'+i);
   if(!inp)return;
@@ -5225,9 +5235,9 @@ function onPushUp(m,v){
 }
 
 function onMP(m,v){
-  _captureUndo();const val=parseFloat(v)||1.0;
+  const val=parseFloat(v)||1.0;
   gs().MP[m]=Math.max(1,val);
-  const el=document.getElementById('mp-inp-'+m);
+  const el=document.getElementById('mp-inp-d-'+m)||document.getElementById('mp-inp-'+m);
   if(el) el.classList.toggle('active',val>1);
   _silentCloudSync();
   softUpdate();
@@ -5239,6 +5249,8 @@ var _dInputTimers={};
 var _oldVals={};
 function dInput(el,fn,delay){
   const id=el.id||el.name||Math.random();
+  // capture undo state NOW — before any mutation — on first keystroke
+  if(!_dInputTimers[id]) _captureUndo();
   if(_dInputTimers[id]) clearTimeout(_dInputTimers[id]);
   _dInputTimers[id]=setTimeout(function(){
     delete _dInputTimers[id];
@@ -7793,7 +7805,7 @@ function setP(v,btn){
   saveSection('cap');render();
 }
 function onCapIn(v){
-  _captureUndo();const s=gs();
+  const s=gs();
   const ratio=s.NOT/s.P; // preserve current ratio
   s.P=Math.max(1,parseFloat(v)||s.P);
   if(NOT_LINKED){
@@ -7827,7 +7839,7 @@ function setLev(v,btn){
   if(btn)btn.classList.add('on');saveSection('pos');softUpdate();
 }
 function onLevIn(v){
-  _captureUndo();const s=gs();s.LEV=Math.max(1,parseInt(v)||s.LEV);
+  const s=gs();s.LEV=Math.max(1,parseInt(v)||s.LEV);
   document.getElementById('lv-sl').value=Math.min(s.LEV,50);document.getElementById('lv-vl').textContent=s.LEV+'×';
   document.querySelectorAll('#lv-prs .pr').forEach(b=>b.classList.remove('on'));saveSection('pos');softUpdate();
 }
@@ -7837,7 +7849,7 @@ function onLevSl(v){
   document.querySelectorAll('#lv-prs .pr').forEach(b=>b.classList.remove('on'));saveSection('pos');softUpdate();
 }
 function onNotIn(v){
-  _captureUndo();const s=gs();s.NOT=Math.max(1,parseFloat(v)||s.NOT);
+  const s=gs();s.NOT=Math.max(1,parseFloat(v)||s.NOT);
   document.getElementById('not-sl').value=Math.min(s.NOT,100000000000);
   document.getElementById('not-vl').textContent='$'+s.NOT.toLocaleString();
   document.querySelectorAll('#not-prs .pr').forEach(b=>b.classList.remove('on'));saveSection('pos');softUpdate();
@@ -14091,6 +14103,10 @@ function undo() {
     if(S[k]&&Array.isArray(S[k].ZM)) S[k].ZM=new Set(S[k].ZM);
     if(S[k]&&Array.isArray(S[k].LK)) S[k].LK=new Set(S[k].LK);
   });
+  // cancel any pending debounced inputs — prevents stale values firing after restore
+  Object.keys(_dInputTimers).forEach(k=>{clearTimeout(_dInputTimers[k]);delete _dInputTimers[k];});
+  // cancel pending undo capture so restored state isn't immediately snapshotted
+  if(_undoTimer){clearTimeout(_undoTimer);_undoTimer=null;_undoSnap=null;}
   if(typeof saveSection==='function'){
     ['cap','pos','trades','fee'].forEach(sec=>saveSection(sec));
   }
@@ -14116,6 +14132,8 @@ function redo() {
     if(S[k]&&Array.isArray(S[k].ZM)) S[k].ZM=new Set(S[k].ZM);
     if(S[k]&&Array.isArray(S[k].LK)) S[k].LK=new Set(S[k].LK);
   });
+  Object.keys(_dInputTimers).forEach(k=>{clearTimeout(_dInputTimers[k]);delete _dInputTimers[k];});
+  if(_undoTimer){clearTimeout(_undoTimer);_undoTimer=null;_undoSnap=null;}
   if(typeof saveSection==='function'){
     ['cap','pos','trades','fee'].forEach(sec=>saveSection(sec));
   }
