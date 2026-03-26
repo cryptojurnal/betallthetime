@@ -1375,75 +1375,80 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 .mgrid-lbl{font-size:8px;color:var(--tx3);text-align:center;margin-bottom:1px}
 
 /* ── TRADE JOURNAL ── */
-#journal-page{position:fixed;inset:0;z-index:9600;background:#000;display:none;flex-direction:column;opacity:0;transform:translateY(8px);transition:opacity .3s cubic-bezier(0.4,0,0.2,1),transform .3s cubic-bezier(0.4,0,0.2,1)}
+#journal-page{position:fixed;inset:0;z-index:9600;background:#080808;display:none;flex-direction:column;opacity:0;transform:translateY(6px);transition:opacity .25s cubic-bezier(0.4,0,0.2,1),transform .25s cubic-bezier(0.4,0,0.2,1)}
 #journal-page.visible{opacity:1;transform:translateY(0)}
-.jn-header{display:flex;align-items:center;gap:12px;padding:14px 20px;border-bottom:0.5px solid #1a1a1a;background:#000;flex-shrink:0}
-.jn-back{background:none;border:0.5px solid #222;border-radius:8px;color:#888;font-size:11px;cursor:pointer;padding:6px 12px;font-family:inherit;transition:all .2s}
-.jn-back:hover{border-color:#444;color:#fff}
-.jn-title{font-size:15px;font-weight:800;color:#fff;letter-spacing:-.02em;flex:1}
+/* header */
+.jn-header{display:flex;align-items:center;gap:14px;padding:12px 24px;border-bottom:0.5px solid #141414;background:#080808;flex-shrink:0;height:48px}
+.jn-back{background:none;border:0.5px solid #1e1e1e;border-radius:7px;color:#555;font-size:11px;cursor:pointer;padding:5px 12px;font-family:inherit;transition:all .18s;white-space:nowrap}
+.jn-back:hover{border-color:#333;color:#bbb}
+.jn-title{font-size:14px;font-weight:800;color:#d0d0d0;letter-spacing:-.02em}
 .jn-title span{color:#00c47a}
-.jn-body{flex:1;overflow-y:auto;padding:20px;scrollbar-width:none}
+.jn-body{flex:1;overflow-y:auto;padding:24px 28px 60px;scrollbar-width:none;max-width:1100px;width:100%}
 .jn-body::-webkit-scrollbar{display:none}
+/* breadcrumb */
+.jn-breadcrumb{display:flex;align-items:center;gap:5px;font-size:11px;color:#2e2e2e;flex:1}
+.jn-breadcrumb span{cursor:pointer;transition:color .15s;color:#2e2e2e}
+.jn-breadcrumb span:hover{color:#00c47a}
+.jn-breadcrumb .sep{cursor:default;color:#1a1a1a;font-size:10px}
 /* folder grid */
-.jn-folders{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:24px}
-.jn-folder{background:#0a0a0a;border:0.5px solid #1a1a1a;border-radius:12px;padding:16px;cursor:pointer;transition:all .2s cubic-bezier(0.4,0,0.2,1);position:relative;overflow:hidden}
-.jn-folder:hover{border-color:#00c47a;transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,196,122,0.08)}
-.jn-folder-color{width:3px;height:100%;position:absolute;left:0;top:0;border-radius:12px 0 0 12px}
-.jn-folder-name{font-size:13px;font-weight:700;color:#e0e0e0;margin-bottom:6px;padding-left:8px}
-.jn-folder-meta{font-size:10px;color:#444;padding-left:8px;display:flex;gap:10px}
-.jn-folder-pnl{font-size:12px;font-weight:700;padding-left:8px;margin-top:4px}
+.jn-folders{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin-bottom:8px}
+.jn-folder{background:#0c0c0c;border:0.5px solid #161616;border-radius:10px;padding:14px 14px 12px;cursor:pointer;transition:all .18s cubic-bezier(0.4,0,0.2,1);position:relative;overflow:hidden}
+.jn-folder:hover{border-color:#2a2a2a;transform:translateY(-1px);box-shadow:0 6px 20px rgba(0,0,0,0.3)}
+.jn-folder-color{width:2px;height:calc(100% - 16px);position:absolute;left:0;top:8px;border-radius:2px}
+.jn-folder-name{font-size:12px;font-weight:700;color:#c0c0c0;margin-bottom:5px;padding-left:10px;line-height:1.3}
+.jn-folder-meta{font-size:10px;color:#2e2e2e;padding-left:10px;display:flex;gap:8px}
+.jn-folder-pnl{font-size:11px;font-weight:700;padding-left:10px;margin-top:5px}
 .jn-folder-pnl.up{color:#00c47a}
 .jn-folder-pnl.dn{color:#E24B4A}
-.jn-folder-tags{display:flex;gap:4px;flex-wrap:wrap;padding-left:8px;margin-top:6px}
-.jn-tag{font-size:8px;padding:2px 6px;border-radius:4px;border:0.5px solid #2a2a2a;color:#555;font-weight:600;letter-spacing:.04em}
-.jn-folder-new{border-style:dashed;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;color:#333;font-size:12px;min-height:80px}
-.jn-folder-new:hover{border-color:#00c47a;color:#00c47a}
-/* trade list inside folder */
-.jn-folder-header{display:flex;align-items:center;gap:12px;margin-bottom:16px}
-.jn-folder-header-name{font-size:18px;font-weight:800;color:#fff;flex:1}
-.jn-stats-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px}
-.jn-stat{background:#0a0a0a;border:0.5px solid #1a1a1a;border-radius:8px;padding:10px 12px}
-.jn-stat-lbl{font-size:8px;color:#444;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px}
-.jn-stat-val{font-size:16px;font-weight:800;color:#e0e0e0}
+.jn-folder-tags{display:flex;gap:3px;flex-wrap:wrap;padding-left:10px;margin-top:6px}
+.jn-tag{font-size:8px;padding:1px 5px;border-radius:3px;background:#111;color:#333;font-weight:600;letter-spacing:.03em}
+.jn-folder-new{border:0.5px dashed #1a1a1a;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;color:#252525;font-size:11px;min-height:76px;border-radius:10px;background:#0a0a0a;transition:all .18s}
+.jn-folder-new:hover{border-color:#2a2a2a;color:#555;background:#0d0d0d}
+/* stats bar — compact inline row */
+.jn-stats-bar{display:flex;gap:0;margin-bottom:18px;border:0.5px solid #141414;border-radius:8px;overflow:hidden}
+.jn-stat{flex:1;padding:10px 14px;border-right:0.5px solid #141414}
+.jn-stat:last-child{border-right:none}
+.jn-stat-lbl{font-size:8px;color:#2e2e2e;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px;font-weight:700}
+.jn-stat-val{font-size:14px;font-weight:800;color:#888}
 .jn-stat-val.up{color:#00c47a}
 .jn-stat-val.dn{color:#E24B4A}
 /* trade table */
 .jn-table{width:100%;border-collapse:collapse}
-.jn-table th{font-size:8px;color:#333;text-transform:uppercase;letter-spacing:.06em;padding:6px 10px;border-bottom:0.5px solid #1a1a1a;text-align:left;font-weight:700}
-.jn-table tr.jn-trade-row{cursor:pointer;transition:background .15s}
+.jn-table thead tr{border-bottom:0.5px solid #141414}
+.jn-table th{font-size:9px;color:#2a2a2a;text-transform:uppercase;letter-spacing:.07em;padding:8px 12px;text-align:left;font-weight:700;background:#080808}
+.jn-table tr.jn-trade-row{cursor:pointer;transition:background .12s}
 .jn-table tr.jn-trade-row:hover td{background:#0d0d0d}
-.jn-table td{padding:10px;border-bottom:0.5px solid #0d0d0d;font-size:11px;color:#888;vertical-align:middle}
-.jn-table td:first-child{color:#e0e0e0;font-weight:600}
+.jn-table td{padding:10px 12px;border-bottom:0.5px solid #0f0f0f;font-size:11px;color:#555;vertical-align:middle}
+.jn-table td.jn-td-pair{color:#bbb;font-weight:700;font-size:12px}
+.jn-table td.jn-td-date{color:#333;font-size:10px}
 .jn-win{color:#00c47a;font-weight:700}
 .jn-loss{color:#E24B4A;font-weight:700}
-.jn-side-long{background:#0a2a1a;color:#00c47a;font-size:8px;padding:2px 6px;border-radius:4px;font-weight:700}
-.jn-side-short{background:#2a0a0a;color:#E24B4A;font-size:8px;padding:2px 6px;border-radius:4px;font-weight:700}
+.jn-side-long{background:rgba(0,196,122,0.08);color:#00c47a;font-size:8px;padding:2px 7px;border-radius:4px;font-weight:700;letter-spacing:.04em;border:0.5px solid rgba(0,196,122,0.15)}
+.jn-side-short{background:rgba(226,75,74,0.08);color:#E24B4A;font-size:8px;padding:2px 7px;border-radius:4px;font-weight:700;letter-spacing:.04em;border:0.5px solid rgba(226,75,74,0.15)}
 .jn-emotion{font-size:14px}
 /* trade detail */
-.jn-detail{background:#0a0a0a;border:0.5px solid #1a1a1a;border-radius:12px;padding:20px;margin-bottom:12px}
-.jn-detail-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
-.jn-detail-field{display:flex;flex-direction:column;gap:3px}
-.jn-detail-lbl{font-size:8px;color:#333;text-transform:uppercase;letter-spacing:.06em;font-weight:700}
-.jn-detail-val{font-size:13px;color:#e0e0e0;font-weight:600}
-.jn-notes-area{width:100%;background:transparent;border:0.5px solid #1a1a1a;border-radius:8px;color:#e0e0e0;font-size:12px;padding:10px;font-family:inherit;resize:vertical;min-height:60px;outline:none;transition:border-color .2s;box-sizing:border-box}
+.jn-detail{background:#0c0c0c;border:0.5px solid #161616;border-radius:10px;padding:18px;margin-bottom:12px}
+.jn-detail-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin-bottom:16px;border:0.5px solid #141414;border-radius:7px;overflow:hidden}
+.jn-detail-field{display:flex;flex-direction:column;gap:3px;padding:10px 12px;border-right:0.5px solid #141414;border-bottom:0.5px solid #141414}
+.jn-detail-field:nth-child(4n){border-right:none}
+.jn-detail-field:nth-last-child(-n+4){border-bottom:none}
+.jn-detail-lbl{font-size:8px;color:#2a2a2a;text-transform:uppercase;letter-spacing:.07em;font-weight:700}
+.jn-detail-val{font-size:12px;color:#aaa;font-weight:600}
+.jn-notes-area{width:100%;background:#0a0a0a;border:0.5px solid #161616;border-radius:7px;color:#aaa;font-size:12px;padding:10px 12px;font-family:inherit;resize:vertical;min-height:64px;outline:none;transition:border-color .18s;box-sizing:border-box;line-height:1.6}
 .jn-notes-area:focus{border-color:#00c47a}
-.jn-add-btn{background:#00c47a;color:#000;border:none;border-radius:8px;padding:10px 20px;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;letter-spacing:.06em;transition:all .2s}
+.jn-add-btn{background:#00c47a;color:#000;border:none;border-radius:7px;padding:8px 18px;font-size:10px;font-weight:800;cursor:pointer;font-family:inherit;letter-spacing:.07em;transition:all .18s}
 .jn-add-btn:hover{background:#00e88e}
-.jn-sec-title{font-size:9px;color:#333;text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.jn-sec-title{font-size:8px;color:#222;text-transform:uppercase;letter-spacing:.1em;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:8px}
 .jn-sec-title::after{content:'';flex:1;height:0.5px;background:#111}
-.jn-empty{text-align:center;padding:40px 20px;color:#333;font-size:12px}
-.jn-empty-icon{font-size:32px;margin-bottom:12px}
-.jn-btn-sm{background:none;border:0.5px solid #222;border-radius:6px;color:#555;font-size:9px;cursor:pointer;padding:4px 10px;font-family:inherit;font-weight:700;transition:all .2s}
-.jn-btn-sm:hover{border-color:#444;color:#e0e0e0}
+.jn-empty{text-align:center;padding:48px 20px;color:#252525;font-size:11px;line-height:1.8}
+.jn-empty-icon{font-size:28px;margin-bottom:10px;opacity:.5}
+.jn-btn-sm{background:none;border:0.5px solid #1a1a1a;border-radius:5px;color:#333;font-size:9px;cursor:pointer;padding:3px 9px;font-family:inherit;font-weight:700;transition:all .18s}
+.jn-btn-sm:hover{border-color:#333;color:#aaa}
 .jn-btn-sm.danger:hover{border-color:#E24B4A;color:#E24B4A}
 .jn-btn-sm.primary{background:#00c47a;border-color:#00c47a;color:#000}
 .jn-btn-sm.primary:hover{background:#00e88e}
-.jn-breadcrumb{font-size:11px;color:#333;display:flex;align-items:center;gap:6px}
-.jn-breadcrumb span{cursor:pointer;transition:color .15s}
-.jn-breadcrumb span:hover{color:#00c47a}
-.jn-breadcrumb .sep{cursor:default;color:#222}
-.jn-import-banner{background:#0a1a0a;border:0.5px solid #004d30;border-radius:8px;padding:10px 14px;display:flex;align-items:center;gap:10px;margin-bottom:16px;font-size:11px;color:#00c47a}
-.jn-import-banner button{background:#00c47a;border:none;border-radius:6px;color:#000;font-size:10px;font-weight:700;padding:4px 10px;cursor:pointer;font-family:inherit;margin-left:auto;flex-shrink:0}
+.jn-import-banner{background:rgba(0,196,122,0.04);border:0.5px solid rgba(0,196,122,0.12);border-radius:7px;padding:9px 14px;display:flex;align-items:center;gap:10px;margin-bottom:16px;font-size:10px;color:#3d6e52}
+.jn-import-banner button{background:#00c47a;border:none;border-radius:5px;color:#000;font-size:9px;font-weight:800;padding:4px 10px;cursor:pointer;font-family:inherit;margin-left:auto;flex-shrink:0;letter-spacing:.04em}
 /* ── INTRO LAYERS ── */
 #layer1,#layer2{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;flex-direction:column;background:#000;transition:opacity .7s cubic-bezier(0.4,0,0.2,1),transform .7s cubic-bezier(0.4,0,0.2,1);will-change:opacity,transform}
 #layer1.out,#layer2.out{opacity:0;transform:scale(1.02);pointer-events:none}
@@ -16549,10 +16554,12 @@ function jnRenderList(){
   const totalFees=trades.reduce((a,t)=>a+(t.fee||0),0);
 
   let html=`<div class="jn-stats-bar">
-    <div class="jn-stat"><div class="jn-stat-lbl">total trades</div><div class="jn-stat-val">${trades.length}</div></div>
+    <div class="jn-stat"><div class="jn-stat-lbl">trades</div><div class="jn-stat-val">${trades.length}</div></div>
     <div class="jn-stat"><div class="jn-stat-lbl">win rate</div><div class="jn-stat-val ${wr>=50?'up':'dn'}">${wr}%</div></div>
+    <div class="jn-stat"><div class="jn-stat-lbl">W / L</div><div class="jn-stat-val">${wins}<span style="color:#1e1e1e;font-weight:400"> / </span>${losses}</div></div>
     <div class="jn-stat"><div class="jn-stat-lbl">total PnL</div><div class="jn-stat-val ${totalPnl>=0?'up':'dn'}">${totalPnl>=0?'+':''}$${totalPnl.toFixed(2)}</div></div>
-    <div class="jn-stat"><div class="jn-stat-lbl">total fees</div><div class="jn-stat-val" style="color:#E24B4A">-$${totalFees.toFixed(2)}</div></div>
+    <div class="jn-stat"><div class="jn-stat-lbl">avg PnL</div><div class="jn-stat-val ${avgPnl>=0?'up':'dn'}">${avgPnl>=0?'+':''}$${avgPnl.toFixed(2)}</div></div>
+    <div class="jn-stat"><div class="jn-stat-lbl">fees paid</div><div class="jn-stat-val" style="color:#2a2a2a">$${totalFees.toFixed(2)}</div></div>
   </div>`;
 
   if(trades.length===0){
@@ -16563,7 +16570,7 @@ function jnRenderList(){
     </div>`;
   } else {
     html+=`<table class="jn-table"><thead><tr>
-      <th>date</th><th>pair</th><th>side</th><th>entry</th><th>exit</th><th>size</th><th>PnL</th><th>%</th><th>mood</th><th></th>
+      <th style="width:90px">date</th><th>pair</th><th>side</th><th>entry</th><th>exit</th><th>size</th><th>PnL</th><th style="width:60px">%</th><th style="width:40px">mood</th><th style="width:30px"></th>
     </tr></thead><tbody>`;
     trades.forEach(t=>{
       const d=new Date(t.closedAt);
@@ -16572,8 +16579,8 @@ function jnRenderList(){
       const pnlStr=(t.pnl>=0?'+':'')+t.pnl.toFixed(2);
       const pctStr=(t.pct>=0?'+':'')+t.pct.toFixed(1)+'%';
       html+=`<tr class="jn-trade-row" onclick="jnOpenTrade('${t.id}')">
-        <td>${ds}</td>
-        <td style="font-weight:700;color:#e0e0e0">${t.pair||'—'}</td>
+        <td class="jn-td-date">${ds}</td>
+        <td class="jn-td-pair">${t.pair||'—'}</td>
         <td><span class="${t.side==='long'?'jn-side-long':'jn-side-short'}">${(t.side||'').toUpperCase()}</span></td>
         <td>$${parseFloat(t.entry||0).toFixed(2)}</td>
         <td>$${parseFloat(t.exit||0).toFixed(2)}</td>
