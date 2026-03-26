@@ -2509,7 +2509,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 <!-- user bar shown after login (draggable) -->
 <div class="auth-user-bar hidden" id="auth-user-bar">
   <span id="auth-username-lbl" style="cursor:pointer" onclick="event.stopPropagation();if(!window._ubWasDragged)memberOpen();">@user</span>
-  <span id="auth-preset-lbl" style="font-size:9px;color:#00c47a;opacity:.6;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:none"></span>
+  <span id="auth-preset-lbl" style="font-size:9px;color:#00c47a;opacity:.6;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:none;cursor:default"></span><button id="auth-preset-clear" onclick="event.stopPropagation();clearActivePreset()" title="exit preset — keep current state but stop auto-saving to this preset" style="display:none;background:none;border:none;color:#00c47a;opacity:.4;font-size:9px;cursor:pointer;padding:0;font-family:inherit;line-height:1;transition:opacity .2s" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.4'">✕</button>
   <button class="auth-sync-btn" id="auth-sync-main-btn" onclick="event.stopPropagation();authSave()" title="auto-synced — click to force sync">↑ sync</button>
   <button class="auth-sync-btn" onclick="event.stopPropagation();backToMemberArea()" title="member area" style="color:#00c47a">☰</button>
   <button class="auth-sync-btn auth-logout-btn" onclick="event.stopPropagation();authLogout()" title="logout">← out</button>
@@ -4893,7 +4893,7 @@ function loadAll(){
     });
   });
   try{const t=localStorage.getItem('batt_theme');if(t)THEME=t;}catch(e){}
-  try{const ap=localStorage.getItem('batt_active_preset');if(ap)window._ACTIVE_PRESET=JSON.parse(ap);}catch(e){}
+  try{const ap=localStorage.getItem('batt_active_preset');if(ap){window._ACTIVE_PRESET=JSON.parse(ap);const _pbl=document.getElementById('auth-preset-lbl');const _pbc=document.getElementById('auth-preset-clear');if(_pbl&&window._ACTIVE_PRESET){_pbl.textContent='● '+window._ACTIVE_PRESET.name;_pbl.style.display='';}if(_pbc&&window._ACTIVE_PRESET)_pbc.style.display='';}}catch(e){}
 }
 
 function syncControls(){
@@ -6513,7 +6513,9 @@ async function _autoResaveActivePreset(){
         window._ACTIVE_PRESET={id:match.id,name};
         try{localStorage.setItem('batt_active_preset',JSON.stringify(window._ACTIVE_PRESET));}catch(e){}
         const _pbl=document.getElementById('auth-preset-lbl');
+        const _pbc=document.getElementById('auth-preset-clear');
         if(_pbl){_pbl.textContent='● '+name;_pbl.style.display='';}
+        if(_pbc) _pbc.style.display='';
       }
       presetRenderList();
     }
@@ -9056,7 +9058,9 @@ async function presetLoad(id){
     window._ACTIVE_PRESET = {id: preset.id, name: preset.name};
     try{localStorage.setItem('batt_active_preset',JSON.stringify({id:preset.id,name:preset.name}));}catch(e){}
     const _pbl2=document.getElementById('auth-preset-lbl');
+    const _pbc2=document.getElementById('auth-preset-clear');
     if(_pbl2){_pbl2.textContent='● '+preset.name;_pbl2.style.display='';}
+    if(_pbc2) _pbc2.style.display='';
 
     showToast('Preset "'+preset.name+'" loaded!','success');
     if(typeof logActivity==='function') logActivity('preset_load',{name:preset.name});
@@ -9084,6 +9088,10 @@ async function presetDelete(id,name){
       if(window._ACTIVE_PRESET&&window._ACTIVE_PRESET.id===id){
         window._ACTIVE_PRESET=null;
         try{localStorage.removeItem('batt_active_preset');}catch(e){}
+        const _dpbl=document.getElementById('auth-preset-lbl');
+        const _dpbc=document.getElementById('auth-preset-clear');
+        if(_dpbl){_dpbl.textContent='';_dpbl.style.display='none';}
+        if(_dpbc) _dpbc.style.display='none';
       }
       showToast('Preset deleted','info');
       if(typeof logActivity==='function') logActivity('preset_delete',{name});
@@ -16260,6 +16268,16 @@ function battUpdateGuestUI(){
     if(guestBanner) guestBanner.style.display='flex';
     if(spotSwitcher){ spotSwitcher.style.display=''; spotSwitcher.setAttribute('data-guest','1'); }
   }
+}
+
+function clearActivePreset(){
+  window._ACTIVE_PRESET=null;
+  try{localStorage.removeItem('batt_active_preset');}catch(e){}
+  const lbl=document.getElementById('auth-preset-lbl');
+  const btn=document.getElementById('auth-preset-clear');
+  if(lbl){lbl.textContent='';lbl.style.display='none';}
+  if(btn) btn.style.display='none';
+  showToast('Preset unlinked — auto-save disabled','info',2000);
 }
 
 function guestGoLogin(){
