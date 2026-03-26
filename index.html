@@ -1326,6 +1326,12 @@ tr:nth-child(even) td{background:var(--sf)}
 tr.mo-sep>td,tr.mo-gap>td{padding:0!important;border:none!important}
 tr.mh>td{background:var(--mh)!important;color:var(--mhc)!important;font-weight:700;font-size:11px;padding:4px 5px}
 tr.mh-z>td{background:var(--sf2)!important;color:var(--tx2)!important;font-size:10px;padding:5px 7px}
+tr.locked-row>td{background:rgba(0,196,122,0.04)!important;opacity:.75}
+tr.locked-row{border-left:2px solid #00c47a}
+.lock-btn{background:none;border:0.5px solid var(--bd2);border-radius:3px;cursor:pointer;font-size:9px;padding:1px 4px;color:var(--tx3);transition:all .15s;font-family:inherit;line-height:1}
+.lock-btn:hover{border-color:#00c47a;color:#00c47a}
+.lock-btn.locked{border-color:#00c47a;color:#00c47a;background:rgba(0,196,122,0.1)}
+.locked-overlay{pointer-events:none;opacity:.4}
 tr.skip-row>td{color:var(--tx3);font-style:italic}
 tr.zero-row>td{color:var(--tx3);font-style:italic}
 
@@ -4657,7 +4663,7 @@ let FEE_LIVE={rate:null, exchange:'binance', symbol:'BTCUSDT', loading:false};
 // TABS is an ordered array of tab descriptors
 // built-in tabs: id='36' name='36-month', id='q' name='quarter'
 // custom tabs: id='c1','c2',... name=user-defined, max 5 custom per panel (built-in + custom ≤ 7 total)
-function mkState(){return{P:1000,LEV:5,NOT:2500,KPI:1.0,BT:[...DEF_BT],FR:[...DEF_FR],WD:{},ML:{},TL:{},MT:{},ZM:new Set([]),MP:{},SPOT:false,CF:true,FEE:{maker:0.02,taker:0.05,funding:0.01,interval:8,holds:1,method:'taker'}};}
+function mkState(){return{P:1000,LEV:5,NOT:2500,KPI:1.0,BT:[...DEF_BT],FR:[...DEF_FR],WD:{},ML:{},TL:{},MT:{},ZM:new Set([]),MP:{},LK:new Set([]),SPOT:false,CF:true,FEE:{maker:0.02,taker:0.05,funding:0.01,interval:8,holds:1,method:'taker'}};}
 const S={
   '36': mkState(),
   'q':  mkState(),
@@ -4784,7 +4790,7 @@ function loadAll(){
   const allTabIds=['36','q',...CUSTOM_TABS.map(t=>t.id)];
   allTabIds.forEach(tab=>{
     if(!S[tab])S[tab]=mkState();
-    ['cap','pos','trades','wd','labels','zero','fee'].forEach(sec=>{
+    ['cap','pos','trades','wd','labels','zero','fee','lk'].forEach(sec=>{
       const key='wz_'+tab+'_'+sec;
       try{
         const raw=localStorage.getItem(key);
@@ -4796,6 +4802,7 @@ function loadAll(){
         if(sec==='wd'&&d.WD)S[tab].WD={...d.WD};
         if(sec==='labels'){if(d.ML)S[tab].ML={...d.ML};if(d.TL)S[tab].TL={...d.TL};}
         if(sec==='zero'&&d.ZM)S[tab].ZM=new Set(d.ZM);
+        if(sec==='lk'&&d.LK)S[tab].LK=new Set(d.LK);
         if(sec==='fee'){if(d.FEE)S[tab].FEE={...S[tab].FEE,...d.FEE};if(d.SPOT!==undefined)S[tab].SPOT=d.SPOT;}
       }catch(e){}
     });
@@ -4897,6 +4904,11 @@ function updGrid(){
     document.getElementById('btc'+i)?.classList.toggle('skipped',skip);
     document.getElementById('frc'+i)?.classList.toggle('skipped',skip);
     if(!skip)act++;
+    // restore any previously disabled global inputs (locks are per-month, not global)
+    const btEl=document.getElementById('bt'+i);
+    const frEl=document.getElementById('fr'+i);
+    if(btEl){btEl.disabled=false;btEl.title='';}
+    if(frEl){frEl.disabled=false;frEl.title='';}
   }
   const el=document.getElementById('act-count');
   if(el)el.innerHTML=`<span>${act}</span> active · ${10-act} skipped`;
@@ -6347,6 +6359,25 @@ function toggleTradePanel(){
 })();
 
 // ── ZERO MONTH TOGGLE ──
+// ── TRADE LOCK (executed trade — immutable) ──
+function toggleLock(m, tno){
+  const s=gs();
+  if(!s.LK) s.LK=new Set();
+  const key=m+'-'+tno;
+  if(s.LK.has(key)) s.LK.delete(key);
+  else s.LK.add(key);
+  try{localStorage.setItem('wz_'+TAB+'_lk',JSON.stringify({LK:[...s.LK]}));}catch(e){}
+  const _pr=document.querySelector('.panel-right');
+  const _sy=_pr?_pr.scrollTop:0;
+  softUpdate();
+  if(_pr) requestAnimationFrame(()=>{ _pr.scrollTop=_sy; });
+}
+
+function isLocked(m, tno){
+  const s=gs();
+  return s.LK&&s.LK.has(m+'-'+tno);
+}
+
 function toggleZeroMonth(m){
   const s=gs();
   if(s.ZM.has(m)) s.ZM.delete(m);
@@ -7370,18 +7401,29 @@ function renderTbl(months){
         const liqAF=s.SPOT?999:t.accAF/t.not*100;
         const netCol=netCp>=0?'var(--acc2)':'#E24B4A';
         const liqAFc=liqAF<20?'#A32D2D':liqAF<40?'#E24B4A':'var(--tx3)';
-        h+=`<tr${isT1Push?' style="background:rgba(96,192,48,0.06)"':''}>
-          <td style="padding-left:8px;text-align:left"><input class="lbl-in lbl-trade" value="${tLabel}" placeholder="trade ${t.no}..." onchange="onTradeLabel(${t.no},this.value)" onclick="this.select()"></td>
+        const lk=isLocked(mo.m,t.no);
+        const lkRowAttr=lk?'class="locked-row"':(isT1Push?'style="background:rgba(96,192,48,0.06)"':'');
+        h+=`<tr ${lkRowAttr}>
+          <td style="padding-left:6px;text-align:left">
+            <div style="display:flex;align-items:center;gap:4px">
+              <button class="lock-btn${lk?' locked':''}" onclick="toggleLock(${mo.m},${t.no})" title="${lk?'executed · click to unlock':'mark as executed'}">${lk?'🔒':'○'}</button>
+              <input class="lbl-in lbl-trade${lk?' locked-overlay':''}" value="${tLabel}" placeholder="trade ${t.no}..." onchange="onTradeLabel(${t.no},this.value)" onclick="this.select()"${lk?' disabled':''}>
+            </div>
+          </td>
           <td style="font-weight:600;${isT1Push?'color:var(--acc2)':''}">${fmt(t.not)}${isT1Push?' <span style="font-size:7px;background:#EAF3DE;color:#3B6D11;padding:0 3px;border-radius:2px;font-weight:700">⚡</span>':''}</td>
           <td style="color:var(--acc)">${s.SPOT?'<span style="color:var(--tx3);font-size:9px">n/a</span>':fmt(t.am)}</td>
           <td>${s.SPOT?'<span style="color:var(--tx3);font-size:9px">n/a</span>':t.fm.toFixed(1)+'%'}</td>
           <td style="color:${lc(t.liq)};font-weight:700">${s.SPOT?'<span style="color:#5DC96A;font-size:9px">◈</span>':t.liq.toFixed(1)+'%'}</td>
-          <td>${!GLOBAL_MODE
-            ?'<div class="tg-cell" style="width:54px"><button class="tg-btn" onclick="manStep(\'bt\','+mo.m+','+(t.no-1)+',-0.5)" tabindex="-1">−</button><input type="number" id="mbt-'+mo.m+'-'+(t.no-1)+'" value="'+((gs().MT[mo.m]?.bt[t.no-1]??t.tgt/s.KPI)).toFixed(1)+'" min="-500" max="500" step="0.5" style="flex:1;min-width:0;padding:1px 0;font-size:9px;text-align:center;border:none;background:transparent;color:var(--acc);font-weight:700;-moz-appearance:textfield" oninput="onManualBT('+mo.m+','+(t.no-1)+',this.value)"><button class="tg-btn" onclick="manStep(\'bt\','+mo.m+','+(t.no-1)+',0.5)" tabindex="-1">+</button></div>'
-            :t.tgt.toFixed(2)+'%'}</td>
-          <td>${!GLOBAL_MODE
-            ?'<div class="tg-cell fi" style="width:48px;border-color:var(--acc2)"><button class="tg-btn" style="color:var(--acc2)" onclick="manStep(\'fr\','+mo.m+','+(t.no-1)+',-1)" tabindex="-1">−</button><input type="number" id="mfr-'+mo.m+'-'+(t.no-1)+'" value="'+(gs().MT[mo.m]?.fr[t.no-1]??t.freq)+'" min="0" max="20" step="1" style="flex:1;min-width:0;padding:1px 0;font-size:9px;text-align:center;border:none;background:transparent;color:var(--acc2);font-weight:700;-moz-appearance:textfield" oninput="onManualFR('+mo.m+','+(t.no-1)+',this.value)"><button class="tg-btn" style="color:var(--acc2)" onclick="manStep(\'fr\','+mo.m+','+(t.no-1)+',1)" tabindex="-1">+</button></div>'
-            :'<span style="color:var(--tx2)">'+t.freq+'×</span>'}</td>
+          <td>${lk
+            ?'<span class="locked-overlay" style="font-size:9px">'+t.tgt.toFixed(2)+'%</span>'
+            :(!GLOBAL_MODE
+              ?'<div class="tg-cell" style="width:54px"><button class="tg-btn" onclick="manStep(\'bt\','+mo.m+','+(t.no-1)+',-0.5)" tabindex="-1">−</button><input type="number" id="mbt-'+mo.m+'-'+(t.no-1)+'" value="'+((gs().MT[mo.m]?.bt[t.no-1]??t.tgt/s.KPI)).toFixed(1)+'" min="-500" max="500" step="0.5" style="flex:1;min-width:0;padding:1px 0;font-size:9px;text-align:center;border:none;background:transparent;color:var(--acc);font-weight:700;-moz-appearance:textfield" oninput="onManualBT('+mo.m+','+(t.no-1)+',this.value)"><button class="tg-btn" onclick="manStep(\'bt\','+mo.m+','+(t.no-1)+',0.5)" tabindex="-1">+</button></div>'
+              :t.tgt.toFixed(2)+'%')}</td>
+          <td>${lk
+            ?'<span class="locked-overlay" style="color:var(--tx2);font-size:9px">'+t.freq+'×</span>'
+            :(!GLOBAL_MODE
+              ?'<div class="tg-cell fi" style="width:48px;border-color:var(--acc2)"><button class="tg-btn" style="color:var(--acc2)" onclick="manStep(\'fr\','+mo.m+','+(t.no-1)+',-1)" tabindex="-1">−</button><input type="number" id="mfr-'+mo.m+'-'+(t.no-1)+'" value="'+(gs().MT[mo.m]?.fr[t.no-1]??t.freq)+'" min="0" max="20" step="1" style="flex:1;min-width:0;padding:1px 0;font-size:9px;text-align:center;border:none;background:transparent;color:var(--acc2);font-weight:700;-moz-appearance:textfield" oninput="onManualFR('+mo.m+','+(t.no-1)+',this.value)"><button class="tg-btn" style="color:var(--acc2)" onclick="manStep(\'fr\','+mo.m+','+(t.no-1)+',1)" tabindex="-1">+</button></div>'
+              :'<span style="color:var(--tx2)">'+t.freq+'×</span>')}</td>
           <td style="color:${t.tgt<0?'#E24B4A':'var(--acc2)'}">${t.tgt>=0?'+':''}${fmt(t.sp)}</td>
           <td style="color:${t.tgt<0?'#E24B4A':'var(--acc2)'};font-weight:600">${t.tgt>=0?'+':''}${fmt(t.cp)}</td>
           <td style="color:${feePaid>0?'#E24B4A':'var(--tx3)'}">−${fmt(feePaid)}<div style="font-size:7px;color:var(--tx3);opacity:.7">2×${gs().FEE.method}</div></td>
@@ -8719,6 +8761,7 @@ async function presetLoad(id){
       if(!S[tabId])S[tabId]=mkState();
       Object.assign(S[tabId],snapshot[tabId]);
       if(snapshot[tabId].ZM) S[tabId].ZM=new Set(snapshot[tabId].ZM);
+      if(snapshot[tabId].LK) S[tabId].LK=new Set(snapshot[tabId].LK);
     });
     
     // restore theme
@@ -9660,6 +9703,7 @@ async function importData(event){
         if(!S[tabId])S[tabId]=mkState();
         Object.assign(S[tabId],data.state[tabId]);
         if(data.state[tabId].ZM) S[tabId].ZM=new Set(data.state[tabId].ZM);
+        if(data.state[tabId].LK) S[tabId].LK=new Set(data.state[tabId].LK);
       });
       
       // Restore prefs
@@ -10591,6 +10635,7 @@ async function loadSharedPreset(shareCode){
       if(!S[tabId])S[tabId]=mkState();
       Object.assign(S[tabId],snapshot[tabId]);
       if(snapshot[tabId].ZM) S[tabId].ZM=new Set(snapshot[tabId].ZM);
+      if(snapshot[tabId].LK) S[tabId].LK=new Set(snapshot[tabId].LK);
     });
     
     // Restore theme
