@@ -17717,7 +17717,13 @@ function jnRenderDetail(){
         <div class="jn-detail-field"><div class="jn-detail-lbl">net PnL</div><div class="jn-detail-val" style="color:${pcColor};font-size:15px;font-weight:800">${t.pnl>=0?'+':''}$${parseFloat(t.pnl||0).toFixed(4)}</div></div>
         <div class="jn-detail-field"><div class="jn-detail-lbl">% return on margin</div><div class="jn-detail-val" style="color:${pcColor};font-size:15px;font-weight:800">${actualMarginPct>=0?'+':''}${actualMarginPct.toFixed(3)}%</div></div>
         <div class="jn-detail-field"><div class="jn-detail-lbl">fee paid</div><div class="jn-detail-val" style="color:#e05555">-$${parseFloat(t.fee||0).toFixed(4)}</div></div>
-        <div class="jn-detail-field"><div class="jn-detail-lbl">funding paid</div><div class="jn-detail-val" style="color:#e05555">-$${parseFloat(t.funding||0).toFixed(4)}</div></div>
+        ${(()=>{
+          const fn=parseFloat(t.funding||0);
+          // fn positive = you paid, fn negative = you received
+          if(fn<0) return `<div class="jn-detail-field"><div class="jn-detail-lbl">funding</div><div class="jn-detail-val" style="color:#00c47a;font-weight:700">+$${Math.abs(fn).toFixed(4)} <span style="font-size:8px;opacity:.7">received</span></div></div>`;
+          if(fn>0) return `<div class="jn-detail-field"><div class="jn-detail-lbl">funding paid</div><div class="jn-detail-val" style="color:#e05555">-$${fn.toFixed(4)}</div></div>`;
+          return `<div class="jn-detail-field"><div class="jn-detail-lbl">funding</div><div class="jn-detail-val" style="color:#444">$0.0000</div></div>`;
+        })()}
       </div>
 
       <!-- price move analytics -->
