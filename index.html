@@ -5070,14 +5070,6 @@ function flashSave(id){
 }
 function loadAll(){
   // ── ONE-TIME MIGRATION: wz_ → batt_ ──
-  // zero all slots on load unless user has explicitly set them or a preset is active
-  const _hasPreset=!!localStorage.getItem('batt_active_preset');
-  const _userSetSlots=!!localStorage.getItem('batt_user_set_slots');
-  if(!_hasPreset&&!_userSetSlots){
-    Object.keys(S).forEach(tabId=>{
-      if(S[tabId]){S[tabId].BT=[...DEF_BT];S[tabId].FR=[...DEF_FR];}
-    });
-  }
 
   // runs once, copies any wz_ keys to batt_, then marks migration done
   if(!localStorage.getItem('batt_migrated_v2')){
@@ -5127,6 +5119,16 @@ function loadAll(){
   // load journal from localStorage immediately so getActualTrade works on first render
   try{const jn=localStorage.getItem('batt_journal');if(jn)Object.assign(JN,JSON.parse(jn));}catch(e){}
   try{const ap=localStorage.getItem('batt_active_preset');if(ap){window._ACTIVE_PRESET=JSON.parse(ap);const _pbl=document.getElementById('auth-preset-lbl');const _pbc=document.getElementById('auth-preset-clear');if(_pbl&&window._ACTIVE_PRESET){_pbl.textContent='● '+window._ACTIVE_PRESET.name;_pbl.style.display='';}if(_pbc&&window._ACTIVE_PRESET)_pbc.style.display='';}}catch(e){}
+  // apply slot pref last — user's explicit slot choices always win over preset/cloud
+  try{
+    const slotPref=JSON.parse(localStorage.getItem('batt_slot_pref')||'{}');
+    Object.keys(slotPref).forEach(tabId=>{
+      if(S[tabId]&&slotPref[tabId]){
+        S[tabId].BT=[...slotPref[tabId].BT];
+        S[tabId].FR=[...slotPref[tabId].FR];
+      }
+    });
+  }catch(e){}
 }
 
 function syncControls(){
