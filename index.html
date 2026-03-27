@@ -5119,6 +5119,11 @@ function loadAll(){
   // load journal from localStorage immediately so getActualTrade works on first render
   try{const jn=localStorage.getItem('batt_journal');if(jn)Object.assign(JN,JSON.parse(jn));}catch(e){}
   try{const ap=localStorage.getItem('batt_active_preset');if(ap){window._ACTIVE_PRESET=JSON.parse(ap);const _pbl=document.getElementById('auth-preset-lbl');const _pbc=document.getElementById('auth-preset-clear');if(_pbl&&window._ACTIVE_PRESET){_pbl.textContent='● '+window._ACTIVE_PRESET.name;_pbl.style.display='';}if(_pbc&&window._ACTIVE_PRESET)_pbc.style.display='';}}catch(e){}
+  // restore global mode pref
+  try{
+    const gm=localStorage.getItem('batt_global_mode');
+    if(gm!==null) GLOBAL_MODE=gm==='1';
+  }catch(e){}
   // apply slot pref last — user's explicit slot choices always win over preset/cloud
   try{
     const slotPref=JSON.parse(localStorage.getItem('batt_slot_pref')||'{}');
@@ -7666,6 +7671,7 @@ function toggleZeroMonth(m){
 // ── GLOBAL / MANUAL MODE ──
 function toggleGlobal(){
   _captureUndo();GLOBAL_MODE=!GLOBAL_MODE;
+  try{localStorage.setItem('batt_global_mode',GLOBAL_MODE?'1':'0');}catch(e){}
   const btn=document.getElementById('global-toggle');
   const globalPanel=document.getElementById('sec-trd-global');
   const perMonthPanel=document.getElementById('sec-trd-permonth');
