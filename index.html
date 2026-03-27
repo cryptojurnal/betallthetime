@@ -5070,8 +5070,10 @@ function flashSave(id){
 }
 function loadAll(){
   // ── ONE-TIME MIGRATION: wz_ → batt_ ──
-  // zero all slots unless user has explicitly saved their own values
-  if(!localStorage.getItem('batt_user_set_slots')){
+  // zero all slots on load unless user has explicitly set them or a preset is active
+  const _hasPreset=!!localStorage.getItem('batt_active_preset');
+  const _userSetSlots=!!localStorage.getItem('batt_user_set_slots');
+  if(!_hasPreset&&!_userSetSlots){
     Object.keys(S).forEach(tabId=>{
       if(S[tabId]){S[tabId].BT=[...DEF_BT];S[tabId].FR=[...DEF_FR];}
     });
@@ -5230,8 +5232,8 @@ function updGrid(){
   const el=document.getElementById('act-count');
   if(el)el.innerHTML=`<span>${act}</span> active · ${10-act} skipped`;
 }
-function onBT(i,v){gs().BT[i]=parseFloat(v)||0;updGrid();saveSection('trades');softUpdate();}
-function onFR(i,v){gs().FR[i]=parseInt(v)||0;updGrid();saveSection('trades');softUpdate();}
+function onBT(i,v){gs().BT[i]=parseFloat(v)||0;updGrid();saveSection('trades');try{localStorage.setItem('batt_user_set_slots','1');}catch(e){}softUpdate();}
+function onFR(i,v){gs().FR[i]=parseInt(v)||0;updGrid();saveSection('trades');try{localStorage.setItem('batt_user_set_slots','1');}catch(e){}softUpdate();}
 function stepBT(i,delta){
   const inp=document.getElementById('bt'+i);
   if(!inp)return;
