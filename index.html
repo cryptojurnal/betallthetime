@@ -6666,6 +6666,21 @@ function toggleLock(m, tno){
       showToast('⚠ Load or save a preset first — journal needs a folder name','info',3000);
       return;
     }
+    // enforce mandatory trade label
+    const _tl=getTL(tno);
+    if(!_tl||_tl===('trade '+tno)||_tl.toLowerCase()===('trade'+tno)){
+      showToast('⚠ Name this trade first — click the label to rename it (e.g. BTCUSDT)','info',3500);
+      // highlight the label input for this trade
+      const lbl=document.querySelector(`input.lbl-trade[value="${_tl}"]`);
+      if(lbl){lbl.style.borderBottom='1.5px solid #e05555';lbl.focus();setTimeout(()=>{lbl.style.borderBottom='';},2500);}
+      return;
+    }
+    // enforce mandatory month label
+    const _ml=gs().ML[m];
+    if(!_ml||_ml===getMLabel(m)){
+      showToast('⚠ Name this month first — click the month label to set it (e.g. "Jan 2025")','info',3500);
+      return;
+    }
     ljShowLockModal(m, tno);
   }
 }
@@ -6676,8 +6691,8 @@ var _ljPending={m:0,tno:0}; // current modal context
 
 function ljShowLockModal(m, tno){
   const s=gs();
-  const tLabel=getTL(tno)||('trade '+tno);
-  const pair=tLabel.replace(/\s+/g,'').toUpperCase();
+  const tLabel=getTL(tno);
+  const mLabel=getML(m);
   const notional=s.NOT;
   const margin=s.SPOT?notional:notional/s.LEV;
   const leverage=s.SPOT?1:s.LEV;
@@ -6685,14 +6700,11 @@ function ljShowLockModal(m, tno){
   const funding=s.FEE.funding;
   const holds=s.FEE.holds;
 
-  // find the trade data from last sim
   const months=sim();
   const mo=months.find(x=>x.m===m);
   const tr=mo?mo.trades.find(t=>t.no===tno):null;
   const tgt=tr?tr.tgt:0;
   const freq=tr?tr.freq:0;
-  const feePaid=tr?tr.feePaid:0;
-  const netPnl=tr?(tr.cp-feePaid):0;
   const mode=s.SPOT?'spot':'leverage';
 
   _ljPending={m,tno};
@@ -6700,73 +6712,146 @@ function ljShowLockModal(m, tno){
   const box=document.getElementById('lj-box');
   box.innerHTML=`
     <div class="lj-title">🔒 Log Trade to Journal</div>
-    <div class="lj-sub">from cockpit · ${window._ACTIVE_PRESET?'folder: <b style="color:#00c47a">'+escHtml(window._ACTIVE_PRESET.name)+'</b>':'no active preset'}</div>
+    <div class="lj-sub">
+      <span style="color:#555">folder:</span> <b style="color:#00c47a">${escHtml(window._ACTIVE_PRESET.name)}</b>
+      <span style="color:#333;margin:0 6px">·</span>
+      <span style="color:#555">month:</span> <b style="color:#aaa">${escHtml(mLabel)}</b>
+      <span style="color:#333;margin:0 6px">·</span>
+      <span style="color:#555">trade:</span> <b style="color:#aaa">${escHtml(tLabel)}</b>
+    </div>
 
-    <div class="lj-row">
-      <div class="lj-field"><div class="lj-lbl">pair / label</div><div class="lj-val highlight">${escHtml(tLabel)}</div></div>
-      <div class="lj-field"><div class="lj-lbl">mode</div><div class="lj-val">${mode} ${s.SPOT?'◈':leverage+'×'}</div></div>
-      <div class="lj-field"><div class="lj-lbl">notional size</div><div class="lj-val">$${notional.toLocaleString()}</div></div>
-      <div class="lj-field"><div class="lj-lbl">margin used</div><div class="lj-val">$${margin.toLocaleString()}</div></div>
-      <div class="lj-field"><div class="lj-lbl">target %</div><div class="lj-val">${tgt.toFixed(2)}%</div></div>
-      <div class="lj-field"><div class="lj-lbl">freq · fee method</div><div class="lj-val">${freq}× · ${s.FEE.method} ${feeRate}%</div></div>
+    <div style="background:#111;border:1px solid #1e1e1e;border-radius:8px;padding:12px;margin-bottom:16px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+      <div><div style="font-size:8px;color:#444;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">mode</div><div style="font-size:11px;font-weight:700;color:#999">${mode} ${s.SPOT?'◈':leverage+'×'}</div></div>
+      <div><div style="font-size:8px;color:#444;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">notional</div><div style="font-size:11px;font-weight:700;color:#999">$${notional.toLocaleString()}</div></div>
+      <div><div style="font-size:8px;color:#444;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">margin</div><div style="font-size:11px;font-weight:700;color:#999">$${margin.toLocaleString()}</div></div>
+      <div><div style="font-size:8px;color:#444;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">target</div><div style="font-size:11px;font-weight:700;color:#00c47a">${tgt.toFixed(2)}%</div></div>
+      <div><div style="font-size:8px;color:#444;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">frequency</div><div style="font-size:11px;font-weight:700;color:#999">${freq}× /mo</div></div>
+      <div><div style="font-size:8px;color:#444;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">fee</div><div style="font-size:11px;font-weight:700;color:#999">${s.FEE.method} ${feeRate}%</div></div>
     </div>
 
     <div class="lj-divider"></div>
 
-    <div class="lj-row">
-      <div class="lj-field">
-        <div class="lj-lbl">side</div>
-        <div style="display:flex;gap:6px">
-          <button class="ljside-btn" data-side="long" onclick="document.querySelectorAll('.ljside-btn').forEach(b=>b.classList.remove('on'));this.classList.add('on')" style="flex:1;padding:7px;border-radius:5px;border:1px solid #252525;background:#0d0d0d;color:#00c47a;font-size:10px;font-weight:700;cursor:pointer;outline:none;font-family:inherit;transition:all .15s">LONG</button>
-          <button class="ljside-btn on" data-side="short" onclick="document.querySelectorAll('.ljside-btn').forEach(b=>b.classList.remove('on'));this.classList.add('on')" style="flex:1;padding:7px;border-radius:5px;border:1px solid #252525;background:#0d0d0d;color:#e05555;font-size:10px;font-weight:700;cursor:pointer;outline:none;font-family:inherit;transition:all .15s">SHORT</button>
+    <!-- SIDE TOGGLE — clear visual selection -->
+    <div style="margin-bottom:14px">
+      <div style="font-size:8px;color:#444;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;font-weight:700">side <span style="color:#e05555;font-size:9px">*</span></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid #252525;border-radius:7px;overflow:hidden">
+        <button id="ljside-long" onclick="ljSetSide('long')" style="padding:11px;border:none;background:#0d1a10;color:#00c47a;font-size:11px;font-weight:800;cursor:pointer;outline:none;font-family:inherit;letter-spacing:.06em;border-right:1px solid #252525;transition:background .12s">▲ LONG</button>
+        <button id="ljside-short" onclick="ljSetSide('short')" style="padding:11px;border:none;background:#1a0d0d;color:#e05555;font-size:11px;font-weight:800;cursor:pointer;outline:none;font-family:inherit;letter-spacing:.06em;transition:background .12s">▼ SHORT</button>
+      </div>
+      <div id="lj-side-indicator" style="height:3px;border-radius:0 0 6px 6px;background:#00c47a;transition:all .15s;display:none"></div>
+    </div>
+
+    <!-- ENTRY / EXIT — big clear inputs -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:4px">
+      <div>
+        <div style="font-size:8px;color:#444;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:700">entry price <span style="color:#e05555;font-size:9px">*</span></div>
+        <div style="position:relative">
+          <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#333;font-size:12px;font-weight:700;pointer-events:none">$</span>
+          <input id="lj-entry" type="number" step="any" placeholder="0.00"
+            style="width:100%;background:#111;border:1px solid #252525;border-radius:7px;color:#e0e0e0;font-size:14px;font-weight:700;padding:10px 10px 10px 22px;font-family:inherit;outline:none;box-sizing:border-box;transition:border-color .15s;-moz-appearance:textfield"
+            oninput="ljCalc();this.style.borderColor=this.value?'#00c47a':'#252525'"
+            onfocus="this.style.borderColor='#00c47a'"
+            onblur="this.style.borderColor=this.value?'#2a4a3a':'#252525'">
         </div>
       </div>
-      <div class="lj-field"><div class="lj-lbl">date / time</div><input class="lj-inp" id="lj-date" type="datetime-local" value="${new Date().toISOString().slice(0,16)}" style="color:#aaa"></div>
-    </div>
-
-    <div class="lj-row">
-      <div class="lj-field">
-        <div class="lj-lbl">entry price</div>
-        <input class="lj-inp" id="lj-entry" type="number" placeholder="e.g. 84500" oninput="ljCalc()" step="any">
+      <div>
+        <div style="font-size:8px;color:#444;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:700">exit price <span style="color:#e05555;font-size:9px">*</span></div>
+        <div style="position:relative">
+          <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#333;font-size:12px;font-weight:700;pointer-events:none">$</span>
+          <input id="lj-exit" type="number" step="any" placeholder="0.00"
+            style="width:100%;background:#111;border:1px solid #252525;border-radius:7px;color:#e0e0e0;font-size:14px;font-weight:700;padding:10px 10px 10px 22px;font-family:inherit;outline:none;box-sizing:border-box;transition:border-color .15s;-moz-appearance:textfield"
+            oninput="ljCalc();this.style.borderColor=this.value?'#00c47a':'#252525'"
+            onfocus="this.style.borderColor='#00c47a'"
+            onblur="this.style.borderColor=this.value?'#2a4a3a':'#252525'">
+        </div>
       </div>
-      <div class="lj-field">
-        <div class="lj-lbl">exit price</div>
-        <input class="lj-inp" id="lj-exit" type="number" placeholder="e.g. 87200" oninput="ljCalc()" step="any">
-      </div>
     </div>
+    <div style="font-size:9px;color:#333;margin-bottom:14px">side selection affects direction of PnL calculation</div>
 
+    <!-- LIVE CALC -->
     <div class="lj-calc" id="lj-calc" style="display:none">
       <div class="lj-calc-row"><span class="lj-calc-lbl">gross PnL</span><span class="lj-calc-val" id="lj-gross">—</span></div>
-      <div class="lj-calc-row"><span class="lj-calc-lbl">fee paid (entry + exit)</span><span class="lj-calc-val neg" id="lj-fee">—</span></div>
+      <div class="lj-calc-row"><span class="lj-calc-lbl">fee (entry + exit · ${feeRate}% × 2)</span><span class="lj-calc-val neg" id="lj-fee">—</span></div>
       <div class="lj-calc-row"><span class="lj-calc-lbl">funding (${holds} holds × ${funding}%)</span><span class="lj-calc-val neg" id="lj-fund">—</span></div>
-      <div class="lj-calc-row"><span class="lj-calc-lbl">net PnL after all fees</span><span class="lj-calc-val" id="lj-net">—</span></div>
-      <div class="lj-calc-row" style="margin-top:4px"><span class="lj-calc-lbl" style="color:#888;font-size:11px">actual % return</span><span class="lj-calc-val" id="lj-pct" style="font-size:14px">—</span></div>
+      <div class="lj-calc-row" style="border-top:1px solid #1a3020;padding-top:8px;margin-top:4px">
+        <span class="lj-calc-lbl" style="font-size:11px;font-weight:700;color:#6a9a7a">net PnL after fees</span>
+        <span class="lj-calc-val" id="lj-net" style="font-size:14px">—</span>
+      </div>
+      <div class="lj-calc-row"><span class="lj-calc-lbl">actual % of account</span><span class="lj-calc-val" id="lj-pct" style="font-size:12px">—</span></div>
     </div>
 
-    <div class="lj-field" style="margin-bottom:12px">
-      <div class="lj-lbl">TradingView chart link <span style="color:#333;font-weight:400;text-transform:none;letter-spacing:0">(optional · share → publish link)</span></div>
-      <input class="lj-inp" id="lj-tv" type="url" placeholder="https://www.tradingview.com/chart/..." oninput="ljPreviewTV(this.value)">
-      <iframe id="lj-tv-preview" class="lj-tv-preview" frameborder="0" allowfullscreen sandbox="allow-scripts allow-same-origin allow-popups"></iframe>
+    <div class="lj-divider"></div>
+
+    <!-- TRADINGVIEW — /x/ snapshot link -->
+    <div style="margin-bottom:14px">
+      <div style="font-size:8px;color:#444;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:700">
+        TradingView snapshot
+        <span style="color:#333;text-transform:none;letter-spacing:0;font-weight:400;font-size:9px;margin-left:4px">optional · share → copy image link</span>
+      </div>
+      <input id="lj-tv" type="url"
+        placeholder="https://www.tradingview.com/x/xxxxxxxx/"
+        style="width:100%;background:#111;border:1px solid #252525;border-radius:7px;color:#aaa;font-size:11px;padding:9px 12px;font-family:inherit;outline:none;box-sizing:border-box;transition:border-color .15s"
+        oninput="ljPreviewTV(this.value)"
+        onfocus="this.style.borderColor='#444'"
+        onblur="this.style.borderColor='#252525'">
+      <div id="lj-tv-preview-wrap" style="display:none;margin-top:8px;border-radius:7px;overflow:hidden;border:1px solid #1e1e1e">
+        <img id="lj-tv-preview-img" style="width:100%;display:block;border-radius:6px" alt="chart preview">
+      </div>
     </div>
 
-    <div class="lj-field" style="margin-bottom:16px">
-      <div class="lj-lbl">notes <span style="color:#333;font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></div>
-      <textarea class="lj-inp" id="lj-notes" rows="2" placeholder="Setup, reason for entry, what happened..." style="resize:vertical;line-height:1.5"></textarea>
+    <!-- DATE -->
+    <div style="margin-bottom:14px">
+      <div style="font-size:8px;color:#444;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:700">date / time</div>
+      <input id="lj-date" type="datetime-local" value="${new Date().toISOString().slice(0,16)}"
+        style="width:100%;background:#111;border:1px solid #252525;border-radius:7px;color:#aaa;font-size:11px;padding:9px 12px;font-family:inherit;outline:none;box-sizing:border-box;transition:border-color .15s"
+        onfocus="this.style.borderColor='#444'"
+        onblur="this.style.borderColor='#252525'">
     </div>
 
-    <div style="margin-bottom:16px">
-      <div class="lj-lbl" style="margin-bottom:8px">mood</div>
-      <div style="display:flex;gap:8px">${JN_EMOTIONS.map(e=>`<button onclick="document.querySelectorAll('.lj-emo-btn').forEach(b=>b.style.outline='none');this.style.outline='2px solid #00c47a'" class="lj-emo-btn" data-e="${e}" style="font-size:20px;background:none;border:1px solid #1e1e1e;border-radius:7px;padding:4px 8px;cursor:pointer;outline:none;transition:all .15s">${e}</button>`).join('')}</div>
+    <!-- NOTES -->
+    <div style="margin-bottom:14px">
+      <div style="font-size:8px;color:#444;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:700">setup notes <span style="color:#333;text-transform:none;letter-spacing:0;font-weight:400;font-size:9px">optional</span></div>
+      <textarea id="lj-notes" rows="2" placeholder="Setup, reason for entry, what happened..."
+        style="width:100%;background:#111;border:1px solid #252525;border-radius:7px;color:#aaa;font-size:11px;padding:9px 12px;font-family:inherit;outline:none;resize:vertical;line-height:1.6;box-sizing:border-box;transition:border-color .15s"
+        onfocus="this.style.borderColor='#444'"
+        onblur="this.style.borderColor='#252525'"></textarea>
     </div>
+
+    <!-- MOOD -->
+    <div style="margin-bottom:20px">
+      <div style="font-size:8px;color:#444;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;font-weight:700">mood <span style="color:#333;font-weight:400;text-transform:none;letter-spacing:0;font-size:9px">optional</span></div>
+      <div style="display:flex;gap:6px">${JN_EMOTIONS.map(e=>`<button onclick="document.querySelectorAll('.lj-emo-btn').forEach(b=>{b.style.background='none';b.style.borderColor='#1e1e1e'});this.style.background='rgba(255,255,255,0.06)';this.style.borderColor='#555'" class="lj-emo-btn" data-e="${e}" style="font-size:18px;background:none;border:1px solid #1e1e1e;border-radius:6px;padding:5px 9px;cursor:pointer;outline:none;transition:all .12s">${e}</button>`).join('')}</div>
+    </div>
+
+    <div id="lj-error" style="display:none;background:#2a0a0a;border:1px solid #4a1a1a;border-radius:6px;padding:8px 12px;font-size:11px;color:#e05555;margin-bottom:12px"></div>
 
     <div class="lj-btns">
-      <button class="lj-confirm-btn" onclick="ljConfirmLock()">🔒 lock & log to journal</button>
+      <button class="lj-confirm-btn" onclick="ljConfirmLock()">🔒 lock &amp; log to journal</button>
       <button class="lj-cancel-btn" onclick="ljCloseModal()">cancel</button>
     </div>
   `;
 
   document.getElementById('lj-modal').classList.add('visible');
-  setTimeout(()=>{const el=document.getElementById('lj-entry');if(el)el.focus();},100);
+  ljSetSide('long'); // default to long, visually selected
+  setTimeout(()=>{const el=document.getElementById('lj-entry');if(el)el.focus();},80);
+}
+
+function ljSetSide(side){
+  window._ljSide=side;
+  const lb=document.getElementById('ljside-long');
+  const sb=document.getElementById('ljside-short');
+  const ind=document.getElementById('lj-side-indicator');
+  if(lb&&sb){
+    lb.style.background=side==='long'?'#0a2a14':'#0d0d0d';
+    lb.style.opacity=side==='long'?'1':'0.4';
+    sb.style.background=side==='short'?'#2a0a0a':'#0d0d0d';
+    sb.style.opacity=side==='short'?'1':'0.4';
+  }
+  if(ind){
+    ind.style.display='block';
+    ind.style.background=side==='long'?'#00c47a':'#e05555';
+  }
+  ljCalc();
 }
 
 function ljCalc(){
@@ -6777,8 +6862,7 @@ function ljCalc(){
   const s=gs();
   const notional=s.NOT;
   const leverage=s.SPOT?1:s.LEV;
-  const sideBtn=document.querySelector('.ljside-btn.on');
-  const side=sideBtn?sideBtn.dataset.side:'long';
+  const side=window._ljSide||'long';
   const feeRate=(s.FEE.method==='maker'?s.FEE.maker:s.FEE.taker)/100;
   const funding=s.FEE.funding/100;
   const holds=s.FEE.holds;
@@ -6804,16 +6888,22 @@ function ljCalc(){
 }
 
 function ljPreviewTV(url){
-  const iframe=document.getElementById('lj-tv-preview');
-  if(!iframe) return;
-  if(url&&url.startsWith('https://www.tradingview.com')){
-    // convert share url to embed url
-    const embedUrl=url.replace('/chart/','/embed-chart/');
-    iframe.src=embedUrl;
-    iframe.style.display='block';
+  const wrap=document.getElementById('lj-tv-preview-wrap');
+  const img=document.getElementById('lj-tv-preview-img');
+  if(!wrap||!img) return;
+  if(url&&url.includes('tradingview.com/x/')){
+    // /x/ links are snapshot images — show as <img>
+    // the image URL is the same link with og:image metadata, direct src works
+    img.src=url;
+    img.onerror=()=>{wrap.style.display='none';};
+    img.onload=()=>{wrap.style.display='block';};
+    wrap.style.display='block';
+    img.src=url; // trigger load
+  } else if(url&&url.includes('tradingview.com')){
+    // other TV links — just show as link, no preview
+    wrap.style.display='none';
   } else {
-    iframe.src='';
-    iframe.style.display='none';
+    wrap.style.display='none';
   }
 }
 
@@ -6822,14 +6912,22 @@ async function ljConfirmLock(){
   const {m,tno}=_ljPending;
   const entry=parseFloat(document.getElementById('lj-entry')?.value)||0;
   const exit=parseFloat(document.getElementById('lj-exit')?.value)||0;
+  // validation
+  const errEl=document.getElementById('lj-error');
+  if(!entry||!exit){
+    if(errEl){errEl.textContent='⚠ Entry price and exit price are required';errEl.style.display='block';}
+    if(!entry){const el=document.getElementById('lj-entry');if(el){el.style.borderColor='#e05555';el.focus();}}
+    else{const el=document.getElementById('lj-exit');if(el){el.style.borderColor='#e05555';el.focus();}}
+    return;
+  }
+  if(errEl) errEl.style.display='none';
   const notional=s.NOT;
   const leverage=s.SPOT?1:s.LEV;
-  const sideBtn=document.querySelector('.ljside-btn.on');
-  const side=sideBtn?sideBtn.dataset.side:'long';
+  const side=window._ljSide||'long';
   const feeRate=(s.FEE.method==='maker'?s.FEE.maker:s.FEE.taker)/100;
   const funding=s.FEE.funding/100;
   const holds=s.FEE.holds;
-  const tvUrl=document.getElementById('lj-tv')?.value||'';
+  const tvUrl=(document.getElementById('lj-tv')?.value||'').trim();
   const notes=document.getElementById('lj-notes')?.value||'';
   const emoBtn=document.querySelector('.lj-emo-btn[style*="2px solid"]');
   const emotion=emoBtn?emoBtn.dataset.e:'';
@@ -16988,9 +17086,27 @@ function jnRenderList(){
       <div class="jn-list-head-col">%</div>
       <div class="jn-list-head-col">mood</div>
       <div></div>
-    </div>
-    <div class="jn-list-wrap">`;
-    trades.forEach(t=>{
+    </div>`;
+    // group by bucket
+    const buckets={};
+    trades.forEach(t=>{const b=t.bucket||1;if(!buckets[b])buckets[b]=[];buckets[b].push(t);});
+    const bucketNums=Object.keys(buckets).map(Number).sort((a,b)=>a-b);
+    bucketNums.forEach(bn=>{
+      const bTrades=buckets[bn];
+      const bWins=bTrades.filter(t=>t.pnl>0).length;
+      const bPnl=bTrades.reduce((a,t)=>a+(t.pnl||0),0);
+      const bWr=bTrades.length?Math.round(bWins/bTrades.length*100):0;
+      // find the month label from cockpit data if available
+      const firstCockpit=bTrades.find(t=>t.cockpit);
+      const monthLbl=firstCockpit?('M'+String(firstCockpit.cockpit.month).padStart(2,'0')):('batch '+bn);
+      html+=`<div style="display:flex;align-items:center;gap:10px;padding:7px 14px;background:#0f0f0f;border:1px solid #1a1a1a;border-radius:7px 7px 0 0;margin-top:${bn>bucketNums[0]?'16px':'0'}">
+        <span style="font-size:10px;font-weight:700;color:#aaa">${monthLbl}</span>
+        <span style="font-size:9px;color:#444">${bTrades.length} trade${bTrades.length!==1?'s':''}</span>
+        <span style="font-size:9px;color:${bWr>=50?'#00c47a':'#e05555'}">${bWr}% WR</span>
+        <span style="font-size:9px;font-weight:700;color:${bPnl>=0?'#00c47a':'#e05555'};margin-left:auto">${bPnl>=0?'+':''}$${bPnl.toFixed(2)}</span>
+      </div>
+      <div class="jn-list-wrap" style="border-radius:0 0 7px 7px;border-top:none">`;
+    bTrades.forEach(t=>{
       const d=new Date(t.closedAt);
       const ds=`${d.getDate()}/${d.getMonth()+1} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
       const pCls=t.pnl>=0?'win':'loss';
@@ -17009,7 +17125,8 @@ function jnRenderList(){
         <div><button class="jn-btn-sm danger" onclick="event.stopPropagation();jnDeleteTrade('${t.id}')" style="padding:2px 5px;font-size:8px">✕</button></div>
       </div>`;
     });
-    html+='</div>';
+      html+='</div>';
+    });
   }
   body.innerHTML=html;
 }
@@ -17025,11 +17142,14 @@ function jnRenderDetail(){
 
   // TradingView embed
   let tvHtml='';
-  if(t.tvUrl&&t.tvUrl.startsWith('https://www.tradingview.com')){
-    const embedUrl=t.tvUrl.replace('/chart/','/embed-chart/');
+  if(t.tvUrl&&t.tvUrl.includes('tradingview.com')){
+    const isSnapshot=t.tvUrl.includes('/x/');
     tvHtml=`<div style="margin-bottom:16px">
       <div class="jn-sec-title" style="margin-bottom:8px">chart proof <a href="${escHtml(t.tvUrl)}" target="_blank" style="color:#5b7fff;font-weight:700;text-transform:none;letter-spacing:0;font-size:9px;margin-left:8px">open in TradingView ↗</a></div>
-      <iframe src="${escHtml(embedUrl)}" style="width:100%;height:220px;border:1px solid #1e1e1e;border-radius:8px;background:#0a0a0a" frameborder="0" allowfullscreen sandbox="allow-scripts allow-same-origin allow-popups"></iframe>
+      ${isSnapshot
+        ?`<img src="${escHtml(t.tvUrl)}" style="width:100%;border-radius:8px;border:1px solid #1e1e1e;display:block" alt="chart snapshot" onerror="this.style.display='none';this.nextSibling.style.display='block'"><div style="display:none;padding:16px;text-align:center;color:#444;font-size:11px;background:#0f0f0f;border-radius:8px">could not load image</div>`
+        :`<iframe src="${escHtml(t.tvUrl.replace('/chart/','/embed-chart/'))}" style="width:100%;height:220px;border:1px solid #1e1e1e;border-radius:8px;background:#0a0a0a" frameborder="0" allowfullscreen sandbox="allow-scripts allow-same-origin allow-popups"></iframe>`
+      }
     </div>`;
   }
 
