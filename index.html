@@ -7055,7 +7055,7 @@ function ljShowLockModal(m, tno){
             onfocus="this.style.borderColor='#444';ljShowPairDrop(this.value,true)"
             oninput="this.value=this.value.toUpperCase();window._ljPair=this.value;ljShowPairDrop(this.value,true)"
             onblur="setTimeout(()=>{document.getElementById('lj-pair-drop')?.remove();window._ljPair=this.value.toUpperCase();ljFetchFunding(true)},200)">
-          <div id="lj-pair-drop" style="display:none"></div>
+          <div id="lj-pair-drop"></div>
         </div>
       </div>
       <!-- funding status bar -->
