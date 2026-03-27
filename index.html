@@ -5232,8 +5232,8 @@ function updGrid(){
   const el=document.getElementById('act-count');
   if(el)el.innerHTML=`<span>${act}</span> active · ${10-act} skipped`;
 }
-function onBT(i,v){gs().BT[i]=parseFloat(v)||0;updGrid();saveSection('trades');try{localStorage.setItem('batt_user_set_slots','1');}catch(e){}softUpdate();}
-function onFR(i,v){gs().FR[i]=parseInt(v)||0;updGrid();saveSection('trades');try{localStorage.setItem('batt_user_set_slots','1');}catch(e){}softUpdate();}
+function onBT(i,v){gs().BT[i]=parseFloat(v)||0;updGrid();saveSection('trades');try{localStorage.setItem('batt_user_set_slots','1');}catch(e){}if(window._ACTIVE_PRESET)_autoResaveActivePreset();softUpdate();}
+function onFR(i,v){gs().FR[i]=parseInt(v)||0;updGrid();saveSection('trades');try{localStorage.setItem('batt_user_set_slots','1');}catch(e){}if(window._ACTIVE_PRESET)_autoResaveActivePreset();softUpdate();}
 function stepBT(i,delta){
   const inp=document.getElementById('bt'+i);
   if(!inp)return;
