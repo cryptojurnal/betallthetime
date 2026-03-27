@@ -5070,15 +5070,11 @@ function flashSave(id){
 }
 function loadAll(){
   // ── ONE-TIME MIGRATION: wz_ → batt_ ──
-  // one-time migration: zero out all BT/FR slots (user requested default off)
-  if(!localStorage.getItem('batt_slots_zeroed_v2')){
+  // zero all slots unless user has explicitly saved their own values
+  if(!localStorage.getItem('batt_user_set_slots')){
     Object.keys(S).forEach(tabId=>{
-      if(S[tabId]){
-        S[tabId].BT=[...DEF_BT];
-        S[tabId].FR=[...DEF_FR];
-      }
+      if(S[tabId]){S[tabId].BT=[...DEF_BT];S[tabId].FR=[...DEF_FR];}
     });
-    localStorage.setItem('batt_slots_zeroed_v2','1');
   }
 
   // runs once, copies any wz_ keys to batt_, then marks migration done
@@ -17475,8 +17471,9 @@ function closeJournal(){
 }
 
 function jnRender(){
-  // always default to list if folders exist — never show folder grid unless explicitly navigated
-  if(JN.view==='folders'&&JN.folders.length>0){
+  // restore last view preference — user's explicit choice persists forever
+  const savedView=localStorage.getItem('batt_jn_view')||'list';
+  if(JN.view==='folders'&&savedView==='list'&&JN.folders.length>0){
     JN.activeFolder=JN.activeFolder||JN.folders[0].id;
     JN.view='list';
   }
@@ -17507,8 +17504,8 @@ function jnUpdateHeader(){
   }
 }
 
-function jnGoFolders(){JN.view='folders';JN.activeFolder=null;JN.activeTrade=null;jnRender();}
-function jnGoList(fid){JN.view='list';JN.activeFolder=fid;JN.activeTrade=null;jnRender();}
+function jnGoFolders(){JN.view='folders';JN.activeFolder=null;JN.activeTrade=null;try{localStorage.setItem('batt_jn_view','folders');}catch(e){}jnRender();}
+function jnGoList(fid){JN.view='list';JN.activeFolder=fid;JN.activeTrade=null;try{localStorage.setItem('batt_jn_view','list');}catch(e){}jnRender();}
 
 function jnFolderTypeBadge(type){
   if(!type||type==='mix') return '<span class="jn-folder-row-type mix">mix</span>';
