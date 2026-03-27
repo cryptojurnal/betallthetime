@@ -17712,7 +17712,14 @@ function jnRenderDetail(){
   const d=new Date(t.closedAt);
   const dateStr=`${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
 
-  // ── derived metrics ──
+  // ── hold duration ──
+  const holdMs=t.openedAt&&t.closedAt?(t.closedAt-t.openedAt):0;
+  const holdH=Math.floor(holdMs/3600000);
+  const holdMin=Math.floor((holdMs%3600000)/60000);
+  const holdD=Math.floor(holdH/24);
+  const holdHr=holdH%24;
+  const holdStr=holdMs>0?(holdD>0?`${holdD}d ${holdHr}h ${holdMin}m`:holdH>0?`${holdH}h ${holdMin}m`:`${holdMin}m`):'—';
+  const fundIntervals=holdMs>0?Math.floor(holdH/8):0;
   const entry=parseFloat(t.entry||0);
   const exit=parseFloat(t.exit||0);
   const notional=parseFloat(t.size||0);
@@ -17814,72 +17821,122 @@ function jnRenderDetail(){
 
   body.innerHTML=`
     <div class="jn-detail">
-      <!-- header -->
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap">
-        <div style="font-size:20px;font-weight:800;color:#e8e8e8;letter-spacing:-.01em">${escHtml(t.pair||'—')}</div>
-        <span class="${t.side==='long'?'jn-side-long':'jn-side-short'}" style="font-size:9px;padding:3px 8px">${(t.side||'').toUpperCase()}</span>
+
+      <!-- HEADER -->
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap">
+        <div style="font-size:22px;font-weight:800;color:#e8e8e8;letter-spacing:-.02em">${escHtml(t.pair||'—')}</div>
+        <span class="${t.side==='long'?'jn-side-long':'jn-side-short'}" style="font-size:9px;padding:3px 9px">${(t.side||'').toUpperCase()}</span>
         ${t.leverage>1?`<span style="font-size:9px;color:#888;background:#1a1a1a;padding:2px 8px;border-radius:3px;border:1px solid #222;font-weight:700">${t.leverage}×</span>`:''}
-        ${outcomeLabel?`<span style="font-size:9px;font-weight:700;color:${outcomeColor}">${outcomeLabel}</span>`:''}
-        <span style="font-size:9px;color:#333;margin-left:auto">${dateStr}</span>
-        ${t.source==='cockpit'?`<span style="font-size:8px;color:#444;padding:2px 6px;border:1px solid #1e1e1e;border-radius:3px">cockpit</span>`:''}
+        ${outcomeLabel?`<span style="font-size:10px;font-weight:700;padding:2px 10px;border-radius:4px;background:${t.pnl>=0?'rgba(0,196,122,0.08)':'rgba(224,85,85,0.08)'};color:${outcomeColor}">${outcomeLabel}</span>`:''}
+        ${t.emotion?`<span style="font-size:18px">${t.emotion}</span>`:''}
+        <span style="font-size:9px;color:#2a2a2a;margin-left:auto">${dateStr}</span>
+        ${t.source==='cockpit'?`<span style="font-size:8px;color:#00c47a;background:rgba(0,196,122,0.06);padding:2px 7px;border:1px solid rgba(0,196,122,0.15);border-radius:3px;font-weight:700">⚡ cockpit</span>`:'<span style="font-size:8px;color:#2a2a2a;padding:2px 6px;border:1px solid #1a1a1a;border-radius:3px">manual</span>'}
       </div>
 
-      <!-- main metrics grid -->
-      <div class="jn-detail-grid" style="margin-bottom:16px">
-        <div class="jn-detail-field"><div class="jn-detail-lbl">entry price</div><div class="jn-detail-val">$${entry.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:6})}</div></div>
-        <div class="jn-detail-field"><div class="jn-detail-lbl">exit price</div><div class="jn-detail-val">$${exit.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:6})}</div></div>
-        <div class="jn-detail-field"><div class="jn-detail-lbl">size (notional)</div><div class="jn-detail-val">$${notional.toLocaleString()}</div></div>
-        <div class="jn-detail-field"><div class="jn-detail-lbl">margin used</div><div class="jn-detail-val">$${margin.toFixed(2)}</div></div>
-        <div class="jn-detail-field"><div class="jn-detail-lbl">net PnL</div><div class="jn-detail-val" style="color:${pcColor};font-size:15px;font-weight:800">${t.pnl>=0?'+':''}$${parseFloat(t.pnl||0).toFixed(4)}</div></div>
-        <div class="jn-detail-field"><div class="jn-detail-lbl">% return on margin</div><div class="jn-detail-val" style="color:${pcColor};font-size:15px;font-weight:800">${actualMarginPct>=0?'+':''}${actualMarginPct.toFixed(3)}%</div></div>
-        <div class="jn-detail-field"><div class="jn-detail-lbl">fee paid</div><div class="jn-detail-val" style="color:#e05555">-$${parseFloat(t.fee||0).toFixed(4)}</div></div>
-        ${(()=>{
-          if(!t.openedAt||!t.closedAt) return '';
-          const ms=t.closedAt-t.openedAt;
-          if(ms<=0) return '';
-          const totalH=ms/3600000;
-          const d=Math.floor(totalH/24);
-          const h=Math.floor(totalH%24);
-          const m=Math.floor((ms%3600000)/60000);
-          const holdStr=d>0?`${d}d ${h}h ${m}m`:h>0?`${h}h ${m}m`:`${m}m`;
-          const fundIntervals=Math.floor(totalH/8);
-          return `<div class="jn-detail-field">
-            <div class="jn-detail-lbl">hold duration</div>
-            <div class="jn-detail-val" style="font-weight:700">${holdStr}</div>
-            <div style="font-size:8px;color:#333;margin-top:2px">~${fundIntervals} funding interval${fundIntervals!==1?'s':''}</div>
-          </div>`;
-        })()}
-        ${(()=>{
-          const fn=parseFloat(t.funding||0);
-          // fn positive = you paid, fn negative = you received
-          if(fn<0) return `<div class="jn-detail-field"><div class="jn-detail-lbl">funding</div><div class="jn-detail-val" style="color:#00c47a;font-weight:700">+$${Math.abs(fn).toFixed(4)} <span style="font-size:8px;opacity:.7">received</span></div></div>`;
-          if(fn>0) return `<div class="jn-detail-field"><div class="jn-detail-lbl">funding paid</div><div class="jn-detail-val" style="color:#e05555">-$${fn.toFixed(4)}</div></div>`;
-          return `<div class="jn-detail-field"><div class="jn-detail-lbl">funding</div><div class="jn-detail-val" style="color:#444">$0.0000</div></div>`;
-        })()}
+      <!-- TIMING STRIP -->
+      ${(()=>{
+        const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+        const closeD=new Date(t.closedAt);
+        const openD=t.openedAt?new Date(t.openedAt):null;
+        const fmtDt=dt=>`${dt.getDate()} ${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][dt.getMonth()]} ${dt.getFullYear()} · ${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`;
+        const closeH=closeD.getUTCHours();
+        const session=closeH<8?'Asia session':closeH<16?'London session':'NY session';
+        return `<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;padding:10px 14px;background:#0a0a0a;border:1px solid #1a1a1a;border-radius:8px">
+          <div>
+            <div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">opened</div>
+            <div style="font-size:10px;font-weight:600;color:#888">${openD?fmtDt(openD):'—'}</div>
+            ${openD?`<div style="font-size:8px;color:#333;margin-top:1px">${days[openD.getDay()]}</div>`:''}
+          </div>
+          <div>
+            <div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">closed</div>
+            <div style="font-size:10px;font-weight:600;color:#888">${fmtDt(closeD)}</div>
+            <div style="font-size:8px;color:#333;margin-top:1px">${days[closeD.getDay()]} · ${session}</div>
+          </div>
+          <div>
+            <div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">held</div>
+            <div style="font-size:14px;font-weight:700;color:#aaa">${holdStr}</div>
+            <div style="font-size:8px;color:#333;margin-top:1px">${fundIntervals>0?'~'+fundIntervals+' funding interval'+(fundIntervals!==1?'s':''):'no intervals'}</div>
+          </div>
+        </div>`;
+      })()}
+
+      <!-- PNL HERO -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+        <div style="background:#0a0a0a;border:1px solid ${pcColor}22;border-radius:8px;padding:16px">
+          <div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">net PnL · all-in</div>
+          <div style="font-size:26px;font-weight:900;color:${pcColor};letter-spacing:-.02em;line-height:1">${t.pnl>=0?'+':''}$${parseFloat(t.pnl||0).toFixed(4)}</div>
+          <div style="font-size:12px;color:${pcColor};opacity:.6;margin-top:6px">${actualMarginPct>=0?'+':''}${actualMarginPct.toFixed(2)}% on margin</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div style="background:#0a0a0a;border:1px solid #1a1a1a;border-radius:8px;padding:12px">
+            <div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">entry</div>
+            <div style="font-size:11px;font-weight:700;color:#ccc">$${entry.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:6})}</div>
+          </div>
+          <div style="background:#0a0a0a;border:1px solid #1a1a1a;border-radius:8px;padding:12px">
+            <div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">exit</div>
+            <div style="font-size:11px;font-weight:700;color:#ccc">$${exit.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:6})}</div>
+          </div>
+          <div style="background:#0a0a0a;border:1px solid #1a1a1a;border-radius:8px;padding:12px">
+            <div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">notional</div>
+            <div style="font-size:11px;font-weight:700;color:#888">$${notional.toLocaleString()}</div>
+          </div>
+          <div style="background:#0a0a0a;border:1px solid #1a1a1a;border-radius:8px;padding:12px">
+            <div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">margin</div>
+            <div style="font-size:11px;font-weight:700;color:#888">$${margin.toFixed(2)}</div>
+          </div>
+        </div>
       </div>
 
-      <!-- price move analytics -->
-      ${entry>0&&exit>0?`<div style="margin-bottom:20px">
+      <!-- COST BREAKDOWN -->
+      <div style="margin-bottom:16px;background:#0a0a0a;border:1px solid #1a1a1a;border-radius:8px;overflow:hidden">
+        <div style="padding:7px 14px;border-bottom:1px solid #141414;font-size:7px;color:#2a2a2a;text-transform:uppercase;letter-spacing:.07em;font-weight:700">cost breakdown</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr)">
+          <div style="padding:12px 14px;border-right:1px solid #141414">
+            <div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">gross PnL</div>
+            ${(()=>{const g=entry>0?(t.side==='long'?exit-entry:entry-exit)/entry*notional:0;return `<div style="font-size:12px;font-weight:700;color:${g>=0?'#00c47a':'#e05555'}">${g>=0?'+':''}$${Math.abs(g).toFixed(4)}</div>`;})()}
+          </div>
+          <div style="padding:12px 14px;border-right:1px solid #141414">
+            <div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">fee paid</div>
+            <div style="font-size:12px;font-weight:700;color:#e05555">-$${parseFloat(t.fee||0).toFixed(4)}</div>
+            <div style="font-size:8px;color:#2a2a2a;margin-top:2px">open + close</div>
+          </div>
+          <div style="padding:12px 14px;border-right:1px solid #141414">
+            ${(()=>{const fn=parseFloat(t.funding||0);
+              if(fn<0) return `<div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">funding</div><div style="font-size:12px;font-weight:700;color:#00c47a">+$${Math.abs(fn).toFixed(4)}</div><div style="font-size:8px;color:#2a5a3a;margin-top:2px">received ✓</div>`;
+              if(fn>0) return `<div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">funding paid</div><div style="font-size:12px;font-weight:700;color:#e05555">-$${fn.toFixed(4)}</div><div style="font-size:8px;color:#2a2a2a;margin-top:2px">${fundIntervals} intervals</div>`;
+              return `<div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">funding</div><div style="font-size:12px;font-weight:700;color:#222">$0.0000</div><div style="font-size:8px;color:#2a2a2a;margin-top:2px">none</div>`;
+            })()}
+          </div>
+          <div style="padding:12px 14px">
+            <div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">total cost</div>
+            <div style="font-size:12px;font-weight:700;color:#e05555">-$${(parseFloat(t.fee||0)+Math.max(0,parseFloat(t.funding||0))).toFixed(4)}</div>
+            <div style="font-size:8px;color:#2a2a2a;margin-top:2px">fee + funding</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PRICE MOVE ANALYSIS -->
+      ${entry>0&&exit>0?`<div style="margin-bottom:16px">
         <div class="jn-sec-title" style="margin-bottom:10px">price move analysis</div>
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);background:#0d0d0d;border:1px solid #1e1e1e;border-radius:8px;overflow:hidden">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);background:#0a0a0a;border:1px solid #1a1a1a;border-radius:8px;overflow:hidden">
           <div class="jn-detail-field">
-            <div class="jn-detail-lbl">raw price move</div>
+            <div class="jn-detail-lbl">raw move</div>
             <div class="jn-detail-val" style="color:${rawMovePct>=0?'#00c47a':'#e05555'};font-weight:800">${rawMovePct>=0?'+':''}${rawMovePct.toFixed(4)}%</div>
             <div style="font-size:8px;color:#333;margin-top:2px">${exit>entry?'↑ price up':'↓ price down'}</div>
           </div>
           <div class="jn-detail-field">
-            <div class="jn-detail-lbl">directed move (${t.side})</div>
+            <div class="jn-detail-lbl">directed (${t.side})</div>
             <div class="jn-detail-val" style="color:${directedMovePct>=0?'#00c47a':'#e05555'};font-weight:800">${directedMovePct>=0?'+':''}${directedMovePct.toFixed(4)}%</div>
-            <div style="font-size:8px;color:#333;margin-top:2px">${directedMovePct>=0?'moved with you':'moved against you'}</div>
+            <div style="font-size:8px;color:#333;margin-top:2px">${directedMovePct>=0?'with you':'against you'}</div>
           </div>
           <div class="jn-detail-field">
-            <div class="jn-detail-lbl">levered move (${lev}×)</div>
+            <div class="jn-detail-lbl">levered (${lev}×)</div>
             <div class="jn-detail-val" style="color:${directedMovePct*lev>=0?'#00c47a':'#e05555'};font-weight:800">${(directedMovePct*lev)>=0?'+':''}${(directedMovePct*lev).toFixed(3)}%</div>
-            <div style="font-size:8px;color:#333;margin-top:2px">price × leverage</div>
+            <div style="font-size:8px;color:#333;margin-top:2px">price × lev</div>
           </div>
           <div class="jn-detail-field">
             <div class="jn-detail-lbl">needed for target</div>
-            <div class="jn-detail-val" style="color:#555">${ck&&projTargetPct>0?(projTargetPct/lev).toFixed(4)+'%':'—'}</div>
+            <div class="jn-detail-val" style="color:${ck&&projTargetPct>0?'#555':'#222'}">${ck&&projTargetPct>0?(projTargetPct/lev).toFixed(4)+'%':'—'}</div>
             <div style="font-size:8px;color:#333;margin-top:2px">${ck&&projTargetPct>0?'raw price needed':'no projection'}</div>
           </div>
         </div>
@@ -17888,14 +17945,18 @@ function jnRenderDetail(){
       ${tvHtml}
       ${cockpitHtml}
 
-      <div style="margin-bottom:12px">
-        <div class="jn-sec-title" style="margin-bottom:8px">mood</div>
-        <div style="display:flex;gap:6px">${JN_EMOTIONS.map(e=>`<button onclick="jnSetEmotion('${t.id}','${e}')" style="font-size:20px;background:${t.emotion===e?'rgba(255,255,255,0.06)':'none'};border:1.5px solid ${t.emotion===e?'#00c47a':'#1e1e1e'};border-radius:7px;padding:4px 8px;cursor:pointer;outline:none;transition:all .12s">${e}</button>`).join('')}</div>
-      </div>
-
-      <div style="margin-bottom:16px">
-        <div class="jn-sec-title" style="margin-bottom:8px">setup notes</div>
-        <textarea class="jn-notes-area" rows="3" placeholder="Why did you enter? What was the setup? What went wrong or right?" onchange="jnSaveNote('${t.id}',this.value)">${escHtml(t.note||'')}</textarea>
+      <!-- MOOD + NOTES -->
+      <div style="display:grid;grid-template-columns:1fr auto;gap:12px;margin-bottom:16px;align-items:start">
+        <div>
+          <div class="jn-sec-title" style="margin-bottom:8px">setup notes</div>
+          <textarea class="jn-notes-area" rows="4" placeholder="Why did you enter? What was the setup? What went wrong or right?" onchange="jnSaveNote('${t.id}',this.value)">${escHtml(t.note||'')}</textarea>
+        </div>
+        <div style="min-width:80px">
+          <div class="jn-sec-title" style="margin-bottom:8px">mood</div>
+          <div style="display:flex;flex-direction:column;gap:4px">
+            ${JN_EMOTIONS.map(e=>`<button onclick="jnSetEmotion('${t.id}','${e}')" title="${{'😤':'frustrated','😰':'anxious','😐':'neutral','😊':'confident','🔥':'on fire'}[e]||e}" style="font-size:20px;background:${t.emotion===e?'rgba(255,255,255,0.06)':'none'};border:1.5px solid ${t.emotion===e?'#00c47a':'#1e1e1e'};border-radius:7px;padding:4px 8px;cursor:pointer;outline:none;transition:all .12s">${e}</button>`).join('')}
+          </div>
+        </div>
       </div>
 
       <div style="display:flex;gap:8px">
