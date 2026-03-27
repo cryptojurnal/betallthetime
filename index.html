@@ -6955,21 +6955,34 @@ function ljShowLockModal(m, tno){
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;align-items:stretch">
       <!-- cockpit data -->
       <div style="background:#0f0f0f;border:1px solid #1e1e1e;border-radius:8px;padding:14px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
-        <div><div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">mode</div><div style="font-size:11px;font-weight:700;color:#888">${mode} ${s.SPOT?'◈':leverage+'×'}</div></div>
+        <div><div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">mode</div>
+          <div style="font-size:11px;font-weight:700;color:#888">${s.SPOT?'spot ◈':'leverage'}</div>
+          ${s.SPOT?'':'<div style="font-size:10px;color:#555;margin-top:1px">${leverage}×</div>'}
+        </div>
         <div><div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">notional</div><div style="font-size:11px;font-weight:700;color:#888">$${notional.toLocaleString('en',{maximumFractionDigits:2})}</div></div>
         <div><div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">margin</div><div style="font-size:11px;font-weight:700;color:#888">$${margin.toFixed(2)}</div></div>
         <div><div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">target</div><div style="font-size:11px;font-weight:700;color:#00c47a">${tgt.toFixed(2)}%</div></div>
         <div><div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">freq</div><div style="font-size:11px;font-weight:700;color:#888">${freq}× /mo</div></div>
-        <div><div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">fee</div><div style="font-size:11px;font-weight:700;color:#888">${s.FEE.method} ${feeRate}%</div></div>
+        <div><div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">fee</div>
+          <div style="font-size:11px;font-weight:700;color:#888">${feeRate}% ${s.FEE.method}</div>
+          <div style="font-size:9px;color:#333;margin-top:1px">${window._ljExchange||document.getElementById('fee-exchange')?.value||'binance'}</div>
+        </div>
       </div>
       <!-- side toggle -->
       <div style="background:#0f0f0f;border:1px solid #1e1e1e;border-radius:8px;padding:14px;display:flex;flex-direction:column;justify-content:center">
         <div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;font-weight:700">side <span style="color:#e05555">*</span></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid #252525;border-radius:7px;overflow:hidden">
-          <button id="ljside-long" onclick="ljSetSide('long');ljFetchFundingDebounced()" style="padding:14px 8px;border:none;background:#0d1a10;color:#00c47a;font-size:12px;font-weight:800;cursor:pointer;outline:none;font-family:inherit;letter-spacing:.06em;border-right:1px solid #252525;transition:background .12s">▲ LONG</button>
-          <button id="ljside-short" onclick="ljSetSide('short');ljFetchFundingDebounced()" style="padding:14px 8px;border:none;background:#1a0d0d;color:#e05555;font-size:12px;font-weight:800;cursor:pointer;outline:none;font-family:inherit;letter-spacing:.06em;transition:background .12s">▼ SHORT</button>
-        </div>
-        <div id="lj-side-indicator" style="height:3px;border-radius:0 0 6px 6px;background:#00c47a;transition:all .15s;display:none"></div>
+        ${s.SPOT
+          ?`<div style="background:#0d0d0d;border:1px solid #1a1a1a;border-radius:7px;padding:12px;text-align:center">
+              <div style="font-size:18px;margin-bottom:4px">◈</div>
+              <div style="font-size:10px;color:#2a5a3a;font-weight:700">spot — long only</div>
+              <div style="font-size:8px;color:#2a2a2a;margin-top:2px">no short in spot mode</div>
+            </div>`
+          :`<div style="display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid #252525;border-radius:7px;overflow:hidden">
+              <button id="ljside-long" onclick="ljSetSide('long');ljFetchFundingDebounced()" style="padding:14px 8px;border:none;background:#0d1a10;color:#00c47a;font-size:12px;font-weight:800;cursor:pointer;outline:none;font-family:inherit;letter-spacing:.06em;border-right:1px solid #252525;transition:background .12s">▲ LONG</button>
+              <button id="ljside-short" onclick="ljSetSide('short');ljFetchFundingDebounced()" style="padding:14px 8px;border:none;background:#1a0d0d;color:#e05555;font-size:12px;font-weight:800;cursor:pointer;outline:none;font-family:inherit;letter-spacing:.06em;transition:background .12s">▼ SHORT</button>
+            </div>
+            <div id="lj-side-indicator" style="height:3px;border-radius:0 0 6px 6px;background:#00c47a;transition:all .15s;display:none"></div>`
+        }
       </div>
     </div>
 
@@ -7105,6 +7118,15 @@ function ljShowLockModal(m, tno){
 
     </div>
 
+    <!-- MOOD dropdown — right above the lock button -->
+    <div style="margin-bottom:14px">
+      <div style="font-size:8px;color:#444;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:700">mood <span style="color:#2a2a2a;font-weight:400;text-transform:none;letter-spacing:0;font-size:9px">optional</span></div>
+      <select id="lj-mood-select" style="width:100%;background:#111;border:1px solid #252525;border-radius:7px;color:#ccc;font-size:13px;padding:9px 12px;font-family:inherit;outline:none;cursor:pointer;box-sizing:border-box;color-scheme:dark">
+        <option value="">— select mood —</option>
+        ${JN_EMOTIONS.map(e=>`<option value="${e}">${e} ${{'😰':'anxious','😱':'shocked','😐':'neutral','😊':'confident','🔥':'on fire'}[e]||''}</option>`).join('')}
+      </select>
+    </div>
+
     <div id="lj-error" style="display:none;background:#2a0a0a;border:1px solid #4a1a1a;border-radius:6px;padding:8px 12px;font-size:11px;color:#e05555;margin-bottom:12px"></div>
 
     <div class="lj-btns">
@@ -7121,7 +7143,12 @@ function ljShowLockModal(m, tno){
     const cd=document.getElementById('lj-close-dt');
     if(od?.value) ljUpdateDtDisplay('open',od.value);
     if(cd?.value) ljUpdateDtDisplay('close',cd.value);
+    // set exchange select to cockpit value
+    const exSel=document.getElementById('lj-exchange');
+    if(exSel) exSel.value=window._ljExchange||'binance';
     const el=document.getElementById('lj-entry');if(el)el.focus();
+    // spot: force side to long and disable
+    if(gs().SPOT) window._ljSide='long';
     ljFetchFunding(true);
   },150);
 }
