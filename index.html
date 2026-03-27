@@ -6797,6 +6797,59 @@ function toggleLock(m, tno){
 // ── LOCK TO JOURNAL ──
 
 var _ljPending={m:0,tno:0}; // current modal context
+var _ljFundingData={rates:[],total:0,fetched:false,fetching:false,_key:''};
+
+async function ljFetchFunding(manual){
+  if(_ljFundingData.fetching) return;
+  const s=gs();
+  const msgEl=document.getElementById('lj-fund-msg');
+  const iconEl=document.getElementById('lj-fund-icon');
+  const btnEl=document.getElementById('lj-fund-fetch-btn');
+  const lblEl=document.getElementById('lj-fund-lbl');
+
+  if(s.SPOT){
+    _ljFundingData={rates:[],total:0,fetched:true,fetching:false,_key:''};
+    if(msgEl) msgEl.textContent='spot mode — no funding fees';
+    if(iconEl) iconEl.textContent='◈';
+    ljCalc(); return;
+  }
+  const openEl=document.getElementById('lj-open-dt');
+  const closeEl=document.getElementById('lj-close-dt');
+  if(!openEl?.value||!closeEl?.value) return;
+  const startMs=new Date(openEl.value).getTime();
+  const endMs=new Date(closeEl.value).getTime();
+  if(isNaN(startMs)||isNaN(endMs)||endMs<=startMs) return;
+  const key=`${openEl.value}|${closeEl.value}`;
+  if(!manual&&_ljFundingData._key===key&&_ljFundingData.fetched) return;
+
+  _ljFundingData.fetching=true;
+  _ljFundingData._key=key;
+  if(msgEl) msgEl.textContent='fetching funding rates...';
+  if(iconEl) iconEl.textContent='↻';
+  if(btnEl){btnEl.textContent='...';btnEl.style.opacity='.5';}
+
+  const ex=document.getElementById('lj-exchange')?.value||document.getElementById('fee-exchange')?.value||'binance';
+  const pair=(window._ljPair||document.getElementById('lj-pair-input')?.value||'BTCUSDT').replace(/[\s\/]/g,'').toUpperCase();
+  const side=window._ljSide||'long';
+  const notional=s.NOT;
+
+  try{
+    const rates=await fetchHistoricalFunding(ex,pair,startMs,endMs);
+    const totalFunding=calcFundingFromHistory(rates,notional,side==='long');
+    _ljFundingData={rates,total:totalFunding,fetched:true,fetching:false,_key:key};
+    const hrs=Math.round((endMs-startMs)/3600000*10)/10;
+    const intervals=rates.length;
+    if(msgEl) msgEl.textContent=`${intervals} interval${intervals!==1?'s':''} · ${hrs}h held · $${Math.abs(totalFunding).toFixed(4)} ${totalFunding>=0?'paid':'received'}`;
+    if(iconEl) iconEl.textContent=intervals>0?'✓':'○';
+    if(lblEl) lblEl.innerHTML=`funding <span style="color:#00c47a;font-size:8px">✓ ${intervals} intervals live</span>`;
+  }catch(e){
+    _ljFundingData.fetching=false;
+    if(msgEl) msgEl.textContent='fetch failed — using cockpit estimate';
+    if(iconEl) iconEl.textContent='⚠';
+  }
+  if(btnEl){btnEl.textContent='↻';btnEl.style.opacity='1';}
+  ljCalc();
+}
 
 function ljShowLockModal(m, tno){
   const s=gs();
@@ -6912,24 +6965,50 @@ function ljShowLockModal(m, tno){
 
     <!-- OPEN / CLOSE DATETIME + AUTO FUNDING -->
     <div style="margin-bottom:14px">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-        <div style="font-size:8px;color:#444;text-transform:uppercase;letter-spacing:.07em;font-weight:700">position open</div>
-        <span style="font-size:8px;color:#e05555">*</span>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <div>
+          <div style="font-size:8px;color:#444;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:700">position open <span style="color:#e05555">*</span></div>
+          <input id="lj-open-dt" type="datetime-local"
+            value="${new Date(Date.now()-3600000).toISOString().slice(0,16)}"
+            style="width:100%;background:#111;border:1px solid #252525;border-radius:7px;color:#ccc;font-size:11px;padding:9px 12px;font-family:inherit;outline:none;box-sizing:border-box;transition:border-color .15s;cursor:pointer"
+            onfocus="this.style.borderColor='#444'" onblur="this.style.borderColor='#252525';ljFetchFunding()">
+        </div>
+        <div>
+          <div style="font-size:8px;color:#444;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:700">position close <span style="color:#e05555">*</span></div>
+          <input id="lj-close-dt" type="datetime-local"
+            value="${new Date().toISOString().slice(0,16)}"
+            style="width:100%;background:#111;border:1px solid #252525;border-radius:7px;color:#ccc;font-size:11px;padding:9px 12px;font-family:inherit;outline:none;box-sizing:border-box;transition:border-color .15s;cursor:pointer"
+            onfocus="this.style.borderColor='#444'" onblur="this.style.borderColor='#252525';ljFetchFunding()">
+        </div>
       </div>
-      <input id="lj-open-dt" type="datetime-local" value="${new Date(Date.now()-3600000).toISOString().slice(0,16)}"
-        style="width:100%;background:#111;border:1px solid #252525;border-radius:7px;color:#ccc;font-size:11px;padding:9px 12px;font-family:inherit;outline:none;box-sizing:border-box;transition:border-color .15s;margin-bottom:8px"
-        onfocus="this.style.borderColor='#444'" onblur="this.style.borderColor='#252525'"
-        oninput="ljFetchFunding()">
-      <div style="font-size:8px;color:#444;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:700">position close <span style="color:#e05555">*</span></div>
-      <input id="lj-close-dt" type="datetime-local" value="${new Date().toISOString().slice(0,16)}"
-        style="width:100%;background:#111;border:1px solid #252525;border-radius:7px;color:#ccc;font-size:11px;padding:9px 12px;font-family:inherit;outline:none;box-sizing:border-box;transition:border-color .15s"
-        onfocus="this.style.borderColor='#444'" onblur="this.style.borderColor='#252525'"
-        oninput="ljFetchFunding()">
-      <!-- funding auto-fetch status -->
-      <div id="lj-fund-status" style="margin-top:8px;padding:8px 10px;background:#111;border:1px solid #1e1e1e;border-radius:6px;font-size:10px;color:#444;display:flex;align-items:center;gap:8px">
-        <span id="lj-fund-icon">⏳</span>
-        <span id="lj-fund-msg">enter open & close time → funding will auto-calculate</span>
-        <button onclick="ljFetchFunding(true)" style="margin-left:auto;background:none;border:1px solid #252525;border-radius:4px;color:#555;font-size:9px;padding:2px 8px;cursor:pointer;font-family:inherit;outline:none;transition:all .15s" id="lj-fund-fetch-btn">fetch</button>
+
+      <!-- exchange + pair for funding fetch -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px">
+        <div>
+          <div style="font-size:8px;color:#444;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:700">exchange</div>
+          <select id="lj-exchange" onchange="ljFetchFunding(true)"
+            style="width:100%;background:#111;border:1px solid #252525;border-radius:7px;color:#ccc;font-size:11px;padding:9px 12px;font-family:inherit;outline:none;cursor:pointer;-webkit-appearance:none;box-sizing:border-box">
+            <option value="binance"${gs().FEE&&document.getElementById('fee-exchange')?.value==='binance'?' selected':''}>Binance</option>
+            <option value="bybit"${document.getElementById('fee-exchange')?.value==='bybit'?' selected':''}>Bybit</option>
+            <option value="okx"${document.getElementById('fee-exchange')?.value==='okx'?' selected':''}>OKX</option>
+          </select>
+        </div>
+        <div>
+          <div style="font-size:8px;color:#444;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:700">pair symbol</div>
+          <input id="lj-pair-input" type="text" value="${tLabel.replace(/[\s\/]/g,'').toUpperCase()}"
+            placeholder="e.g. BTCUSDT"
+            style="width:100%;background:#111;border:1px solid #252525;border-radius:7px;color:#ccc;font-size:11px;padding:9px 12px;font-family:inherit;outline:none;box-sizing:border-box;transition:border-color .15s;text-transform:uppercase"
+            onfocus="this.style.borderColor='#444'" onblur="this.style.borderColor='#252525';window._ljPair=this.value.toUpperCase();ljFetchFunding(true)">
+        </div>
+      </div>
+
+      <!-- funding fetch status -->
+      <div id="lj-fund-status" style="padding:8px 10px;background:#0d0d0d;border:1px solid #1e1e1e;border-radius:6px;font-size:10px;color:#555;display:flex;align-items:center;gap:8px">
+        <span id="lj-fund-icon" style="font-size:12px">⏳</span>
+        <span id="lj-fund-msg">fill open & close time → funding auto-calculates</span>
+        <button onclick="window._ljPair=document.getElementById('lj-pair-input')?.value?.toUpperCase()||window._ljPair;ljFetchFunding(true)"
+          style="margin-left:auto;background:none;border:1px solid #252525;border-radius:4px;color:#666;font-size:9px;padding:3px 10px;cursor:pointer;font-family:inherit;outline:none;transition:all .15s;flex-shrink:0"
+          id="lj-fund-fetch-btn">fetch ↻</button>
       </div>
     </div>
 
@@ -6993,18 +7072,16 @@ function ljCalc(){
   const leverage=s.SPOT?1:s.LEV;
   const side=window._ljSide||'long';
   const feeRate=(s.FEE.method==='maker'?s.FEE.maker:s.FEE.taker)/100;
-  const funding=s.FEE.funding/100;
-  const holds=s.FEE.holds;
-
-  // notional = full position size (already includes leverage)
-  // margin = what user actually risks = notional / leverage
   const margin=s.SPOT?notional:notional/leverage;
   const priceDiff=side==='long'?exit-entry:entry-exit;
-  const grossPnl=(priceDiff/entry)*notional;   // notional already is leveraged position
-  const feePaid=notional*feeRate*2;             // fee on full position, open+close
-  const fundingPaid=notional*funding*holds;
+  const grossPnl=(priceDiff/entry)*notional;
+  const feePaid=notional*feeRate*2;
+  // use live-fetched funding if available, else cockpit estimate
+  const fundingPaid=(_ljFundingData.fetched&&_ljFundingData.rates.length>0)
+    ?Math.abs(_ljFundingData.total)
+    :notional*(s.FEE.funding/100)*s.FEE.holds;
   const netPnl=grossPnl-feePaid-fundingPaid;
-  const pct=(netPnl/margin)*100;               // % return on actual margin used
+  const pct=(netPnl/margin)*100;
 
   const c=document.getElementById('lj-calc');
   c.style.display='block';
@@ -7012,7 +7089,12 @@ function ljCalc(){
   document.getElementById('lj-gross').textContent='$'+fmt2(grossPnl);
   document.getElementById('lj-gross').className='lj-calc-val '+(grossPnl>=0?'':'neg');
   document.getElementById('lj-fee').textContent='-$'+feePaid.toFixed(4);
-  document.getElementById('lj-fund').textContent='-$'+fundingPaid.toFixed(4);
+  const fundEl=document.getElementById('lj-fund');
+  if(fundEl){
+    const liveTag=(_ljFundingData.fetched&&_ljFundingData.rates.length>0)?' ✓':'';
+    fundEl.textContent='-$'+fundingPaid.toFixed(4)+liveTag;
+    fundEl.className='lj-calc-val neg';
+  }
   document.getElementById('lj-net').textContent='$'+fmt2(netPnl);
   document.getElementById('lj-net').className='lj-calc-val '+(netPnl>=0?'':'neg');
   document.getElementById('lj-pct').textContent=(pct>=0?'+':'')+pct.toFixed(3)+'%';
