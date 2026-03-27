@@ -5192,7 +5192,19 @@ function onKpiSl(v){_captureUndo();gs().KPI=parseFloat(v);document.getElementByI
 // ── SIMULATION ──
 function getMLabel(m){return 'm'+String(m).padStart(2,'0');}
 
-function runSeq(startAcc,lev,initNot,bt,fr,kpi,isSpot,cf){
+// get actual journal result for a locked trade (tab+month+tradeNo)
+function getActualTrade(m, tno){
+  if(!window._ACTIVE_PRESET) return null;
+  const folder=JN.folders.find(f=>f.name===window._ACTIVE_PRESET.name);
+  if(!folder||!JN.trades[folder.id]) return null;
+  return JN.trades[folder.id].find(t=>
+    t.source==='cockpit'&&t.cockpit&&
+    t.cockpit.tab===TAB&&t.cockpit.month===m&&t.cockpit.tradeNo===tno&&
+    t.entry&&t.exit // only if actual prices were entered
+  )||null;
+}
+
+function runSeq(startAcc,lev,initNot,bt,fr,kpi,isSpot,cf,month){
   // cf=true (default): notional compounds within month and carries forward
   // cf=false: notional stays fixed at initNot every trade — no intra-month growth
   const cfOn = cf!==false;
@@ -5213,9 +5225,31 @@ function runSeq(startAcc,lev,initNot,bt,fr,kpi,isSpot,cf){
     const feePaid=tradeFee+fundFee;
     const accAfter=acc+cp;
     const accAfterF=accF+cp-feePaid;
-    trades.push({no:i+1,skip:false,not,am,fm,liq,tgt:bt[i]*kpi,freq:fr[i],sp,cp,accB:acc,accA:accAfter,feePaid,accAF:accAfterF,isSpot});
-    acc=accAfter;
-    accF=accAfterF;
+    // check for actual journal result on this locked trade
+    const actual=month?getActualTrade(month,i+1):null;
+    const actualCp=actual?(actual.pnl||0):null; // actual net PnL (already post-fee)
+    const actualFee=actual?(actual.fee||0):null;
+    const useActual=actual&&actualCp!==null;
+    const finalCp=useActual?actualCp:cp;
+    const finalFee=useActual?actualFee:(feePaid);
+    const finalCpPreFee=useActual?(actualCp+actualFee):cp;
+    const accAfterActual=acc+finalCpPreFee;
+    const accAfterFActual=accF+finalCp;
+    trades.push({no:i+1,skip:false,not,am,fm,liq,tgt:bt[i]*kpi,freq:fr[i],
+      sp:useActual?finalCpPreFee/fr[i]:sp,
+      cp:useActual?finalCpPreFee:cp,
+      accB:acc,accA:useActual?accAfterActual:accAfter,
+      feePaid:useActual?finalFee:feePaid,
+      accAF:useActual?accAfterFActual:accAfterF,
+      isSpot,
+      // flags for render
+      hasActual:useActual,
+      projCp:cp,projFee:feePaid,projAccAF:accAfterF,
+      actualCp:useActual?finalCp:null,
+      actualFee:useActual?finalFee:null
+    });
+    acc=useActual?accAfterActual:accAfter;
+    accF=useActual?accAfterFActual:accAfterF;
     // carry-forward OFF: freeze notional — never grows within or across months
     if(cfOn){
       not=isSpot?acc:not+sp;
@@ -5254,7 +5288,7 @@ function sim(){
     const initNot=s.SPOT?(cf?acc:s.P):(cfBase*mp);
     const liqT1=s.SPOT?100:(acc/initNot*100);
     const{bt:mBT,fr:mFR}=getMonthTrades(m);
-    const{trades,endAcc:gA,endAccF:gAF,lastNotional:ln}=runSeq(acc,s.LEV,initNot,mBT,mFR,s.KPI,s.SPOT,cf);
+    const{trades,endAcc:gA,endAccF:gAF,lastNotional:ln}=runSeq(acc,s.LEV,initNot,mBT,mFR,s.KPI,s.SPOT,cf,m);
     const monthFeePaid=trades.reduce((a,t)=>a+t.feePaid,0);
     const wdAmt=parseFloat(s.WD[m])||0;
     // no cap — if withdrawal exceeds balance, account is bust
@@ -8162,7 +8196,16 @@ function renderTbl(months){
         const netCol=netCp>=0?'var(--acc2)':'#E24B4A';
         const liqAFc=liqAF<20?'#A32D2D':liqAF<40?'#E24B4A':'var(--tx3)';
         const lk=isLocked(mo.m,t.no);
-        const lkRowAttr=lk?'class="locked-row"':(isT1Push?'style="background:rgba(96,192,48,0.06)"':'');
+        const ha=t.hasActual; // has actual journal data
+        const lkRowAttr=lk?(ha?'class="locked-row" style="background:rgba(0,196,122,0.03)"':'class="locked-row"'):(isT1Push?'style="background:rgba(96,192,48,0.06)"':'');
+        // before→after helper: strikethrough proj, show actual in color
+        const ba=(projVal,actualVal,actualColor)=>
+          ha?`<span style="color:var(--tx3);text-decoration:line-through;font-size:8px;opacity:.45">${projVal}</span><br><span style="color:${actualColor};font-weight:800;font-size:10px">${actualVal}</span>`
+            :projVal;
+        const actNetPnl=ha?t.actualCp:null;
+        const actFee=ha?t.actualFee:null;
+        const actCol=ha?(actNetPnl>=0?'#00c47a':'#E24B4A'):netCol;
+        const actAccAF=ha?t.accAF:null;
         h+=`<tr ${lkRowAttr}>
           <td style="padding-left:6px;text-align:left">
             <div style="display:flex;align-items:center;gap:4px">
@@ -8184,12 +8227,24 @@ function renderTbl(months){
             :(!GLOBAL_MODE
               ?'<div class="tg-cell fi" style="width:48px;border-color:var(--acc2)"><button class="tg-btn" style="color:var(--acc2)" onclick="manStep(\'fr\','+mo.m+','+(t.no-1)+',-1)" tabindex="-1">−</button><input type="number" id="mfr-'+mo.m+'-'+(t.no-1)+'" value="'+(gs().MT[mo.m]?.fr[t.no-1]??t.freq)+'" min="0" max="20" step="1" style="flex:1;min-width:0;padding:1px 0;font-size:9px;text-align:center;border:none;background:transparent;color:var(--acc2);font-weight:700;-moz-appearance:textfield" oninput="onManualFR('+mo.m+','+(t.no-1)+',this.value)"><button class="tg-btn" style="color:var(--acc2)" onclick="manStep(\'fr\','+mo.m+','+(t.no-1)+',1)" tabindex="-1">+</button></div>'
               :'<span style="color:var(--tx2)">'+t.freq+'×</span>')}</td>
-          <td style="color:${t.tgt<0?'#E24B4A':'var(--acc2)'}">${t.tgt>=0?'+':''}${fmt(t.sp)}</td>
-          <td style="color:${t.tgt<0?'#E24B4A':'var(--acc2)'};font-weight:600">${t.tgt>=0?'+':''}${fmt(t.cp)}</td>
-          <td style="color:${feePaid>0?'#E24B4A':'var(--tx3)'}">−${fmt(feePaid)}<div style="font-size:7px;color:var(--tx3);opacity:.7">2×${gs().FEE.method}</div></td>
-          <td style="color:${netCol};font-weight:700">${netCp>=0?'+':''}${fmt(netCp)}</td>
+          <td style="color:${t.tgt<0?'#E24B4A':'var(--acc2)'}">
+            ${ha?ba(fmt(t.projCp/Math.max(t.freq,1)),fmt((actNetPnl+actFee)/Math.max(t.freq,1)),actNetPnl+actFee>=0?'#00c47a':'#E24B4A'):(t.tgt>=0?'+':'')+fmt(t.sp)}
+          </td>
+          <td style="color:${t.tgt<0?'#E24B4A':'var(--acc2)'};font-weight:600">
+            ${ha?ba((t.projCp>=0?'+':'')+fmt(t.projCp),(actNetPnl+actFee>=0?'+':'')+fmt(actNetPnl+actFee),actNetPnl+actFee>=0?'#00c47a':'#E24B4A'):(t.tgt>=0?'+':'')+fmt(t.cp)}
+          </td>
+          <td style="color:#E24B4A">
+            ${ha?ba('−'+fmt(t.projFee),'−'+fmt(actFee),'#E24B4A'):('−'+fmt(feePaid))}
+            <div style="font-size:7px;color:var(--tx3);opacity:.7">2×${gs().FEE.method}</div>
+          </td>
+          <td style="font-weight:700">
+            ${ha?ba((t.projCp-t.projFee>=0?'+':'')+fmt(t.projCp-t.projFee),(actNetPnl>=0?'+':'')+fmt(actNetPnl),actCol):(netCp>=0?'+':'')+fmt(netCp)}
+          </td>
           <td style="color:var(--tx3);font-size:10px">${s.SPOT?'<span style="color:var(--tx3);font-size:9px">n/a</span>':fmt(t.accA)}</td>
-          <td style="color:var(--acc2);font-weight:700">${fmt(t.accAF)}${s.SPOT?'':'<div style="font-size:7px;color:'+liqAFc+'">liq '+liqAF.toFixed(0)+'%</div>'}</td>
+          <td style="font-weight:700">
+            ${ha?ba(fmt(t.projAccAF),fmt(t.accAF),t.accAF>=mo.sA?'var(--acc2)':'#E24B4A'):(fmt(t.accAF))}
+            ${s.SPOT?'':'<div style="font-size:7px;color:'+liqAFc+'">liq '+liqAF.toFixed(0)+'%</div>'}
+          </td>
         </tr>`;
       });
       // month end separator — colored bar + spacer before next month
