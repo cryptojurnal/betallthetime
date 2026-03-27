@@ -7052,8 +7052,8 @@ function ljShowLockModal(m, tno){
             placeholder="type to search… e.g. BTC"
             autocomplete="off"
             style="width:100%;background:#111;border:1px solid #252525;border-radius:7px;color:#e0e0e0;font-size:12px;font-weight:700;padding:9px 10px;font-family:inherit;outline:none;box-sizing:border-box;transition:border-color .15s;text-transform:uppercase"
-            onfocus="this.style.borderColor='#444';ljShowPairDrop(this.value,true)"
-            oninput="this.value=this.value.toUpperCase();window._ljPair=this.value;ljShowPairDrop(this.value,true)"
+            onfocus="this.style.borderColor='#444';ljFetchAllPairs(document.getElementById('lj-exchange')?.value||'binance').then(()=>ljShowPairDrop(this.value,true))"
+            oninput="this.value=this.value.toUpperCase();window._ljPair=this.value;ljFetchAllPairs(document.getElementById('lj-exchange')?.value||'binance').then(()=>ljShowPairDrop(this.value,true))"
             onblur="setTimeout(()=>{document.getElementById('lj-pair-drop')?.remove();window._ljPair=this.value.toUpperCase();ljFetchFunding(true)},200)">
           <div id="lj-pair-drop"></div>
         </div>
