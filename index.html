@@ -4874,10 +4874,10 @@ const ZERO_36_DEF=[6,11,17,22,30,35];
 const TOTAL=36;
 
 // SEPARATE STATE PER TAB
-const DEF_BT=[7,-2,0,2,5,0,3,-5,0,5]; // 7 active (t3,t6,t9 skip), 5 wins 2 losses
+const DEF_BT=[0,0,0,0,0,0,0,0,0,0]; // all off by default — users set their own targets
 const DEF_ML={}; // month labels {m: 'custom label'}
 const DEF_TL={}; // trade labels {t: 'asset name'} t=1..10
-const DEF_FR=[1,1,0,1,1,0,1,1,0,1];
+const DEF_FR=[0,0,0,0,0,0,0,0,0,0];
 
 let TAB='36', THEME='t-light', VIEW='sum', ch=null, GLOBAL_MODE=true, TOP_PANEL_COLLAPSED=false, IS_WIPED=false, lbl_w=false, bustMonth=null;
 // ── FEE STATE ──
@@ -5109,6 +5109,8 @@ function loadAll(){
     });
   });
   try{const t=localStorage.getItem('batt_theme');if(t)THEME=t;}catch(e){}
+  // load journal from localStorage immediately so getActualTrade works on first render
+  try{const jn=localStorage.getItem('batt_journal');if(jn)Object.assign(JN,JSON.parse(jn));}catch(e){}
   try{const ap=localStorage.getItem('batt_active_preset');if(ap){window._ACTIVE_PRESET=JSON.parse(ap);const _pbl=document.getElementById('auth-preset-lbl');const _pbc=document.getElementById('auth-preset-clear');if(_pbl&&window._ACTIVE_PRESET){_pbl.textContent='● '+window._ACTIVE_PRESET.name;_pbl.style.display='';}if(_pbc&&window._ACTIVE_PRESET)_pbc.style.display='';}}catch(e){}
 }
 
@@ -11598,6 +11600,7 @@ async function loadAllUserDataFromServer(){
     if(d.data.journal !== undefined){
       Object.assign(JN, d.data.journal);
       localStorage.setItem('batt_journal', JSON.stringify(JN));
+      if(typeof softUpdate==='function') softUpdate();
     }
   }catch(e){}
 }
@@ -17275,7 +17278,7 @@ async function jnLoad(){
   }catch(e){}
   // then cloud
   const tok=_battToken();
-  if(!tok) return;
+  if(!tok){if(typeof softUpdate==='function')softUpdate();return;}
   try{
     const r=await fetch(AUTH_URL+'/userdata/load',{headers:{'Authorization':'Bearer '+tok}});
     const d=await r.json();
@@ -17284,6 +17287,8 @@ async function jnLoad(){
       localStorage.setItem('batt_journal', JSON.stringify(JN));
     }
   }catch(e){}
+  // refresh cockpit so locked rows show actual data
+  if(typeof softUpdate==='function') softUpdate();
 }
 
 function openJournal(){
