@@ -6829,8 +6829,9 @@ function toggleLock(m, tno){
   const key=m+'-'+tno;
 
   if(s.LK.has(key)){
-    // UNLOCKING — ask about journal
-    ljConfirmUnlock(m, tno, key);
+    // already locked — cannot unlock
+    showToast('🔒 Trade is locked — logged trades cannot be undone','info',2500);
+    return;
   } else {
     // LOCKING — must have active preset, show journal modal
     if(!window._ACTIVE_PRESET){
@@ -8726,7 +8727,7 @@ function renderTbl(months){
         h+=`<tr ${lkRowAttr}>
           <td style="padding-left:6px;text-align:left">
             <div style="display:flex;align-items:center;gap:4px">
-              <button class="lock-btn${lk?' locked':''}" onclick="toggleLock(${mo.m},${t.no})" title="${lk?'executed · click to unlock':'mark as executed'}">${lk?'🔒':'○'}</button>
+              <button class="lock-btn${lk?' locked':''}" onclick="toggleLock(${mo.m},${t.no})" title="${lk?'🔒 locked · cannot undo':'mark as executed'}" style="${lk?'cursor:default;':''}">${lk?'🔒':'○'}</button>
               <input class="lbl-in lbl-trade${lk?' locked-overlay':''}" value="${tLabel}" placeholder="trade ${t.no}..." onchange="onTradeLabel(${mo.m},${t.no},this.value)" onclick="this.select()"${lk?' disabled':''}>
             </div>
           </td>
@@ -18045,28 +18046,40 @@ function jnRenderDetail(){
       ${tvHtml}
       ${cockpitHtml}
 
-      <!-- NOTES full width -->
+      <!-- NOTES append-only log -->
       <div style="margin-bottom:12px">
-        <div class="jn-sec-title" style="margin-bottom:8px">setup notes</div>
-        <textarea class="jn-notes-area" rows="4" placeholder="Why did you enter? What was the setup? What went wrong or right?" onchange="jnSaveNote('${t.id}',this.value)">${escHtml(t.note||'')}</textarea>
+        <div class="jn-sec-title" style="margin-bottom:8px">notes log</div>
+        ${(()=>{
+          // migrate old single note
+          const logs=t.noteLog||(t.note?[{ts:t.closedAt||Date.now(),text:t.note}]:[]);
+          const fmtTs=ts=>{const d=new Date(ts);return `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;};
+          const logHtml=logs.length
+            ?logs.map(e=>`<div style="padding:8px 12px;border-left:2px solid #1e1e1e;margin-bottom:6px;background:#0a0a0a;border-radius:0 6px 6px 0">
+                <div style="font-size:8px;color:#2a2a2a;margin-bottom:3px">${fmtTs(e.ts)}</div>
+                <div style="font-size:11px;color:#aaa;line-height:1.6">${escHtml(e.text)}</div>
+              </div>`).join('')
+            :'<div style="font-size:10px;color:#2a2a2a;padding:8px 0">no notes yet</div>';
+          return logHtml;
+        })()}
+        <!-- append new note -->
+        <div style="margin-top:8px;display:flex;gap:6px;align-items:flex-start">
+          <textarea id="jn-note-append" rows="2" placeholder="Add a note…"
+            style="flex:1;background:#111;border:1px solid #252525;border-radius:7px;color:#aaa;font-size:11px;padding:8px 12px;font-family:inherit;outline:none;resize:none;line-height:1.6;box-sizing:border-box;transition:border-color .15s"
+            onfocus="this.style.borderColor='#444'" onblur="this.style.borderColor='#252525'"></textarea>
+          <button onclick="const v=document.getElementById('jn-note-append').value;jnAppendNote('${t.id}',v)" style="background:#111;border:1px solid #252525;border-radius:7px;color:#555;font-size:10px;padding:8px 12px;cursor:pointer;font-family:inherit;outline:none;white-space:nowrap;transition:all .15s;flex-shrink:0" onmouseover="this.style.borderColor='#444';this.style.color='#aaa'" onmouseout="this.style.borderColor='#252525';this.style.color='#555'">+ add</button>
+        </div>
       </div>
-      <!-- MOOD — show selected only, click to cycle -->
+      <!-- MOOD — permanent once set -->
       <div style="margin-bottom:16px;display:flex;align-items:center;gap:10px">
         <div style="font-size:8px;color:#333;text-transform:uppercase;letter-spacing:.07em;font-weight:700">mood</div>
         ${t.emotion
-          ?`<div style="position:relative;display:inline-block" id="jn-mood-wrap">
-              <button onclick="document.getElementById('jn-mood-picker').style.display=document.getElementById('jn-mood-picker').style.display==='flex'?'none':'flex'"
-                style="font-size:22px;background:rgba(255,255,255,0.04);border:1px solid #252525;border-radius:8px;padding:4px 10px;cursor:pointer;outline:none">
-                ${t.emotion}
-              </button>
-              <div id="jn-mood-picker" style="display:none;position:absolute;top:calc(100% + 4px);left:0;background:#141414;border:1px solid #252525;border-radius:8px;padding:6px;gap:4px;z-index:99;box-shadow:0 8px 24px rgba(0,0,0,.5)">
-                ${JN_EMOTIONS.map(e=>`<button onclick="jnSetEmotion('${t.id}','${e}');document.getElementById('jn-mood-picker').style.display='none'" title="${{'😤':'frustrated','😰':'anxious','😐':'neutral','😊':'confident','🔥':'on fire'}[e]||e}" style="font-size:20px;background:${t.emotion===e?'rgba(255,255,255,0.08)':'none'};border:1.5px solid ${t.emotion===e?'#00c47a':'transparent'};border-radius:6px;padding:4px 8px;cursor:pointer;outline:none">${e}</button>`).join('')}
-              </div>
-            </div>
-            <span style="font-size:10px;color:#333">${{'😤':'frustrated','😰':'anxious','😐':'neutral','😊':'confident','🔥':'on fire'}[t.emotion]||''}</span>`
+          ?`<span style="font-size:22px">${t.emotion}</span>
+            <span style="font-size:10px;color:#333">${{'😤':'frustrated','😰':'anxious','😐':'neutral','😊':'confident','🔥':'on fire'}[t.emotion]||''}</span>
+            <span style="font-size:8px;color:#1e1e1e;margin-left:4px">permanent</span>`
           :`<div style="display:flex;gap:4px">
               ${JN_EMOTIONS.map(e=>`<button onclick="jnSetEmotion('${t.id}','${e}')" title="${{'😤':'frustrated','😰':'anxious','😐':'neutral','😊':'confident','🔥':'on fire'}[e]||e}" style="font-size:20px;background:none;border:1.5px solid #1a1a1a;border-radius:6px;padding:4px 8px;cursor:pointer;outline:none;transition:all .12s;opacity:.5" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.5'">${e}</button>`).join('')}
-            </div>`
+            </div>
+            <span style="font-size:9px;color:#2a2a2a">pick once · cannot change</span>`
         }
       </div>
 
@@ -18084,13 +18097,34 @@ function jnOpenTrade(id){
 async function jnSetEmotion(tid,emotion){
   const trades=JN.trades[JN.activeFolder]||[];
   const t=trades.find(x=>x.id===tid);
-  if(t){t.emotion=emotion;await jnSave();jnRenderDetail();}
+  if(!t) return;
+  if(t.emotion){
+    showToast('Mood is permanent — set once, stays forever','info',2000);
+    return;
+  }
+  t.emotion=emotion;
+  await jnSave();
+  jnRenderDetail();
 }
 
-async function jnSaveNote(tid,note){
+async function jnAppendNote(tid,text){
+  if(!text||!text.trim()) return;
   const trades=JN.trades[JN.activeFolder]||[];
   const t=trades.find(x=>x.id===tid);
-  if(t){t.note=note;await jnSave();}
+  if(!t) return;
+  if(!t.noteLog) t.noteLog=[];
+  // migrate old single note to log
+  if(t.note&&!t.noteLog.length){
+    t.noteLog.push({ts:t.closedAt||Date.now(),text:t.note});
+    t.note='';
+  }
+  t.noteLog.push({ts:Date.now(),text:text.trim()});
+  await jnSave();
+  jnRenderDetail();
+}
+async function jnSaveNote(tid,note){
+  // legacy — redirect to append
+  await jnAppendNote(tid,note);
 }
 
 async function jnNewFolder(){
