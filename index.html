@@ -1316,7 +1316,7 @@ body.t-dark tr.wipe-row>td{background:#2a0a0a!important;color:#ff7070!important}
 /* table */
 .tw{overflow-x:auto}
 table{border-collapse:collapse;font-size:10px;width:100%;min-width:860px;background:var(--panel);border-radius:0;overflow:hidden;border:0.5px solid var(--bd2);transition:background .25s}
-th{padding:5px 5px;background:var(--sf2);border-bottom:0.5px solid var(--bd2);font-weight:700;font-size:8px;color:var(--tx2);text-align:right;white-space:normal;letter-spacing:.03em;text-transform:uppercase;line-height:1.3}
+th{padding:5px 5px;background:var(--sf2);border-bottom:0.5px solid var(--bd2);font-weight:700;font-size:8px;color:var(--tx2);text-align:right;white-space:normal;letter-spacing:.03em;text-transform:uppercase;line-height:1.3;position:sticky;top:0;z-index:10}
 th:first-child{text-align:left}
 td{padding:4px 5px;border-bottom:0.5px solid var(--bd2);text-align:right;white-space:nowrap;color:var(--tx);font-size:10px}
 td:first-child{text-align:left}
@@ -1336,8 +1336,14 @@ tr:nth-child(even) td{background:var(--sf)}
 tr.mo-sep>td,tr.mo-gap>td{padding:0!important;border:none!important}
 tr.mh>td{background:var(--mh)!important;color:var(--mhc)!important;font-weight:700;font-size:11px;padding:4px 5px}
 tr.mh-z>td{background:var(--sf2)!important;color:var(--tx2)!important;font-size:10px;padding:5px 7px}
-tr.locked-row>td{background:rgba(0,196,122,0.04)!important;opacity:.75}
+tr.locked-row>td{background:rgba(0,196,122,0.04)!important;opacity:.85}
 tr.locked-row{border-left:2px solid #00c47a}
+tr.locked-row.actual-hit>td{background:rgba(0,196,122,0.06)!important}
+tr.locked-row.actual-hit{border-left:2px solid #00c47a}
+tr.locked-row.actual-miss>td{background:rgba(226,75,74,0.05)!important}
+tr.locked-row.actual-miss{border-left:2px solid #E24B4A}
+tr.locked-row.actual-neutral>td{background:rgba(239,159,39,0.05)!important}
+tr.locked-row.actual-neutral{border-left:2px solid #EF9F27}
 .lock-btn{background:none;border:0.5px solid var(--bd2);border-radius:3px;cursor:pointer;font-size:9px;padding:1px 4px;color:var(--tx3);transition:all .15s;font-family:inherit;line-height:1}
 .lock-btn:hover{border-color:#00c47a;color:#00c47a}
 .lock-btn.locked{border-color:#00c47a;color:#00c47a;background:rgba(0,196,122,0.1)}
@@ -5199,8 +5205,10 @@ function getActualTrade(m, tno){
   if(!folder||!JN.trades[folder.id]) return null;
   return JN.trades[folder.id].find(t=>
     t.source==='cockpit'&&t.cockpit&&
-    t.cockpit.tab===TAB&&t.cockpit.month===m&&t.cockpit.tradeNo===tno&&
-    t.entry&&t.exit // only if actual prices were entered
+    String(t.cockpit.tab)===String(TAB)&&
+    parseInt(t.cockpit.month)===parseInt(m)&&
+    parseInt(t.cockpit.tradeNo)===parseInt(tno)&&
+    t.entry&&t.exit
   )||null;
 }
 
@@ -7035,6 +7043,8 @@ async function ljConfirmLock(){
 
   JN.trades[folder.id].unshift(trade);
   await jnSave();
+  // refresh cockpit simulation immediately to show actual overlay
+  if(typeof render==='function') setTimeout(render,50);
 
   // now actually lock in cockpit
   s.LK.add(m+'-'+tno);
@@ -8197,7 +8207,15 @@ function renderTbl(months){
         const liqAFc=liqAF<20?'#A32D2D':liqAF<40?'#E24B4A':'var(--tx3)';
         const lk=isLocked(mo.m,t.no);
         const ha=t.hasActual; // has actual journal data
-        const lkRowAttr=lk?(ha?'class="locked-row" style="background:rgba(0,196,122,0.03)"':'class="locked-row"'):(isT1Push?'style="background:rgba(96,192,48,0.06)"':'');
+        // outcome class: green=hit or exceeded, red=miss/loss, orange=partial
+        let outcomeClass='';
+        if(lk&&ha){
+          const actLev=t.actualCp!==null?((t.actualCp+t.actualFee)/t.not*100*t.freq):null; // rough actual levered %
+          if(t.actualCp>=0&&t.tgt>0&&(t.actualCp+t.actualFee)>=(t.projCp*0.9)) outcomeClass='actual-hit';
+          else if(t.actualCp>=0) outcomeClass='actual-neutral';
+          else outcomeClass='actual-miss';
+        }
+        const lkRowAttr=lk?('class="locked-row'+( outcomeClass?' '+outcomeClass:'')+'"'):(isT1Push?'style="background:rgba(96,192,48,0.06)"':'');
         // before→after helper: strikethrough proj, show actual in color
         const ba=(projVal,actualVal,actualColor)=>
           ha?`<span style="color:var(--tx3);text-decoration:line-through;font-size:8px;opacity:.45">${projVal}</span><br><span style="color:${actualColor};font-weight:800;font-size:10px">${actualVal}</span>`
@@ -9768,9 +9786,27 @@ async function presetRename(id,currentName){
     });
     const d=await r.json();
     if(d.ok){
+      const trimmedName=newName.trim();
+      // sync journal folder name if this is the active preset
+      if(window._ACTIVE_PRESET&&window._ACTIVE_PRESET.id===id){
+        const oldName=window._ACTIVE_PRESET.name;
+        window._ACTIVE_PRESET.name=trimmedName;
+        try{localStorage.setItem('batt_active_preset',JSON.stringify(window._ACTIVE_PRESET));}catch(e){}
+        // update journal folder name
+        const jFolder=JN.folders.find(f=>f.name===oldName);
+        if(jFolder){
+          jFolder.name=trimmedName;
+          // also update all cockpit trade records in that folder
+          (JN.trades[jFolder.id]||[]).forEach(t=>{/* folder ref is by id, no update needed */});
+          jnSave();
+        }
+        // update user bar label
+        const _pbl=document.getElementById('auth-preset-lbl');
+        if(_pbl){_pbl.textContent='● '+trimmedName;}
+      }
       presetRenderList();
       showToast('Preset renamed','success');
-      if(typeof logActivity==='function') logActivity('preset_rename',{name:newName.trim()});
+      if(typeof logActivity==='function') logActivity('preset_rename',{name:trimmedName});
     }else{
       showToast(d.error||'Failed to rename','error');
     }
@@ -17483,6 +17519,7 @@ async function jnDeleteTrade(tid){
   if(!ok) return;
   JN.trades[JN.activeFolder]=(JN.trades[JN.activeFolder]||[]).filter(x=>x.id!==tid);
   await jnSave();
+  if(typeof softUpdate==='function') softUpdate();
   if(JN.activeTrade===tid){JN.view='list';JN.activeTrade=null;}
   jnRender();
 }
