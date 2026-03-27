@@ -1388,6 +1388,24 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 .jn-breadcrumb .sep{cursor:default;color:#222}
 .jn-body{flex:1;overflow-y:auto;padding:24px 28px 60px;scrollbar-width:none}
 .jn-body::-webkit-scrollbar{display:none}
+/* folder view toggle */
+.jn-view-toggle{display:flex;gap:4px}
+.jn-vt-btn{background:none;border:1px solid #252525;border-radius:5px;color:#444;font-size:10px;cursor:pointer;padding:4px 8px;font-family:inherit;transition:all .15s;outline:none;line-height:1}
+.jn-vt-btn.on{background:#1e1e1e;border-color:#333;color:#ccc}
+.jn-vt-btn:hover{color:#999}
+/* folder list view */
+.jn-folders-list{display:flex;flex-direction:column;gap:4px;margin-bottom:8px}
+.jn-folder-row{display:flex;align-items:center;gap:0;background:#1a1a1a;border:1px solid #222;border-radius:7px;cursor:pointer;transition:border-color .15s;overflow:hidden;height:44px}
+.jn-folder-row:hover{border-color:#2e2e2e}
+.jn-folder-row-accent{width:3px;height:100%;flex-shrink:0}
+.jn-folder-row-name{font-size:12px;font-weight:700;color:#ddd;padding:0 14px;flex:1}
+.jn-folder-row-type{font-size:8px;padding:2px 7px;border-radius:3px;font-weight:700;letter-spacing:.05em;margin-right:8px}
+.jn-folder-row-type.spot{background:rgba(91,127,255,0.1);color:#5b7fff}
+.jn-folder-row-type.lev{background:rgba(0,196,122,0.1);color:#00c47a}
+.jn-folder-row-type.mix{background:rgba(245,158,11,0.1);color:#f59e0b}
+.jn-folder-row-meta{font-size:10px;color:#444;padding:0 10px;display:flex;gap:14px;min-width:200px}
+.jn-folder-row-pnl{font-size:11px;font-weight:700;padding:0 14px;min-width:90px;text-align:right}
+.jn-folder-row-actions{display:flex;gap:4px;padding:0 10px;flex-shrink:0}
 /* folders */
 .jn-folders{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px}
 .jn-folder{background:#282828;border:1px solid #2a2a2a;border-radius:8px;padding:14px 14px 12px;cursor:pointer;transition:border-color .15s,transform .15s;position:relative;overflow:hidden}
@@ -1446,7 +1464,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 .jn-btn-sm.danger:hover{border-color:#e05555;color:#e05555}
 .jn-btn-sm.primary{background:#00c47a;border-color:#00c47a;color:#000}
 .jn-btn-sm.primary:hover{background:#00e88e}
-.jn-add-btn{background:#00c47a;color:#000;border:none;border-radius:6px;padding:7px 16px;font-size:10px;font-weight:800;cursor:pointer;font-family:inherit;letter-spacing:.06em;transition:background .15s}
+.jn-add-btn{background:#00c47a;color:#000;border:none;border-radius:6px;padding:7px 16px;font-size:10px;font-weight:800;cursor:pointer;font-family:inherit;letter-spacing:.06em;transition:background .15s;outline:none}
 .jn-add-btn:hover{background:#00e88e}
 .jn-import-banner{background:rgba(0,196,122,0.04);border:1px solid rgba(0,196,122,0.1);border-radius:6px;padding:8px 12px;display:flex;align-items:center;gap:10px;margin-bottom:14px;font-size:10px;color:#6ab87a}
 .jn-import-banner button{background:#00c47a;border:none;border-radius:5px;color:#000;font-size:9px;font-weight:800;padding:3px 10px;cursor:pointer;font-family:inherit;margin-left:auto;flex-shrink:0}
@@ -16395,9 +16413,10 @@ function guestGoLogin(){
 // TRADE JOURNAL
 // ══════════════════════════════════════════════════════════
 var JN = {
-  folders: [],      // [{id,name,color,tags,createdAt}]
-  trades: {},       // {folderId: [{id,pair,side,leverage,size,entry,exit,pnl,fee,funding,pct,type,closedAt,note,emotion,source,tags}]}
+  folders: [],      // [{id,name,color,tags,type,createdAt}]
+  trades: {},       // {folderId: [{...}]}
   view: 'folders',  // 'folders' | 'list' | 'detail'
+  folderView: 'grid', // 'grid' | 'list'
   activeFolder: null,
   activeTrade: null,
 };
@@ -16481,63 +16500,130 @@ function jnUpdateHeader(){
 function jnGoFolders(){JN.view='folders';JN.activeFolder=null;JN.activeTrade=null;jnRender();}
 function jnGoList(fid){JN.view='list';JN.activeFolder=fid;JN.activeTrade=null;jnRender();}
 
+function jnFolderTypeBadge(type){
+  if(!type||type==='mix') return '<span class="jn-folder-row-type mix">mix</span>';
+  if(type==='spot') return '<span class="jn-folder-row-type spot">spot</span>';
+  return '<span class="jn-folder-row-type lev">leverage</span>';
+}
+
 function jnRenderFolders(){
   const body=document.getElementById('jn-body');
   const tpCount=TP_STATE&&TP_STATE.history?TP_STATE.history.length:0;
+  const isGrid=JN.folderView!=='list';
   let html='';
 
-  // import banner if TP has unimported trades
   if(tpCount>0){
     html+=`<div class="jn-import-banner">
       <span>⚡</span>
-      <span>${tpCount} trade${tpCount>1?'s':''} from Trade Panel ready to import</span>
+      <span>${tpCount} closed trade${tpCount>1?'s':''} in Trade Panel — ready to import</span>
       <button onclick="jnImportFromTP()">import →</button>
     </div>`;
   }
 
-  html+='<div class="jn-sec-title">Your Folders</div>';
-  html+='<div class="jn-folders">';
-
-  JN.folders.forEach(f=>{
-    const trades=JN.trades[f.id]||[];
-    const wins=trades.filter(t=>t.pnl>0).length;
-    const wr=trades.length?Math.round(wins/trades.length*100):0;
-    const totalPnl=trades.reduce((a,t)=>a+(t.pnl||0),0);
-    const pnlClass=totalPnl>=0?'up':'dn';
-    const pnlStr=(totalPnl>=0?'+':'')+totalPnl.toFixed(2);
-    const tags=(f.tags||[]).map(t=>`<span class="jn-tag">${t}</span>`).join('');
-    html+=`<div class="jn-folder" onclick="jnGoList('${f.id}')">
-      <div class="jn-folder-color" style="background:${f.color||'#00c47a'}"></div>
-      <div class="jn-folder-name">${escHtml(f.name)}</div>
-      <div class="jn-folder-meta">
-        <span>${trades.length} trades</span>
-        ${trades.length?`<span>${wr}% WR</span>`:''}
-      </div>
-      ${trades.length?`<div class="jn-folder-pnl ${pnlClass}">$${pnlStr}</div>`:''}
-      ${tags?`<div class="jn-folder-tags">${tags}</div>`:''}
-      <div style="position:absolute;top:8px;right:8px;display:flex;gap:4px">
-        <button class="jn-btn-sm" onclick="event.stopPropagation();jnEditFolder('${f.id}')" style="font-size:8px;padding:2px 6px">✏️</button>
-        <button class="jn-btn-sm danger" onclick="event.stopPropagation();jnDeleteFolder('${f.id}')" style="font-size:8px;padding:2px 6px">✕</button>
-      </div>
-    </div>`;
-  });
-
-  // new folder button
-  html+=`<div class="jn-folder jn-folder-new" onclick="jnNewFolder()">
-    <span style="font-size:20px">+</span>
-    <span>new folder</span>
+  // section header with view toggle
+  html+=`<div style="display:flex;align-items:center;margin-bottom:12px">
+    <div class="jn-sec-title" style="margin-bottom:0;flex:1">Your Folders</div>
+    <div class="jn-view-toggle">
+      <button class="jn-vt-btn${isGrid?' on':''}" onclick="JN.folderView='grid';jnRenderFolders()" title="grid view">⊞</button>
+      <button class="jn-vt-btn${!isGrid?' on':''}" onclick="JN.folderView='list';jnRenderFolders()" title="list view">≡</button>
+    </div>
   </div>`;
-  html+='</div>';
 
   if(JN.folders.length===0){
     html+=`<div class="jn-empty">
       <div class="jn-empty-icon">📂</div>
-      <div style="margin-bottom:8px">No folders yet</div>
-      <div style="font-size:10px;color:#222">Create a folder to start logging trades<br>e.g. "BTC Scalps", "May 2025", "High Leverage"</div>
+      <div style="margin-bottom:6px;color:#888">No folders yet</div>
+      <div style="font-size:10px;color:#444">Create a folder to start logging trades<br>e.g. "BTC Scalps", "May 2025", "High Leverage"</div>
     </div>`;
   }
 
+  if(isGrid){
+    html+='<div class="jn-folders">';
+    JN.folders.forEach(f=>{
+      const trades=JN.trades[f.id]||[];
+      const wins=trades.filter(t=>t.pnl>0).length;
+      const wr=trades.length?Math.round(wins/trades.length*100):0;
+      const totalPnl=trades.reduce((a,t)=>a+(t.pnl||0),0);
+      const pnlClass=totalPnl>=0?'up':'dn';
+      const pnlStr=(totalPnl>=0?'+':'')+totalPnl.toFixed(2);
+      const lastTrade=trades.length?new Date(trades[0].closedAt):null;
+      const lastStr=lastTrade?`${lastTrade.getDate()}/${lastTrade.getMonth()+1}/${lastTrade.getFullYear()}`:'—';
+      const typeColor=f.type==='spot'?'#5b7fff':f.type==='lev'?'#00c47a':'#f59e0b';
+      const typeLbl=f.type==='spot'?'spot':f.type==='lev'?'leverage':'mix';
+      html+=`<div class="jn-folder" onclick="jnGoList('${f.id}')">
+        <div class="jn-folder-color" style="background:${f.color||'#00c47a'}"></div>
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;padding-left:10px;margin-bottom:4px">
+          <div class="jn-folder-name" style="padding-left:0;margin-bottom:0">${escHtml(f.name)}</div>
+          <span style="font-size:8px;padding:1px 6px;border-radius:3px;font-weight:700;letter-spacing:.04em;background:rgba(${f.type==='spot'?'91,127,255':f.type==='lev'?'0,196,122':'245,158,11'},.1);color:${typeColor};flex-shrink:0;margin-left:6px">${typeLbl}</span>
+        </div>
+        <div class="jn-folder-meta">
+          <span>${trades.length} trade${trades.length!==1?'s':''}</span>
+          ${trades.length?`<span>${wr}% WR</span>`:''}
+          <span style="color:#333">last: ${lastStr}</span>
+        </div>
+        ${trades.length?`<div class="jn-folder-pnl ${pnlClass}">$${pnlStr}</div>`:'<div style="height:4px"></div>'}
+        <div class="jn-folder-tags">${(f.tags||[]).map(t=>`<span class="jn-tag">${t}</span>`).join('')}</div>
+        <div style="position:absolute;top:8px;right:8px;display:flex;gap:3px;opacity:0;transition:opacity .15s" class="jn-folder-acts">
+          <button class="jn-btn-sm" onclick="event.stopPropagation();jnEditFolder('${f.id}')" style="padding:2px 5px;font-size:8px">✏</button>
+          <button class="jn-btn-sm danger" onclick="event.stopPropagation();jnDeleteFolder('${f.id}')" style="padding:2px 5px;font-size:8px">✕</button>
+        </div>
+      </div>`;
+    });
+    html+=`<div class="jn-folder jn-folder-new" onclick="jnNewFolder()">
+      <span style="font-size:18px;color:#444">+</span>
+      <span>new folder</span>
+    </div>`;
+    html+='</div>';
+    // show action buttons on hover via JS (CSS hover on parent)
+  } else {
+    // list view
+    html+='<div class="jn-folders-list">';
+    JN.folders.forEach(f=>{
+      const trades=JN.trades[f.id]||[];
+      const wins=trades.filter(t=>t.pnl>0).length;
+      const wr=trades.length?Math.round(wins/trades.length*100):0;
+      const totalPnl=trades.reduce((a,t)=>a+(t.pnl||0),0);
+      const pnlClass=totalPnl>=0?'up':'dn';
+      const pnlStr=(totalPnl>=0?'+':'')+totalPnl.toFixed(2);
+      const lastTrade=trades.length?new Date(Math.max(...trades.map(t=>t.closedAt))):null;
+      const createdAt=f.createdAt?new Date(f.createdAt):null;
+      const lastStr=lastTrade?`${lastTrade.getDate()}/${lastTrade.getMonth()+1}/${lastTrade.getFullYear()}`:'no trades';
+      const createdStr=createdAt?`${createdAt.getDate()}/${createdAt.getMonth()+1}/${createdAt.getFullYear()}`:'';
+      html+=`<div class="jn-folder-row" onclick="jnGoList('${f.id}')">
+        <div class="jn-folder-row-accent" style="background:${f.color||'#00c47a'}"></div>
+        <div class="jn-folder-row-name">${escHtml(f.name)}</div>
+        ${jnFolderTypeBadge(f.type)}
+        <div class="jn-folder-row-meta">
+          <span>${trades.length} trade${trades.length!==1?'s':''}</span>
+          ${trades.length?`<span style="color:${wr>=50?'#00c47a':'#e05555'}">${wr}% WR</span>`:''}
+          <span>last: ${lastStr}</span>
+          ${createdStr?`<span style="color:#333">created: ${createdStr}</span>`:''}
+        </div>
+        <div class="jn-folder-row-pnl ${pnlClass}">${trades.length?'$'+pnlStr:'—'}</div>
+        <div class="jn-folder-row-actions">
+          <button class="jn-btn-sm" onclick="event.stopPropagation();jnEditFolder('${f.id}')" style="padding:2px 5px;font-size:8px">✏</button>
+          <button class="jn-btn-sm danger" onclick="event.stopPropagation();jnDeleteFolder('${f.id}')" style="padding:2px 5px;font-size:8px">✕</button>
+        </div>
+      </div>`;
+    });
+    html+=`<div class="jn-folder-row" onclick="jnNewFolder()" style="border-style:dashed;justify-content:center;gap:8px;color:#444;font-size:11px">
+      <span>+</span><span>new folder</span>
+    </div>`;
+    html+='</div>';
+  }
+
   body.innerHTML=html;
+
+  // show folder action buttons on card hover
+  if(isGrid){
+    body.querySelectorAll('.jn-folder:not(.jn-folder-new)').forEach(card=>{
+      const acts=card.querySelector('.jn-folder-acts');
+      if(acts){
+        card.addEventListener('mouseenter',()=>acts.style.opacity='1');
+        card.addEventListener('mouseleave',()=>acts.style.opacity='0');
+      }
+    });
+  }
 }
 
 function jnRenderList(){
@@ -16656,14 +16742,50 @@ async function jnSaveNote(tid,note){
 }
 
 async function jnNewFolder(){
-  const name=await showConfirm({icon:'📂',type:'info',title:'New Folder',message:'Name your folder — e.g. "BTC Scalps", "May 2025", "High Risk"',input:true,inputPlaceholder:'folder name',confirmText:'create',cancelText:'cancel'});
-  if(!name||!name.trim()) return;
-  const color=JN_COLORS[JN.folders.length%JN_COLORS.length];
+  // inline form rendered inside body
+  const body=document.getElementById('jn-body');
+  const colors=JN_COLORS;
+  const colorIdx=JN.folders.length%colors.length;
+  body.innerHTML=`<div style="max-width:420px">
+    <div style="font-size:13px;font-weight:700;color:#ccc;margin-bottom:18px">New Folder</div>
+    <div style="margin-bottom:14px">
+      <div class="jn-detail-lbl" style="margin-bottom:6px">Folder name</div>
+      <input id="jnf-name" type="text" placeholder='e.g. "BTC Scalps", "May 2025"' style="width:100%;background:#1a1a1a;border:1px solid #2e2e2e;border-radius:6px;color:#ddd;font-size:12px;padding:9px 12px;font-family:inherit;outline:none;box-sizing:border-box" autofocus>
+    </div>
+    <div style="margin-bottom:14px">
+      <div class="jn-detail-lbl" style="margin-bottom:6px">Trade type</div>
+      <div style="display:flex;gap:6px">
+        <button class="jnf-type-btn on" data-type="lev" onclick="document.querySelectorAll('.jnf-type-btn').forEach(b=>b.classList.remove('on'));this.classList.add('on')" style="flex:1;padding:8px;border-radius:6px;border:1px solid #2e2e2e;background:#1a1a1a;color:#00c47a;font-size:10px;font-weight:700;cursor:pointer;outline:none;font-family:inherit;transition:all .15s">⚡ Leverage</button>
+        <button class="jnf-type-btn" data-type="spot" onclick="document.querySelectorAll('.jnf-type-btn').forEach(b=>b.classList.remove('on'));this.classList.add('on')" style="flex:1;padding:8px;border-radius:6px;border:1px solid #2e2e2e;background:#1a1a1a;color:#5b7fff;font-size:10px;font-weight:700;cursor:pointer;outline:none;font-family:inherit;transition:all .15s">◈ Spot</button>
+        <button class="jnf-type-btn" data-type="mix" onclick="document.querySelectorAll('.jnf-type-btn').forEach(b=>b.classList.remove('on'));this.classList.add('on')" style="flex:1;padding:8px;border-radius:6px;border:1px solid #2e2e2e;background:#1a1a1a;color:#f59e0b;font-size:10px;font-weight:700;cursor:pointer;outline:none;font-family:inherit;transition:all .15s">⊕ Mix</button>
+      </div>
+    </div>
+    <div style="margin-bottom:20px">
+      <div class="jn-detail-lbl" style="margin-bottom:6px">Color</div>
+      <div style="display:flex;gap:6px">${colors.map((c,i)=>`<button onclick="document.querySelectorAll('.jnf-color-btn').forEach(b=>b.style.outline='none');this.style.outline='2px solid #fff'" class="jnf-color-btn" style="width:22px;height:22px;border-radius:50%;background:${c};border:none;cursor:pointer;outline:${i===colorIdx?'2px solid #fff':'none'};outline-offset:2px;transition:outline .12s"></button>`).join('')}</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button onclick="jnNewFolderSubmit()" class="jn-add-btn" style="flex:1">create folder</button>
+      <button onclick="jnRenderFolders()" class="jn-btn-sm" style="padding:7px 16px;font-size:10px">cancel</button>
+    </div>
+  </div>`;
+  // focus input
+  setTimeout(()=>{const i=document.getElementById('jnf-name');if(i)i.focus();},50);
+}
+
+async function jnNewFolderSubmit(){
+  const nameEl=document.getElementById('jnf-name');
+  const name=(nameEl?nameEl.value:'').trim();
+  if(!name){nameEl&&(nameEl.style.borderColor='#e05555');return;}
+  const typeBtn=document.querySelector('.jnf-type-btn.on');
+  const type=typeBtn?typeBtn.dataset.type:'lev';
+  const colorBtn=document.querySelector('.jnf-color-btn[style*="2px solid"]');
+  const color=colorBtn?colorBtn.style.background:JN_COLORS[JN.folders.length%JN_COLORS.length];
   const id='f'+Date.now();
-  JN.folders.push({id,name:name.trim(),color,tags:[],createdAt:Date.now()});
+  JN.folders.push({id,name,color,type,tags:[type],createdAt:Date.now()});
   JN.trades[id]=[];
   await jnSave();
-  jnRenderFolders();
+  jnGoList(id);
 }
 
 async function jnEditFolder(fid){
