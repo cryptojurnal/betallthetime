@@ -7049,6 +7049,7 @@ function ljShowLockModal(m, tno){
           <div style="font-size:8px;color:#444;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:700">pair / symbol</div>
           <select id="lj-pair-input" onchange="window._ljPair=this.value;ljFetchFundingDebounced()"
             style="width:100%;background:#111;border:1px solid #252525;border-radius:7px;color:#e0e0e0;font-size:12px;font-weight:700;padding:9px 10px;font-family:inherit;outline:none;box-sizing:border-box;cursor:pointer;color-scheme:dark;-webkit-appearance:auto">
+            ${(()=>{const cur=(window._ljPair||'BTCUSDT');const list=[..._LJ_COMMON_PAIRS];if(!list.includes(cur))list.unshift(cur);return list.map(p=>`<option value="${p}"${p===cur?' selected':''}>${p}</option>`).join('');})()}
           </select>
         </div>
       </div>
