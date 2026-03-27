@@ -1374,6 +1374,36 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 .manual-grid input:disabled{opacity:.3;pointer-events:none}
 .mgrid-lbl{font-size:8px;color:var(--tx3);text-align:center;margin-bottom:1px}
 
+/* ── LOCK TO JOURNAL MODAL ── */
+#lj-modal{position:fixed;inset:0;z-index:9800;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.7);backdrop-filter:blur(4px)}
+#lj-modal.visible{display:flex}
+.lj-box{background:#141414;border:1px solid #252525;border-radius:12px;width:min(480px,94vw);max-height:88vh;overflow-y:auto;padding:24px;scrollbar-width:none}
+.lj-box::-webkit-scrollbar{display:none}
+.lj-title{font-size:14px;font-weight:800;color:#e0e0e0;margin-bottom:4px}
+.lj-sub{font-size:10px;color:#555;margin-bottom:20px}
+.lj-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.lj-field{display:flex;flex-direction:column;gap:4px}
+.lj-field.full{grid-column:1/-1}
+.lj-lbl{font-size:8px;color:#444;text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+.lj-val{font-size:12px;color:#999;font-weight:600;padding:7px 10px;background:#0d0d0d;border:1px solid #1e1e1e;border-radius:5px}
+.lj-val.highlight{color:#00c47a}
+.lj-val.highlight-red{color:#e05555}
+.lj-inp{font-size:12px;color:#ddd;font-weight:600;padding:7px 10px;background:#0d0d0d;border:1px solid #252525;border-radius:5px;font-family:inherit;outline:none;transition:border-color .15s;width:100%;box-sizing:border-box}
+.lj-inp:focus{border-color:#00c47a}
+.lj-inp::placeholder{color:#333}
+.lj-calc{background:#0a1a0a;border:1px solid #1a3020;border-radius:6px;padding:10px 12px;margin-bottom:14px}
+.lj-calc-row{display:flex;justify-content:space-between;align-items:center;font-size:10px;margin-bottom:4px}
+.lj-calc-row:last-child{margin-bottom:0;padding-top:6px;border-top:1px solid #1a3020;font-size:12px;font-weight:700}
+.lj-calc-lbl{color:#3a5a4a}
+.lj-calc-val{color:#00c47a;font-weight:700}
+.lj-calc-val.neg{color:#e05555}
+.lj-divider{height:1px;background:#1a1a1a;margin:16px 0}
+.lj-btns{display:flex;gap:8px;margin-top:16px}
+.lj-confirm-btn{flex:1;background:#00c47a;color:#000;border:none;border-radius:7px;padding:10px;font-size:11px;font-weight:800;cursor:pointer;font-family:inherit;letter-spacing:.05em;outline:none;transition:background .15s}
+.lj-confirm-btn:hover{background:#00e88e}
+.lj-cancel-btn{background:none;border:1px solid #222;border-radius:7px;padding:10px 16px;font-size:11px;color:#555;cursor:pointer;font-family:inherit;outline:none;transition:all .15s}
+.lj-cancel-btn:hover{border-color:#333;color:#999}
+.lj-tv-preview{width:100%;height:200px;border:1px solid #1e1e1e;border-radius:6px;margin-top:6px;background:#0a0a0a;display:none}
 /* ── TRADE JOURNAL ── */
 #journal-page{position:fixed;inset:0;z-index:9600;background:#1a1a1a;display:none;flex-direction:column;opacity:0;transform:translateY(6px);transition:opacity .25s ease,transform .25s ease}
 #journal-page.visible{opacity:1;transform:translateY(0)}
@@ -2181,6 +2211,11 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 
 <!-- TOAST NOTIFICATIONS -->
 <div id="toast-container"></div>
+
+<!-- ── LOCK TO JOURNAL MODAL ── -->
+<div id="lj-modal">
+  <div class="lj-box" id="lj-box"></div>
+</div>
 
 <!-- PROFESSIONAL CONFIRMATION MODAL -->
 <div class="confirm-overlay" id="confirm-overlay">
@@ -6619,18 +6654,304 @@ async function _autoResaveActivePreset(){
 function toggleLock(m, tno){
   _captureUndo();const s=gs();
   if(!s.LK) s.LK=new Set();
-  if(Array.isArray(s.LK)) s.LK=new Set(s.LK); // heal if loaded as array
+  if(Array.isArray(s.LK)) s.LK=new Set(s.LK);
   const key=m+'-'+tno;
-  if(s.LK.has(key)) s.LK.delete(key);
-  else s.LK.add(key);
+
+  if(s.LK.has(key)){
+    // UNLOCKING — ask about journal
+    ljConfirmUnlock(m, tno, key);
+  } else {
+    // LOCKING — must have active preset, show journal modal
+    if(!window._ACTIVE_PRESET){
+      showToast('⚠ Load or save a preset first — journal needs a folder name','info',3000);
+      return;
+    }
+    ljShowLockModal(m, tno);
+  }
+}
+
+// ── LOCK TO JOURNAL ──
+
+var _ljPending={m:0,tno:0}; // current modal context
+
+function ljShowLockModal(m, tno){
+  const s=gs();
+  const tLabel=getTL(tno)||('trade '+tno);
+  const pair=tLabel.replace(/\s+/g,'').toUpperCase();
+  const notional=s.NOT;
+  const margin=s.SPOT?notional:notional/s.LEV;
+  const leverage=s.SPOT?1:s.LEV;
+  const feeRate=s.FEE.method==='maker'?s.FEE.maker:s.FEE.taker;
+  const funding=s.FEE.funding;
+  const holds=s.FEE.holds;
+
+  // find the trade data from last sim
+  const months=sim();
+  const mo=months.find(x=>x.m===m);
+  const tr=mo?mo.trades.find(t=>t.no===tno):null;
+  const tgt=tr?tr.tgt:0;
+  const freq=tr?tr.freq:0;
+  const feePaid=tr?tr.feePaid:0;
+  const netPnl=tr?(tr.cp-feePaid):0;
+  const mode=s.SPOT?'spot':'leverage';
+
+  _ljPending={m,tno};
+
+  const box=document.getElementById('lj-box');
+  box.innerHTML=`
+    <div class="lj-title">🔒 Log Trade to Journal</div>
+    <div class="lj-sub">from cockpit · ${window._ACTIVE_PRESET?'folder: <b style="color:#00c47a">'+escHtml(window._ACTIVE_PRESET.name)+'</b>':'no active preset'}</div>
+
+    <div class="lj-row">
+      <div class="lj-field"><div class="lj-lbl">pair / label</div><div class="lj-val highlight">${escHtml(tLabel)}</div></div>
+      <div class="lj-field"><div class="lj-lbl">mode</div><div class="lj-val">${mode} ${s.SPOT?'◈':leverage+'×'}</div></div>
+      <div class="lj-field"><div class="lj-lbl">notional size</div><div class="lj-val">$${notional.toLocaleString()}</div></div>
+      <div class="lj-field"><div class="lj-lbl">margin used</div><div class="lj-val">$${margin.toLocaleString()}</div></div>
+      <div class="lj-field"><div class="lj-lbl">target %</div><div class="lj-val">${tgt.toFixed(2)}%</div></div>
+      <div class="lj-field"><div class="lj-lbl">freq · fee method</div><div class="lj-val">${freq}× · ${s.FEE.method} ${feeRate}%</div></div>
+    </div>
+
+    <div class="lj-divider"></div>
+
+    <div class="lj-row">
+      <div class="lj-field">
+        <div class="lj-lbl">side</div>
+        <div style="display:flex;gap:6px">
+          <button class="ljside-btn" data-side="long" onclick="document.querySelectorAll('.ljside-btn').forEach(b=>b.classList.remove('on'));this.classList.add('on')" style="flex:1;padding:7px;border-radius:5px;border:1px solid #252525;background:#0d0d0d;color:#00c47a;font-size:10px;font-weight:700;cursor:pointer;outline:none;font-family:inherit;transition:all .15s">LONG</button>
+          <button class="ljside-btn on" data-side="short" onclick="document.querySelectorAll('.ljside-btn').forEach(b=>b.classList.remove('on'));this.classList.add('on')" style="flex:1;padding:7px;border-radius:5px;border:1px solid #252525;background:#0d0d0d;color:#e05555;font-size:10px;font-weight:700;cursor:pointer;outline:none;font-family:inherit;transition:all .15s">SHORT</button>
+        </div>
+      </div>
+      <div class="lj-field"><div class="lj-lbl">date / time</div><input class="lj-inp" id="lj-date" type="datetime-local" value="${new Date().toISOString().slice(0,16)}" style="color:#aaa"></div>
+    </div>
+
+    <div class="lj-row">
+      <div class="lj-field">
+        <div class="lj-lbl">entry price</div>
+        <input class="lj-inp" id="lj-entry" type="number" placeholder="e.g. 84500" oninput="ljCalc()" step="any">
+      </div>
+      <div class="lj-field">
+        <div class="lj-lbl">exit price</div>
+        <input class="lj-inp" id="lj-exit" type="number" placeholder="e.g. 87200" oninput="ljCalc()" step="any">
+      </div>
+    </div>
+
+    <div class="lj-calc" id="lj-calc" style="display:none">
+      <div class="lj-calc-row"><span class="lj-calc-lbl">gross PnL</span><span class="lj-calc-val" id="lj-gross">—</span></div>
+      <div class="lj-calc-row"><span class="lj-calc-lbl">fee paid (entry + exit)</span><span class="lj-calc-val neg" id="lj-fee">—</span></div>
+      <div class="lj-calc-row"><span class="lj-calc-lbl">funding (${holds} holds × ${funding}%)</span><span class="lj-calc-val neg" id="lj-fund">—</span></div>
+      <div class="lj-calc-row"><span class="lj-calc-lbl">net PnL after all fees</span><span class="lj-calc-val" id="lj-net">—</span></div>
+      <div class="lj-calc-row" style="margin-top:4px"><span class="lj-calc-lbl" style="color:#888;font-size:11px">actual % return</span><span class="lj-calc-val" id="lj-pct" style="font-size:14px">—</span></div>
+    </div>
+
+    <div class="lj-field" style="margin-bottom:12px">
+      <div class="lj-lbl">TradingView chart link <span style="color:#333;font-weight:400;text-transform:none;letter-spacing:0">(optional · share → publish link)</span></div>
+      <input class="lj-inp" id="lj-tv" type="url" placeholder="https://www.tradingview.com/chart/..." oninput="ljPreviewTV(this.value)">
+      <iframe id="lj-tv-preview" class="lj-tv-preview" frameborder="0" allowfullscreen sandbox="allow-scripts allow-same-origin allow-popups"></iframe>
+    </div>
+
+    <div class="lj-field" style="margin-bottom:16px">
+      <div class="lj-lbl">notes <span style="color:#333;font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></div>
+      <textarea class="lj-inp" id="lj-notes" rows="2" placeholder="Setup, reason for entry, what happened..." style="resize:vertical;line-height:1.5"></textarea>
+    </div>
+
+    <div style="margin-bottom:16px">
+      <div class="lj-lbl" style="margin-bottom:8px">mood</div>
+      <div style="display:flex;gap:8px">${JN_EMOTIONS.map(e=>`<button onclick="document.querySelectorAll('.lj-emo-btn').forEach(b=>b.style.outline='none');this.style.outline='2px solid #00c47a'" class="lj-emo-btn" data-e="${e}" style="font-size:20px;background:none;border:1px solid #1e1e1e;border-radius:7px;padding:4px 8px;cursor:pointer;outline:none;transition:all .15s">${e}</button>`).join('')}</div>
+    </div>
+
+    <div class="lj-btns">
+      <button class="lj-confirm-btn" onclick="ljConfirmLock()">🔒 lock & log to journal</button>
+      <button class="lj-cancel-btn" onclick="ljCloseModal()">cancel</button>
+    </div>
+  `;
+
+  document.getElementById('lj-modal').classList.add('visible');
+  setTimeout(()=>{const el=document.getElementById('lj-entry');if(el)el.focus();},100);
+}
+
+function ljCalc(){
+  const entry=parseFloat(document.getElementById('lj-entry')?.value)||0;
+  const exit=parseFloat(document.getElementById('lj-exit')?.value)||0;
+  if(!entry||!exit){document.getElementById('lj-calc').style.display='none';return;}
+
+  const s=gs();
+  const notional=s.NOT;
+  const leverage=s.SPOT?1:s.LEV;
+  const sideBtn=document.querySelector('.ljside-btn.on');
+  const side=sideBtn?sideBtn.dataset.side:'long';
+  const feeRate=(s.FEE.method==='maker'?s.FEE.maker:s.FEE.taker)/100;
+  const funding=s.FEE.funding/100;
+  const holds=s.FEE.holds;
+
+  const priceDiff=side==='long'?exit-entry:entry-exit;
+  const grossPnl=(priceDiff/entry)*notional*leverage;
+  const feePaid=(notional*leverage)*feeRate*2; // open + close
+  const fundingPaid=notional*funding*holds;
+  const netPnl=grossPnl-feePaid-fundingPaid;
+  const pct=(netPnl/s.P)*100; // % of account
+
+  const c=document.getElementById('lj-calc');
+  c.style.display='block';
+  const fmt2=v=>(v>=0?'+':'')+v.toFixed(4);
+  document.getElementById('lj-gross').textContent='$'+fmt2(grossPnl);
+  document.getElementById('lj-gross').className='lj-calc-val '+(grossPnl>=0?'':'neg');
+  document.getElementById('lj-fee').textContent='-$'+feePaid.toFixed(4);
+  document.getElementById('lj-fund').textContent='-$'+fundingPaid.toFixed(4);
+  document.getElementById('lj-net').textContent='$'+fmt2(netPnl);
+  document.getElementById('lj-net').className='lj-calc-val '+(netPnl>=0?'':'neg');
+  document.getElementById('lj-pct').textContent=(pct>=0?'+':'')+pct.toFixed(3)+'%';
+  document.getElementById('lj-pct').className='lj-calc-val '+(pct>=0?'':'neg');
+}
+
+function ljPreviewTV(url){
+  const iframe=document.getElementById('lj-tv-preview');
+  if(!iframe) return;
+  if(url&&url.startsWith('https://www.tradingview.com')){
+    // convert share url to embed url
+    const embedUrl=url.replace('/chart/','/embed-chart/');
+    iframe.src=embedUrl;
+    iframe.style.display='block';
+  } else {
+    iframe.src='';
+    iframe.style.display='none';
+  }
+}
+
+async function ljConfirmLock(){
+  const s=gs();
+  const {m,tno}=_ljPending;
+  const entry=parseFloat(document.getElementById('lj-entry')?.value)||0;
+  const exit=parseFloat(document.getElementById('lj-exit')?.value)||0;
+  const notional=s.NOT;
+  const leverage=s.SPOT?1:s.LEV;
+  const sideBtn=document.querySelector('.ljside-btn.on');
+  const side=sideBtn?sideBtn.dataset.side:'long';
+  const feeRate=(s.FEE.method==='maker'?s.FEE.maker:s.FEE.taker)/100;
+  const funding=s.FEE.funding/100;
+  const holds=s.FEE.holds;
+  const tvUrl=document.getElementById('lj-tv')?.value||'';
+  const notes=document.getElementById('lj-notes')?.value||'';
+  const emoBtn=document.querySelector('.lj-emo-btn[style*="2px solid"]');
+  const emotion=emoBtn?emoBtn.dataset.e:'';
+  const dateVal=document.getElementById('lj-date')?.value||new Date().toISOString().slice(0,16);
+
+  // calc PnL
+  let grossPnl=0,feePaid=0,fundingPaid=0,netPnl=0,pct=0;
+  if(entry&&exit){
+    const priceDiff=side==='long'?exit-entry:entry-exit;
+    grossPnl=(priceDiff/entry)*notional*leverage;
+    feePaid=(notional*leverage)*feeRate*2;
+    fundingPaid=notional*funding*holds;
+    netPnl=grossPnl-feePaid-fundingPaid;
+    pct=(netPnl/s.P)*100;
+  }
+
+  // get cockpit data from sim
+  const months=sim();
+  const mo=months.find(x=>x.m===m);
+  const tr=mo?mo.trades.find(t=>t.no===tno):null;
+  const tLabel=getTL(tno)||('trade '+tno);
+
+  // find or create journal folder for this preset
+  const presetName=window._ACTIVE_PRESET.name;
+  let folder=JN.folders.find(f=>f.name===presetName);
+  if(!folder){
+    const color=JN_COLORS[JN.folders.length%JN_COLORS.length];
+    folder={id:'f'+Date.now(),name:presetName,color,type:s.SPOT?'spot':'lev',tags:[s.SPOT?'spot':'leverage'],createdAt:Date.now()};
+    JN.folders.push(folder);
+    JN.trades[folder.id]=[];
+  }
+
+  // find current "month bucket" — group of 10, new group when current has 10
+  const existingTrades=JN.trades[folder.id]||[];
+  const activeBucket=Math.floor(existingTrades.length/10)+1;
+
+  const trade={
+    id:'t'+Date.now(),
+    pair:tLabel.replace(/\s+/g,'').toUpperCase(),
+    side,
+    leverage,
+    size:notional,
+    entry,exit,
+    pnl:netPnl,
+    fee:feePaid,
+    funding:fundingPaid,
+    pct,
+    type:s.SPOT?'spot':'perpetual',
+    closedAt:new Date(dateVal).getTime()||Date.now(),
+    note:notes,
+    emotion,
+    source:'cockpit',
+    tvUrl,
+    bucket:activeBucket,
+    // cockpit specifics
+    cockpit:{
+      tab:TAB, month:m, tradeNo:tno,
+      target:tr?tr.tgt:0, freq:tr?tr.freq:0,
+      feePaid:tr?tr.feePaid:0, netPnl:tr?tr.cp-(tr.feePaid||0):0,
+      liq:tr?tr.liq:0, lev:leverage,
+      mode:s.SPOT?'spot':'leverage',
+      feeMethod:s.FEE.method, feeRate:feeRate*100
+    },
+    tags:[side,s.SPOT?'spot':'lev','cockpit']
+  };
+
+  JN.trades[folder.id].unshift(trade);
+  await jnSave();
+
+  // now actually lock in cockpit
+  s.LK.add(m+'-'+tno);
   try{localStorage.setItem('batt_'+TAB+'_lk',JSON.stringify({LK:[...s.LK]}));}catch(e){}
   const _pr=document.querySelector('.panel-right');
   const _sy=_pr?_pr.scrollTop:0;
   softUpdate();
   if(_pr) requestAnimationFrame(()=>{ _pr.scrollTop=_sy; });
-  // auto-resave active preset silently
   _autoResaveActivePreset();
-  // also push full state to cloud sync so LK is never lost even without a preset
+  _silentCloudSync();
+
+  ljCloseModal();
+  showToast(`🔒 locked & logged to "${presetName}"`, 'success', 2500);
+}
+
+function ljCloseModal(){
+  document.getElementById('lj-modal').classList.remove('visible');
+}
+
+async function ljConfirmUnlock(m, tno, key){
+  const ok=await showConfirm({
+    icon:'🔓',type:'info',
+    title:'Unlock trade?',
+    message:'Remove from journal too, or keep the journal entry?',
+    confirmText:'unlock only',
+    cancelText:'unlock + remove from journal'
+  });
+  // ok=true means "unlock only", false/null = "unlock + remove"
+  const s=gs();
+  s.LK.delete(key);
+  try{localStorage.setItem('batt_'+TAB+'_lk',JSON.stringify({LK:[...s.LK]}));}catch(e){}
+
+  if(ok===false||ok===null){
+    // remove from journal — find by cockpit reference
+    const presetName=window._ACTIVE_PRESET?.name;
+    if(presetName){
+      const folder=JN.folders.find(f=>f.name===presetName);
+      if(folder&&JN.trades[folder.id]){
+        JN.trades[folder.id]=JN.trades[folder.id].filter(t=>
+          !(t.source==='cockpit'&&t.cockpit&&t.cockpit.tab===TAB&&t.cockpit.month===m&&t.cockpit.tradeNo===tno)
+        );
+        await jnSave();
+        showToast('Unlocked & removed from journal','info',2000);
+      }
+    }
+  } else {
+    showToast('Unlocked — journal entry kept','info',2000);
+  }
+
+  const _pr=document.querySelector('.panel-right');
+  const _sy=_pr?_pr.scrollTop:0;
+  softUpdate();
+  if(_pr) requestAnimationFrame(()=>{ _pr.scrollTop=_sy; });
+  _autoResaveActivePreset();
   _silentCloudSync();
 }
 
@@ -16698,31 +17019,79 @@ function jnRenderDetail(){
   const trades=JN.trades[JN.activeFolder]||[];
   const t=trades.find(x=>x.id===JN.activeTrade);
   if(!t){jnGoList(JN.activeFolder);return;}
-  const pnlClass=t.pnl>=0?'up':'dn';
+  const pc=t.pnl>=0?'up':'dn';
+  const d=new Date(t.closedAt);
+  const dateStr=`${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
 
-  body.innerHTML=`<div class="jn-detail">
-    <div class="jn-detail-grid">
-      <div class="jn-detail-field"><div class="jn-detail-lbl">pair</div><div class="jn-detail-val">${t.pair||'—'}</div></div>
-      <div class="jn-detail-field"><div class="jn-detail-lbl">side</div><div class="jn-detail-val"><span class="${t.side==='long'?'jn-side-long':'jn-side-short'}">${(t.side||'').toUpperCase()}</span></div></div>
-      <div class="jn-detail-field"><div class="jn-detail-lbl">type</div><div class="jn-detail-val">${t.type||'perpetual'}</div></div>
-      <div class="jn-detail-field"><div class="jn-detail-lbl">entry price</div><div class="jn-detail-val">$${parseFloat(t.entry||0).toFixed(4)}</div></div>
-      <div class="jn-detail-field"><div class="jn-detail-lbl">exit price</div><div class="jn-detail-val">$${parseFloat(t.exit||0).toFixed(4)}</div></div>
-      <div class="jn-detail-field"><div class="jn-detail-lbl">size</div><div class="jn-detail-val">$${parseFloat(t.size||0).toFixed(2)}</div></div>
-      <div class="jn-detail-field"><div class="jn-detail-lbl">leverage</div><div class="jn-detail-val">${t.leverage||1}×</div></div>
-      <div class="jn-detail-field"><div class="jn-detail-lbl">PnL</div><div class="jn-detail-val jn-stat-val ${pnlClass}">${t.pnl>=0?'+':''}$${parseFloat(t.pnl||0).toFixed(2)}</div></div>
-      <div class="jn-detail-field"><div class="jn-detail-lbl">return</div><div class="jn-detail-val jn-stat-val ${pnlClass}">${t.pct>=0?'+':''}${parseFloat(t.pct||0).toFixed(2)}%</div></div>
-      <div class="jn-detail-field"><div class="jn-detail-lbl">fee paid</div><div class="jn-detail-val" style="color:#E24B4A">-$${parseFloat(t.fee||0).toFixed(4)}</div></div>
-      <div class="jn-detail-field"><div class="jn-detail-lbl">funding paid</div><div class="jn-detail-val" style="color:#E24B4A">-$${parseFloat(t.funding||0).toFixed(4)}</div></div>
-      <div class="jn-detail-field"><div class="jn-detail-lbl">source</div><div class="jn-detail-val" style="color:#555">${t.source||'manual'}</div></div>
-    </div>
-    <div class="jn-sec-title" style="margin-bottom:8px">mood</div>
-    <div style="display:flex;gap:8px;margin-bottom:16px">${JN_EMOTIONS.map((e,i)=>`<button onclick="jnSetEmotion('${t.id}','${e}')" style="font-size:20px;background:none;border:1.5px solid ${t.emotion===e?'#00c47a':'#1a1a1a'};border-radius:8px;padding:4px 8px;cursor:pointer;transition:border-color .15s">${e}</button>`).join('')}</div>
-    <div class="jn-sec-title" style="margin-bottom:8px">setup notes</div>
-    <textarea class="jn-notes-area" placeholder="Why did you enter? What was the setup? What went wrong or right?" onchange="jnSaveNote('${t.id}',this.value)">${escHtml(t.note||'')}</textarea>
-    <div style="display:flex;gap:8px;margin-top:12px">
-      <button class="jn-btn-sm danger" onclick="jnDeleteTrade('${t.id}')">delete trade</button>
-    </div>
-  </div>`;
+  // TradingView embed
+  let tvHtml='';
+  if(t.tvUrl&&t.tvUrl.startsWith('https://www.tradingview.com')){
+    const embedUrl=t.tvUrl.replace('/chart/','/embed-chart/');
+    tvHtml=`<div style="margin-bottom:16px">
+      <div class="jn-sec-title" style="margin-bottom:8px">chart proof <a href="${escHtml(t.tvUrl)}" target="_blank" style="color:#5b7fff;font-weight:700;text-transform:none;letter-spacing:0;font-size:9px;margin-left:8px">open in TradingView ↗</a></div>
+      <iframe src="${escHtml(embedUrl)}" style="width:100%;height:220px;border:1px solid #1e1e1e;border-radius:8px;background:#0a0a0a" frameborder="0" allowfullscreen sandbox="allow-scripts allow-same-origin allow-popups"></iframe>
+    </div>`;
+  }
+
+  // cockpit data section
+  let cockpitHtml='';
+  if(t.cockpit){
+    const ck=t.cockpit;
+    cockpitHtml=`<div style="margin-bottom:16px">
+      <div class="jn-sec-title" style="margin-bottom:8px">cockpit projection</div>
+      <div class="jn-detail-grid" style="grid-template-columns:repeat(4,1fr)">
+        <div class="jn-detail-field"><div class="jn-detail-lbl">tab</div><div class="jn-detail-val">${ck.tab||'—'}</div></div>
+        <div class="jn-detail-field"><div class="jn-detail-lbl">month</div><div class="jn-detail-val">M${ck.month}</div></div>
+        <div class="jn-detail-field"><div class="jn-detail-lbl">trade slot</div><div class="jn-detail-val">T${ck.tradeNo}</div></div>
+        <div class="jn-detail-field"><div class="jn-detail-lbl">mode</div><div class="jn-detail-val">${ck.mode} ${ck.lev>1?ck.lev+'×':''}</div></div>
+        <div class="jn-detail-field"><div class="jn-detail-lbl">projected target</div><div class="jn-detail-val" style="color:#00c47a">${(ck.target||0).toFixed(2)}%</div></div>
+        <div class="jn-detail-field"><div class="jn-detail-lbl">frequency</div><div class="jn-detail-val">${ck.freq}× /mo</div></div>
+        <div class="jn-detail-field"><div class="jn-detail-lbl">fee method</div><div class="jn-detail-val">${ck.feeMethod} ${(ck.feeRate||0).toFixed(3)}%</div></div>
+        <div class="jn-detail-field"><div class="jn-detail-lbl">proj net PnL</div><div class="jn-detail-val" style="color:${(ck.netPnl||0)>=0?'#00c47a':'#e05555'}">${(ck.netPnl||0)>=0?'+':''}$${(ck.netPnl||0).toFixed(2)}</div></div>
+      </div>
+    </div>`;
+  }
+
+  body.innerHTML=`
+    <div class="jn-detail">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+        <div style="font-size:18px;font-weight:800;color:#e0e0e0">${escHtml(t.pair||'—')}</div>
+        <span class="${t.side==='long'?'jn-side-long':'jn-side-short'}">${(t.side||'').toUpperCase()}</span>
+        ${t.leverage>1?`<span style="font-size:9px;color:#888;background:#1a1a1a;padding:2px 7px;border-radius:3px;border:1px solid #222">${t.leverage}×</span>`:''}
+        <span style="font-size:9px;color:#444;margin-left:auto">${dateStr}</span>
+        ${t.bucket?`<span style="font-size:8px;color:#333;padding:2px 6px;border:1px solid #1e1e1e;border-radius:3px">bucket ${t.bucket}</span>`:''}
+        ${t.source==='cockpit'?`<span style="font-size:8px;color:#555;padding:2px 6px;border:1px solid #1e1e1e;border-radius:3px">from cockpit</span>`:''}
+      </div>
+
+      <div class="jn-detail-grid" style="margin-bottom:16px">
+        <div class="jn-detail-field"><div class="jn-detail-lbl">entry price</div><div class="jn-detail-val">$${parseFloat(t.entry||0).toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:6})}</div></div>
+        <div class="jn-detail-field"><div class="jn-detail-lbl">exit price</div><div class="jn-detail-val">$${parseFloat(t.exit||0).toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:6})}</div></div>
+        <div class="jn-detail-field"><div class="jn-detail-lbl">size (notional)</div><div class="jn-detail-val">$${parseFloat(t.size||0).toLocaleString()}</div></div>
+        <div class="jn-detail-field"><div class="jn-detail-lbl">type</div><div class="jn-detail-val">${t.type||'perpetual'}</div></div>
+        <div class="jn-detail-field"><div class="jn-detail-lbl">net PnL</div><div class="jn-detail-val ${pc}" style="font-size:15px;font-weight:800">${t.pnl>=0?'+':''}$${parseFloat(t.pnl||0).toFixed(4)}</div></div>
+        <div class="jn-detail-field"><div class="jn-detail-lbl">actual % return</div><div class="jn-detail-val ${pc}" style="font-size:15px;font-weight:800">${t.pct>=0?'+':''}${parseFloat(t.pct||0).toFixed(3)}%</div></div>
+        <div class="jn-detail-field"><div class="jn-detail-lbl">fee paid</div><div class="jn-detail-val" style="color:#e05555">-$${parseFloat(t.fee||0).toFixed(4)}</div></div>
+        <div class="jn-detail-field"><div class="jn-detail-lbl">funding paid</div><div class="jn-detail-val" style="color:#e05555">-$${parseFloat(t.funding||0).toFixed(4)}</div></div>
+      </div>
+
+      ${tvHtml}
+      ${cockpitHtml}
+
+      <div style="margin-bottom:12px">
+        <div class="jn-sec-title" style="margin-bottom:8px">mood</div>
+        <div style="display:flex;gap:8px">${JN_EMOTIONS.map(e=>`<button onclick="jnSetEmotion('${t.id}','${e}')" style="font-size:20px;background:none;border:1.5px solid ${t.emotion===e?'#00c47a':'#1e1e1e'};border-radius:7px;padding:4px 8px;cursor:pointer;outline:none;transition:border-color .15s">${e}</button>`).join('')}</div>
+      </div>
+
+      <div style="margin-bottom:16px">
+        <div class="jn-sec-title" style="margin-bottom:8px">setup notes</div>
+        <textarea class="jn-notes-area" rows="3" placeholder="Why did you enter? What was the setup? What went wrong or right?" onchange="jnSaveNote('${t.id}',this.value)">${escHtml(t.note||'')}</textarea>
+      </div>
+
+      <div style="display:flex;gap:8px">
+        <button class="jn-btn-sm danger" onclick="jnDeleteTrade('${t.id}')">delete trade</button>
+        ${t.tvUrl?`<a href="${escHtml(t.tvUrl)}" target="_blank" class="jn-btn-sm" style="text-decoration:none">open chart ↗</a>`:''}
+      </div>
+    </div>`;
 }
 
 function jnOpenTrade(id){
