@@ -1337,6 +1337,12 @@ tr.mo-sep>td,tr.mo-gap>td{padding:0!important;border:none!important}
 tr.mh>td{background:var(--mh)!important;color:var(--mhc)!important;font-weight:700;font-size:11px;padding:4px 5px}
 tr.mh-z>td{background:var(--sf2)!important;color:var(--tx2)!important;font-size:10px;padding:5px 7px}
 tr.locked-row>td{background:rgba(0,196,122,0.04)!important;opacity:.85}
+/* journal loading pulse — shown while cloud journal is fetching */
+body.jn-loading tr.locked-row>td{animation:lk-pulse 1.4s ease-in-out infinite}
+body.jn-loading tr.locked-row{border-left-color:#2a4a3a}
+@keyframes lk-pulse{0%,100%{opacity:.5}50%{opacity:.85}}
+body.jn-loading tr.locked-row .lock-btn::after{content:' ⟳';font-size:8px;color:#2a5a3a;animation:spin .8s linear infinite;display:inline-block}
+@keyframes spin{to{transform:rotate(360deg)}}
 tr.locked-row{border-left:2px solid #00c47a}
 tr.locked-row.actual-hit>td{background:rgba(0,196,122,0.06)!important}
 tr.locked-row.actual-hit{border-left:2px solid #00c47a}
@@ -8942,6 +8948,7 @@ try{
 }catch(e){}
 render();
 
+
 function goLayer2(){
   const l1=document.getElementById('layer1');
   const l2=document.getElementById('layer2');
@@ -11221,6 +11228,8 @@ function backToMemberArea(){
 // ── Auto-restore session on load ──
 async function authRestoreSession(){
   if(!AUTH_TOKEN) return false;
+  // signal to cockpit that journal is loading — locked rows pulse
+  document.body.classList.add('jn-loading');
   try{
     const r=await fetch(AUTH_URL+'/auth/me',{headers:{'Authorization':'Bearer '+AUTH_TOKEN}});
     const d=await r.json();
@@ -11243,16 +11252,32 @@ async function authRestoreSession(){
         });
         // re-sync controls with loaded data
         syncControls();
-        render();
+        // don't render yet — wait for journal to load too
       }
-      // load cloud preferences
-      if(typeof loadCloudPrefs==='function') loadCloudPrefs();
+      // load journal + preferences IN PARALLEL — then single render
+      await Promise.all([
+        (async()=>{
+          try{
+            const jr=await fetch(AUTH_URL+'/userdata/load',{headers:{'Authorization':'Bearer '+AUTH_TOKEN}});
+            const jd=await jr.json();
+            if(jd.ok&&jd.data?.journal){
+              Object.assign(JN,jd.data.journal);
+              localStorage.setItem('batt_journal',JSON.stringify(JN));
+            }
+          }catch(e){}
+        })(),
+        (async()=>{if(typeof loadCloudPrefs==='function') await loadCloudPrefs();})()
+      ]);
+      // single authoritative render — has all data: cockpit state + journal actuals
+      document.body.classList.remove('jn-loading');
+      render();
       return true;
     } else {
       AUTH_TOKEN=null; localStorage.removeItem('batt_token');
+      document.body.classList.remove('jn-loading');
       return false;
     }
-  }catch(e){return false;}
+  }catch(e){document.body.classList.remove('jn-loading');return false;}
 }
 
 // ── PWA INSTALL ──
@@ -11627,7 +11652,8 @@ async function loadAllUserDataFromServer(){
     if(d.data.journal !== undefined){
       Object.assign(JN, d.data.journal);
       localStorage.setItem('batt_journal', JSON.stringify(JN));
-      if(typeof softUpdate==='function') softUpdate();
+      // full render so cockpit overlays appear immediately on page load
+      if(typeof render==='function') setTimeout(render, 50);
     }
   }catch(e){}
 }
@@ -17308,6 +17334,7 @@ async function jnLoad(){
   // then cloud
   const tok=_battToken();
   if(!tok){if(typeof softUpdate==='function')softUpdate();return;}
+  document.body.classList.add('jn-loading');
   try{
     const r=await fetch(AUTH_URL+'/userdata/load',{headers:{'Authorization':'Bearer '+tok}});
     const d=await r.json();
@@ -17316,8 +17343,9 @@ async function jnLoad(){
       localStorage.setItem('batt_journal', JSON.stringify(JN));
     }
   }catch(e){}
-  // refresh cockpit so locked rows show actual data
-  if(typeof softUpdate==='function') softUpdate();
+  document.body.classList.remove('jn-loading');
+  // refresh cockpit so locked rows show actual data immediately
+  if(typeof render==='function') setTimeout(render, 50);
 }
 
 function openJournal(){
