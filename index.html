@@ -6957,15 +6957,15 @@ function ljShowLockModal(m, tno){
       <div style="background:#0f0f0f;border:1px solid #1e1e1e;border-radius:8px;padding:14px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
         <div><div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">mode</div>
           <div style="font-size:11px;font-weight:700;color:#888">${s.SPOT?'spot ◈':'leverage'}</div>
-          ${s.SPOT?'':'<div style="font-size:10px;color:#555;margin-top:1px">${leverage}×</div>'}
+          ${s.SPOT?'':('<div style="font-size:13px;font-weight:800;color:#aaa;margin-top:2px">'+leverage+'×</div>')}
         </div>
         <div><div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">notional</div><div style="font-size:11px;font-weight:700;color:#888">$${notional.toLocaleString('en',{maximumFractionDigits:2})}</div></div>
         <div><div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">margin</div><div style="font-size:11px;font-weight:700;color:#888">$${margin.toFixed(2)}</div></div>
         <div><div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">target</div><div style="font-size:11px;font-weight:700;color:#00c47a">${tgt.toFixed(2)}%</div></div>
         <div><div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">freq</div><div style="font-size:11px;font-weight:700;color:#888">${freq}× /mo</div></div>
-        <div><div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">fee</div>
-          <div style="font-size:11px;font-weight:700;color:#888">${feeRate}% ${s.FEE.method}</div>
-          <div style="font-size:9px;color:#333;margin-top:1px">${window._ljExchange||document.getElementById('fee-exchange')?.value||'binance'}</div>
+        <div id="lj-fee-cockpit-cell"><div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">fee</div>
+          <div style="font-size:11px;font-weight:700;color:#888" id="lj-fee-rate-val">${feeRate}% ${s.FEE.method}</div>
+          <div style="font-size:9px;color:#333;margin-top:1px" id="lj-fee-ex-val">${window._ljExchange||'binance'}</div>
         </div>
       </div>
       <!-- side toggle -->
@@ -7281,19 +7281,52 @@ function ljPopulatePairSelect(exchange, currentPair){
 async function ljOnExchangeChange(){
   const ex=document.getElementById('lj-exchange')?.value||'binance';
   const s=gs();
-  // update fee label in calc to reflect selected exchange's rates
+  // start with hardcoded preset as immediate fallback
   const exFees=FEE_PRESETS[s.SPOT?'spot':'futures'][ex]||(s.SPOT?FEE_PRESETS.spot.binance:FEE_PRESETS.futures.binance);
-  const exFeeRate=s.FEE.method==='maker'?exFees.maker:exFees.taker;
-  // update the fee label display
+  let exFeeRate=s.FEE.method==='maker'?exFees.maker:exFees.taker;
+  window._ljExFeeRate=exFeeRate;
+  // update cockpit fee cell immediately with preset
+  const feeRateVal=document.getElementById('lj-fee-rate-val');
+  const feeExVal=document.getElementById('lj-fee-ex-val');
+  if(feeRateVal) feeRateVal.textContent=`${exFeeRate}% ${s.FEE.method}`;
+  if(feeExVal) feeExVal.textContent=ex;
+  // update fee label in calc
   const feeLbl=document.getElementById('lj-fee-lbl');
   if(feeLbl) feeLbl.textContent=`fee (entry + exit · ${exFeeRate}% × 2)`;
-  window._ljExFeeRate=exFeeRate; // store for use in ljCalc
+  // try to fetch live fee from exchange API
+  try{
+    let liveFee=null;
+    if(ex==='binance'){
+      const r=await fetch('https://fapi.binance.com/fapi/v1/commissionRate?symbol='+(window._ljPair||'BTCUSDT'),{headers:{'X-MBX-APIKEY':''}});
+      // Binance commissionRate requires auth — use preset
+    } else if(ex==='bybit'){
+      const sym=(window._ljPair||'BTCUSDT');
+      const r=await fetch(`https://api.bybit.com/v5/account/fee-rate?category=linear&symbol=${sym}`);
+      const d=await r.json();
+      if(d.result?.list?.[0]){
+        const row=d.result.list[0];
+        liveFee=s.FEE.method==='maker'?parseFloat(row.makerFeeRate)*100:parseFloat(row.takerFeeRate)*100;
+      }
+    } else if(ex==='okx'){
+      const r=await fetch('https://www.okx.com/api/v5/account/trade-fee?instType=SWAP&instId='+(window._ljPair||'BTC-USDT-SWAP').replace('USDT','-USDT-SWAP'));
+      const d=await r.json();
+      if(d.data?.[0]){
+        liveFee=s.FEE.method==='maker'?Math.abs(parseFloat(d.data[0].maker)*100):Math.abs(parseFloat(d.data[0].taker)*100);
+      }
+    }
+    if(liveFee&&liveFee>0&&liveFee<1){
+      exFeeRate=Math.round(liveFee*10000)/10000;
+      window._ljExFeeRate=exFeeRate;
+      if(feeRateVal) feeRateVal.textContent=`${exFeeRate}% ${s.FEE.method} ✓live`;
+      if(feeLbl) feeLbl.textContent=`fee (entry + exit · ${exFeeRate}% × 2 · live)`;
+    }
+  }catch(e){/* use preset fallback silently */}
   const statusEl=document.getElementById('lj-fund-msg');
   if(statusEl) statusEl.textContent='loading pairs for '+ex+'...';
   await ljFetchAllPairs(ex);
   ljPopulatePairSelect(ex, window._ljPair||'');
   ljFetchFundingDebounced();
-  ljCalc(); // recalc with new fee rate
+  ljCalc();
 }
 
 function ljShowPairDrop(query,force){
