@@ -6887,7 +6887,7 @@ async function ljFetchFunding(manual){
     _ljFundingData={rates,total:totalFunding,fetched:true,fetching:false,_key:key};
     const hrs=Math.round((endMs-startMs)/3600000*10)/10;
     const intervals=rates.length;
-    if(msgEl) msgEl.textContent=`${intervals} interval${intervals!==1?'s':''} · ${hrs}h held · $${Math.abs(totalFunding).toFixed(4)} ${totalFunding>=0?'paid':'received'}`;
+    if(msgEl) msgEl.textContent=`${intervals} interval${intervals!==1?'s':''} · ${hrs}h held · $${Math.abs(totalFunding).toFixed(4)} ${totalFunding>0?'paid':totalFunding<0?'received (lucky)':'zero'}`;
     if(iconEl) iconEl.textContent=intervals>0?'✓':'○';
     if(lblEl) lblEl.innerHTML=`funding <span style="color:#00c47a;font-size:8px">✓ ${intervals} intervals live</span>`;
   }catch(e){
@@ -7159,10 +7159,13 @@ function ljCalc(){
   const grossPnl=(priceDiff/entry)*notional;
   const feePaid=notional*feeRate*2;
   // use live-fetched funding if available, else cockpit estimate
-  const fundingPaid=(_ljFundingData.fetched&&_ljFundingData.rates.length>0)
-    ?Math.abs(_ljFundingData.total)
+  // fundingNet: positive = you paid (cost), negative = you received (benefit)
+  const fundingNet=(_ljFundingData.fetched&&_ljFundingData.rates.length>0)
+    ?_ljFundingData.total  // keep sign: + = paid, - = received
     :notional*(s.FEE.funding/100)*s.FEE.holds;
-  const netPnl=grossPnl-feePaid-fundingPaid;
+  const fundingPaid=Math.max(0,fundingNet);   // only show as cost if positive
+  const fundingRecv=Math.max(0,-fundingNet);  // received = negative total
+  const netPnl=grossPnl-feePaid-fundingNet;  // subtract paid OR add received
   const pct=(netPnl/margin)*100;
 
   const c=document.getElementById('lj-calc');
@@ -7174,8 +7177,14 @@ function ljCalc(){
   const fundEl=document.getElementById('lj-fund');
   if(fundEl){
     const liveTag=(_ljFundingData.fetched&&_ljFundingData.rates.length>0)?' ✓':'';
-    fundEl.textContent='-$'+fundingPaid.toFixed(4)+liveTag;
-    fundEl.className='lj-calc-val neg';
+    if(fundingRecv>0){
+      // received funding = benefit, show as positive green
+      fundEl.textContent='+$'+fundingRecv.toFixed(4)+liveTag+' (received)';
+      fundEl.className='lj-calc-val';
+    } else {
+      fundEl.textContent='-$'+fundingPaid.toFixed(4)+liveTag;
+      fundEl.className='lj-calc-val neg';
+    }
   }
   document.getElementById('lj-net').textContent='$'+fmt2(netPnl);
   document.getElementById('lj-net').className='lj-calc-val '+(netPnl>=0?'':'neg');
@@ -7319,9 +7328,11 @@ async function ljConfirmLock(){
     grossPnl=(priceDiff/entry)*notional;
     feePaid=notional*feeRate*2;
     // use actual fetched funding if available
-    fundingPaid=_ljFundingData.fetched&&_ljFundingData.rates.length>0
-      ?Math.abs(_ljFundingData.total)
+    // keep sign: positive = paid (cost), negative = received (benefit)
+    const _fundNet=_ljFundingData.fetched&&_ljFundingData.rates.length>0
+      ?_ljFundingData.total
       :notional*funding*holds;
+    fundingPaid=_fundNet; // signed: positive = cost subtracted, negative = benefit added
     netPnl=grossPnl-feePaid-fundingPaid;
     pct=(netPnl/margin)*100;
   }
