@@ -4105,6 +4105,73 @@ async function fetchLiveFundingRate(){
   FEE_LIVE.loading=false;
   if(btn){btn.style.opacity='1';btn.textContent='↻';}
 }
+// ── HISTORICAL FUNDING RATE FETCH ──
+// Fetches all funding payments between entry and exit datetime for a pair
+async function fetchHistoricalFunding(exchange, symbol, startMs, endMs){
+  const results=[];
+  try{
+    if(exchange==='binance'){
+      // Binance: /fapi/v1/fundingRate — 8h intervals, max 1000 per call
+      let from=startMs;
+      while(from<endMs){
+        const url=`https://fapi.binance.com/fapi/v1/fundingRate?symbol=${symbol}&startTime=${from}&endTime=${endMs}&limit=1000`;
+        const r=await fetch(url);
+        const d=await r.json();
+        if(!Array.isArray(d)||d.length===0) break;
+        d.forEach(x=>results.push({ts:parseInt(x.fundingTime),rate:parseFloat(x.fundingRate)}));
+        from=parseInt(d[d.length-1].fundingTime)+1;
+        if(d.length<1000) break;
+      }
+    } else if(exchange==='bybit'){
+      // Bybit: /v5/market/funding/history — max 200 per call
+      let cursor='';
+      let calls=0;
+      while(calls<20){
+        const url=`https://api.bybit.com/v5/market/funding/history?category=linear&symbol=${symbol}&startTime=${startMs}&endTime=${endMs}&limit=200${cursor?'&cursor='+cursor:''}`;
+        const r=await fetch(url);
+        const d=await r.json();
+        if(!d.result?.list?.length) break;
+        d.result.list.forEach(x=>results.push({ts:parseInt(x.fundingRateTimestamp),rate:parseFloat(x.fundingRate)}));
+        cursor=d.result.nextPageCursor||'';
+        if(!cursor||d.result.list.length<200) break;
+        calls++;
+      }
+    } else if(exchange==='okx'){
+      // OKX: /api/v5/public/funding-rate-history — max 100 per call
+      const instId=symbol.replace('USDT','-USDT-SWAP').replace('USDC','-USDC-SWAP');
+      let before='';
+      let calls=0;
+      while(calls<20){
+        const url=`https://www.okx.com/api/v5/public/funding-rate-history?instId=${instId}&limit=100${before?'&before='+before:'&after='+endMs}`;
+        const r=await fetch(url);
+        const d=await r.json();
+        if(!d.data?.length) break;
+        // OKX returns newest first, filter by range
+        const inRange=d.data.filter(x=>parseInt(x.fundingTime)>=startMs&&parseInt(x.fundingTime)<=endMs);
+        inRange.forEach(x=>results.push({ts:parseInt(x.fundingTime),rate:parseFloat(x.fundingRate)}));
+        const oldest=d.data[d.data.length-1];
+        if(parseInt(oldest.fundingTime)<=startMs||d.data.length<100) break;
+        before=oldest.fundingTime;
+        calls++;
+      }
+    }
+  }catch(e){
+    console.warn('funding fetch failed:',e);
+  }
+  return results;
+}
+
+// Calculate total funding paid from historical rates
+function calcFundingFromHistory(rates, notional, isLong){
+  // funding: positive rate = longs pay shorts, negative = shorts pay longs
+  let total=0;
+  rates.forEach(r=>{
+    const paid=isLong?r.rate:-r.rate; // long pays positive rates, short receives
+    total+=paid*notional;
+  });
+  return total; // positive = you paid, negative = you received
+}
+
 // ── LANGUAGE ──
 let LANG='en';
 
@@ -6750,6 +6817,8 @@ function ljShowLockModal(m, tno){
   const mode=s.SPOT?'spot':'leverage';
 
   _ljPending={m,tno};
+  _ljFundingData={rates:[],total:0,fetched:false,fetching:false}; // reset each modal open
+  window._ljPair=tLabel.replace(/\s+/g,'').replace('/','').toUpperCase();
 
   const box=document.getElementById('lj-box');
   box.innerHTML=`
@@ -6814,7 +6883,7 @@ function ljShowLockModal(m, tno){
     <div class="lj-calc" id="lj-calc" style="display:none">
       <div class="lj-calc-row"><span class="lj-calc-lbl">gross PnL</span><span class="lj-calc-val" id="lj-gross">—</span></div>
       <div class="lj-calc-row"><span class="lj-calc-lbl">fee (entry + exit · ${feeRate}% × 2)</span><span class="lj-calc-val neg" id="lj-fee">—</span></div>
-      <div class="lj-calc-row"><span class="lj-calc-lbl">funding (${holds} holds × ${funding}%)</span><span class="lj-calc-val neg" id="lj-fund">—</span></div>
+      <div class="lj-calc-row"><span class="lj-calc-lbl" id="lj-fund-lbl">funding <span style="color:#333;font-size:9px">(fetching live...)</span></span><span class="lj-calc-val neg" id="lj-fund">—</span></div>
       <div class="lj-calc-row" style="border-top:1px solid #1a3020;padding-top:8px;margin-top:4px">
         <span class="lj-calc-lbl" style="font-size:11px;font-weight:700;color:#6a9a7a">net PnL after fees</span>
         <span class="lj-calc-val" id="lj-net" style="font-size:14px">—</span>
@@ -6841,13 +6910,27 @@ function ljShowLockModal(m, tno){
       </div>
     </div>
 
-    <!-- DATE -->
+    <!-- OPEN / CLOSE DATETIME + AUTO FUNDING -->
     <div style="margin-bottom:14px">
-      <div style="font-size:8px;color:#444;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:700">date / time</div>
-      <input id="lj-date" type="datetime-local" value="${new Date().toISOString().slice(0,16)}"
-        style="width:100%;background:#111;border:1px solid #252525;border-radius:7px;color:#aaa;font-size:11px;padding:9px 12px;font-family:inherit;outline:none;box-sizing:border-box;transition:border-color .15s"
-        onfocus="this.style.borderColor='#444'"
-        onblur="this.style.borderColor='#252525'">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <div style="font-size:8px;color:#444;text-transform:uppercase;letter-spacing:.07em;font-weight:700">position open</div>
+        <span style="font-size:8px;color:#e05555">*</span>
+      </div>
+      <input id="lj-open-dt" type="datetime-local" value="${new Date(Date.now()-3600000).toISOString().slice(0,16)}"
+        style="width:100%;background:#111;border:1px solid #252525;border-radius:7px;color:#ccc;font-size:11px;padding:9px 12px;font-family:inherit;outline:none;box-sizing:border-box;transition:border-color .15s;margin-bottom:8px"
+        onfocus="this.style.borderColor='#444'" onblur="this.style.borderColor='#252525'"
+        oninput="ljFetchFunding()">
+      <div style="font-size:8px;color:#444;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:700">position close <span style="color:#e05555">*</span></div>
+      <input id="lj-close-dt" type="datetime-local" value="${new Date().toISOString().slice(0,16)}"
+        style="width:100%;background:#111;border:1px solid #252525;border-radius:7px;color:#ccc;font-size:11px;padding:9px 12px;font-family:inherit;outline:none;box-sizing:border-box;transition:border-color .15s"
+        onfocus="this.style.borderColor='#444'" onblur="this.style.borderColor='#252525'"
+        oninput="ljFetchFunding()">
+      <!-- funding auto-fetch status -->
+      <div id="lj-fund-status" style="margin-top:8px;padding:8px 10px;background:#111;border:1px solid #1e1e1e;border-radius:6px;font-size:10px;color:#444;display:flex;align-items:center;gap:8px">
+        <span id="lj-fund-icon">⏳</span>
+        <span id="lj-fund-msg">enter open & close time → funding will auto-calculate</span>
+        <button onclick="ljFetchFunding(true)" style="margin-left:auto;background:none;border:1px solid #252525;border-radius:4px;color:#555;font-size:9px;padding:2px 8px;cursor:pointer;font-family:inherit;outline:none;transition:all .15s" id="lj-fund-fetch-btn">fetch</button>
+      </div>
     </div>
 
     <!-- NOTES -->
@@ -6875,7 +6958,11 @@ function ljShowLockModal(m, tno){
 
   document.getElementById('lj-modal').classList.add('visible');
   ljSetSide('long'); // default to long, visually selected
-  setTimeout(()=>{const el=document.getElementById('lj-entry');if(el)el.focus();},80);
+  setTimeout(()=>{
+    const el=document.getElementById('lj-entry');if(el)el.focus();
+    // auto-fetch funding once dates are loaded
+    ljFetchFunding(true);
+  },200);
 }
 
 function ljSetSide(side){
@@ -6976,7 +7063,7 @@ async function ljConfirmLock(){
   const notes=document.getElementById('lj-notes')?.value||'';
   const emoBtn=document.querySelector('.lj-emo-btn[style*="2px solid"]');
   const emotion=emoBtn?emoBtn.dataset.e:'';
-  const dateVal=document.getElementById('lj-date')?.value||new Date().toISOString().slice(0,16);
+  const dateVal=document.getElementById('lj-close-dt')?.value||document.getElementById('lj-date')?.value||new Date().toISOString().slice(0,16);
 
   // calc PnL
   const margin=s.SPOT?notional:notional/leverage;
@@ -6985,7 +7072,10 @@ async function ljConfirmLock(){
     const priceDiff=side==='long'?exit-entry:entry-exit;
     grossPnl=(priceDiff/entry)*notional;
     feePaid=notional*feeRate*2;
-    fundingPaid=notional*funding*holds;
+    // use actual fetched funding if available
+    fundingPaid=_ljFundingData.fetched&&_ljFundingData.rates.length>0
+      ?Math.abs(_ljFundingData.total)
+      :notional*funding*holds;
     netPnl=grossPnl-feePaid-fundingPaid;
     pct=(netPnl/margin)*100;
   }
