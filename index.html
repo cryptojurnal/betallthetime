@@ -7179,28 +7179,32 @@ function ljCalc(){
 // full pair lists per exchange — populated on first use
 var _ljPairLists={binance:null,bybit:null,okx:null};
 
+// common USDT perp pairs — used as instant fallback, no CORS issues
+var _LJ_COMMON_PAIRS=['BTCUSDT','ETHUSDT','SOLUSDT','BNBUSDT','XRPUSDT','DOGEUSDT','ADAUSDT','AVAXUSDT','LINKUSDT','MATICUSDT','SUIUSDT','APTUSDT','ARBUSDT','OPUSDT','INJUSDT','TIAUSDT','SEIUSDT','STXUSDT','WLDUSDT','RUNEUSDT','ATOMUSDT','NEARUSDT','DOTUSDT','UNIUSDT','AAVEUSDT','LTCUSDT','BCHUSDT','FILUSDT','ICPUSDT','LDOUSDT','MOODENGUSDT','PEPEUSDT','SHIBUSDT','FLOKIUSDT','BONKUSDT','WIFUSDT','NEIROUSDT','POPCATUSDT','EIGENUSDT','PENDLEUSDT','JUPUSDT','PYTHUSDT','RENDERUSDT','FETUSDT','AGIXUSDT','TAOUSDT','ENSUSDT','GMXUSDT','DYDXUSDT','MKRUSDT','COMPUSDT','CRVUSDT','SNXUSDT','1000PEPEUSDT','1000BONKUSDT','1000SHIBUSDT','NOTUSDT','TONUSDT','TRXUSDT','XLMUSDT','VETUSDT','EOSUSDT','ALGOUSDT','EGLDUSDT','FLOWUSDT','HBARUSDT','SANDUSDT','MANAUSDT','AXSUSDT','GALAUSDT','IMXUSDT','LRCUSDT','ZRXUSDT','BATUSDT','COTIUSDT','KSMUSDT','KAVAUSDT','IOTAUSDT','ONTUSDT','WAVESUSDT','QTUMUSDT','ZENUSDT','DASHUSDT','XMRUSDT','ZECUSDT','ETCUSDT','NEOUSDT','IOSTUSDT','ZILUSDT','STMXUSDT','CELOUSDT','ANKRUSDT','HNTUSDT','CKBUSDT','STPTUSDT','SFPUSDT','BAKEUSDT','HOTUSDT','CTKUSDT','ROSEUSDT','NUUSDT'].sort();
+
 async function ljFetchAllPairs(exchange){
-  if(_ljPairLists[exchange]) return _ljPairLists[exchange];
-  let pairs=[];
+  if(_ljPairLists[exchange]&&_ljPairLists[exchange].length>20) return _ljPairLists[exchange];
+  // start with common pairs immediately so dropdown is instant
+  if(!_ljPairLists[exchange]) _ljPairLists[exchange]=[..._LJ_COMMON_PAIRS];
+  // try to fetch full list in background (may fail due to CORS on some exchanges)
   try{
     if(exchange==='binance'){
       const r=await fetch('https://fapi.binance.com/fapi/v1/exchangeInfo');
       const d=await r.json();
-      pairs=(d.symbols||[]).filter(s=>s.status==='TRADING'&&s.quoteAsset==='USDT').map(s=>s.baseAsset+'USDT').sort();
+      const pairs=(d.symbols||[]).filter(s=>s.status==='TRADING'&&s.quoteAsset==='USDT').map(s=>s.baseAsset+'USDT').sort();
+      if(pairs.length>20) _ljPairLists[exchange]=pairs;
     } else if(exchange==='bybit'){
       const r=await fetch('https://api.bybit.com/v5/market/instruments-info?category=linear&limit=1000');
       const d=await r.json();
-      pairs=(d.result?.list||[]).filter(s=>s.status==='Trading'&&s.quoteCoin==='USDT').map(s=>s.symbol).sort();
+      const pairs=(d.result?.list||[]).filter(s=>s.quoteCoin==='USDT').map(s=>s.symbol).sort();
+      if(pairs.length>20) _ljPairLists[exchange]=pairs;
     } else if(exchange==='okx'){
       const r=await fetch('https://www.okx.com/api/v5/public/instruments?instType=SWAP');
       const d=await r.json();
-      pairs=(d.data||[]).filter(s=>s.state==='live'&&s.settleCcy==='USDT').map(s=>s.ctValCcy+'USDT').sort();
+      const pairs=(d.data||[]).filter(s=>s.settleCcy==='USDT').map(s=>s.ctValCcy+'USDT').sort();
+      if(pairs.length>20) _ljPairLists[exchange]=pairs;
     }
-    _ljPairLists[exchange]=pairs;
-  }catch(e){
-    // fallback to TP_PAIRS on fetch failure
-    _ljPairLists[exchange]=(typeof TP_PAIRS!=='undefined'?TP_PAIRS.map(p=>p.symbol):[]);
-  }
+  }catch(e){/* keep common pairs fallback */}
   return _ljPairLists[exchange];
 }
 
