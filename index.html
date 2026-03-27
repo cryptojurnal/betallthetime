@@ -9991,6 +9991,8 @@ async function presetLoad(id){
 
     showToast('Preset "'+preset.name+'" loaded!','success');
     if(typeof logActivity==='function') logActivity('preset_load',{name:preset.name});
+    // refresh cockpit so journal actuals appear for this preset
+    if(typeof softUpdate==='function') setTimeout(softUpdate,100);
   }catch(e){
     showToast('Connection failed','error');
   }
@@ -17244,6 +17246,8 @@ function clearActivePreset(){
   if(btn) btn.style.display='none';
   // refresh preset list so ● active badge disappears from card
   if(typeof presetRenderList==='function') presetRenderList();
+  // re-render cockpit so actual overlays disappear (no active preset = no journal link)
+  if(typeof render==='function') render();
   showToast('Preset unlinked — auto-save disabled','info',2000);
 }
 
@@ -17512,7 +17516,7 @@ function jnRenderList(){
   } else {
     html+=`<div class="jn-list-head">
       <div class="jn-list-head-col">date</div>
-      <div class="jn-list-head-col">pair</div>
+      <div class="jn-list-head-col" style="flex:1.5">pair / source</div>
       <div class="jn-list-head-col">side</div>
       <div class="jn-list-head-col">entry</div>
       <div class="jn-list-head-col">exit</div>
@@ -17550,9 +17554,11 @@ function jnRenderList(){
       const pCls=t.pnl>=0?'win':'loss';
       const pnlStr=(t.pnl>=0?'+':'')+parseFloat(t.pnl||0).toFixed(2);
       const pctStr=(t.pct>=0?'+':'')+parseFloat(t.pct||0).toFixed(1)+'%';
+      const isCockpit=t.source==='cockpit'&&t.cockpit;
+      const cockpitTag=isCockpit?`<span title="linked from cockpit · ${t.cockpit.monthLabel||'M'+t.cockpit.month} T${t.cockpit.tradeNo}" style="font-size:8px;color:#00c47a;background:rgba(0,196,122,0.08);border:1px solid rgba(0,196,122,0.15);border-radius:3px;padding:1px 5px;margin-left:4px;font-weight:700;letter-spacing:.03em">⚡ cockpit</span>`:'<span style="font-size:8px;color:#2a2a2a;border:1px solid #1e1e1e;border-radius:3px;padding:1px 5px;margin-left:4px">manual</span>';
       html+=`<div class="jn-trade-row" onclick="jnOpenTrade('${t.id}')">
         <div class="jn-tc date">${ds}</div>
-        <div class="jn-tc pair">${t.pair||'—'}</div>
+        <div class="jn-tc pair">${t.pair||'—'}${cockpitTag}</div>
         <div class="jn-tc"><span class="${t.side==='long'?'jn-side-long':'jn-side-short'}">${(t.side||'long').toUpperCase()}</span></div>
         <div class="jn-tc">$${parseFloat(t.entry||0).toFixed(2)}</div>
         <div class="jn-tc">$${parseFloat(t.exit||0).toFixed(2)}</div>
