@@ -6989,6 +6989,7 @@ async function ljConfirmLock(){
     // cockpit specifics
     cockpit:{
       tab:TAB, month:m, tradeNo:tno,
+      monthLabel:getML(m),
       target:tr?tr.tgt:0, freq:tr?tr.freq:0,
       feePaid:tr?tr.feePaid:0, netPnl:tr?tr.cp-(tr.feePaid||0):0,
       liq:tr?tr.liq:0, lev:leverage,
@@ -17069,7 +17070,7 @@ function jnRenderList(){
     <div class="jn-stat"><div class="jn-stat-lbl">W / L</div><div class="jn-stat-val">${wins}<span style="color:#1e1e1e;font-weight:400"> / </span>${losses}</div></div>
     <div class="jn-stat"><div class="jn-stat-lbl">total PnL</div><div class="jn-stat-val ${totalPnl>=0?'up':'dn'}">${totalPnl>=0?'+':''}$${totalPnl.toFixed(2)}</div></div>
     <div class="jn-stat"><div class="jn-stat-lbl">avg PnL</div><div class="jn-stat-val ${avgPnl>=0?'up':'dn'}">${avgPnl>=0?'+':''}$${avgPnl.toFixed(2)}</div></div>
-    <div class="jn-stat"><div class="jn-stat-lbl">fees paid</div><div class="jn-stat-val" style="color:#2a2a2a">$${totalFees.toFixed(2)}</div></div>
+    <div class="jn-stat"><div class="jn-stat-lbl">fees paid</div><div class="jn-stat-val" style="color:${totalFees>0?'#e05555':'#555'}">-$${totalFees.toFixed(2)}</div></div>
   </div>`;
 
   if(trades.length===0){
@@ -17087,7 +17088,7 @@ function jnRenderList(){
       <div class="jn-list-head-col">exit</div>
       <div class="jn-list-head-col">size</div>
       <div class="jn-list-head-col">pnl</div>
-      <div class="jn-list-head-col">%</div>
+      <div class="jn-list-head-col" title="% return on margin used (not account)">% <span style="color:#252525;font-weight:400">margin</span></div>
       <div class="jn-list-head-col">mood</div>
       <div></div>
     </div>`;
@@ -17102,11 +17103,14 @@ function jnRenderList(){
       const bWr=bTrades.length?Math.round(bWins/bTrades.length*100):0;
       // find the month label from cockpit data if available
       const firstCockpit=bTrades.find(t=>t.cockpit);
-      const monthLbl=firstCockpit?('M'+String(firstCockpit.cockpit.month).padStart(2,'0')):('batch '+bn);
-      html+=`<div style="display:flex;align-items:center;gap:10px;padding:7px 14px;background:#0f0f0f;border:1px solid #1a1a1a;border-radius:7px 7px 0 0;margin-top:${bn>bucketNums[0]?'16px':'0'}">
-        <span style="font-size:10px;font-weight:700;color:#aaa">${monthLbl}</span>
-        <span style="font-size:9px;color:#444">${bTrades.length} trade${bTrades.length!==1?'s':''}</span>
-        <span style="font-size:9px;color:${bWr>=50?'#00c47a':'#e05555'}">${bWr}% WR</span>
+      // prefer stored monthLabel, then current state ML, then fallback
+      const monthLbl=firstCockpit
+        ?(firstCockpit.cockpit.monthLabel||gs().ML[firstCockpit.cockpit.month]||('M'+String(firstCockpit.cockpit.month).padStart(2,'0')))
+        :('batch '+bn);
+      html+=`<div style="display:flex;align-items:center;gap:10px;padding:7px 14px;background:#111;border:1px solid #1e1e1e;border-radius:7px 7px 0 0;margin-top:${bn>bucketNums[0]?'16px':'0'}">
+        <span style="font-size:11px;font-weight:800;color:#ccc">${escHtml(monthLbl)}</span>
+        <span style="font-size:9px;color:#555">${bTrades.length} trade${bTrades.length!==1?'s':''}</span>
+        <span style="font-size:9px;font-weight:700;color:${bWr>=50?'#00c47a':'#e05555'}">${bWr}% WR</span>
         <span style="font-size:9px;font-weight:700;color:${bPnl>=0?'#00c47a':'#e05555'};margin-left:auto">${bPnl>=0?'+':''}$${bPnl.toFixed(2)}</span>
       </div>
       <div class="jn-list-wrap" style="border-radius:0 0 7px 7px;border-top:none">`;
@@ -17141,69 +17145,167 @@ function jnRenderDetail(){
   const t=trades.find(x=>x.id===JN.activeTrade);
   if(!t){jnGoList(JN.activeFolder);return;}
   const pc=t.pnl>=0?'up':'dn';
+  const pcColor=t.pnl>=0?'#00c47a':'#e05555';
   const d=new Date(t.closedAt);
   const dateStr=`${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
 
-  // TradingView embed
+  // ── derived metrics ──
+  const entry=parseFloat(t.entry||0);
+  const exit=parseFloat(t.exit||0);
+  const notional=parseFloat(t.size||0);
+  const lev=parseFloat(t.leverage||1);
+  const margin=lev>1?notional/lev:notional;
+
+  // raw price move — direction-aware
+  const rawMovePct=entry>0?((exit-entry)/entry*100):0;
+  const directedMovePct=t.side==='long'?rawMovePct:-rawMovePct; // positive = winning direction
+  const absPricePct=Math.abs(rawMovePct);
+
+  // RR — actual vs what was needed
+  const ck=t.cockpit||null;
+  const projTargetPct=ck?(ck.target||0):0; // projected % (of notional)
+  const actualMarginPct=parseFloat(t.pct||0); // % return on margin
+  const actualNotionalPct=entry>0?(directedMovePct*lev):0; // levered price move
+
+  // how far from target
+  const vsTarget=ck?((directedMovePct*lev)-projTargetPct):null; // actual levered % vs projected %
+  const vsTargetColor=vsTarget===null?'#555':vsTarget>=0?'#00c47a':'#e05555';
+
+  // beat/miss label
+  let outcomeLabel='';
+  let outcomeColor='#555';
+  if(ck&&entry>0){
+    const needed=projTargetPct/(lev||1)/100*entry; // price move needed
+    const actual=Math.abs(exit-entry);
+    if(t.pnl>=0&&directedMovePct>0){
+      outcomeLabel=directedMovePct*lev>=projTargetPct?'✓ target hit':'✓ win · below target';
+      outcomeColor='#00c47a';
+    } else {
+      outcomeLabel='✕ loss';
+      outcomeColor='#e05555';
+    }
+  }
+
+  // TradingView
   let tvHtml='';
   if(t.tvUrl&&t.tvUrl.includes('tradingview.com')){
     const isSnapshot=t.tvUrl.includes('/x/');
-    tvHtml=`<div style="margin-bottom:16px">
-      <div class="jn-sec-title" style="margin-bottom:8px">chart proof <a href="${escHtml(t.tvUrl)}" target="_blank" style="color:#5b7fff;font-weight:700;text-transform:none;letter-spacing:0;font-size:9px;margin-left:8px">open in TradingView ↗</a></div>
+    tvHtml=`<div style="margin-bottom:20px">
+      <div class="jn-sec-title" style="margin-bottom:8px">chart proof <a href="${escHtml(t.tvUrl)}" target="_blank" style="color:#5b7fff;font-weight:600;text-transform:none;letter-spacing:0;font-size:9px;margin-left:6px">open in TradingView ↗</a></div>
       ${isSnapshot
-        ?`<img src="${escHtml(t.tvUrl)}" style="width:100%;border-radius:8px;border:1px solid #1e1e1e;display:block" alt="chart snapshot" onerror="this.style.display='none';this.nextSibling.style.display='block'"><div style="display:none;padding:16px;text-align:center;color:#444;font-size:11px;background:#0f0f0f;border-radius:8px">could not load image</div>`
-        :`<iframe src="${escHtml(t.tvUrl.replace('/chart/','/embed-chart/'))}" style="width:100%;height:220px;border:1px solid #1e1e1e;border-radius:8px;background:#0a0a0a" frameborder="0" allowfullscreen sandbox="allow-scripts allow-same-origin allow-popups"></iframe>`
+        ?`<img src="${escHtml(t.tvUrl)}" style="width:100%;border-radius:8px;border:1px solid #1e1e1e;display:block" alt="chart snapshot" onerror="this.style.display='none';this.nextSibling.style.display='block'"><div style="display:none;padding:16px;text-align:center;color:#444;font-size:11px;background:#0f0f0f;border-radius:8px">could not load preview</div>`
+        :`<iframe src="${escHtml(t.tvUrl.replace('/chart/','/embed-chart/'))}" style="width:100%;height:240px;border:1px solid #1e1e1e;border-radius:8px;background:#0a0a0a" frameborder="0" allowfullscreen sandbox="allow-scripts allow-same-origin allow-popups"></iframe>`
       }
     </div>`;
   }
 
-  // cockpit data section
+  // cockpit projection — actual vs projected overlay
   let cockpitHtml='';
-  if(t.cockpit){
-    const ck=t.cockpit;
-    cockpitHtml=`<div style="margin-bottom:16px">
-      <div class="jn-sec-title" style="margin-bottom:8px">cockpit projection</div>
-      <div class="jn-detail-grid" style="grid-template-columns:repeat(4,1fr)">
-        <div class="jn-detail-field"><div class="jn-detail-lbl">tab</div><div class="jn-detail-val">${ck.tab||'—'}</div></div>
-        <div class="jn-detail-field"><div class="jn-detail-lbl">month</div><div class="jn-detail-val">M${ck.month}</div></div>
-        <div class="jn-detail-field"><div class="jn-detail-lbl">trade slot</div><div class="jn-detail-val">T${ck.tradeNo}</div></div>
-        <div class="jn-detail-field"><div class="jn-detail-lbl">mode</div><div class="jn-detail-val">${ck.mode} ${ck.lev>1?ck.lev+'×':''}</div></div>
-        <div class="jn-detail-field"><div class="jn-detail-lbl">projected target</div><div class="jn-detail-val" style="color:#00c47a">${(ck.target||0).toFixed(2)}%</div></div>
-        <div class="jn-detail-field"><div class="jn-detail-lbl">frequency</div><div class="jn-detail-val">${ck.freq}× /mo</div></div>
-        <div class="jn-detail-field"><div class="jn-detail-lbl">fee method</div><div class="jn-detail-val">${ck.feeMethod} ${(ck.feeRate||0).toFixed(3)}%</div></div>
-        <div class="jn-detail-field"><div class="jn-detail-lbl">proj net PnL</div><div class="jn-detail-val" style="color:${(ck.netPnl||0)>=0?'#00c47a':'#e05555'}">${(ck.netPnl||0)>=0?'+':''}$${(ck.netPnl||0).toFixed(2)}</div></div>
+  if(ck){
+    const projPnl=ck.netPnl||0;
+    const actualPnl=t.pnl||0;
+    const diffPnl=actualPnl-projPnl;
+    const diffColor=diffPnl>=0?'#00c47a':'#e05555';
+    const diffSign=diffPnl>=0?'+':'';
+
+    cockpitHtml=`<div style="margin-bottom:20px">
+      <div class="jn-sec-title" style="margin-bottom:10px">cockpit projection vs actual</div>
+      <div style="background:#0d0d0d;border:1px solid #1e1e1e;border-radius:8px;overflow:hidden">
+        <!-- header row -->
+        <div style="display:grid;grid-template-columns:140px 1fr 1fr 1fr;border-bottom:1px solid #1a1a1a">
+          <div style="padding:7px 12px;font-size:8px;color:#2a2a2a;text-transform:uppercase;letter-spacing:.07em;font-weight:700"></div>
+          <div style="padding:7px 12px;font-size:8px;color:#2a2a2a;text-transform:uppercase;letter-spacing:.07em;font-weight:700;border-left:1px solid #1a1a1a">projected</div>
+          <div style="padding:7px 12px;font-size:8px;color:#2a2a2a;text-transform:uppercase;letter-spacing:.07em;font-weight:700;border-left:1px solid #1a1a1a">actual</div>
+          <div style="padding:7px 12px;font-size:8px;color:#2a2a2a;text-transform:uppercase;letter-spacing:.07em;font-weight:700;border-left:1px solid #1a1a1a">diff</div>
+        </div>
+        <!-- target % row -->
+        <div style="display:grid;grid-template-columns:140px 1fr 1fr 1fr;border-bottom:1px solid #141414">
+          <div style="padding:9px 12px;font-size:9px;color:#444;font-weight:600">target % (levered)</div>
+          <div style="padding:9px 12px;font-size:12px;font-weight:700;color:#00c47a;border-left:1px solid #141414">${projTargetPct.toFixed(2)}%</div>
+          <div style="padding:9px 12px;font-size:12px;font-weight:700;color:${(directedMovePct*lev)>=0?'#00c47a':'#e05555'};border-left:1px solid #141414">${(directedMovePct*lev)>=0?'+':''}${(directedMovePct*lev).toFixed(2)}%</div>
+          <div style="padding:9px 12px;font-size:12px;font-weight:700;color:${vsTargetColor};border-left:1px solid #141414">${vsTarget!==null?(vsTarget>=0?'+':'')+vsTarget.toFixed(2)+'%':'—'}</div>
+        </div>
+        <!-- net PnL row -->
+        <div style="display:grid;grid-template-columns:140px 1fr 1fr 1fr;border-bottom:1px solid #141414">
+          <div style="padding:9px 12px;font-size:9px;color:#444;font-weight:600">net PnL</div>
+          <div style="padding:9px 12px;font-size:12px;font-weight:700;color:${projPnl>=0?'#00c47a':'#e05555'};border-left:1px solid #141414">${projPnl>=0?'+':''}$${projPnl.toFixed(2)}</div>
+          <div style="padding:9px 12px;font-size:12px;font-weight:700;color:${actualPnl>=0?'#00c47a':'#e05555'};border-left:1px solid #141414">${actualPnl>=0?'+':''}$${actualPnl.toFixed(4)}</div>
+          <div style="padding:9px 12px;font-size:12px;font-weight:700;color:${diffColor};border-left:1px solid #141414">${diffSign}$${diffPnl.toFixed(4)}</div>
+        </div>
+        <!-- margin row — updated with actual -->
+        <div style="display:grid;grid-template-columns:140px 1fr 1fr 1fr">
+          <div style="padding:9px 12px;font-size:9px;color:#444;font-weight:600">margin used</div>
+          <div style="padding:9px 12px;font-size:12px;font-weight:700;color:#666;border-left:1px solid #141414">$${(notional/(ck.lev||1)).toFixed(2)}</div>
+          <div style="padding:9px 12px;font-size:12px;font-weight:700;color:#888;border-left:1px solid #141414">$${margin.toFixed(2)}</div>
+          <div style="padding:9px 12px;font-size:10px;font-weight:600;color:#333;border-left:1px solid #141414">same</div>
+        </div>
       </div>
+      <!-- outcome badge -->
+      ${outcomeLabel?`<div style="margin-top:8px;display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:6px;background:${t.pnl>=0?'rgba(0,196,122,0.07)':'rgba(224,85,85,0.07)'};border:1px solid ${t.pnl>=0?'rgba(0,196,122,0.15)':'rgba(224,85,85,0.15)'}">
+        <span style="font-size:10px;font-weight:700;color:${outcomeColor}">${outcomeLabel}</span>
+        <span style="font-size:9px;color:#444">·</span>
+        <span style="font-size:9px;color:#555">tab ${ck.tab} · ${ck.monthLabel||'M'+ck.month} · T${ck.tradeNo}</span>
+      </div>`:''}
     </div>`;
   }
 
   body.innerHTML=`
     <div class="jn-detail">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
-        <div style="font-size:18px;font-weight:800;color:#e0e0e0">${escHtml(t.pair||'—')}</div>
-        <span class="${t.side==='long'?'jn-side-long':'jn-side-short'}">${(t.side||'').toUpperCase()}</span>
-        ${t.leverage>1?`<span style="font-size:9px;color:#888;background:#1a1a1a;padding:2px 7px;border-radius:3px;border:1px solid #222">${t.leverage}×</span>`:''}
-        <span style="font-size:9px;color:#444;margin-left:auto">${dateStr}</span>
-        ${t.bucket?`<span style="font-size:8px;color:#333;padding:2px 6px;border:1px solid #1e1e1e;border-radius:3px">bucket ${t.bucket}</span>`:''}
-        ${t.source==='cockpit'?`<span style="font-size:8px;color:#555;padding:2px 6px;border:1px solid #1e1e1e;border-radius:3px">from cockpit</span>`:''}
+      <!-- header -->
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap">
+        <div style="font-size:20px;font-weight:800;color:#e8e8e8;letter-spacing:-.01em">${escHtml(t.pair||'—')}</div>
+        <span class="${t.side==='long'?'jn-side-long':'jn-side-short'}" style="font-size:9px;padding:3px 8px">${(t.side||'').toUpperCase()}</span>
+        ${t.leverage>1?`<span style="font-size:9px;color:#888;background:#1a1a1a;padding:2px 8px;border-radius:3px;border:1px solid #222;font-weight:700">${t.leverage}×</span>`:''}
+        ${outcomeLabel?`<span style="font-size:9px;font-weight:700;color:${outcomeColor}">${outcomeLabel}</span>`:''}
+        <span style="font-size:9px;color:#333;margin-left:auto">${dateStr}</span>
+        ${t.source==='cockpit'?`<span style="font-size:8px;color:#444;padding:2px 6px;border:1px solid #1e1e1e;border-radius:3px">cockpit</span>`:''}
       </div>
 
+      <!-- main metrics grid -->
       <div class="jn-detail-grid" style="margin-bottom:16px">
-        <div class="jn-detail-field"><div class="jn-detail-lbl">entry price</div><div class="jn-detail-val">$${parseFloat(t.entry||0).toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:6})}</div></div>
-        <div class="jn-detail-field"><div class="jn-detail-lbl">exit price</div><div class="jn-detail-val">$${parseFloat(t.exit||0).toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:6})}</div></div>
-        <div class="jn-detail-field"><div class="jn-detail-lbl">size (notional)</div><div class="jn-detail-val">$${parseFloat(t.size||0).toLocaleString()}</div></div>
-        <div class="jn-detail-field"><div class="jn-detail-lbl">type</div><div class="jn-detail-val">${t.type||'perpetual'}</div></div>
-        <div class="jn-detail-field"><div class="jn-detail-lbl">net PnL</div><div class="jn-detail-val ${pc}" style="font-size:15px;font-weight:800">${t.pnl>=0?'+':''}$${parseFloat(t.pnl||0).toFixed(4)}</div></div>
-        <div class="jn-detail-field"><div class="jn-detail-lbl">actual % return</div><div class="jn-detail-val ${pc}" style="font-size:15px;font-weight:800">${t.pct>=0?'+':''}${parseFloat(t.pct||0).toFixed(3)}%</div></div>
+        <div class="jn-detail-field"><div class="jn-detail-lbl">entry price</div><div class="jn-detail-val">$${entry.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:6})}</div></div>
+        <div class="jn-detail-field"><div class="jn-detail-lbl">exit price</div><div class="jn-detail-val">$${exit.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:6})}</div></div>
+        <div class="jn-detail-field"><div class="jn-detail-lbl">size (notional)</div><div class="jn-detail-val">$${notional.toLocaleString()}</div></div>
+        <div class="jn-detail-field"><div class="jn-detail-lbl">margin used</div><div class="jn-detail-val">$${margin.toFixed(2)}</div></div>
+        <div class="jn-detail-field"><div class="jn-detail-lbl">net PnL</div><div class="jn-detail-val" style="color:${pcColor};font-size:15px;font-weight:800">${t.pnl>=0?'+':''}$${parseFloat(t.pnl||0).toFixed(4)}</div></div>
+        <div class="jn-detail-field"><div class="jn-detail-lbl">% return on margin</div><div class="jn-detail-val" style="color:${pcColor};font-size:15px;font-weight:800">${actualMarginPct>=0?'+':''}${actualMarginPct.toFixed(3)}%</div></div>
         <div class="jn-detail-field"><div class="jn-detail-lbl">fee paid</div><div class="jn-detail-val" style="color:#e05555">-$${parseFloat(t.fee||0).toFixed(4)}</div></div>
         <div class="jn-detail-field"><div class="jn-detail-lbl">funding paid</div><div class="jn-detail-val" style="color:#e05555">-$${parseFloat(t.funding||0).toFixed(4)}</div></div>
       </div>
+
+      <!-- price move analytics -->
+      ${entry>0&&exit>0?`<div style="margin-bottom:20px">
+        <div class="jn-sec-title" style="margin-bottom:10px">price move analysis</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);background:#0d0d0d;border:1px solid #1e1e1e;border-radius:8px;overflow:hidden">
+          <div class="jn-detail-field">
+            <div class="jn-detail-lbl">raw price move</div>
+            <div class="jn-detail-val" style="color:${rawMovePct>=0?'#00c47a':'#e05555'};font-weight:800">${rawMovePct>=0?'+':''}${rawMovePct.toFixed(4)}%</div>
+            <div style="font-size:8px;color:#333;margin-top:2px">${exit>entry?'↑ price up':'↓ price down'}</div>
+          </div>
+          <div class="jn-detail-field">
+            <div class="jn-detail-lbl">directed move (${t.side})</div>
+            <div class="jn-detail-val" style="color:${directedMovePct>=0?'#00c47a':'#e05555'};font-weight:800">${directedMovePct>=0?'+':''}${directedMovePct.toFixed(4)}%</div>
+            <div style="font-size:8px;color:#333;margin-top:2px">${directedMovePct>=0?'moved with you':'moved against you'}</div>
+          </div>
+          <div class="jn-detail-field">
+            <div class="jn-detail-lbl">levered move (${lev}×)</div>
+            <div class="jn-detail-val" style="color:${directedMovePct*lev>=0?'#00c47a':'#e05555'};font-weight:800">${(directedMovePct*lev)>=0?'+':''}${(directedMovePct*lev).toFixed(3)}%</div>
+            <div style="font-size:8px;color:#333;margin-top:2px">price × leverage</div>
+          </div>
+          <div class="jn-detail-field">
+            <div class="jn-detail-lbl">needed for target</div>
+            <div class="jn-detail-val" style="color:#555">${ck&&projTargetPct>0?(projTargetPct/lev).toFixed(4)+'%':'—'}</div>
+            <div style="font-size:8px;color:#333;margin-top:2px">${ck&&projTargetPct>0?'raw price needed':'no projection'}</div>
+          </div>
+        </div>
+      </div>`:''}
 
       ${tvHtml}
       ${cockpitHtml}
 
       <div style="margin-bottom:12px">
         <div class="jn-sec-title" style="margin-bottom:8px">mood</div>
-        <div style="display:flex;gap:8px">${JN_EMOTIONS.map(e=>`<button onclick="jnSetEmotion('${t.id}','${e}')" style="font-size:20px;background:none;border:1.5px solid ${t.emotion===e?'#00c47a':'#1e1e1e'};border-radius:7px;padding:4px 8px;cursor:pointer;outline:none;transition:border-color .15s">${e}</button>`).join('')}</div>
+        <div style="display:flex;gap:6px">${JN_EMOTIONS.map(e=>`<button onclick="jnSetEmotion('${t.id}','${e}')" style="font-size:20px;background:${t.emotion===e?'rgba(255,255,255,0.06)':'none'};border:1.5px solid ${t.emotion===e?'#555':'#1e1e1e'};border-radius:7px;padding:4px 8px;cursor:pointer;outline:none;transition:all .12s">${e}</button>`).join('')}</div>
       </div>
 
       <div style="margin-bottom:16px">
