@@ -7038,24 +7038,24 @@ function ljShowLockModal(m, tno){
       <div style="display:grid;grid-template-columns:140px 1fr;gap:10px;margin-bottom:8px">
         <div>
           <div style="font-size:8px;color:#444;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:700">exchange</div>
-          <select id="lj-exchange" onchange="ljFetchFundingDebounced()"
+          <select id="lj-exchange" onchange="ljOnExchangeChange()"
             style="width:100%;background:#111;border:1px solid #252525;border-radius:7px;color:#ccc;font-size:11px;padding:9px 10px;font-family:inherit;outline:none;cursor:pointer;box-sizing:border-box;color-scheme:dark">
-            <option value="binance">${(document.getElementById('fee-exchange')?.value||'binance')==='binance'?'selected':''}>Binance</option>
-            <option value="bybit" ${(document.getElementById('fee-exchange')?.value||'binance')==='bybit'?'selected':''}>Bybit</option>
-            <option value="okx" ${(document.getElementById('fee-exchange')?.value||'binance')==='okx'?'selected':''}>OKX</option>
+            <option value="binance">Binance</option>
+            <option value="bybit">Bybit</option>
+            <option value="okx">OKX</option>
           </select>
         </div>
-        <div class="lj-pair-wrap">
+        <div class="lj-pair-wrap" style="position:relative">
           <div style="font-size:8px;color:#444;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:700">pair / symbol</div>
           <input id="lj-pair-input" type="text"
             value="${tLabel.replace(/[\s\/]/g,'').toUpperCase()}"
-            placeholder="search pair… e.g. MOODENG"
+            placeholder="type to search… e.g. BTC"
             autocomplete="off"
-            style="width:100%;background:#111;border:1px solid #252525;border-radius:7px;color:#ccc;font-size:11px;padding:9px 10px;font-family:inherit;outline:none;box-sizing:border-box;transition:border-color .15s;text-transform:uppercase"
-            onfocus="this.style.borderColor='#444';this.value=window._ljPair||this.value;ljShowPairDrop(this.value)"
-            oninput="this.value=this.value.toUpperCase();ljShowPairDrop(this.value)"
-            onblur="setTimeout(()=>{const d=document.getElementById('lj-pair-drop');if(d)d.remove();window._ljPair=this.value.toUpperCase();ljFetchFunding(true)},200)">
-          <div id="lj-pair-drop" class="lj-pair-dropdown" style="display:none"></div>
+            style="width:100%;background:#111;border:1px solid #252525;border-radius:7px;color:#e0e0e0;font-size:12px;font-weight:700;padding:9px 10px;font-family:inherit;outline:none;box-sizing:border-box;transition:border-color .15s;text-transform:uppercase"
+            onfocus="this.style.borderColor='#444';ljShowPairDrop(this.value,true)"
+            oninput="this.value=this.value.toUpperCase();window._ljPair=this.value;ljShowPairDrop(this.value,true)"
+            onblur="setTimeout(()=>{document.getElementById('lj-pair-drop')?.remove();window._ljPair=this.value.toUpperCase();ljFetchFunding(true)},200)">
+          <div id="lj-pair-drop" style="display:none"></div>
         </div>
       </div>
       <!-- funding status bar -->
@@ -7176,7 +7176,44 @@ function ljCalc(){
   document.getElementById('lj-pct').className='lj-calc-val '+(pct>=0?'':'neg');
 }
 
-function ljShowPairDrop(query){
+// full pair lists per exchange — populated on first use
+var _ljPairLists={binance:null,bybit:null,okx:null};
+
+async function ljFetchAllPairs(exchange){
+  if(_ljPairLists[exchange]) return _ljPairLists[exchange];
+  let pairs=[];
+  try{
+    if(exchange==='binance'){
+      const r=await fetch('https://fapi.binance.com/fapi/v1/exchangeInfo');
+      const d=await r.json();
+      pairs=(d.symbols||[]).filter(s=>s.status==='TRADING'&&s.quoteAsset==='USDT').map(s=>s.baseAsset+'USDT').sort();
+    } else if(exchange==='bybit'){
+      const r=await fetch('https://api.bybit.com/v5/market/instruments-info?category=linear&limit=1000');
+      const d=await r.json();
+      pairs=(d.result?.list||[]).filter(s=>s.status==='Trading'&&s.quoteCoin==='USDT').map(s=>s.symbol).sort();
+    } else if(exchange==='okx'){
+      const r=await fetch('https://www.okx.com/api/v5/public/instruments?instType=SWAP');
+      const d=await r.json();
+      pairs=(d.data||[]).filter(s=>s.state==='live'&&s.settleCcy==='USDT').map(s=>s.ctValCcy+'USDT').sort();
+    }
+    _ljPairLists[exchange]=pairs;
+  }catch(e){
+    // fallback to TP_PAIRS on fetch failure
+    _ljPairLists[exchange]=(typeof TP_PAIRS!=='undefined'?TP_PAIRS.map(p=>p.symbol):[]);
+  }
+  return _ljPairLists[exchange];
+}
+
+async function ljOnExchangeChange(){
+  const ex=document.getElementById('lj-exchange')?.value||'binance';
+  const statusEl=document.getElementById('lj-fund-msg');
+  if(statusEl) statusEl.textContent='loading pairs for '+ex+'...';
+  await ljFetchAllPairs(ex);
+  ljShowPairDrop(document.getElementById('lj-pair-input')?.value||'',true);
+  ljFetchFundingDebounced();
+}
+
+function ljShowPairDrop(query,force){
   const wrap=document.getElementById('lj-pair-wrap')||document.querySelector('.lj-pair-wrap');
   let drop=document.getElementById('lj-pair-drop');
   if(!drop){drop=document.createElement('div');drop.id='lj-pair-drop';drop.className='lj-pair-dropdown';if(wrap)wrap.appendChild(drop);}
@@ -7194,12 +7231,11 @@ function ljShowPairDrop(query){
     </div>`).join('');
 }
 
-function ljSelectPair(symbol,name,icon){
+function ljSelectPair(symbol){
   const inp=document.getElementById('lj-pair-input');
-  if(inp) inp.value=symbol;
+  if(inp){inp.value=symbol;inp.style.borderColor='#00c47a';setTimeout(()=>inp.style.borderColor='#252525',600);}
   window._ljPair=symbol;
-  const drop=document.getElementById('lj-pair-drop');
-  if(drop) drop.style.display='none';
+  document.getElementById('lj-pair-drop')?.remove();
   ljFetchFunding(true);
 }
 
