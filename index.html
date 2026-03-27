@@ -17396,7 +17396,7 @@ function guestGoLogin(){
 var JN = {
   folders: [],      // [{id,name,color,tags,type,createdAt}]
   trades: {},       // {folderId: [{...}]}
-  view: 'folders',  // 'folders' | 'list' | 'detail'
+  view: 'list',  // 'folders' | 'list' | 'detail'
   folderView: 'grid', // 'grid' | 'list'
   activeFolder: null,
   activeTrade: null,
@@ -17945,18 +17945,29 @@ function jnRenderDetail(){
       ${tvHtml}
       ${cockpitHtml}
 
-      <!-- MOOD + NOTES -->
-      <div style="display:grid;grid-template-columns:1fr auto;gap:12px;margin-bottom:16px;align-items:start">
-        <div>
-          <div class="jn-sec-title" style="margin-bottom:8px">setup notes</div>
-          <textarea class="jn-notes-area" rows="4" placeholder="Why did you enter? What was the setup? What went wrong or right?" onchange="jnSaveNote('${t.id}',this.value)">${escHtml(t.note||'')}</textarea>
-        </div>
-        <div style="min-width:80px">
-          <div class="jn-sec-title" style="margin-bottom:8px">mood</div>
-          <div style="display:flex;flex-direction:column;gap:4px">
-            ${JN_EMOTIONS.map(e=>`<button onclick="jnSetEmotion('${t.id}','${e}')" title="${{'😤':'frustrated','😰':'anxious','😐':'neutral','😊':'confident','🔥':'on fire'}[e]||e}" style="font-size:20px;background:${t.emotion===e?'rgba(255,255,255,0.06)':'none'};border:1.5px solid ${t.emotion===e?'#00c47a':'#1e1e1e'};border-radius:7px;padding:4px 8px;cursor:pointer;outline:none;transition:all .12s">${e}</button>`).join('')}
-          </div>
-        </div>
+      <!-- NOTES full width -->
+      <div style="margin-bottom:12px">
+        <div class="jn-sec-title" style="margin-bottom:8px">setup notes</div>
+        <textarea class="jn-notes-area" rows="4" placeholder="Why did you enter? What was the setup? What went wrong or right?" onchange="jnSaveNote('${t.id}',this.value)">${escHtml(t.note||'')}</textarea>
+      </div>
+      <!-- MOOD — show selected only, click to cycle -->
+      <div style="margin-bottom:16px;display:flex;align-items:center;gap:10px">
+        <div style="font-size:8px;color:#333;text-transform:uppercase;letter-spacing:.07em;font-weight:700">mood</div>
+        ${t.emotion
+          ?`<div style="position:relative;display:inline-block" id="jn-mood-wrap">
+              <button onclick="document.getElementById('jn-mood-picker').style.display=document.getElementById('jn-mood-picker').style.display==='flex'?'none':'flex'"
+                style="font-size:22px;background:rgba(255,255,255,0.04);border:1px solid #252525;border-radius:8px;padding:4px 10px;cursor:pointer;outline:none">
+                ${t.emotion}
+              </button>
+              <div id="jn-mood-picker" style="display:none;position:absolute;top:calc(100% + 4px);left:0;background:#141414;border:1px solid #252525;border-radius:8px;padding:6px;gap:4px;z-index:99;box-shadow:0 8px 24px rgba(0,0,0,.5)">
+                ${JN_EMOTIONS.map(e=>`<button onclick="jnSetEmotion('${t.id}','${e}');document.getElementById('jn-mood-picker').style.display='none'" title="${{'😤':'frustrated','😰':'anxious','😐':'neutral','😊':'confident','🔥':'on fire'}[e]||e}" style="font-size:20px;background:${t.emotion===e?'rgba(255,255,255,0.08)':'none'};border:1.5px solid ${t.emotion===e?'#00c47a':'transparent'};border-radius:6px;padding:4px 8px;cursor:pointer;outline:none">${e}</button>`).join('')}
+              </div>
+            </div>
+            <span style="font-size:10px;color:#333">${{'😤':'frustrated','😰':'anxious','😐':'neutral','😊':'confident','🔥':'on fire'}[t.emotion]||''}</span>`
+          :`<div style="display:flex;gap:4px">
+              ${JN_EMOTIONS.map(e=>`<button onclick="jnSetEmotion('${t.id}','${e}')" title="${{'😤':'frustrated','😰':'anxious','😐':'neutral','😊':'confident','🔥':'on fire'}[e]||e}" style="font-size:20px;background:none;border:1.5px solid #1a1a1a;border-radius:6px;padding:4px 8px;cursor:pointer;outline:none;transition:all .12s;opacity:.5" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='.5'">${e}</button>`).join('')}
+            </div>`
+        }
       </div>
 
       <div style="display:flex;gap:8px">
