@@ -1407,6 +1407,13 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 .lj-btns{display:flex;gap:8px;margin-top:16px}
 .lj-pair-wrap{position:relative}
 .lj-pair-dropdown{position:absolute;top:calc(100% + 4px);left:0;right:0;background:#141414;border:1px solid #2e2e2e;border-radius:8px;z-index:9999;max-height:200px;overflow-y:auto;scrollbar-width:none;box-shadow:0 8px 24px rgba(0,0,0,0.5)}
+/* custom datetime display */
+.lj-dt-display{background:#111;border:1px solid #252525;border-radius:7px;padding:10px 12px;cursor:pointer;transition:border-color .15s;display:flex;align-items:center;justify-content:space-between;user-select:none}
+.lj-dt-display:hover{border-color:#333}
+.lj-dt-display.active{border-color:#00c47a}
+.lj-dt-val{font-size:12px;font-weight:600;color:#ccc;font-variant-numeric:tabular-nums}
+.lj-dt-icon{font-size:11px;color:#333}
+.lj-dt-real{position:absolute;opacity:0;width:100%;height:100%;top:0;left:0;cursor:pointer;font-size:0}
 .lj-pair-dropdown::-webkit-scrollbar{display:none}
 .lj-pair-opt{display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;font-size:11px;color:#aaa;transition:background .1s}
 .lj-pair-opt:hover{background:#1e1e1e}
@@ -6811,6 +6818,33 @@ function ljFetchFundingDebounced(){
   _ljFundTimer=setTimeout(()=>ljFetchFunding(true),800);
 }
 
+function ljUpdateDtDisplay(which, val){
+  if(!val) return;
+  const d=new Date(val);
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const pad=n=>String(n).padStart(2,'0');
+  const h=d.getHours();
+  const ampm=h>=12?'PM':'AM';
+  const h12=h%12||12;
+  const formatted=`${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()} · ${pad(h12)}:${pad(d.getMinutes())} ${ampm}`;
+  const valEl=document.getElementById('lj-'+which+'-val');
+  const dispEl=document.getElementById('lj-'+which+'-display');
+  if(valEl) valEl.textContent=formatted;
+  if(dispEl) dispEl.classList.add('active');
+  // update duration badge
+  const openEl=document.getElementById('lj-open-dt');
+  const closeEl=document.getElementById('lj-close-dt');
+  if(openEl?.value&&closeEl?.value){
+    const ms=new Date(closeEl.value)-new Date(openEl.value);
+    if(ms>0){
+      const h=Math.floor(ms/3600000);
+      const m=Math.floor((ms%3600000)/60000);
+      const badge=document.getElementById('lj-duration-badge');
+      if(badge) badge.textContent=`· ${h>0?h+'h ':''}${m}m held`;
+    }
+  }
+}
+
 async function ljFetchFunding(manual){
   if(_ljFundingData.fetching) return;
   const s=gs();
@@ -6884,7 +6918,10 @@ function ljShowLockModal(m, tno){
   _ljPending={m,tno};
   _ljFundingData={rates:[],total:0,fetched:false,fetching:false,_key:''}; // reset each modal open
   if(_ljFundTimer){clearTimeout(_ljFundTimer);_ljFundTimer=null;}
-  window._ljPair=tLabel.replace(/\s+/g,'').replace('/','').toUpperCase();
+  window._ljPair=tLabel.replace(/[\s\/]/g,'').toUpperCase();
+  // sync exchange from cockpit fee setting
+  const _exSel=document.getElementById('fee-exchange');
+  window._ljExchange=_exSel?_exSel.value:'binance';
 
   const box=document.getElementById('lj-box');
   box.innerHTML=`
@@ -6959,23 +6996,38 @@ function ljShowLockModal(m, tno){
 
     <div class="lj-divider"></div>
 
-    <!-- 1. POSITION TIMING -->
+    <!-- 1. POSITION TIMING — modern styled date pickers -->
     <div style="margin-bottom:14px">
-      <div style="font-size:9px;color:#555;font-weight:700;margin-bottom:10px">position timing</div>
+      <div style="font-size:9px;color:#555;font-weight:700;margin-bottom:10px;display:flex;align-items:center;gap:6px">
+        position timing
+        <span id="lj-duration-badge" style="font-size:9px;color:#333;font-weight:400"></span>
+      </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
         <div>
           <div style="font-size:8px;color:#444;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:700">opened <span style="color:#e05555">*</span></div>
-          <input id="lj-open-dt" type="datetime-local"
-            value="${new Date(Date.now()-3600000).toISOString().slice(0,16)}"
-            style="width:100%;background:#111;border:1px solid #252525;border-radius:7px;color:#ccc;font-size:11px;padding:9px 10px;font-family:inherit;outline:none;box-sizing:border-box;transition:border-color .15s;color-scheme:dark"
-            onfocus="this.style.borderColor='#444'" onblur="this.style.borderColor='#252525';ljFetchFunding()">
+          <div style="position:relative">
+            <div class="lj-dt-display" id="lj-open-display" onclick="document.getElementById('lj-open-dt').showPicker()">
+              <span class="lj-dt-val" id="lj-open-val">—</span>
+              <span class="lj-dt-icon">📅</span>
+            </div>
+            <input id="lj-open-dt" type="datetime-local"
+              value="${new Date(Date.now()-3600000).toISOString().slice(0,16)}"
+              style="position:absolute;opacity:0;width:1px;height:1px;top:0;left:0;pointer-events:none;color-scheme:dark"
+              onchange="ljUpdateDtDisplay('open',this.value);ljFetchFundingDebounced()">
+          </div>
         </div>
         <div>
           <div style="font-size:8px;color:#444;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:700">closed <span style="color:#e05555">*</span></div>
-          <input id="lj-close-dt" type="datetime-local"
-            value="${new Date().toISOString().slice(0,16)}"
-            style="width:100%;background:#111;border:1px solid #252525;border-radius:7px;color:#ccc;font-size:11px;padding:9px 10px;font-family:inherit;outline:none;box-sizing:border-box;transition:border-color .15s;color-scheme:dark"
-            onfocus="this.style.borderColor='#444'" onblur="this.style.borderColor='#252525';ljFetchFunding()">
+          <div style="position:relative">
+            <div class="lj-dt-display" id="lj-close-display" onclick="document.getElementById('lj-close-dt').showPicker()">
+              <span class="lj-dt-val" id="lj-close-val">—</span>
+              <span class="lj-dt-icon">📅</span>
+            </div>
+            <input id="lj-close-dt" type="datetime-local"
+              value="${new Date().toISOString().slice(0,16)}"
+              style="position:absolute;opacity:0;width:1px;height:1px;top:0;left:0;pointer-events:none;color-scheme:dark"
+              onchange="ljUpdateDtDisplay('close',this.value);ljFetchFundingDebounced()">
+          </div>
         </div>
       </div>
     </div>
@@ -6988,9 +7040,9 @@ function ljShowLockModal(m, tno){
           <div style="font-size:8px;color:#444;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:700">exchange</div>
           <select id="lj-exchange" onchange="ljFetchFundingDebounced()"
             style="width:100%;background:#111;border:1px solid #252525;border-radius:7px;color:#ccc;font-size:11px;padding:9px 10px;font-family:inherit;outline:none;cursor:pointer;box-sizing:border-box;color-scheme:dark">
-            <option value="binance">Binance</option>
-            <option value="bybit" selected>Bybit</option>
-            <option value="okx">OKX</option>
+            <option value="binance">${(document.getElementById('fee-exchange')?.value||'binance')==='binance'?'selected':''}>Binance</option>
+            <option value="bybit" ${(document.getElementById('fee-exchange')?.value||'binance')==='bybit'?'selected':''}>Bybit</option>
+            <option value="okx" ${(document.getElementById('fee-exchange')?.value||'binance')==='okx'?'selected':''}>OKX</option>
           </select>
         </div>
         <div class="lj-pair-wrap">
@@ -7000,7 +7052,7 @@ function ljShowLockModal(m, tno){
             placeholder="search pair… e.g. MOODENG"
             autocomplete="off"
             style="width:100%;background:#111;border:1px solid #252525;border-radius:7px;color:#ccc;font-size:11px;padding:9px 10px;font-family:inherit;outline:none;box-sizing:border-box;transition:border-color .15s;text-transform:uppercase"
-            onfocus="this.style.borderColor='#444';ljShowPairDrop(this.value)"
+            onfocus="this.style.borderColor='#444';this.value=window._ljPair||this.value;ljShowPairDrop(this.value)"
             oninput="this.value=this.value.toUpperCase();ljShowPairDrop(this.value)"
             onblur="setTimeout(()=>{const d=document.getElementById('lj-pair-drop');if(d)d.remove();window._ljPair=this.value.toUpperCase();ljFetchFunding(true)},200)">
           <div id="lj-pair-drop" class="lj-pair-dropdown" style="display:none"></div>
