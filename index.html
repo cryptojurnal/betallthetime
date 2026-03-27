@@ -5341,11 +5341,12 @@ function runSeq(startAcc,lev,initNot,bt,fr,kpi,isSpot,cf,month){
     });
     acc=useActual?accAfterActual:accAfter;
     accF=useActual?accAfterFActual:accAfterF;
-    // carry-forward OFF: freeze notional — never grows within or across months
+    // carry-forward: use actual single-trade gross move for notional, not projected
+    const actualSp=useActual?finalCpPreFee/Math.max(fr[i],1):sp;
     if(cfOn){
-      not=isSpot?acc:not+sp;
+      not=isSpot?acc:not+actualSp;
     } else {
-      not=isSpot?startAcc:initNot; // reset every trade to the fixed starting notional
+      not=isSpot?startAcc:initNot;
     }
   }
   return{trades,endAcc:acc,endAccF:accF,lastNotional:cfOn?not:initNot};
