@@ -17454,10 +17454,13 @@ function openJournal(){
   requestAnimationFrame(()=>requestAnimationFrame(()=>p.classList.add('visible')));
   document.body.style.overflow='auto';
   jnLoad().then(()=>{
-    // always open to list view — auto-select first folder if none set
-    if(!JN.activeFolder&&JN.folders.length>0) JN.activeFolder=JN.folders[0].id;
-    if(JN.activeFolder) JN.view='list';
-    else JN.view='folders';
+    // always show list — pick first folder if available
+    if(JN.folders.length>0){
+      if(!JN.activeFolder) JN.activeFolder=JN.folders[0].id;
+      JN.view='list';
+    } else {
+      JN.view='folders';
+    }
     jnRender();
   });
 }
