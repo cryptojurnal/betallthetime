@@ -7045,24 +7045,18 @@ function ljShowLockModal(m, tno){
             <option value="okx">OKX</option>
           </select>
         </div>
-        <div class="lj-pair-wrap" style="position:relative">
+        <div style="position:relative">
           <div style="font-size:8px;color:#444;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:700">pair / symbol</div>
-          <input id="lj-pair-input" type="text"
-            value="${tLabel.replace(/[\s\/]/g,'').toUpperCase()}"
-            placeholder="type to search… e.g. BTC"
-            autocomplete="off"
-            style="width:100%;background:#111;border:1px solid #252525;border-radius:7px;color:#e0e0e0;font-size:12px;font-weight:700;padding:9px 10px;font-family:inherit;outline:none;box-sizing:border-box;transition:border-color .15s;text-transform:uppercase"
-            onfocus="this.style.borderColor='#444';ljFetchAllPairs(document.getElementById('lj-exchange')?.value||'binance').then(()=>ljShowPairDrop(this.value,true))"
-            oninput="this.value=this.value.toUpperCase();window._ljPair=this.value;ljFetchAllPairs(document.getElementById('lj-exchange')?.value||'binance').then(()=>ljShowPairDrop(this.value,true))"
-            onblur="setTimeout(()=>{document.getElementById('lj-pair-drop')?.remove();window._ljPair=this.value.toUpperCase();ljFetchFunding(true)},200)">
-          <div id="lj-pair-drop"></div>
+          <select id="lj-pair-input" onchange="window._ljPair=this.value;ljFetchFundingDebounced()"
+            style="width:100%;background:#111;border:1px solid #252525;border-radius:7px;color:#e0e0e0;font-size:12px;font-weight:700;padding:9px 10px;font-family:inherit;outline:none;box-sizing:border-box;cursor:pointer;color-scheme:dark;-webkit-appearance:auto">
+          </select>
         </div>
       </div>
       <!-- funding status bar -->
       <div id="lj-fund-status" style="padding:8px 12px;background:#0d0d0d;border:1px solid #1a1a1a;border-radius:6px;font-size:10px;color:#444;display:flex;align-items:center;gap:8px">
         <span id="lj-fund-icon" style="font-size:11px">⏳</span>
         <span id="lj-fund-msg">set opened/closed time → auto-fetch funding</span>
-        <button onclick="window._ljPair=document.getElementById('lj-pair-input')?.value?.toUpperCase()||window._ljPair;ljFetchFunding(true)"
+        <button onclick="window._ljPair=document.getElementById('lj-pair-input')?.value||window._ljPair;ljFetchFunding(true)"
           style="margin-left:auto;background:none;border:1px solid #1e1e1e;border-radius:4px;color:#555;font-size:9px;padding:3px 10px;cursor:pointer;font-family:inherit;outline:none;flex-shrink:0;transition:all .15s"
           id="lj-fund-fetch-btn">↻ fetch</button>
       </div>
@@ -7208,12 +7202,24 @@ async function ljFetchAllPairs(exchange){
   return _ljPairLists[exchange];
 }
 
+function ljPopulatePairSelect(exchange, currentPair){
+  const sel=document.getElementById('lj-pair-input');
+  if(!sel) return;
+  const list=_ljPairLists[exchange]||_LJ_COMMON_PAIRS;
+  const cur=(currentPair||window._ljPair||'BTCUSDT').toUpperCase();
+  // ensure current pair is in list
+  const allPairs=list.includes(cur)?list:[cur,...list];
+  sel.innerHTML=allPairs.map(p=>`<option value="${p}"${p===cur?' selected':''}>${p}</option>`).join('');
+  sel.value=cur;
+  window._ljPair=cur;
+}
+
 async function ljOnExchangeChange(){
   const ex=document.getElementById('lj-exchange')?.value||'binance';
   const statusEl=document.getElementById('lj-fund-msg');
   if(statusEl) statusEl.textContent='loading pairs for '+ex+'...';
   await ljFetchAllPairs(ex);
-  ljShowPairDrop(document.getElementById('lj-pair-input')?.value||'',true);
+  ljPopulatePairSelect(ex, window._ljPair||'');
   ljFetchFundingDebounced();
 }
 
