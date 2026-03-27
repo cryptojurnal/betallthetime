@@ -6777,7 +6777,7 @@ function ljShowLockModal(m, tno){
         <span class="lj-calc-lbl" style="font-size:11px;font-weight:700;color:#6a9a7a">net PnL after fees</span>
         <span class="lj-calc-val" id="lj-net" style="font-size:14px">—</span>
       </div>
-      <div class="lj-calc-row"><span class="lj-calc-lbl">actual % of account</span><span class="lj-calc-val" id="lj-pct" style="font-size:12px">—</span></div>
+      <div class="lj-calc-row"><span class="lj-calc-lbl">% return on margin (actual)</span><span class="lj-calc-val" id="lj-pct" style="font-size:12px">—</span></div>
     </div>
 
     <div class="lj-divider"></div>
@@ -6867,12 +6867,15 @@ function ljCalc(){
   const funding=s.FEE.funding/100;
   const holds=s.FEE.holds;
 
+  // notional = full position size (already includes leverage)
+  // margin = what user actually risks = notional / leverage
+  const margin=s.SPOT?notional:notional/leverage;
   const priceDiff=side==='long'?exit-entry:entry-exit;
-  const grossPnl=(priceDiff/entry)*notional*leverage;
-  const feePaid=(notional*leverage)*feeRate*2; // open + close
+  const grossPnl=(priceDiff/entry)*notional;   // notional already is leveraged position
+  const feePaid=notional*feeRate*2;             // fee on full position, open+close
   const fundingPaid=notional*funding*holds;
   const netPnl=grossPnl-feePaid-fundingPaid;
-  const pct=(netPnl/s.P)*100; // % of account
+  const pct=(netPnl/margin)*100;               // % return on actual margin used
 
   const c=document.getElementById('lj-calc');
   c.style.display='block';
@@ -6934,14 +6937,15 @@ async function ljConfirmLock(){
   const dateVal=document.getElementById('lj-date')?.value||new Date().toISOString().slice(0,16);
 
   // calc PnL
+  const margin=s.SPOT?notional:notional/leverage;
   let grossPnl=0,feePaid=0,fundingPaid=0,netPnl=0,pct=0;
   if(entry&&exit){
     const priceDiff=side==='long'?exit-entry:entry-exit;
-    grossPnl=(priceDiff/entry)*notional*leverage;
-    feePaid=(notional*leverage)*feeRate*2;
+    grossPnl=(priceDiff/entry)*notional;
+    feePaid=notional*feeRate*2;
     fundingPaid=notional*funding*holds;
     netPnl=grossPnl-feePaid-fundingPaid;
-    pct=(netPnl/s.P)*100;
+    pct=(netPnl/margin)*100;
   }
 
   // get cockpit data from sim
