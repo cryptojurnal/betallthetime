@@ -6667,7 +6667,7 @@ function toggleLock(m, tno){
       return;
     }
     // enforce mandatory trade label
-    const _tl=getTL(tno);
+    const _tl=getTL(m,tno);
     if(!_tl||_tl===('trade '+tno)||_tl.toLowerCase()===('trade'+tno)){
       showToast('⚠ Name this trade first — click the label to rename it (e.g. BTCUSDT)','info',3500);
       // highlight the label input for this trade
@@ -6691,7 +6691,7 @@ var _ljPending={m:0,tno:0}; // current modal context
 
 function ljShowLockModal(m, tno){
   const s=gs();
-  const tLabel=getTL(tno);
+  const tLabel=getTL(m,tno);
   const mLabel=getML(m);
   const notional=s.NOT;
   const margin=s.SPOT?notional:notional/s.LEV;
@@ -6952,7 +6952,7 @@ async function ljConfirmLock(){
   const months=sim();
   const mo=months.find(x=>x.m===m);
   const tr=mo?mo.trades.find(t=>t.no===tno):null;
-  const tLabel=getTL(tno)||('trade '+tno);
+  const tLabel=getTL(m,tno)||('trade '+tno);
 
   // find or create journal folder for this preset
   const presetName=window._ACTIVE_PRESET.name;
@@ -7278,13 +7278,13 @@ function onMonthLabel(m,v){
   try{localStorage.setItem('batt_'+TAB+'_labels',JSON.stringify({ML:{...gs().ML},TL:{...gs().TL}}));}catch(e){}
   _silentCloudSync();
 } 
-function onTradeLabel(t,v){
-  gs().TL[t]=v.trim();
+function onTradeLabel(m,t,v){
+  gs().TL[m+'-'+t]=v.trim();
   try{localStorage.setItem('batt_'+TAB+'_labels',JSON.stringify({ML:{...gs().ML},TL:{...gs().TL}}));}catch(e){}
   _silentCloudSync();
 }
 function getML(m){return gs().ML[m]||getMLabel(m);}
-function getTL(t){return gs().TL[t]||('trade '+t);}
+function getTL(m,t){return gs().TL[m+'-'+t]||('trade '+t);}
 
 // ── RISK ASSESSMENT ──
 function buildAssessment(months, s){
@@ -8136,14 +8136,14 @@ function renderTbl(months){
         </td>
       </tr>`;
       mo.trades.forEach(t=>{
-        const tLabel=getTL(t.no);
+        const tLabel=getTL(mo.m,t.no);
         if(t.skip){
           if(!GLOBAL_MODE){
             const mt=gs().MT[mo.m];
             const btVal=mt?mt.bt[t.no-1]:0;
             const frVal=mt?mt.fr[t.no-1]:0;
             h+=`<tr class="skip-row">
-              <td style="padding-left:8px;text-align:left"><input class="lbl-in lbl-trade" value="${tLabel}" placeholder="trade ${t.no}..." onchange="onTradeLabel(${t.no},this.value)" onclick="this.select()"></td>
+              <td style="padding-left:8px;text-align:left"><input class="lbl-in lbl-trade" value="${tLabel}" placeholder="trade ${t.no}..." onchange="onTradeLabel(${mo.m},${t.no},this.value)" onclick="this.select()"></td>
               <td colspan="4" style="color:var(--tx3);font-size:9px;font-style:italic">skipped</td>
               <td><div class="tg-cell" style="width:54px"><button class="tg-btn" onclick="manStep('bt',${mo.m},${t.no-1},-0.5)" tabindex="-1">−</button><input type="number" id="mbt-${mo.m}-${t.no-1}" value="${btVal}" min="-500" max="500" step="0.5" placeholder="tgt%" style="flex:1;min-width:0;padding:1px 0;font-size:9px;text-align:center;border:none;background:transparent;color:var(--acc);font-weight:700;-moz-appearance:textfield" oninput="dInput(this,v=>onManualBT(${mo.m},${t.no-1},v),400)"><button class="tg-btn" onclick="manStep('bt',${mo.m},${t.no-1},0.5)" tabindex="-1">+</button></div></td>
               <td><div class="tg-cell fi" style="width:48px;border-color:var(--acc2)"><button class="tg-btn" style="color:var(--acc2)" onclick="manStep('fr',${mo.m},${t.no-1},-1)" tabindex="-1">−</button><input type="number" id="mfr-${mo.m}-${t.no-1}" value="${frVal}" min="0" max="20" step="1" placeholder="freq" style="flex:1;min-width:0;padding:1px 0;font-size:9px;text-align:center;border:none;background:transparent;color:var(--acc2);font-weight:700;-moz-appearance:textfield" oninput="onManualFR(${mo.m},${t.no-1},this.value)"><button class="tg-btn" style="color:var(--acc2)" onclick="manStep('fr',${mo.m},${t.no-1},1)" tabindex="-1">+</button></div></td>
@@ -8166,7 +8166,7 @@ function renderTbl(months){
           <td style="padding-left:6px;text-align:left">
             <div style="display:flex;align-items:center;gap:4px">
               <button class="lock-btn${lk?' locked':''}" onclick="toggleLock(${mo.m},${t.no})" title="${lk?'executed · click to unlock':'mark as executed'}">${lk?'🔒':'○'}</button>
-              <input class="lbl-in lbl-trade${lk?' locked-overlay':''}" value="${tLabel}" placeholder="trade ${t.no}..." onchange="onTradeLabel(${t.no},this.value)" onclick="this.select()"${lk?' disabled':''}>
+              <input class="lbl-in lbl-trade${lk?' locked-overlay':''}" value="${tLabel}" placeholder="trade ${t.no}..." onchange="onTradeLabel(${mo.m},${t.no},this.value)" onclick="this.select()"${lk?' disabled':''}>
             </div>
           </td>
           <td style="font-weight:600;${isT1Push?'color:var(--acc2)':''}">${fmt(t.not)}${isT1Push?' <span style="font-size:7px;background:#EAF3DE;color:#3B6D11;padding:0 3px;border-radius:2px;font-weight:700">⚡</span>':''}</td>
