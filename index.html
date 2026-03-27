@@ -17713,7 +17713,7 @@ function jnRenderList(){
   const body=document.getElementById('jn-body');
   const f=JN.folders.find(x=>x.id===JN.activeFolder);
   if(!f){jnGoFolders();return;}
-  const trades=(JN.trades[JN.activeFolder]||[]).slice().sort((a,b)=>b.closedAt-a.closedAt);
+  const trades=(JN.trades[JN.activeFolder]||[]).slice().sort((a,b)=>a.closedAt-b.closedAt); // oldest first
 
   // stats
   const wins=trades.filter(t=>t.pnl>0).length;
@@ -17755,6 +17755,7 @@ function jnRenderList(){
     const buckets={};
     trades.forEach(t=>{const b=t.bucket||1;if(!buckets[b])buckets[b]=[];buckets[b].push(t);});
     const bucketNums=Object.keys(buckets).map(Number).sort((a,b)=>a-b);
+    let tradeNum=0;
     bucketNums.forEach(bn=>{
       const bTrades=buckets[bn];
       const bWins=bTrades.filter(t=>t.pnl>0).length;
@@ -17774,6 +17775,7 @@ function jnRenderList(){
       </div>
       <div class="jn-list-wrap" style="border-radius:0 0 7px 7px;border-top:none">`;
     bTrades.forEach(t=>{
+      tradeNum++;
       const d=new Date(t.closedAt);
       const ds=`${d.getDate()}/${d.getMonth()+1} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
       const pCls=t.pnl>=0?'win':'loss';
@@ -17782,7 +17784,7 @@ function jnRenderList(){
       const isCockpit=t.source==='cockpit'&&t.cockpit;
       const cockpitTag=isCockpit?`<span title="linked from cockpit · ${t.cockpit.monthLabel||'M'+t.cockpit.month} T${t.cockpit.tradeNo}" style="font-size:8px;color:#00c47a;background:rgba(0,196,122,0.08);border:1px solid rgba(0,196,122,0.15);border-radius:3px;padding:1px 5px;margin-left:4px;font-weight:700;letter-spacing:.03em">⚡ cockpit</span>`:'<span style="font-size:8px;color:#2a2a2a;border:1px solid #1e1e1e;border-radius:3px;padding:1px 5px;margin-left:4px">manual</span>';
       html+=`<div class="jn-trade-row" onclick="jnOpenTrade('${t.id}')">
-        <div class="jn-tc date">${ds}</div>
+        <div class="jn-tc date" style="display:flex;align-items:center;gap:6px"><span style="font-size:9px;color:#2a2a2a;font-weight:700;min-width:16px">${tradeNum}.</span>${ds}</div>
         <div class="jn-tc pair">${t.pair||'—'}${cockpitTag}</div>
         <div class="jn-tc"><span class="${t.side==='long'?'jn-side-long':'jn-side-short'}">${(t.side||'long').toUpperCase()}</span></div>
         <div class="jn-tc">$${parseFloat(t.entry||0).toFixed(2)}</div>
