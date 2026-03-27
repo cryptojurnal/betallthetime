@@ -11118,6 +11118,8 @@ function openDashboard(){
   document.body.style.overflow='hidden';
   battNav('cockpit');
   mbnSetActive('cockpit');
+  // sync journal so cockpit overlays are always fresh
+  if(typeof jnLoad==='function') jnLoad();
   const l3=document.getElementById('layer3');
   if(l3){l3.classList.remove('visible');setTimeout(()=>{l3.classList.add('hidden');},500);}
   if(RISK_SHOWN){
@@ -14495,6 +14497,11 @@ document.addEventListener('DOMContentLoaded', async ()=>{
     const l1=document.getElementById('layer1');
     if(l1){l1.classList.add('hidden');}
     goLayer3();
+    // if URL was #cockpit on refresh, navigate there and journal is already
+    // loaded by authRestoreSession — just ensure render fires
+    if((window.location.hash||'').replace('#','') === 'cockpit'){
+      if(typeof openDashboard==='function') openDashboard();
+    }
     
     // Show push notification prompt after login
     if(typeof pushPromptShow==='function') pushPromptShow();
