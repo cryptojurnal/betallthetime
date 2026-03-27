@@ -5267,7 +5267,7 @@ function getMLabel(m){return 'm'+String(m).padStart(2,'0');}
 
 // get actual journal result for a locked trade (tab+month+tradeNo)
 function getActualTrade(m, tno){
-  if(!window._ACTIVE_PRESET) return null;
+  if(typeof JN==='undefined'||!JN.folders||!window._ACTIVE_PRESET) return null;
   const folder=JN.folders.find(f=>f.name===window._ACTIVE_PRESET.name);
   if(!folder||!JN.trades[folder.id]) return null;
   return JN.trades[folder.id].find(t=>
