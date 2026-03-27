@@ -5232,8 +5232,31 @@ function updGrid(){
   const el=document.getElementById('act-count');
   if(el)el.innerHTML=`<span>${act}</span> active · ${10-act} skipped`;
 }
-function onBT(i,v){gs().BT[i]=parseFloat(v)||0;updGrid();saveSection('trades');try{localStorage.setItem('batt_user_set_slots','1');}catch(e){}if(window._ACTIVE_PRESET)_autoResaveActivePreset();_silentCloudSyncNow();softUpdate();}
-function onFR(i,v){gs().FR[i]=parseInt(v)||0;updGrid();saveSection('trades');try{localStorage.setItem('batt_user_set_slots','1');}catch(e){}if(window._ACTIVE_PRESET)_autoResaveActivePreset();_silentCloudSyncNow();softUpdate();}
+function onBT(i,v){
+  const val=parseFloat(v)||0;
+  gs().BT[i]=val;
+  updGrid();saveSection('trades');
+  // save slots as user preference — survives preset load
+  try{
+    const slotPref=JSON.parse(localStorage.getItem('batt_slot_pref')||'{}');
+    if(!slotPref[TAB]) slotPref[TAB]={BT:[...gs().BT],FR:[...gs().FR]};
+    slotPref[TAB].BT[i]=val;
+    localStorage.setItem('batt_slot_pref',JSON.stringify(slotPref));
+  }catch(e){}
+  _silentCloudSyncNow();softUpdate();
+}
+function onFR(i,v){
+  const val=parseInt(v)||0;
+  gs().FR[i]=val;
+  updGrid();saveSection('trades');
+  try{
+    const slotPref=JSON.parse(localStorage.getItem('batt_slot_pref')||'{}');
+    if(!slotPref[TAB]) slotPref[TAB]={BT:[...gs().BT],FR:[...gs().FR]};
+    slotPref[TAB].FR[i]=val;
+    localStorage.setItem('batt_slot_pref',JSON.stringify(slotPref));
+  }catch(e){}
+  _silentCloudSyncNow();softUpdate();
+}
 function stepBT(i,delta){
   const inp=document.getElementById('bt'+i);
   if(!inp)return;
@@ -10124,7 +10147,16 @@ async function presetLoad(id){
 
     showToast('Preset "'+preset.name+'" loaded!','success');
     if(typeof logActivity==='function') logActivity('preset_load',{name:preset.name});
-    // refresh cockpit so journal actuals appear for this preset
+    // apply user slot preference on top of preset — user choice wins
+    try{
+      const slotPref=JSON.parse(localStorage.getItem('batt_slot_pref')||'{}');
+      Object.keys(slotPref).forEach(tabId=>{
+        if(S[tabId]&&slotPref[tabId]){
+          S[tabId].BT=[...slotPref[tabId].BT];
+          S[tabId].FR=[...slotPref[tabId].FR];
+        }
+      });
+    }catch(e){}
     if(typeof softUpdate==='function') setTimeout(softUpdate,100);
   }catch(e){
     showToast('Connection failed','error');
@@ -11384,7 +11416,16 @@ async function authRestoreSession(){
         })(),
         (async()=>{if(typeof loadCloudPrefs==='function') await loadCloudPrefs();})()
       ]);
-      // single authoritative render — has all data: cockpit state + journal actuals
+      // apply user slot preference on top of cloud data
+      try{
+        const slotPref=JSON.parse(localStorage.getItem('batt_slot_pref')||'{}');
+        Object.keys(slotPref).forEach(tabId=>{
+          if(S[tabId]&&slotPref[tabId]){
+            S[tabId].BT=[...slotPref[tabId].BT];
+            S[tabId].FR=[...slotPref[tabId].FR];
+          }
+        });
+      }catch(e){}
       document.body.classList.remove('jn-loading');
       render();
       return true;
