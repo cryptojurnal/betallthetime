@@ -6903,19 +6903,24 @@ function ljShowLockModal(m, tno){
   const s=gs();
   const tLabel=getTL(m,tno);
   const mLabel=getML(m);
-  const notional=s.NOT;
-  const margin=s.SPOT?notional:notional/s.LEV;
   const leverage=s.SPOT?1:s.LEV;
   const feeRate=s.FEE.method==='maker'?s.FEE.maker:s.FEE.taker;
   const funding=s.FEE.funding;
   const holds=s.FEE.holds;
 
+  // get ACTUAL simulated values for this specific trade slot
+  // t.not = notional at this point in simulation (carry-forward aware)
+  // t.am  = margin at this point
   const months=sim();
   const mo=months.find(x=>x.m===m);
   const tr=mo?mo.trades.find(t=>t.no===tno):null;
   const tgt=tr?tr.tgt:0;
   const freq=tr?tr.freq:0;
   const mode=s.SPOT?'spot':'leverage';
+
+  // use simulated notional/margin if available, fall back to base setting
+  const notional=tr?tr.not:s.NOT;
+  const margin=tr?tr.am:(s.SPOT?s.NOT:s.NOT/leverage);
 
   _ljPending={m,tno};
   _ljFundingData={rates:[],total:0,fetched:false,fetching:false,_key:''}; // reset each modal open
@@ -7140,11 +7145,16 @@ function ljCalc(){
   if(!entry||!exit){document.getElementById('lj-calc').style.display='none';return;}
 
   const s=gs();
-  const notional=s.NOT;
   const leverage=s.SPOT?1:s.LEV;
   const side=window._ljSide||'long';
   const feeRate=(s.FEE.method==='maker'?s.FEE.maker:s.FEE.taker)/100;
-  const margin=s.SPOT?notional:notional/leverage;
+  // use simulated notional for this specific trade slot (carry-forward aware)
+  const {m,tno}=_ljPending;
+  const _months=sim();
+  const _mo=_months.find(x=>x.m===m);
+  const _tr=_mo?_mo.trades.find(t=>t.no===tno):null;
+  const notional=_tr?_tr.not:s.NOT;
+  const margin=_tr?_tr.am:(s.SPOT?s.NOT:s.NOT/leverage);
   const priceDiff=side==='long'?exit-entry:entry-exit;
   const grossPnl=(priceDiff/entry)*notional;
   const feePaid=notional*feeRate*2;
@@ -7286,7 +7296,6 @@ async function ljConfirmLock(){
     return;
   }
   if(errEl) errEl.style.display='none';
-  const notional=s.NOT;
   const leverage=s.SPOT?1:s.LEV;
   const side=window._ljSide||'long';
   const feeRate=(s.FEE.method==='maker'?s.FEE.maker:s.FEE.taker)/100;
@@ -7298,8 +7307,12 @@ async function ljConfirmLock(){
   const emotion=emoBtn?emoBtn.dataset.e:'';
   const dateVal=document.getElementById('lj-close-dt')?.value||document.getElementById('lj-date')?.value||new Date().toISOString().slice(0,16);
 
-  // calc PnL
-  const margin=s.SPOT?notional:notional/leverage;
+  // use simulated notional for this trade slot (carry-forward aware)
+  const _simMonths=sim();
+  const _simMo=_simMonths.find(x=>x.m===m);
+  const _simTr=_simMo?_simMo.trades.find(t=>t.no===tno):null;
+  const notional=_simTr?_simTr.not:s.NOT;
+  const margin=_simTr?_simTr.am:(s.SPOT?s.NOT:s.NOT/leverage);
   let grossPnl=0,feePaid=0,fundingPaid=0,netPnl=0,pct=0;
   if(entry&&exit){
     const priceDiff=side==='long'?exit-entry:entry-exit;
