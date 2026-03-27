@@ -5070,6 +5070,17 @@ function flashSave(id){
 }
 function loadAll(){
   // ── ONE-TIME MIGRATION: wz_ → batt_ ──
+  // one-time migration: zero out all BT/FR slots (user requested default off)
+  if(!localStorage.getItem('batt_slots_zeroed_v1')){
+    Object.keys(S).forEach(tabId=>{
+      if(S[tabId]){
+        S[tabId].BT=[...DEF_BT];
+        S[tabId].FR=[...DEF_FR];
+      }
+    });
+    localStorage.setItem('batt_slots_zeroed_v1','1');
+  }
+
   // runs once, copies any wz_ keys to batt_, then marks migration done
   if(!localStorage.getItem('batt_migrated_v2')){
     try{
@@ -17442,7 +17453,13 @@ function openJournal(){
   p.style.display='flex';
   requestAnimationFrame(()=>requestAnimationFrame(()=>p.classList.add('visible')));
   document.body.style.overflow='auto';
-  jnLoad().then(()=>jnRender());
+  jnLoad().then(()=>{
+    // always open to list view — auto-select first folder if none set
+    if(!JN.activeFolder&&JN.folders.length>0) JN.activeFolder=JN.folders[0].id;
+    if(JN.activeFolder) JN.view='list';
+    else JN.view='folders';
+    jnRender();
+  });
 }
 
 function closeJournal(){
