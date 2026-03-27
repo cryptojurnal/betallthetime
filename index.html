@@ -17475,6 +17475,11 @@ function closeJournal(){
 }
 
 function jnRender(){
+  // always default to list if folders exist — never show folder grid unless explicitly navigated
+  if(JN.view==='folders'&&JN.folders.length>0){
+    JN.activeFolder=JN.activeFolder||JN.folders[0].id;
+    JN.view='list';
+  }
   JN.view==='folders'?jnRenderFolders():
   JN.view==='list'?jnRenderList():
   jnRenderDetail();
