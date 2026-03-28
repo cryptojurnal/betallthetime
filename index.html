@@ -1007,7 +1007,7 @@ body.t-lavender{--bg:#f0eef8;--panel:#fff;--bd:#d8d4f0;--bd2:#e4e0f4;--sf:#f8f6f
 @keyframes togglePulseLeft{0%,100%{box-shadow:4px 0 20px rgba(0,0,0,0.3)}50%{box-shadow:4px 0 30px rgba(29,158,117,0.5)}}
 @keyframes bounceIconLeft{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
 .panel-left{position:relative}
-.panel-left{width:224px;min-width:224px;height:100vh;background:var(--panel);border-right:0.5px solid var(--bd);overflow-y:auto;overflow-x:hidden;flex-shrink:0;padding-bottom:24px;transition:background .25s,border-color .25s,width .35s cubic-bezier(.4,0,.2,1),min-width .35s cubic-bezier(.4,0,.2,1);scrollbar-width:none}
+.panel-left{width:224px;min-width:224px;height:100vh;background:var(--panel);border-right:0.5px solid var(--bd);overflow-y:auto;overflow-x:hidden;flex-shrink:0;padding-top:52px;padding-bottom:24px;transition:background .25s,border-color .25s,width .35s cubic-bezier(.4,0,.2,1),min-width .35s cubic-bezier(.4,0,.2,1);scrollbar-width:none}
 .panel-left::-webkit-scrollbar{display:none}
 
 /* ── TRADE SLOTS PANEL (mirrors left panel) ── */
@@ -1019,7 +1019,7 @@ body.t-lavender{--bg:#f0eef8;--panel:#fff;--bd:#d8d4f0;--bd2:#e4e0f4;--sf:#f8f6f
 .panel-trade-toggle-icon{font-size:22px}
 .panel-trade-toggle-label{font-size:8px;font-weight:800;letter-spacing:0.5px;text-transform:uppercase;writing-mode:vertical-rl;text-orientation:mixed;margin-top:4px}
 .panel-trade-toggle::before{content:'';position:absolute;right:6px;top:50%;transform:translateY(-50%);width:4px;height:28px;background:rgba(255,255,255,0.2);border-radius:2px}
-.panel-trade{position:relative;width:224px;min-width:224px;background:var(--panel);border-right:0.5px solid var(--bd);overflow-y:auto;overflow-x:hidden;flex-shrink:0;transition:background .25s,border-color .25s,width .3s ease,min-width .3s ease;scrollbar-width:none;will-change:width}
+.panel-trade{position:relative;width:224px;min-width:224px;background:var(--panel);border-right:0.5px solid var(--bd);overflow-y:auto;overflow-x:hidden;flex-shrink:0;padding-top:52px;padding-bottom:24px;transition:background .25s,border-color .25s,width .3s ease,min-width .3s ease;scrollbar-width:none;will-change:width}
 .panel-trade::-webkit-scrollbar{display:none}
 .panel-trade.collapsed{width:0!important;min-width:0!important;overflow:hidden;border:none}
 .panel-trade.collapsed .pt-body{display:none}
@@ -1030,7 +1030,7 @@ body.t-lavender{--bg:#f0eef8;--panel:#fff;--bd:#d8d4f0;--bd2:#e4e0f4;--sf:#f8f6f
 #right-content{transition:opacity .15s ease}
 
 /* PRESETS PANEL (collapsible right) */
-.panel-presets{width:0;min-width:0;background:var(--panel);border-left:0.5px solid var(--bd);flex-shrink:0;transition:width .35s cubic-bezier(0.4,0,0.2,1),min-width .35s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column;position:relative;overflow:visible;will-change:width}
+.panel-presets{width:0;min-width:0;background:var(--panel);border-left:0.5px solid var(--bd);flex-shrink:0;padding-top:52px;transition:width .35s cubic-bezier(0.4,0,0.2,1),min-width .35s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column;position:relative;overflow:visible;will-change:width}
 .panel-presets.open{width:320px;min-width:320px}
 .panel-presets-toggle{position:fixed;right:0;top:50%;transform:translateY(-50%);width:42px;height:90px;background:linear-gradient(135deg,var(--acc2),var(--acc));border:none;border-radius:14px 0 0 14px;cursor:grab;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:2px;font-size:14px;color:#000;transition:all .25s cubic-bezier(.4,0,.2,1);z-index:100;box-shadow:-4px 0 20px rgba(0,0,0,0.3);opacity:0;pointer-events:none;user-select:none;touch-action:none;overflow:hidden}
 .panel-presets-toggle.visible{opacity:1;pointer-events:all;animation:togglePulse 2s ease-in-out infinite}
