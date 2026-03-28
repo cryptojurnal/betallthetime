@@ -7291,7 +7291,7 @@ function ljShowLockModal(m, tno, draft=null){
         </div>
         <div>
           <div style="font-size:8px;color:#5b7fff;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">actual notional</div>
-          <input type="text" id="lj-actual-not" placeholder="${notional.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}" inputmode="decimal"
+          <input type="text" id="lj-actual-not" placeholder="${notional.toLocaleString('en-US',{maximumFractionDigits:0})}" inputmode="decimal"
             style="width:100%;background:#0a0a0a;border:1px solid #1e3a6a;border-radius:4px;padding:3px 5px;font-size:10px;font-weight:700;color:#5b7fff;font-family:inherit"
             oninput="ljFormatMoneyInput(this);ljSyncActualMargin(this.dataset.raw);ljCalc()">
         </div>
@@ -17762,6 +17762,8 @@ document.addEventListener('keydown', (e) => {
     <button class="jn-back" onclick="closeJournal()">← back</button>
     <div class="jn-title">Trade <span>Journal</span></div>
     <div id="jn-breadcrumb" class="jn-breadcrumb"></div>
+    <button class="jn-btn-sm" id="jn-stats-btn" onclick="jnGoStats()" style="display:none;border-color:#333;color:#888">📊 stats</button>
+    <button class="jn-btn-sm" id="jn-csv-btn" onclick="jnExportCSV()" style="display:none;border-color:#333;color:#888">⬇ csv</button>
     <button class="jn-btn-sm primary" id="jn-add-btn" onclick="jnAddAction()" style="display:none">+ add trade</button>
   </div>
   <div class="jn-body" id="jn-body">
@@ -18272,13 +18274,18 @@ function openJournal(){
   requestAnimationFrame(()=>requestAnimationFrame(()=>p.classList.add('visible')));
   document.body.style.overflow='auto';
   jnLoad().then(()=>{
-    // always show list — pick first folder if available
-    if(JN.folders.length>0){
-      if(!JN.activeFolder) JN.activeFolder=JN.folders[0].id;
-      JN.view='list';
-    } else {
-      JN.view='folders';
+    const savedView=localStorage.getItem("batt_jn_view")||"list";
+    const savedFolder=localStorage.getItem("batt_jn_folder");
+    const savedTrade=localStorage.getItem("batt_jn_trade");
+    if(savedView==="detail"&&savedFolder&&savedTrade&&JN.trades[savedFolder]){
+      const tradeExists=JN.trades[savedFolder].find(t=>t.id===savedTrade);
+      if(tradeExists){JN.activeFolder=savedFolder;JN.activeTrade=savedTrade;JN.view="detail";jnRender();return;}
     }
+    if(savedView==="list"&&savedFolder&&JN.folders.find(f=>f.id===savedFolder)){
+      JN.activeFolder=savedFolder;JN.view="list";jnRender();return;
+    }
+    if(JN.folders.length>0){if(!JN.activeFolder)JN.activeFolder=JN.folders[0].id;JN.view="list";}
+    else{JN.view="folders";}
     jnRender();
   });
 }
@@ -18299,18 +18306,22 @@ function jnRender(){
     JN.activeFolder=JN.activeFolder||JN.folders[0].id;
     JN.view='list';
   }
-  JN.view==='folders'?jnRenderFolders():
-  JN.view==='list'?jnRenderList():
+  JN.view==="folders"?jnRenderFolders():
+  JN.view==="list"?jnRenderList():
+  JN.view==="stats"?jnRenderStats():
   jnRenderDetail();
+  jnUpdateHeader();
   jnUpdateHeader();
 }
 
 function jnUpdateHeader(){
+  const cb=document.getElementById("jn-csv-btn");
   const bc=document.getElementById('jn-breadcrumb');
   const ab=document.getElementById('jn-add-btn');
   if(JN.view==='folders'){
     bc.innerHTML='';
     ab.style.display='none';
+    if(cb) cb.style.display="none";
     ab.textContent='+ new folder';
     ab.onclick=jnNewFolder;
   } else if(JN.view==='list'){
@@ -18319,15 +18330,84 @@ function jnUpdateHeader(){
     ab.style.display='';
     ab.textContent='+ add trade';
     ab.onclick=jnNewTrade;
+    const sb=document.getElementById("jn-stats-btn");
+    if(sb){sb.style.display="";sb.textContent="📊 stats";sb.onclick=jnGoStats;}
+    if(cb) cb.style.display="";
+  } else if(JN.view==="stats"){
+    const f=JN.folders.find(x=>x.id===JN.activeFolder);
+    bc.innerHTML=`<span onclick="jnGoFolders()">all folders</span><span class="sep">›</span><span onclick="jnGoList(JN.activeFolder)">${f?f.name:""}</span><span class="sep">›</span><span>stats</span>`;
+    ab.style.display="none";
+    const sb=document.getElementById("jn-stats-btn");
+    if(sb){sb.style.display="";sb.textContent="← trades";sb.onclick=()=>jnGoList(JN.activeFolder);}
   } else {
+    if(cb) cb.style.display="";
     const f=JN.folders.find(x=>x.id===JN.activeFolder);
     bc.innerHTML=`<span onclick="jnGoFolders()">all folders</span><span class="sep">›</span><span onclick="jnGoList(JN.activeFolder)">${f?f.name:''}</span><span class="sep">›</span><span>trade detail</span>`;
     ab.style.display='none';
   }
 }
 
-function jnGoFolders(){JN.view='folders';JN.activeFolder=null;JN.activeTrade=null;try{localStorage.setItem('batt_jn_view','folders');}catch(e){}jnRender();}
+
+function jnExportCSV(){
+  var f=JN.folders.find(function(x){return x.id===JN.activeFolder;});
+  if(!f) return;
+  var trades=(JN.trades[JN.activeFolder]||[]).filter(function(t){return t.status!=='draft';}).sort(function(a,b){return a.closedAt-b.closedAt;});
+  if(!trades.length){showToast('No trades to export','info',2000);return;}
+  function esc(v){
+    var s=String(v===null||v===undefined?'':v);
+    if(s.indexOf(',')!==-1||s.indexOf('"')!==-1||s.indexOf('\n')!==-1){
+      return '"'+s.replace(/"/g,'""')+'"';
+    }
+    return s;
+  }
+  function fmtDate(ts){return ts?new Date(ts).toISOString().slice(0,16).replace('T',' '):'—';}
+  var headers=['#','pair','side','type','leverage','size','entry','exit','opened','closed','hold_h','gross_pnl','fee','funding','net_pnl','pct','target','tf','exit_type','emotion','tech_notes','psych_notes','tv_open','tv_close','month','trade_no'];
+  var rows=trades.map(function(t,i){
+    var holdMs=(t.openedAt&&t.closedAt)?(t.closedAt-t.openedAt):0;
+    var holdH=holdMs?Math.round(holdMs/360000)/10:'—';
+    var gross=(t.pnl!=null&&t.fee!=null)?(t.pnl+t.fee).toFixed(4):'';
+    return [
+      i+1,
+      t.pair||'',
+      t.side||'',
+      t.type||'',
+      t.leverage||'',
+      t.size||'',
+      t.entry||'',
+      t.exit||'',
+      fmtDate(t.openedAt),
+      fmtDate(t.closedAt),
+      holdH,
+      gross,
+      t.fee!=null?t.fee.toFixed(4):'',
+      t.funding!=null?t.funding.toFixed(4):'',
+      t.pnl!=null?t.pnl.toFixed(4):'',
+      t.pct!=null?t.pct.toFixed(3):'',
+      t.cockpit?t.cockpit.target:'',
+      t.tf||'',
+      t.exitType||'',
+      t.emotion||'',
+      t.note||'',
+      t.notePsych||'',
+      t.tvUrlOpen||'',
+      t.tvUrlClose||'',
+      t.cockpit?t.cockpit.monthLabel:'',
+      t.cockpit?t.cockpit.tradeNo:'',
+    ].map(esc).join(',');
+  });
+  var csv=[headers.join(',')].concat(rows).join('\n');
+  var blob=new Blob([csv],{type:'text/csv'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;
+  a.download=(f.name||'journal').replace(/[^a-z0-9_-]/gi,'_')+'_trades.csv';
+  a.click();
+  setTimeout(function(){URL.revokeObjectURL(url);},1000);
+  showToast('⬇ '+trades.length+' trades exported','success',2500);
+}
+function jnGoFolders(){JN.view='folders';JN.activeFolder=null;JN.activeTrade=null;try{localStorage.setItem('batt_jn_view','folders');localStorage.removeItem('batt_jn_folder');localStorage.removeItem('batt_jn_trade');}catch(e){}jnRender();}
 function jnGoList(fid){JN.view='list';JN.activeFolder=fid;JN.activeTrade=null;try{localStorage.setItem('batt_jn_view','list');}catch(e){}jnRender();}
+function jnGoStats(){JN.view="stats";try{localStorage.setItem("batt_jn_view","stats");}catch(e){}jnRender();}
 
 function jnFolderTypeBadge(type){
   if(!type||type==='mix') return '<span class="jn-folder-row-type mix">mix</span>';
@@ -18563,6 +18643,127 @@ function jnRenderList(){
   body.innerHTML=html;
 }
 
+function jnRenderStats(){
+  const body=document.getElementById("jn-body");
+  const trades=(JN.trades[JN.activeFolder]||[]).filter(t=>t.status!=="draft");
+  if(!trades.length){body.innerHTML=`<div class="jn-empty"><div class="jn-empty-icon">📊</div><div>No trades to analyze yet</div></div>`;return;}
+  const sorted=trades.slice().sort((a,b)=>a.closedAt-b.closedAt);
+  // core stats
+  const wins=sorted.filter(t=>t.pnl>0);
+  const losses=sorted.filter(t=>t.pnl<=0);
+  const wr=Math.round(wins.length/sorted.length*100);
+  const totalPnl=sorted.reduce((a,t)=>a+(t.pnl||0),0);
+  const totalFees=sorted.reduce((a,t)=>a+(t.fee||0),0);
+  const totalFunding=sorted.reduce((a,t)=>a+(t.funding||0),0);
+  const avgWin=wins.length?wins.reduce((a,t)=>a+(t.pnl||0),0)/wins.length:0;
+  const avgLoss=losses.length?losses.reduce((a,t)=>a+(t.pnl||0),0)/losses.length:0;
+  const rr=avgLoss!==0?Math.abs(avgWin/avgLoss):0;
+  const bestTrade=sorted.reduce((a,t)=>(t.pnl||0)>(a.pnl||0)?t:a,sorted[0]);
+  const worstTrade=sorted.reduce((a,t)=>(t.pnl||0)<(a.pnl||0)?t:a,sorted[0]);
+  // streaks
+  let maxWS=0,maxLS=0,curWS=0,curLS=0;
+  sorted.forEach(t=>{if(t.pnl>0){curWS++;curLS=0;maxWS=Math.max(maxWS,curWS);}else{curLS++;curWS=0;maxLS=Math.max(maxLS,curLS);}});
+  // avg hold time
+  const holds=sorted.filter(t=>t.openedAt&&t.closedAt&&t.closedAt>t.openedAt);
+  const avgHoldMs=holds.length?holds.reduce((a,t)=>a+(t.closedAt-t.openedAt),0)/holds.length:0;
+  const avgHoldH=Math.round(avgHoldMs/3600000*10)/10;
+  // per-bucket (month) pnl for bar chart
+  const buckets={};
+  sorted.forEach(t=>{const b=t.bucket||1;if(!buckets[b])buckets[b]={pnl:0,wins:0,total:0,label:""};
+    const f=JN.folders.find(x=>x.id===JN.activeFolder);
+    const mc=t.cockpit?t.cockpit.monthLabel:("M"+String(b).padStart(2,"0"));
+    buckets[b].label=mc;buckets[b].pnl+=(t.pnl||0);buckets[b].total++;if(t.pnl>0)buckets[b].wins++;});
+  const bKeys=Object.keys(buckets).map(Number).sort((a,b)=>a-b);
+  const bVals=bKeys.map(k=>buckets[k]);
+  const maxAbsPnl=Math.max(...bVals.map(b=>Math.abs(b.pnl)),1);
+  // side breakdown
+  const longs=sorted.filter(t=>t.side==="long");
+  const shorts=sorted.filter(t=>t.side==="short");
+  const longPnl=longs.reduce((a,t)=>a+(t.pnl||0),0);
+  const shortPnl=shorts.reduce((a,t)=>a+(t.pnl||0),0);
+  const fmt=v=>(v>=0?"+":"")+v.toFixed(2);
+  const fmtM=v=>(v>=0?"+$":"-$")+Math.abs(v).toFixed(2);
+  // bar chart SVG
+  const bw=Math.max(18,Math.min(40,Math.floor(520/Math.max(bVals.length,1))-6));
+  const barsW=bVals.length*(bw+6);
+  const barsSvg=bVals.length?`<svg viewBox="0 0 ${Math.max(barsW,200)} 120" preserveAspectRatio="xMinYMid meet" style="width:100%;max-height:120px">
+    ${bVals.map((b,i)=>{
+      const h=Math.round(Math.abs(b.pnl)/maxAbsPnl*80);
+      const x=i*(bw+6);
+      const isPos=b.pnl>=0;
+      const y=isPos?(95-h):95;
+      const col=isPos?"#00c47a":"#e05555";
+      const wr2=b.total?Math.round(b.wins/b.total*100):0;
+      return `<rect x="${x}" y="${y}" width="${bw}" height="${Math.max(h,2)}" fill="${col}" rx="2" opacity="0.85"/>
+        <text x="${x+bw/2}" y="115" text-anchor="middle" font-size="7" fill="#444" font-family="Trebuchet MS,sans-serif">${b.label||("M"+i)}</text>
+        <text x="${x+bw/2}" y="${isPos?y-3:y+h+9}" text-anchor="middle" font-size="7" fill="${col}" font-family="Trebuchet MS,sans-serif">${b.pnl>=0?"+":""}${b.pnl.toFixed(0)}</text>`;
+    }).join("")}
+    <line x1="0" y1="95" x2="${Math.max(barsW,200)}" y2="95" stroke="#222" stroke-width="0.5"/>
+  </svg>`:"<div style=\"color:#333;font-size:10px;text-align:center;padding:20px\">not enough data</div>";
+  body.innerHTML=`
+  <div style="padding:20px;max-width:860px;margin:0 auto">
+    <!-- stat cards -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px">
+      ${[
+        ["win rate",wr+"%",wr>=50?"#00c47a":"#e05555"],
+        ["trades",sorted.length,"#ccc"],
+        ["W / L",wins.length+" / "+losses.length,"#ccc"],
+        ["total PnL",fmtM(totalPnl),totalPnl>=0?"#00c47a":"#e05555"],
+        ["avg RR",rr.toFixed(2)+"×",rr>=1?"#00c47a":"#e05555"],
+        ["avg win",fmtM(avgWin),"#00c47a"],
+        ["avg loss",fmtM(avgLoss),"#e05555"],
+        ["best trade",fmtM(bestTrade.pnl||0),"#00c47a"],
+        ["worst trade",fmtM(worstTrade.pnl||0),"#e05555"],
+        ["win streak",maxWS+"×","#ccc"],
+        ["loss streak",maxLS+"×","#ccc"],
+        ["avg hold",avgHoldH+"h","#ccc"],
+        ["fees drag","-$"+totalFees.toFixed(2),"#e05555"],
+        ["funding",totalFunding>=0?"-$"+totalFunding.toFixed(2):"+$"+Math.abs(totalFunding).toFixed(2),totalFunding>=0?"#e05555":"#00c47a"],
+      ].map(([lbl,val,col])=>`<div style="background:#111;border:1px solid #1e1e1e;border-radius:8px;padding:12px 14px">
+        <div style="font-size:8px;color:#444;text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px">${lbl}</div>
+        <div style="font-size:15px;font-weight:800;color:${col}">${val}</div>
+      </div>`).join("")}
+    </div>
+    <!-- bar chart -->
+    <div style="background:#111;border:1px solid #1e1e1e;border-radius:8px;padding:16px;margin-bottom:16px">
+      <div style="font-size:9px;color:#444;text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px;font-weight:700">PnL by month</div>
+      <div style="overflow-x:auto">${barsSvg}</div>
+    </div>
+    <!-- side breakdown -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div style="background:#111;border:1px solid #1e1e1e;border-radius:8px;padding:14px">
+        <div style="font-size:9px;color:#444;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;font-weight:700">long vs short</div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:10px;color:#00c47a;font-weight:700">▲ LONG</span>
+            <span style="font-size:10px;color:#555">${longs.length} trades</span>
+            <span style="font-size:11px;font-weight:800;color:${longPnl>=0?"#00c47a":"#e05555"}">${fmtM(longPnl)}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:10px;color:#e05555;font-weight:700">▼ SHORT</span>
+            <span style="font-size:10px;color:#555">${shorts.length} trades</span>
+            <span style="font-size:11px;font-weight:800;color:${shortPnl>=0?"#00c47a":"#e05555"}">${fmtM(shortPnl)}</span>
+          </div>
+        </div>
+      </div>
+      <div style="background:#111;border:1px solid #1e1e1e;border-radius:8px;padding:14px">
+        <div style="font-size:9px;color:#444;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;font-weight:700">best & worst</div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:10px;color:#555">🏆 best</span>
+            <span style="font-size:10px;color:#555">${bestTrade.pair||"—"}</span>
+            <span style="font-size:11px;font-weight:800;color:#00c47a">${fmtM(bestTrade.pnl||0)}</span>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:10px;color:#555">💀 worst</span>
+            <span style="font-size:10px;color:#555">${worstTrade.pair||"—"}</span>
+            <span style="font-size:11px;font-weight:800;color:#e05555">${fmtM(worstTrade.pnl||0)}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
 function jnRenderDetail(){
   const body=document.getElementById('jn-body');
   const trades=JN.trades[JN.activeFolder]||[];
@@ -18903,7 +19104,7 @@ function ljJumpToJournal(m, tno){
 }
 
 function jnOpenTrade(id){
-  JN.view='detail';JN.activeTrade=id;jnRender();
+  JN.view='detail';JN.activeTrade=id;try{localStorage.setItem('batt_jn_view','detail');localStorage.setItem('batt_jn_trade',id);if(JN.activeFolder)localStorage.setItem('batt_jn_folder',JN.activeFolder);}catch(e){}jnRender();
 }
 
 async function jnSetEmotion(tid,emotion){
