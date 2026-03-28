@@ -13726,7 +13726,6 @@ async function tpFetchPrices() {
     tpUpdatePositionsPnL();
     tpRenderPairList();
     if(typeof tpUpdateSubmitButton==='function') tpUpdateSubmitButton();
-    if(typeof tpUpdateSubmitButton==='function') tpUpdateSubmitButton();
   } catch(e) {
     console.error('Price fetch error:', e);
   }
@@ -13896,6 +13895,7 @@ function tpFilterPairs(query) {
 // Exchange selection
 function tpSelectExchange(ex) {
   TP_STATE.exchange = ex;
+  TP_STATE.prices = {}; // clear stale prices from previous exchange
   document.querySelectorAll('.tp-ex-tabs button').forEach(b => b.classList.remove('active'));
   event.target.classList.add('active');
   const isSpot = TP_STATE.marketType === 'spot';
@@ -13903,7 +13903,10 @@ function tpSelectExchange(ex) {
   _obReset();
   _tpTrades = [];
   tpUpdateFeeBadge();
+  tpUpdateSubmitButton();
   if(typeof tpStartWebSocket==='function') tpStartWebSocket();
+  if(typeof tpFetchPrices==='function') tpFetchPrices();
+  if(typeof tpFetchOrderBook==='function') tpFetchOrderBook();
   if(typeof tpInitTVChart==='function') tpInitTVChart();
   if(_tpObMode==='trades' && typeof tpStartTradeWS==='function') tpStartTradeWS();
 }
