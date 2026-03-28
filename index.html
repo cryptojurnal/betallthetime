@@ -8931,22 +8931,23 @@ function renderTbl(months){
   } else {
     h=`<thead><tr>
       <th style="text-align:left;width:10%">trade</th>
-      <th style="width:8%">${s.SPOT?'position size':'notional'}</th>
-      <th style="width:7%">${s.SPOT?'pos size':'margin'}</th>
-      <th style="width:6%">${s.SPOT?'—':'fm%'}</th>
-      <th style="width:6%">${s.SPOT?'◈':'liq%'}</th>
-      <th style="width:7%">target%</th>
-      <th style="width:8%">gross profit<br><span style="font-weight:400;font-size:7px;text-transform:none;color:var(--tx3)">single trade</span></th>
-      <th style="width:8%">combine<br><span style="font-weight:400;font-size:7px;text-transform:none;color:var(--tx3)">pnl pre-fee</span></th>
-      <th style="width:7%;color:#E24B4A">fee paid</th>
-      <th style="width:9%;color:var(--acc2)">net pnl<br><span style="font-weight:400;font-size:7px;text-transform:none;color:var(--acc2);opacity:.8">post-fee</span></th>
-      <th style="width:8%;color:var(--tx2)">acct bal<br><span style="font-weight:400;font-size:7px;text-transform:none">${s.SPOT?'gross':'pre-fee'}</span></th>
-      <th style="width:9%;color:var(--acc2)">acct bal<br><span style="font-weight:400;font-size:7px;text-transform:none">post-fee</span></th>
+      <th style="width:7%">${s.SPOT?'position size':'notional'}</th>
+      <th style="width:6%">${s.SPOT?'pos size':'margin'}</th>
+      <th style="width:5%">${s.SPOT?'—':'fm%'}</th>
+      <th style="width:5%">${s.SPOT?'◈':'liq%'}</th>
+      <th style="width:6%;text-align:center">target%</th>
+      <th style="width:7%">gross profit<br><span style="font-weight:400;font-size:7px;text-transform:none;color:var(--tx3)">single trade</span></th>
+      <th style="width:7%">combine<br><span style="font-weight:400;font-size:7px;text-transform:none;color:var(--tx3)">pnl pre-fee</span></th>
+      <th style="width:6%;color:#E24B4A">fee paid</th>
+      <th style="width:8%;color:var(--acc2)">net pnl<br><span style="font-weight:400;font-size:7px;text-transform:none;color:var(--acc2);opacity:.8">post-fee</span></th>
+      <th style="width:7%;color:var(--tx2)">acct bal<br><span style="font-weight:400;font-size:7px;text-transform:none">${s.SPOT?'gross':'pre-fee'}</span></th>
+      <th style="width:8%;color:var(--acc2)">acct bal<br><span style="font-weight:400;font-size:7px;text-transform:none">post-fee</span></th>
+      <th style="width:8%;color:var(--tx3)">note</th>
     </tr></thead><tbody>`;
     months.forEach(mo=>{
       if(mo.isZ){
         h+=`<tr class="mh-z" style="cursor:pointer" onclick="toggleZeroMonth(${mo.m})" title="click to remove zero month">
-          <td colspan="13" style="text-align:left">${getML(mo.m)} · ⊘ zero month · account: ${fmt(mo.sA)} · <span style="color:var(--acc);font-size:9px">click to activate</span></td>
+          <td colspan="14" style="text-align:left">${getML(mo.m)} · ⊘ zero month · account: ${fmt(mo.sA)} · <span style="color:var(--acc);font-size:9px">click to activate</span></td>
         </tr>`;
         return;
       }
@@ -8957,7 +8958,7 @@ function renderTbl(months){
       if(IS_WIPED){
         const fmVal = s.NOT/s.LEV/s.P*100;
         const isFmError = fmVal > 100;
-        h+=`<tr class="wipe-row"><td style="text-align:left">${getML(mo.m)}</td><td colspan="12">${isFmError?'🚫':'💸'} ${lbl_w?(isFmError?'setup tidak valid — FM% > 100%':'setup tidak valid — liq% < 1%'):(isFmError?'invalid setup — FM% > 100%':'invalid setup — liq% < 1%')}</td></tr>`;
+        h+=`<tr class="wipe-row"><td style="text-align:left">${getML(mo.m)}</td><td colspan="13">${isFmError?'🚫':'💸'} ${lbl_w?(isFmError?'setup tidak valid — FM% > 100%':'setup tidak valid — liq% < 1%'):(isFmError?'invalid setup — FM% > 100%':'invalid setup — liq% < 1%')}</td></tr>`;
         return;
       }
       if(mo.bust){
@@ -8969,6 +8970,7 @@ function renderTbl(months){
           <td colspan="2" style="padding:6px 5px;text-align:right">
             <input type="number" class="wd-inp active" id="wd-inp-d-${mo.m}" value="${mo.wd||''}" min="0" step="1" placeholder="0" onchange="onWdInline(${mo.m},this.value)" onblur="onWdInline(${mo.m},this.value)" style="width:60px;border-color:#8B5CF6;background:#2a0a4a;color:#c084fc;font-weight:700">
           </td>
+          <td></td>
         </tr>`;
         return;
       }
@@ -9029,13 +9031,14 @@ function renderTbl(months){
         <td style="font-size:7px;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2)">${s.SPOT?'size':'margin'}</td>
         <td style="font-size:7px;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2)">${s.SPOT?'—':'fm%'}</td>
         <td style="font-size:7px;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2)">${s.SPOT?'◈':'liq%'}</td>
-        <td style="font-size:7px;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2)">tgt%</td>
+        <td style="font-size:7px;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2);text-align:center">tgt%</td>
         <td style="font-size:7px;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2)">gross</td>
         <td style="font-size:7px;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2)">pnl pre-fee</td>
         <td style="font-size:7px;color:#E24B4A;text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2)">fee</td>
         <td style="font-size:7px;color:var(--acc2);text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2)">net pnl</td>
         <td style="font-size:7px;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2)">bal pre-fee</td>
         <td style="font-size:7px;color:var(--acc2);text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2)">bal post-fee</td>
+        <td style="font-size:7px;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2)">note</td>
       </tr>`;
       mo.trades.forEach(t=>{
         const tLabel=getTL(mo.m,t.no);
@@ -9048,9 +9051,10 @@ function renderTbl(months){
               <td colspan="4" style="color:var(--tx3);font-size:9px;font-style:italic">skipped</td>
               <td><div class="tg-cell" style="width:54px"><button class="tg-btn" onclick="manStep('bt',${mo.m},${t.no-1},-0.5)" tabindex="-1">−</button><input type="number" id="mbt-${mo.m}-${t.no-1}" value="${btVal}" min="-500" max="500" step="0.5" placeholder="tgt%" style="flex:1;min-width:0;padding:1px 0;font-size:9px;text-align:center;border:none;background:transparent;color:var(--acc);font-weight:700;-moz-appearance:textfield" oninput="dInput(this,v=>onManualBT(${mo.m},${t.no-1},v),400)"><button class="tg-btn" onclick="manStep('bt',${mo.m},${t.no-1},0.5)" tabindex="-1">+</button></div></td>
               <td colspan="8" style="color:var(--tx3);font-size:9px;text-align:center;font-style:italic">set target > 0 to activate</td>
+              <td></td>
             </tr>`;
           } else {
-            h+=`<tr class="skip-row"><td style="padding-left:10px;text-align:left;color:var(--tx3);font-size:9px">${tLabel}</td><td colspan="11" style="text-align:center"><span class="sk">skipped · target = 0</span></td></tr>`;
+            h+=`<tr class="skip-row"><td style="padding-left:10px;text-align:left;color:var(--tx3);font-size:9px">${tLabel}</td><td colspan="11" style="text-align:center"><span class="sk">skipped · target = 0</span></td><td></td></tr>`;
           }
           return;
         }
@@ -9093,7 +9097,7 @@ function renderTbl(months){
           <td style="color:var(--acc)">${s.SPOT?'<span style="color:var(--tx3);font-size:9px">n/a</span>':fmt(t.am)}</td>
           <td>${s.SPOT?'<span style="color:var(--tx3);font-size:9px">n/a</span>':t.fm.toFixed(1)+'%'}</td>
           <td style="color:${lc(t.liq)};font-weight:700">${s.SPOT?'<span style="color:#5DC96A;font-size:9px">◈</span>':t.liq.toFixed(1)+'%'}</td>
-          <td>${lk
+          <td style="text-align:center">${lk
             ?'<span class="locked-overlay" style="font-size:9px">'+t.tgt.toFixed(2)+'%</span>'
             :(!GLOBAL_MODE
               ?'<div class="tg-cell" style="width:54px"><button class="tg-btn" onclick="manStep(\'bt\','+mo.m+','+(t.no-1)+',-0.5)" tabindex="-1">−</button><input type="number" id="mbt-'+mo.m+'-'+(t.no-1)+'" value="'+((gs().MT[mo.m]?.bt[t.no-1]??t.tgt/s.KPI)).toFixed(1)+'" min="-500" max="500" step="0.5" style="flex:1;min-width:0;padding:1px 0;font-size:9px;text-align:center;border:none;background:transparent;color:var(--acc);font-weight:700;-moz-appearance:textfield" oninput="dInput(this,v=>onManualBT('+mo.m+','+(t.no-1)+',v),400)"><button class="tg-btn" onclick="manStep(\'bt\','+mo.m+','+(t.no-1)+',0.5)" tabindex="-1">+</button></div>'
