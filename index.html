@@ -13073,7 +13073,12 @@ function openSimulation(){
     const aiFab = document.getElementById('ai-fab');
     if(userBar) userBar.style.display='none';
     if(aiFab) aiFab.style.display='none';
-    tpFetchPrices();
+    var _sb=document.getElementById('tp-submit');
+    if(_sb){_sb.disabled=true;_sb.style.opacity='0.5';}
+    tpFetchPrices().finally(function(){
+      var _sb2=document.getElementById('tp-submit');
+      if(_sb2){_sb2.disabled=false;_sb2.style.opacity='';}
+    });
     tpInitChart();
     tpUpdateUI();
     tpRenderPositions();
@@ -13565,7 +13570,6 @@ function _tpTryWS(){
           tpUpdatePositionsPnL();
           if(typeof tpCheckPendingOrders==="function") tpCheckPendingOrders();
           _tpFlashPrice(price,prev);
-          if(typeof tpCheckPendingOrders==="function") tpCheckPendingOrders();
         }
         if(s.includes('@depth')&&msg.data.asks&&msg.data.bids){
           tpRenderOrderBookData(msg.data.asks, msg.data.bids);
@@ -13585,7 +13589,6 @@ function _tpTryWS(){
           tpUpdatePositionsPnL();
           if(typeof tpCheckPendingOrders==="function") tpCheckPendingOrders();
           _tpFlashPrice(price,prev);
-          if(typeof tpCheckPendingOrders==="function") tpCheckPendingOrders();
         }
         if(t.startsWith('orderbook')&&msg.data){
           const d=msg.data;
@@ -13612,7 +13615,6 @@ function _tpTryWS(){
           tpUpdatePositionsPnL();
           if(typeof tpCheckPendingOrders==="function") tpCheckPendingOrders();
           _tpFlashPrice(price,prev);
-          if(typeof tpCheckPendingOrders==="function") tpCheckPendingOrders();
         }
         if((ch==='books'||ch==='books5')&&msg.data?.[0]){
           const d=msg.data[0];
@@ -13725,6 +13727,7 @@ async function tpFetchPrices() {
     tpUpdatePriceDisplay();
     tpUpdatePositionsPnL();
     tpRenderPairList();
+    if(typeof tpUpdateSubmitButton==='function') tpUpdateSubmitButton();
   } catch(e) {
     console.error('Price fetch error:', e);
   }
@@ -14938,19 +14941,31 @@ function tpUpdateFeeBadge(){
 function tpUpdateSubmitButton() {
   const btn = document.getElementById('tp-submit');
   if (!btn) return;
-  
-  const isSpot = TP_STATE.marketType === 'spot';
-  const side = TP_STATE.side;
+
+  const isSpot    = TP_STATE.marketType === 'spot';
+  const side      = TP_STATE.side;
   const pairShort = TP_STATE.pair.replace('USDT', '');
-  
+  const priceReady = TP_STATE.prices[TP_STATE.pair]?.price > 0;
+  const isLimitOrStop = TP_STATE.orderType === 'limit' || TP_STATE.orderType === 'stop';
+
+  // limit/stop orders don't need a live price to submit
+  if (!priceReady && !isLimitOrStop) {
+    btn.textContent = 'Loading price...';
+    btn.className   = 'tp-submit-btn long';
+    btn.style.opacity = '0.5';
+    btn.style.cursor  = 'not-allowed';
+    return;
+  }
+
+  btn.style.opacity = '';
+  btn.style.cursor  = '';
+
   if (isSpot) {
-    // Spot mode: Buy or Sell
     const isBuy = side === 'long' || side === 'buy';
-    btn.className = 'tp-submit-btn ' + (isBuy ? 'long' : 'short');
+    btn.className   = 'tp-submit-btn ' + (isBuy ? 'long' : 'short');
     btn.textContent = isBuy ? `Buy ${pairShort}` : `Sell ${pairShort}`;
   } else {
-    // Perpetual mode: Long or Short
-    btn.className = 'tp-submit-btn ' + side;
+    btn.className   = 'tp-submit-btn ' + side;
     btn.textContent = `${side === 'long' ? 'Long' : 'Short'} ${pairShort}/USDT`;
   }
 }
@@ -18259,6 +18274,19 @@ function battRestoreFromHash(){
   if(ljBox&&ljBox.closest&&ljBox.closest('.lj-modal-wrap')){ var mo=ljBox.closest('.lj-modal-wrap'); if(mo) mo.style.display='none'; }
   if(hash==='cockpit'&&typeof openDashboard==='function'){ openDashboard(); return; }
   if(hash==='journal'&&typeof openJournal==='function'){ openJournal(); return; }
+  if(hash==='simulate'){
+    document.body.style.overflow='auto';
+    document.title='BATT · Simulator';
+    var tp=document.getElementById('trading-page');
+    if(tp) tp.classList.add('visible');
+    if(typeof tpFetchPrices==='function') tpFetchPrices();
+    if(typeof tpStartWebSocket==='function') tpStartWebSocket();
+    if(typeof tpFetchOrderBook==='function') tpFetchOrderBook();
+    if(typeof tpUpdateUI==='function') tpUpdateUI();
+    if(typeof tpRenderPositions==='function') tpRenderPositions();
+    if(typeof tpUpdateSubmitButton==='function') tpUpdateSubmitButton();
+    return;
+  }
   if(hash==='trade'&&typeof battNav==='function'){
     var hub=document.getElementById('trade-hub');
     if(hub){ hub.style.display='flex'; requestAnimationFrame(function(){ hub.style.opacity='1'; hub.style.transform='scale(1)'; }); }
@@ -19490,3 +19518,4 @@ document.addEventListener('click',function(e){
 
 </body>
 </html>
+  
