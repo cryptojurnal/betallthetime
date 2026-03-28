@@ -18105,56 +18105,41 @@ function battSetTitle(page){ battNav(page); }
 
 
 // ── CLEAN HASH-BASED ROUTING ──
-// Hides all top-level pages, then shows the target — single source of truth.
-function _battHideAll(){
-  // cockpit
-  var app=document.querySelector('.app');
-  if(app){ app.style.opacity='0'; app.style.pointerEvents='none'; }
-  // member area
-  var l3=document.getElementById('layer3');
-  if(l3){ l3.classList.remove('visible'); l3.classList.add('hidden'); }
-  // trade hub
-  var hub=document.getElementById('trade-hub');
-  if(hub){ hub.style.opacity='0'; hub.style.pointerEvents='none'; setTimeout(function(){ if(hub.style.opacity==='0') hub.style.display='none'; },300); }
-  // account
-  var ap=document.getElementById('account-page');
-  if(ap) ap.classList.remove('visible');
-  // about
-  var ab=document.getElementById('about-cj-page');
-  if(ab){ ab.style.opacity='0'; setTimeout(function(){ if(ab.style.opacity==='0'){ ab.style.display='none'; ab.classList.remove('acj-visible'); } },300); }
-  // journal
-  var jp=document.getElementById('journal-page');
-  if(jp){ jp.style.opacity='0'; setTimeout(function(){ if(jp.style.opacity==='0') jp.style.display='none'; },300); }
-  // close open panels/overlays
-  var ljBox=document.getElementById('lj-box');
-  if(ljBox&&ljBox.closest){ var mo=ljBox.closest('.lj-modal-wrap'); if(mo) mo.style.display='none'; }
-  if(typeof ljCloseModal==='function') ljCloseModal();
-  if(typeof AI_OPEN!=='undefined'&&AI_OPEN&&typeof aiToggle==='function') aiToggle();
-}
-
+// single source of truth — hides everything instantly, shows target page.
+// Never calls openJournal/openDashboard etc (they push history — wrong during popstate).
 function battRestoreFromHash(){
   var hash=(window.location.hash||'').replace('#','');
-  _battHideAll();
+
+  // ── hide all pages instantly (no async timers that race) ──
+  var app=document.querySelector('.app');
+  if(app){ app.style.opacity='0'; app.style.pointerEvents='none'; }
+  var l3=document.getElementById('layer3');
+  if(l3){ l3.classList.remove('visible'); l3.classList.add('hidden'); }
+  var hub=document.getElementById('trade-hub');
+  if(hub){ hub.style.display='none'; hub.style.opacity='0'; hub.style.pointerEvents='none'; }
+  var ap=document.getElementById('account-page');
+  if(ap) ap.classList.remove('visible');
+  var ab=document.getElementById('about-cj-page');
+  if(ab){ ab.style.display='none'; ab.style.opacity='0'; ab.classList.remove('acj-visible'); }
+  var jp=document.getElementById('journal-page');
+  if(jp){ jp.classList.remove('visible'); jp.style.display='none'; }
+  // close overlays
+  if(typeof ljCloseModal==='function') ljCloseModal();
+  if(typeof AI_OPEN!=='undefined'&&AI_OPEN&&typeof aiToggle==='function') aiToggle();
+
+  // ── show target ──
   if(typeof mbnSetActive==='function') mbnSetActive(hash||'member');
 
   if(hash==='cockpit'){
     document.body.style.overflow='hidden';
     document.title='BATT · Cockpit';
-    var app=document.querySelector('.app');
-    if(app){
-      app.style.pointerEvents='';
-      requestAnimationFrame(function(){ app.style.opacity='1'; });
-    }
+    if(app){ app.style.pointerEvents=''; requestAnimationFrame(function(){ app.style.opacity='1'; }); }
     if(typeof jnLoad==='function') jnLoad();
     if(typeof battUpdateGuestUI==='function') battUpdateGuestUI();
-    var leftToggle=document.getElementById('left-panel-toggle');
-    if(leftToggle) leftToggle.classList.add('visible');
-    var tradeToggle=document.getElementById('trade-panel-toggle');
-    if(tradeToggle) tradeToggle.classList.add('visible');
-    var aiFab=document.getElementById('ai-fab');
-    if(aiFab){ aiFab.style.display=''; aiFab.style.opacity='1'; aiFab.style.pointerEvents='all'; }
-    var backBtn=document.getElementById('back-to-member');
-    if(backBtn&&localStorage.getItem('batt_token')){ backBtn.style.display='flex'; backBtn.style.opacity='1'; }
+    var lt=document.getElementById('left-panel-toggle'); if(lt) lt.classList.add('visible');
+    var tt=document.getElementById('trade-panel-toggle'); if(tt) tt.classList.add('visible');
+    var fab=document.getElementById('ai-fab'); if(fab){ fab.style.display=''; fab.style.opacity='1'; fab.style.pointerEvents='all'; }
+    var bb=document.getElementById('back-to-member'); if(bb&&localStorage.getItem('batt_token')){ bb.style.display='flex'; bb.style.opacity='1'; }
     if(typeof _syncTradeToggleLeft==='function') _syncTradeToggleLeft();
     return;
   }
@@ -18162,7 +18147,6 @@ function battRestoreFromHash(){
   if(hash==='trade'){
     document.body.style.overflow='auto';
     document.title='BATT · Trade Hub';
-    var hub=document.getElementById('trade-hub');
     if(hub){ hub.style.display='flex'; hub.style.pointerEvents=''; requestAnimationFrame(function(){ hub.style.opacity='1'; hub.style.transform='scale(1)'; }); }
     return;
   }
@@ -18170,7 +18154,6 @@ function battRestoreFromHash(){
   if(hash==='account'){
     document.body.style.overflow='auto';
     document.title='BATT · Account';
-    var ap=document.getElementById('account-page');
     if(ap) ap.classList.add('visible');
     if(typeof loadAccountPage==='function') loadAccountPage();
     return;
@@ -18179,13 +18162,14 @@ function battRestoreFromHash(){
   if(hash==='journal'){
     document.body.style.overflow='auto';
     document.title='BATT · Journal';
-    if(typeof openJournal==='function') openJournal();
+    // inline show — do NOT call openJournal() as it calls battNav/pushState
+    if(jp){ jp.style.display='flex'; requestAnimationFrame(function(){ jp.classList.add('visible'); }); }
+    if(typeof jnLoad==='function') jnLoad().then(function(){ if(typeof jnRender==='function') jnRender(); });
     return;
   }
 
   if(hash==='about'){
     document.body.style.overflow='auto';
-    var ab=document.getElementById('about-cj-page');
     if(ab){ ab.style.display='block'; requestAnimationFrame(function(){ ab.style.opacity='1'; ab.classList.add('acj-visible'); }); }
     return;
   }
@@ -18194,12 +18178,10 @@ function battRestoreFromHash(){
   document.body.style.overflow='auto';
   document.title='BATT · Member Area';
   if(typeof mbnSetActive==='function') mbnSetActive('member');
-  var l3=document.getElementById('layer3');
   if(l3){ l3.classList.remove('hidden'); requestAnimationFrame(function(){ l3.classList.add('visible'); }); }
 }
 
 window.addEventListener('popstate', function(e){
-  // dismiss confirm overlay without adding to stack
   var co=document.getElementById('confirm-overlay')||document.querySelector('.confirm-overlay');
   if(co&&co.offsetParent){ if(typeof closeConfirm==='function') closeConfirm(); return; }
   battRestoreFromHash();
