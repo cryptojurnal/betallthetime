@@ -6952,8 +6952,9 @@ function toggleLock(m, tno){
   const key=m+'-'+tno;
 
   if(s.LK.has(key)){
-    // already locked — cannot unlock
-    showToast('🔒 Trade is locked — logged trades cannot be undone','info',2500);
+    // already locked — show trade name and hint to view journal
+    const _tl=getTL(m,tno)||('T'+tno);
+    showToast(`🔒 ${_tl} · M${String(m).padStart(2,'0')} T${tno} is locked — view in journal`,'info',3000);
     return;
   }
 
@@ -6963,6 +6964,27 @@ function toggleLock(m, tno){
     // open the draft to close/edit it
     ljShowLockModal(m, tno, existingDraft.trade);
     return;
+  }
+
+  // ── LINEAR CHECK — previous active slots must be locked or drafted ──
+  if(tno>1){
+    const mBT=GLOBAL_MODE?s.BT:(s.MT[m]?s.MT[m].bt:s.BT);
+    for(let i=0;i<tno-1;i++){
+      if(mBT[i]===0) continue; // slot skipped — ok
+      const prevKey=m+'-'+(i+1);
+      const prevLocked=s.LK.has(prevKey);
+      const prevDraft=ljFindDraft(m,i+1);
+      if(prevDraft){
+        const prevLabel=getTL(m,i+1)||('T'+(i+1));
+        showToast(`⚠ Close T${i+1} (${prevLabel}) first — you have a running open position`,'info',3500);
+        return;
+      }
+      if(!prevLocked){
+        const prevLabel=getTL(m,i+1)||('T'+(i+1));
+        showToast(`⚠ Log T${i+1} (${prevLabel}) first — trades must be logged in order`,'info',3500);
+        return;
+      }
+    }
   }
 
   // fresh lock — must have active preset
