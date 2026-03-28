@@ -8672,8 +8672,8 @@ function render(){
       </div>
     </div>
     <div style="display:grid;grid-template-columns:3fr 7fr;gap:0;align-items:start;margin-bottom:8px">
-      <div class="cw" style="margin-bottom:0;height:168px;min-height:168px;max-height:168px;position:relative;border-right:none;overflow:hidden;flex-shrink:0"><canvas id="gc"></canvas><button class="chart-zoom-btn" onclick="openChartZoom()" title="expand chart">⤢ zoom</button></div>
-      <div id="assess-side" style="align-self:stretch"></div>
+      <div class="cw" style="margin-bottom:0;height:168px;min-height:168px;max-height:168px;position:relative;border-right:none;overflow:hidden;contain:strict"><canvas id="gc"></canvas><button class="chart-zoom-btn" onclick="openChartZoom()" title="expand chart">⤢ zoom</button></div>
+      <div id="assess-side" style="align-self:stretch;min-height:168px"></div>
     </div>`;
   }
 
@@ -8765,6 +8765,16 @@ function render(){
       });
     }
   } // end if(!isQ) chart block
+  // watch chart container for size changes and auto-resize chart
+  if(!isQ && !window._chartResizeObserver){
+    const cw=document.querySelector('.cw canvas#gc')?.parentElement||document.querySelector('.cw');
+    if(cw && window.ResizeObserver){
+      window._chartResizeObserver=new ResizeObserver(()=>{
+        if(ch){requestAnimationFrame(()=>ch.resize());}
+      });
+      window._chartResizeObserver.observe(cw);
+    }
+  }
   // apply error animation if needed
   if(!isQTab(TAB)) _applyChartErrorStyle();
   try{
