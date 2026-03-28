@@ -8942,6 +8942,7 @@ function renderTbl(months){
       <th style="width:9%;color:var(--acc2)">net pnl<br><span style="font-weight:400;font-size:7px;text-transform:none;color:var(--acc2);opacity:.8">post-fee</span></th>
       <th style="width:8%;color:var(--tx2)">acct bal<br><span style="font-weight:400;font-size:7px;text-transform:none">${s.SPOT?'gross':'pre-fee'}</span></th>
       <th style="width:9%;color:var(--acc2)">acct bal<br><span style="font-weight:400;font-size:7px;text-transform:none">post-fee</span></th>
+      <th style="width:5%">note</th>
     </tr></thead><tbody>`;
     months.forEach(mo=>{
       if(mo.isZ){
@@ -9036,6 +9037,7 @@ function renderTbl(months){
         <td style="font-size:7px;color:var(--acc2);text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2)">net pnl</td>
         <td style="font-size:7px;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2)">bal pre-fee</td>
         <td style="font-size:7px;color:var(--acc2);text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2)">bal post-fee</td>
+        <td style="font-size:7px;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2)">note</td>
       </tr>`;
       mo.trades.forEach(t=>{
         const tLabel=getTL(mo.m,t.no);
@@ -9048,9 +9050,10 @@ function renderTbl(months){
               <td colspan="4" style="color:var(--tx3);font-size:9px;font-style:italic">skipped</td>
               <td><div class="tg-cell" style="width:54px"><button class="tg-btn" onclick="manStep('bt',${mo.m},${t.no-1},-0.5)" tabindex="-1">−</button><input type="number" id="mbt-${mo.m}-${t.no-1}" value="${btVal}" min="-500" max="500" step="0.5" placeholder="tgt%" style="flex:1;min-width:0;padding:1px 0;font-size:9px;text-align:center;border:none;background:transparent;color:var(--acc);font-weight:700;-moz-appearance:textfield" oninput="dInput(this,v=>onManualBT(${mo.m},${t.no-1},v),400)"><button class="tg-btn" onclick="manStep('bt',${mo.m},${t.no-1},0.5)" tabindex="-1">+</button></div></td>
               <td colspan="8" style="color:var(--tx3);font-size:9px;text-align:center;font-style:italic">set target > 0 to activate</td>
+              <td></td>
             </tr>`;
           } else {
-            h+=`<tr class="skip-row"><td style="padding-left:10px;text-align:left;color:var(--tx3);font-size:9px">${tLabel}</td><td colspan="11" style="text-align:center"><span class="sk">skipped · target = 0</span></td></tr>`;
+            h+=`<tr class="skip-row"><td style="padding-left:10px;text-align:left;color:var(--tx3);font-size:9px">${tLabel}</td><td colspan="11" style="text-align:center"><span class="sk">skipped · target = 0</span></td><td></td></tr>`;
           }
           return;
         }
@@ -9117,6 +9120,7 @@ function renderTbl(months){
             ${ha?ba(fmt(t.projAccAF),fmt(t.accAF),t.accAF>=mo.sA?'var(--acc2)':'#E24B4A'):(fmt(t.accAF))}
             ${s.SPOT?'':'<div style="font-size:7px;color:'+liqAFc+'">liq '+liqAF.toFixed(0)+'%</div>'}
           </td>
+          <td></td>
         </tr>`;
       });
       // month end separator — colored bar + spacer before next month
