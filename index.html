@@ -991,7 +991,7 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
 
 body.t-lavender{--bg:#f0eef8;--panel:#fff;--bd:#d8d4f0;--bd2:#e4e0f4;--sf:#f8f6ff;--sf2:#f0eef8;--tx:#2a1a4a;--tx2:#8070b0;--tx3:#c0b0e0;--acc:#7050c0;--acc2:#5060e0;--mh:#4030a0;--mhc:#fff;--mhs:#c0b8f0;--inp:#f8f6ff;--btn:#f0eef8;--btno:#e0d8f8;--btonc:#7050c0;--tog:#fff;--togon:#4030a0;--togonc:#fff;--tabact:#4030a0;--tabactc:#fff;--wd-on:#e0d8f8;--wd-onc:#7050c0}
 
-.app{zoom:1.1;display:flex;height:calc(100vh / 1.1);overflow:hidden;background:#000;color:var(--tx);opacity:0;transition:opacity .5s cubic-bezier(0.4,0,0.2,1);position:fixed;top:0;left:0;width:calc(100% / 1.1);}
+.app{zoom:1.1;display:flex;height:calc(100vh / 1.1);overflow:hidden;background:#000;color:var(--tx);opacity:0;transition:opacity .5s cubic-bezier(0.4,0,0.2,1);}
 .panel-left.collapsed{width:0;min-width:0;overflow:hidden;border:none}
 .panel-left.collapsed .pl-body{opacity:0;pointer-events:none}
 .panel-left.collapsed .panel-left-toggle{opacity:1;pointer-events:all}
@@ -11956,8 +11956,8 @@ async function deleteAccount(){
 function goLayer3(){
   document.body.style.overflow='auto';
   mbnSetActive('member');
+  // title only — no history push (goLayer3 is called on auto-restore too)
   document.title = 'BATT · Member Area';
-  try{ if((window.location.hash||'').replace('#','')!=='member') history.pushState({batt:'member'},'','#member'); }catch(e){}
   // Ensure AI fab is hidden in member area
   const aiFab=document.getElementById('ai-fab');
   if(aiFab){aiFab.style.opacity='0';aiFab.style.pointerEvents='none';}
@@ -18105,85 +18105,48 @@ function battSetTitle(page){ battNav(page); }
 
 
 // ── CLEAN HASH-BASED ROUTING ──
-// single source of truth — hides everything instantly, shows target page.
-// Never calls openJournal/openDashboard etc (they push history — wrong during popstate).
+// single source of truth — called on load and popstate
 function battRestoreFromHash(){
-  var hash=(window.location.hash||'').replace('#','');
-
-  // ── hide all pages instantly (no async timers that race) ──
-  var app=document.querySelector('.app');
-  if(app){ app.style.opacity='0'; app.style.pointerEvents='none'; }
-  var l3=document.getElementById('layer3');
-  if(l3){ l3.classList.remove('visible'); l3.classList.add('hidden'); }
-  var hub=document.getElementById('trade-hub');
-  if(hub){ hub.style.display='none'; hub.style.opacity='0'; hub.style.pointerEvents='none'; }
-  var ap=document.getElementById('account-page');
-  if(ap) ap.classList.remove('visible');
-  var ab=document.getElementById('about-cj-page');
-  if(ab){ ab.style.display='none'; ab.style.opacity='0'; ab.classList.remove('acj-visible'); }
-  var jp=document.getElementById('journal-page');
-  if(jp){ jp.classList.remove('visible'); jp.style.display='none'; }
-  // close overlays
-  if(typeof ljCloseModal==='function') ljCloseModal();
-  if(typeof AI_OPEN!=='undefined'&&AI_OPEN&&typeof aiToggle==='function') aiToggle();
-
-  // ── show target ──
-  if(typeof mbnSetActive==='function') mbnSetActive(hash||'member');
-
-  if(hash==='cockpit'){
-    document.body.style.overflow='hidden';
-    document.title='BATT · Cockpit';
-    if(app){ app.style.pointerEvents=''; requestAnimationFrame(function(){ app.style.opacity='1'; }); }
-    if(typeof jnLoad==='function') jnLoad();
-    if(typeof battUpdateGuestUI==='function') battUpdateGuestUI();
-    var lt=document.getElementById('left-panel-toggle'); if(lt) lt.classList.add('visible');
-    var tt=document.getElementById('trade-panel-toggle'); if(tt) tt.classList.add('visible');
-    var fab=document.getElementById('ai-fab'); if(fab){ fab.style.display=''; fab.style.opacity='1'; fab.style.pointerEvents='all'; }
-    var bb=document.getElementById('back-to-member'); if(bb&&localStorage.getItem('batt_token')){ bb.style.display='flex'; bb.style.opacity='1'; }
-    if(typeof _syncTradeToggleLeft==='function') _syncTradeToggleLeft();
+  var hash=(window.location.hash||'').replace('#',"");
+  // dismiss any open overlays first
+  var ljBox=document.getElementById('lj-box');
+  if(ljBox&&ljBox.closest&&ljBox.closest('.lj-modal-wrap')){ var mo=ljBox.closest('.lj-modal-wrap'); if(mo) mo.style.display='none'; }
+  if(hash==='cockpit'&&typeof openDashboard==='function'){ openDashboard(); return; }
+  if(hash==='journal'&&typeof openJournal==='function'){ openJournal(); return; }
+  if(hash==='trade'&&typeof battNav==='function'){
+    var hub=document.getElementById('trade-hub');
+    if(hub){ hub.style.display='flex'; requestAnimationFrame(function(){ hub.style.opacity='1'; hub.style.transform='scale(1)'; }); }
+    document.body.style.overflow='auto';
+    if(typeof mbnSetActive==='function') mbnSetActive('trade');
     return;
   }
-
-  if(hash==='trade'){
-    document.body.style.overflow='auto';
-    document.title='BATT · Trade Hub';
-    if(hub){ hub.style.display='flex'; hub.style.pointerEvents=''; requestAnimationFrame(function(){ hub.style.opacity='1'; hub.style.transform='scale(1)'; }); }
-    return;
-  }
-
-  if(hash==='account'){
-    document.body.style.overflow='auto';
-    document.title='BATT · Account';
+  if(hash==='account'&&typeof loadAccountPage==='function'){
+    var ap=document.getElementById('account-page');
     if(ap) ap.classList.add('visible');
-    if(typeof loadAccountPage==='function') loadAccountPage();
-    return;
-  }
-
-  if(hash==='journal'){
+    loadAccountPage();
     document.body.style.overflow='auto';
-    document.title='BATT · Journal';
-    // inline show — do NOT call openJournal() as it calls battNav/pushState
-    if(jp){ jp.style.display='flex'; requestAnimationFrame(function(){ jp.classList.add('visible'); }); }
-    if(typeof jnLoad==='function') jnLoad().then(function(){ if(typeof jnRender==='function') jnRender(); });
+    if(typeof mbnSetActive==='function') mbnSetActive('account');
     return;
   }
-
   if(hash==='about'){
-    document.body.style.overflow='auto';
+    var ab=document.getElementById('about-cj-page');
     if(ab){ ab.style.display='block'; requestAnimationFrame(function(){ ab.style.opacity='1'; ab.classList.add('acj-visible'); }); }
+    document.body.style.overflow='auto';
     return;
   }
-
   // default — member area
-  document.body.style.overflow='auto';
-  document.title='BATT · Member Area';
-  if(typeof mbnSetActive==='function') mbnSetActive('member');
+  var l3=document.getElementById('layer3');
   if(l3){ l3.classList.remove('hidden'); requestAnimationFrame(function(){ l3.classList.add('visible'); }); }
+  document.body.style.overflow='auto';
+  if(typeof mbnSetActive==='function') mbnSetActive('member');
 }
 
 window.addEventListener('popstate', function(e){
+  // close log modal if open
+  if(typeof ljCloseModal==='function') ljCloseModal();
+  // close any confirm overlay
   var co=document.getElementById('confirm-overlay')||document.querySelector('.confirm-overlay');
-  if(co&&co.offsetParent){ if(typeof closeConfirm==='function') closeConfirm(); return; }
+  if(co&&co.offsetParent){ if(typeof closeConfirm==='function') closeConfirm(); history.pushState({},'',window.location.hash||''); return; }
   battRestoreFromHash();
 });
 
