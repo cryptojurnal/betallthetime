@@ -7992,7 +7992,7 @@ async function ljConfirmLock(){
       monthLabel:getML(m),
       target:tr?tr.tgt:0,
       projNotional:_projNotional, actualNotional:_actualNotInput||null,
-      projMargin:_projMargin, actualMargin:_actualMarginInput||null,
+      projMargin:_projMargin, actualMargin:_actualNotInput?(_actualNotInput/(s.SPOT?1:leverage)):_projMargin,
       hasActualOverride,
       feePaid:tr?tr.feePaid:0, netPnl:tr?tr.cp-(tr.feePaid||0):0,
       liq:tr?tr.liq:0, lev:leverage,
