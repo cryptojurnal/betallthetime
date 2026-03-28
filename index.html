@@ -1029,7 +1029,7 @@ body.t-lavender{--bg:#f0eef8;--panel:#fff;--bd:#d8d4f0;--bd2:#e4e0f4;--sf:#f8f6f
 #right-content{padding:0 14px}
 .panel-right::-webkit-scrollbar{display:none}
 #right-content{transition:opacity .15s ease}
-.tw{overflow-x:auto;margin:0 -14px}
+.tw{overflow-x:auto;margin:0 -14px;padding:0 14px}
 
 /* PRESETS PANEL (collapsible right) */
 .panel-presets{width:0;min-width:0;background:var(--panel);border-left:0.5px solid var(--bd);flex-shrink:0;padding-top:52px;transition:width .35s cubic-bezier(0.4,0,0.2,1),min-width .35s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column;position:relative;overflow:visible;will-change:width}
@@ -9308,7 +9308,7 @@ function renderTbl(months){
       if(IS_WIPED){
         const fmVal = s.NOT/s.LEV/s.P*100;
         const isFmError = fmVal > 100;
-        h+=`<tr class="wipe-row"><td style="text-align:left">${getML(mo.m)}</td><td colspan="14">${isFmError?'🚫':'💸'} ${lbl_w?(isFmError?'setup tidak valid — FM% > 100%':'setup tidak valid — liq% < 1%'):(isFmError?'invalid setup — FM% > 100%':'invalid setup — liq% < 1%')}</td></tr>`;
+        h+=`<tr class="wipe-row"><td style="text-align:left">${getML(mo.m)}</td><td colspan="15">${isFmError?'🚫':'💸'} ${lbl_w?(isFmError?'setup tidak valid — FM% > 100%':'setup tidak valid — liq% < 1%'):(isFmError?'invalid setup — FM% > 100%':'invalid setup — liq% < 1%')}</td></tr>`;
         return;
       }
       if(mo.bust){
