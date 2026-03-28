@@ -17324,7 +17324,8 @@ function toggleTicker() {
 
 function startTickerUpdates() {
   if (!TICKER_ENABLED) return;
-  setInterval(updateTicker, 30000); // Update every 30s
+  if (window._tickerInterval) clearInterval(window._tickerInterval);
+  window._tickerInterval = setInterval(updateTicker, 30000);
 }
 
 async function updateTicker() {
@@ -19281,16 +19282,6 @@ async function jnImportFromTP(){
   await jnSave();
   showToast(`Imported ${imported} trade${imported>1?'s':''} to "${targetFolder.name}"`, 'success');
   jnGoList(targetFolder.id);
-}
-
-function openJournal(){
-  const p=document.getElementById('journal-page');
-  if(!p) return;
-  battNav('journal');
-  p.style.display='flex';
-  requestAnimationFrame(()=>requestAnimationFrame(()=>p.classList.add('visible')));
-  document.body.style.overflow='auto';
-  jnLoad().then(()=>jnRender());
 }
 
 function openAboutCJ(){
