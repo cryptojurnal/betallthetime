@@ -18195,6 +18195,16 @@ function battUpdateGuestUI(){
 }
 
 function clearActivePreset(){
+  // wipe JN drafts that belong to the active preset folder so 📝 badges clear
+  try{
+    if(window._ACTIVE_PRESET&&typeof JN!=='undefined'&&JN.folders&&JN.trades){
+      const folder=JN.folders.find(f=>f.name===window._ACTIVE_PRESET.name);
+      if(folder&&JN.trades[folder.id]){
+        JN.trades[folder.id]=JN.trades[folder.id].filter(t=>t.status!=='draft');
+        if(typeof jnSave==='function') jnSave();
+      }
+    }
+  }catch(e){}
   window._ACTIVE_PRESET=null;
   try{localStorage.removeItem('batt_active_preset');}catch(e){}
   const lbl=document.getElementById('auth-preset-lbl');
