@@ -9373,6 +9373,8 @@ function renderTbl(months){
           <div style="font-size:7px;color:var(--mhs);opacity:.7;margin-bottom:2px">withdraw ✏️</div>
           <input type="number" class="wd-inp${wdVal>0?' active':''}" id="wd-inp-d-${mo.m}" value="${wdVal||''}" min="0" step="1" placeholder="0" onchange="onWdInline(${mo.m},this.value)" onblur="onWdInline(${mo.m},this.value)" style="width:60px;padding:2px 4px;font-size:10px">
         </td>
+        <td></td>
+        <td></td>
       </tr>
       <tr style="background:var(--bg)">
         <td style="font-size:7px;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;text-align:left;border-bottom:0.5px solid var(--bd2)">trade</td>
@@ -9530,8 +9532,9 @@ function renderTbl(months){
             <div style="font-size:12px;font-weight:700;color:#8ab4e8;line-height:1">${fmt(mo.eA)}</div>
             <div style="font-size:7px;color:#fff;margin-top:3px">${mo.wd>0?'wd −$'+wdRound:'&nbsp;'}</div>
           </td>
+          <td style="${sb}"></td>
         </tr>
-        <tr class="mo-gap"><td colspan="13" style="height:10px;background:var(--bg);border:none;padding:0"></td></tr>`;
+        <tr class="mo-gap"><td colspan="15" style="height:10px;background:var(--bg);border:none;padding:0"></td></tr>`;
       }
     });
   }
