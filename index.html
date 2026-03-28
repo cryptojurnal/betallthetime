@@ -1029,7 +1029,7 @@ body.t-lavender{--bg:#f0eef8;--panel:#fff;--bd:#d8d4f0;--bd2:#e4e0f4;--sf:#f8f6f
 #right-content{padding:0 14px}
 .panel-right::-webkit-scrollbar{display:none}
 #right-content{transition:opacity .15s ease}
-.tw{overflow-x:auto}
+.tw{overflow-x:auto;margin:0 -14px}
 
 /* PRESETS PANEL (collapsible right) */
 .panel-presets{width:0;min-width:0;background:var(--panel);border-left:0.5px solid var(--bd);flex-shrink:0;padding-top:52px;transition:width .35s cubic-bezier(0.4,0,0.2,1),min-width .35s cubic-bezier(0.4,0,0.2,1);display:flex;flex-direction:column;position:relative;overflow:visible;will-change:width}
@@ -6997,6 +6997,34 @@ function ljSyncActualMargin(notVal){
   else mEl.value='';
 }
 
+function ljSyncActualMargin(notVal){
+  const s=gs();
+  const leverage=s.SPOT?1:s.LEV;
+  const not=parseFloat(notVal)||0;
+  const disp=document.getElementById('lj-actual-margin-display');
+  if(!disp) return;
+  if(not>0) disp.textContent='$'+(s.SPOT?not:not/leverage).toFixed(2);
+  else {
+    const mo=sim().find(x=>x.m===_ljPending.m);
+    const tr=mo?mo.trades.find(t=>t.no===_ljPending.tno):null;
+    const margin=tr?tr.am:(s.SPOT?s.NOT:s.NOT/leverage);
+    disp.textContent='$'+margin.toFixed(2);
+  }
+}
+
+function ljUpdateTfVerdict(tf){
+  const el=document.getElementById('lj-tf-verdict');
+  if(!el) return;
+  const map={
+    '1m':'⚡ scalper','3m':'⚡ scalper',
+    '5m':'🔥 intraday','15m':'🔥 intraday','30m':'🔥 intraday',
+    '1h':'📈 swing','2h':'📈 swing','4h':'📈 swing',
+    '1D':'🏔 position trader','1W':'🏔 position trader'
+  };
+  el.textContent=map[tf]||'';
+  el.style.color=tf?('#1D9E75'):'#555';
+}
+
 function ljSyncActualNotional(marginVal){
   const s=gs();
   const leverage=s.SPOT?1:s.LEV;
@@ -7070,10 +7098,9 @@ function ljShowLockModal(m, tno, draft=null){
         </div>
         <div id="lj-fee-cockpit-cell">
           <div style="font-size:8px;color:#5b7fff;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">actual margin</div>
-          <input type="number" id="lj-actual-margin" placeholder="${margin.toFixed(2)}" step="0.01" min="0"
-            style="width:100%;background:#0a0a0a;border:1px solid #1e3a6a;border-radius:4px;padding:3px 5px;font-size:10px;font-weight:700;color:#5b7fff;font-family:inherit;-moz-appearance:textfield"
-            oninput="ljSyncActualNotional(this.value)">
-          <div style="font-size:8px;color:#555;font-weight:500;color:#888" id="lj-fee-rate-val">${feeRate}% ${s.FEE.method}</div>
+          <div id="lj-actual-margin-display" style="font-size:11px;font-weight:700;color:#5b7fff;padding:3px 0">$${margin.toFixed(2)}</div>
+          <div style="font-size:8px;color:#444;margin-top:1px">notional ÷ ${leverage}×</div>
+          <div style="font-size:8px;color:#888" id="lj-fee-rate-val">${feeRate}% ${s.FEE.method}</div>
         </div>
       </div>
       <!-- side toggle -->
@@ -7091,6 +7118,24 @@ function ljShowLockModal(m, tno, draft=null){
             </div>
             <div id="lj-side-indicator" style="height:3px;border-radius:0 0 6px 6px;background:#00c47a;transition:all .15s;display:none"></div>`
         }
+        <div style="margin-top:12px;border-top:1px solid #1e1e1e;padding-top:12px">
+          <div style="font-size:8px;color:#666;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:700">timeframe</div>
+          <select id="lj-tf" onchange="ljUpdateTfVerdict(this.value)"
+            style="width:100%;background:#111;border:1px solid #252525;border-radius:7px;color:#ccc;font-size:12px;padding:7px 10px;font-family:inherit;outline:none;cursor:pointer;color-scheme:dark">
+            <option value="">— select tf —</option>
+            <option value="1m">1m</option>
+            <option value="3m">3m</option>
+            <option value="5m">5m</option>
+            <option value="15m">15m</option>
+            <option value="30m">30m</option>
+            <option value="1h">1h</option>
+            <option value="2h">2h</option>
+            <option value="4h">4h</option>
+            <option value="1D">1D</option>
+            <option value="1W">1W</option>
+          </select>
+          <div id="lj-tf-verdict" style="font-size:10px;margin-top:6px;color:#555;min-height:16px"></div>
+        </div>
       </div>
     </div>
 
@@ -7231,16 +7276,22 @@ function ljShowLockModal(m, tno, draft=null){
       </div>
     </div>
 
-    <!-- NOTES + MOOD side by side -->
-    <div style="display:grid;grid-template-columns:1fr auto;gap:12px;margin-bottom:16px;align-items:start">
+    <!-- NOTES: technical + psychological side by side -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
       <div>
-        <div style="font-size:8px;color:#666;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:700">setup notes <span style="color:#2a2a2a;font-weight:400;text-transform:none;letter-spacing:0">optional</span></div>
-        <textarea id="lj-notes" rows="3" placeholder="Why you entered, what happened…"
+        <div style="font-size:8px;color:#666;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:700">technical notes <span style="color:#2a2a2a;font-weight:400;text-transform:none;letter-spacing:0">optional</span></div>
+        <textarea id="lj-notes" rows="3" placeholder="Setup, confluence, entry reason…"
           style="width:100%;background:#111;border:1px solid #252525;border-radius:7px;color:#aaa;font-size:11px;padding:9px 12px;font-family:inherit;outline:none;resize:vertical;line-height:1.6;box-sizing:border-box;transition:border-color .15s"
           onfocus="this.style.borderColor='#444'"
           onblur="this.style.borderColor='#252525'"></textarea>
       </div>
-
+      <div>
+        <div style="font-size:8px;color:#666;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:700">psychological notes <span style="color:#2a2a2a;font-weight:400;text-transform:none;letter-spacing:0">optional</span></div>
+        <textarea id="lj-notes-psych" rows="3" placeholder="How you felt, discipline, lessons…"
+          style="width:100%;background:#111;border:1px solid #252525;border-radius:7px;color:#aaa;font-size:11px;padding:9px 12px;font-family:inherit;outline:none;resize:vertical;line-height:1.6;box-sizing:border-box;transition:border-color .15s"
+          onfocus="this.style.borderColor='#444'"
+          onblur="this.style.borderColor='#252525'"></textarea>
+      </div>
     </div>
 
     <!-- MOOD dropdown — right above the lock button -->
@@ -7594,6 +7645,8 @@ async function ljConfirmLock(){
   const tvUrlClose=(document.getElementById('lj-tv-close')?.value||'').trim();
   const tvUrl=tvUrlOpen||tvUrlClose; // legacy fallback
   const notes=document.getElementById('lj-notes')?.value||'';
+  const notePsych=document.getElementById('lj-notes-psych')?.value||'';
+  const tf=document.getElementById('lj-tf')?.value||'';
   const emotion=document.getElementById('lj-mood-select')?.value||'';
   const dateVal=document.getElementById('lj-close-dt')?.value||document.getElementById('lj-date')?.value||new Date().toISOString().slice(0,16);
 
@@ -7604,11 +7657,10 @@ async function ljConfirmLock(){
   const _projNotional=_simTr?_simTr.not:s.NOT;
   const _projMargin=_simTr?_simTr.am:(s.SPOT?s.NOT:s.NOT/leverage);
   const _actualNotInput=parseFloat(document.getElementById('lj-actual-not')?.value||'')||0;
-  const _actualMarginInput=parseFloat(document.getElementById('lj-actual-margin')?.value||'')||0;
-  // bidirectional: if either is set, derive the other via leverage
-  const notional=_actualNotInput||(_actualMarginInput?(s.SPOT?_actualMarginInput:_actualMarginInput*leverage):_projNotional);
-  const margin=_actualMarginInput||(_actualNotInput?(s.SPOT?_actualNotInput:_actualNotInput/leverage):_projMargin);
-  const hasActualOverride=!!(_actualNotInput||_actualMarginInput);
+  // actual margin is always derived from actual notional
+  const notional=_actualNotInput||_projNotional;
+  const margin=_actualNotInput?(s.SPOT?_actualNotInput:_actualNotInput/leverage):_projMargin;
+  const hasActualOverride=!!_actualNotInput;
   let grossPnl=0,feePaid=0,fundingPaid=0,netPnl=0,pct=0;
   if(entry&&exit){
     const priceDiff=side==='long'?exit-entry:entry-exit;
@@ -7660,6 +7712,8 @@ async function ljConfirmLock(){
     closedAt:new Date(dateVal).getTime()||Date.now(),
     openedAt:new Date(document.getElementById('lj-open-dt')?.value||dateVal).getTime()||Date.now(),
     note:notes,
+    notePsych,
+    tf,
     emotion,
     source:'cockpit',
     tvUrl,
@@ -7772,6 +7826,8 @@ async function ljSaveDraft(){
   const tvUrlOpen=(document.getElementById('lj-tv-open')?.value||'').trim();
   const tvUrlClose=(document.getElementById('lj-tv-close')?.value||'').trim();
   const notes=document.getElementById('lj-notes')?.value||'';
+  const notePsych=document.getElementById('lj-notes-psych')?.value||'';
+  const tf=document.getElementById('lj-tf')?.value||'';
   const emotion=document.getElementById('lj-mood-select')?.value||'';
   const openDateVal=document.getElementById('lj-open-dt')?.value||new Date().toISOString().slice(0,16);
   const tLabel=getTL(m,tno)||('trade '+tno);
@@ -7804,6 +7860,8 @@ async function ljSaveDraft(){
     t.tvUrlOpen=tvUrlOpen||t.tvUrlOpen;
     t.tvUrlClose=tvUrlClose||t.tvUrlClose;
     if(notes) t.note=notes;
+    if(notePsych) t.notePsych=notePsych;
+    if(tf) t.tf=tf;
     t.updatedAt=Date.now();
     await jnSave();
     ljCloseModal();
