@@ -1186,7 +1186,7 @@ input[type=number]:focus{outline:none;border-color:var(--acc)}
 .sec-body.collapsed{max-height:0!important;opacity:0;pointer-events:none}
 
 /* trade grid */
-.tg-header{display:grid;grid-template-columns:22px 1fr 1fr;gap:4px;margin-bottom:4px;padding:0 2px}
+.tg-header{display:grid;grid-template-columns:22px 1fr;gap:4px;margin-bottom:4px;padding:0 2px}
 .tg-hl{font-size:8px;font-weight:700;color:var(--tx3);text-align:center;letter-spacing:.06em;text-transform:uppercase}
 .tg-row{display:grid;grid-template-columns:22px 1fr 1fr;gap:4px;margin:3px 0;align-items:center;padding:0 2px}
 .tg-no{font-size:8px;color:var(--tx3);text-align:center;font-weight:700;letter-spacing:.02em}
@@ -4009,11 +4009,10 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
     <!-- global slots (shown when global mode ON) -->
     <div id="sec-trd-global" style="display:none">
       <div class="sec">
-        <div style="font-size:9px;color:var(--tx3);margin-bottom:4px">target% or freq = 0 → skip</div>
+        <div style="font-size:9px;color:var(--tx3);margin-bottom:4px">set target% = 0 to skip slot</div>
         <div class="tg-header">
           <div class="tg-hl">#</div>
           <div class="tg-hl">tgt%</div>
-          <div class="tg-hl">freq</div>
         </div>
         <div id="tg"></div>
         <div class="act-count" id="act-count"><span>10</span> active</div>
@@ -5255,11 +5254,6 @@ function initGrid(){
   <button class="tg-btn" onclick="stepBT(${i},-0.5)" tabindex="-1">−</button>
   <input type="number" class="tg-in" id="bt${i}" value="${s.BT[i]}" min="-500" max="500" step="0.5" oninput="dInput(this,v=>onBT(${i},v),400)">
   <button class="tg-btn" onclick="stepBT(${i},0.5)" tabindex="-1">+</button>
-</div>
-<div class="tg-cell fi" id="frc${i}">
-  <button class="tg-btn" onclick="stepFR(${i},-1)" tabindex="-1">−</button>
-  <input type="number" class="tg-in" id="fr${i}" value="${s.FR[i]}" min="0" max="20" step="1" oninput="onFR(${i},this.value)">
-  <button class="tg-btn" onclick="stepFR(${i},1)" tabindex="-1">+</button>
 </div>`;
     g.appendChild(r);
   }
@@ -5268,17 +5262,13 @@ function initGrid(){
 function updGrid(){
   const s=gs();let act=0;
   for(let i=0;i<10;i++){
-    const skip=s.BT[i]===0||s.FR[i]===0;
+    const skip=s.BT[i]===0; // freq removed — active = BT !== 0
     document.getElementById('bt'+i)?.classList.toggle('skipped',skip);
-    document.getElementById('fr'+i)?.classList.toggle('skipped',skip);
     document.getElementById('btc'+i)?.classList.toggle('skipped',skip);
-    document.getElementById('frc'+i)?.classList.toggle('skipped',skip);
     if(!skip)act++;
     // restore any previously disabled global inputs (locks are per-month, not global)
     const btEl=document.getElementById('bt'+i);
-    const frEl=document.getElementById('fr'+i);
     if(btEl){btEl.disabled=false;btEl.title='';}
-    if(frEl){frEl.disabled=false;frEl.title='';}
   }
   const el=document.getElementById('act-count');
   if(el)el.innerHTML=`<span>${act}</span> active · ${10-act} skipped`;
@@ -5392,22 +5382,22 @@ function runSeq(startAcc,lev,initNot,bt,fr,kpi,isSpot,cf,month){
   let accF=startAcc;
   const trades=[];
   for(let i=0;i<10;i++){
-    const skip=bt[i]===0||fr[i]===0;
+    const skip=bt[i]===0; // freq removed — active = BT !== 0
     const am=isSpot?not:not/lev;
     const fm=isSpot?100:am/acc*100;
     const liq=isSpot?999:acc/not*100;
-    if(skip){trades.push({no:i+1,skip:true,not,am,fm,liq,tgt:0,freq:0,sp:0,cp:0,accB:acc,accA:acc,feePaid:0,accAF:accF,isSpot});continue;}
+    if(skip){trades.push({no:i+1,skip:true,not,am,fm,liq,tgt:0,freq:1,sp:0,cp:0,accB:acc,accA:acc,feePaid:0,accAF:accF,isSpot});continue;}
     const tgt=bt[i]*kpi/100;
-    const sp=not*tgt,cp=sp*fr[i];
+    const sp=not*tgt,cp=sp; // freq=1, cp=sp always
     const chosenRate=(gs().FEE.method==='maker'?gs().FEE.maker:gs().FEE.taker)/100;
-    const tradeFee=2*chosenRate*not*fr[i];
-    const fundFee=isSpot?0:(gs().FEE.funding/100)*not*gs().FEE.holds*fr[i];
+    const tradeFee=2*chosenRate*not; // freq=1
+    const fundFee=isSpot?0:(gs().FEE.funding/100)*not*gs().FEE.holds;
     const feePaid=tradeFee+fundFee;
     const accAfter=acc+cp;
     const accAfterF=accF+cp-feePaid;
     // check for actual journal result on this locked trade
     const actual=month?getActualTrade(month,i+1):null;
-    const actualCp=actual?(actual.pnl||0):null; // actual net PnL (already post-fee)
+    const actualCp=actual?(actual.pnl||0):null;
     const actualFee=actual?(actual.fee||0):null;
     const useActual=actual&&actualCp!==null;
     const finalCp=useActual?actualCp:cp;
@@ -5415,14 +5405,13 @@ function runSeq(startAcc,lev,initNot,bt,fr,kpi,isSpot,cf,month){
     const finalCpPreFee=useActual?(actualCp+actualFee):cp;
     const accAfterActual=acc+finalCpPreFee;
     const accAfterFActual=accF+finalCp;
-    trades.push({no:i+1,skip:false,not,am,fm,liq,tgt:bt[i]*kpi,freq:fr[i],
-      sp:useActual?finalCpPreFee/fr[i]:sp,
+    trades.push({no:i+1,skip:false,not,am,fm,liq,tgt:bt[i]*kpi,freq:1,
+      sp:useActual?finalCpPreFee:sp,
       cp:useActual?finalCpPreFee:cp,
       accB:acc,accA:useActual?accAfterActual:accAfter,
       feePaid:useActual?finalFee:feePaid,
       accAF:useActual?accAfterFActual:accAfterF,
       isSpot,
-      // flags for render
       hasActual:useActual,
       projCp:cp,projFee:feePaid,projAccAF:accAfterF,
       actualCp:useActual?finalCp:null,
@@ -5430,8 +5419,7 @@ function runSeq(startAcc,lev,initNot,bt,fr,kpi,isSpot,cf,month){
     });
     acc=useActual?accAfterActual:accAfter;
     accF=useActual?accAfterFActual:accAfterF;
-    // carry-forward: use actual single-trade gross move for notional, not projected
-    const actualSp=useActual?finalCpPreFee/Math.max(fr[i],1):sp;
+    const actualSp=useActual?finalCpPreFee:sp;
     if(cfOn){
       not=isSpot?acc:not+actualSp;
     } else {
@@ -6580,7 +6568,7 @@ function setLang(lang){
   const ac=document.getElementById('act-count');
   if(ac){
     const s=gs();
-    const cnt=s.BT.filter((b,i)=>b!==0&&s.FR[i]>0).length;
+    const cnt=s.BT.filter(b=>b!==0).length;
     ac.innerHTML=`<span>${cnt}</span> ${id?'aktif':'active'}`;
   }
 
@@ -6998,6 +6986,26 @@ async function ljFetchFunding(manual){
   ljCalc();
 }
 
+function ljSyncActualMargin(notVal){
+  const s=gs();
+  const leverage=s.SPOT?1:s.LEV;
+  const not=parseFloat(notVal)||0;
+  const mEl=document.getElementById('lj-actual-margin');
+  if(!mEl) return;
+  if(not>0) mEl.value=(s.SPOT?not:not/leverage).toFixed(2);
+  else mEl.value='';
+}
+
+function ljSyncActualNotional(marginVal){
+  const s=gs();
+  const leverage=s.SPOT?1:s.LEV;
+  const mar=parseFloat(marginVal)||0;
+  const nEl=document.getElementById('lj-actual-not');
+  if(!nEl) return;
+  if(mar>0) nEl.value=(s.SPOT?mar:mar*leverage).toFixed(2);
+  else nEl.value='';
+}
+
 function ljShowLockModal(m, tno, draft=null){
   const s=gs();
   const tLabel=getTL(m,tno);
@@ -7051,13 +7059,21 @@ function ljShowLockModal(m, tno, draft=null){
           <div style="font-size:11px;font-weight:700;color:#888">${s.SPOT?'spot ◈':'leverage'}</div>
           ${s.SPOT?'':('<div style="font-size:13px;font-weight:800;color:#aaa;margin-top:2px">'+leverage+'×</div>')}
         </div>
-        <div><div style="font-size:8px;color:#666;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">notional</div><div style="font-size:11px;font-weight:700;color:#888">$${notional.toLocaleString('en',{maximumFractionDigits:2})}</div></div>
-        <div><div style="font-size:8px;color:#666;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">margin</div><div style="font-size:11px;font-weight:700;color:#888">$${margin.toFixed(2)}</div></div>
+        <div><div style="font-size:8px;color:#666;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">proj. notional</div><div style="font-size:11px;font-weight:700;color:#888">$${notional.toLocaleString('en',{maximumFractionDigits:2})}</div></div>
+        <div><div style="font-size:8px;color:#666;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">proj. margin</div><div style="font-size:11px;font-weight:700;color:#888">$${margin.toFixed(2)}</div></div>
         <div><div style="font-size:8px;color:#666;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">target</div><div style="font-size:11px;font-weight:700;color:#00c47a">${tgt.toFixed(2)}%</div></div>
-        <div><div style="font-size:8px;color:#666;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">freq</div><div style="font-size:11px;font-weight:700;color:#888">${freq}× /mo</div></div>
-        <div id="lj-fee-cockpit-cell"><div style="font-size:8px;color:#666;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">fee</div>
-          <div style="font-size:11px;font-weight:700;color:#888" id="lj-fee-rate-val">${feeRate}% ${s.FEE.method}</div>
-          <div style="font-size:9px;color:#333;margin-top:1px" id="lj-fee-ex-val">${window._ljExchange||'binance'}</div>
+        <div>
+          <div style="font-size:8px;color:#5b7fff;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">actual notional</div>
+          <input type="number" id="lj-actual-not" placeholder="${notional.toFixed(2)}" step="0.01" min="0"
+            style="width:100%;background:#0a0a0a;border:1px solid #1e3a6a;border-radius:4px;padding:3px 5px;font-size:10px;font-weight:700;color:#5b7fff;font-family:inherit;-moz-appearance:textfield"
+            oninput="ljSyncActualMargin(this.value)">
+        </div>
+        <div id="lj-fee-cockpit-cell">
+          <div style="font-size:8px;color:#5b7fff;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">actual margin</div>
+          <input type="number" id="lj-actual-margin" placeholder="${margin.toFixed(2)}" step="0.01" min="0"
+            style="width:100%;background:#0a0a0a;border:1px solid #1e3a6a;border-radius:4px;padding:3px 5px;font-size:10px;font-weight:700;color:#5b7fff;font-family:inherit;-moz-appearance:textfield"
+            oninput="ljSyncActualNotional(this.value)">
+          <div style="font-size:8px;color:#555;font-weight:500;color:#888" id="lj-fee-rate-val">${feeRate}% ${s.FEE.method}</div>
         </div>
       </div>
       <!-- side toggle -->
@@ -7581,12 +7597,18 @@ async function ljConfirmLock(){
   const emotion=document.getElementById('lj-mood-select')?.value||'';
   const dateVal=document.getElementById('lj-close-dt')?.value||document.getElementById('lj-date')?.value||new Date().toISOString().slice(0,16);
 
-  // use simulated notional for this trade slot (carry-forward aware)
+  // use actual notional/margin if user overrode them, else fall back to sim
   const _simMonths=sim();
   const _simMo=_simMonths.find(x=>x.m===m);
   const _simTr=_simMo?_simMo.trades.find(t=>t.no===tno):null;
-  const notional=_simTr?_simTr.not:s.NOT;
-  const margin=_simTr?_simTr.am:(s.SPOT?s.NOT:s.NOT/leverage);
+  const _projNotional=_simTr?_simTr.not:s.NOT;
+  const _projMargin=_simTr?_simTr.am:(s.SPOT?s.NOT:s.NOT/leverage);
+  const _actualNotInput=parseFloat(document.getElementById('lj-actual-not')?.value||'')||0;
+  const _actualMarginInput=parseFloat(document.getElementById('lj-actual-margin')?.value||'')||0;
+  // bidirectional: if either is set, derive the other via leverage
+  const notional=_actualNotInput||(_actualMarginInput?(s.SPOT?_actualMarginInput:_actualMarginInput*leverage):_projNotional);
+  const margin=_actualMarginInput||(_actualNotInput?(s.SPOT?_actualNotInput:_actualNotInput/leverage):_projMargin);
+  const hasActualOverride=!!(_actualNotInput||_actualMarginInput);
   let grossPnl=0,feePaid=0,fundingPaid=0,netPnl=0,pct=0;
   if(entry&&exit){
     const priceDiff=side==='long'?exit-entry:entry-exit;
@@ -7648,7 +7670,10 @@ async function ljConfirmLock(){
     cockpit:{
       tab:TAB, month:m, tradeNo:tno,
       monthLabel:getML(m),
-      target:tr?tr.tgt:0, freq:tr?tr.freq:0,
+      target:tr?tr.tgt:0,
+      projNotional:_projNotional, actualNotional:_actualNotInput||null,
+      projMargin:_projMargin, actualMargin:_actualMarginInput||null,
+      hasActualOverride,
       feePaid:tr?tr.feePaid:0, netPnl:tr?tr.cp-(tr.feePaid||0):0,
       liq:tr?tr.liq:0, lev:leverage,
       mode:s.SPOT?'spot':'leverage',
@@ -8169,10 +8194,10 @@ function buildAssessment(months, s){
   const avgPct=act.length?act.reduce((a,r)=>a+r.pct,0)/act.length:0;
   const last=months[months.length-1];
   const cagr=isQ?null:(Math.pow(Math.max(last.nw,s.P)/s.P,1/3)-1)*100;
-  const mp=s.BT.reduce((a,t,i)=>a+(t!==0&&s.FR[i]>0?t*s.KPI/100*s.FR[i]:0),0)*100;
-  const actTr=s.BT.filter((t,i)=>t!==0&&s.FR[i]>0).length;
-  const wins=s.BT.filter((t,i)=>t>0&&s.FR[i]>0).length;
-  const losses=s.BT.filter((t,i)=>t<0&&s.FR[i]>0).length;
+  const mp=s.BT.reduce((a,t,i)=>a+(t!==0?t*s.KPI/100:0),0)*100;
+  const actTr=s.BT.filter(t=>t!==0).length;
+  const wins=s.BT.filter(t=>t>0).length;
+  const losses=s.BT.filter(t=>t<0).length;
   
   // risk score 0-100 (lower = safer) — different criteria for spot vs leverage
   let riskScore=0;
@@ -8187,7 +8212,7 @@ function buildAssessment(months, s){
     else if(feeRate>=0.05){riskScore+=10;}
     if(actTr<=3){riskScore+=25;riskReasons.push(_id?'hanya '+actTr+' trade aktif':'only '+actTr+' active trades');}
     else if(actTr<=5){riskScore+=10;}
-    const avgTgt=actTr?s.BT.filter((t,i)=>t>0&&s.FR[i]>0).reduce((a,t)=>a+t,0)/Math.max(wins,1):0;
+    const avgTgt=actTr?s.BT.filter(t=>t>0).reduce((a,t)=>a+t,0)/Math.max(wins,1):0;
     if(avgTgt>15){riskScore+=20;riskReasons.push(_id?'target agresif (avg '+avgTgt.toFixed(0)+'%)':'aggressive targets (avg '+avgTgt.toFixed(0)+'%)');}
     else if(avgTgt>8){riskScore+=8;}
     if(losses>=wins&&wins>0){riskScore+=20;riskReasons.push(_id?'lebih banyak loss dari win':'more losses than wins');}
@@ -8489,12 +8514,12 @@ function buildAssessmentCards(months, s){
 }
 // ── SEQ STATS (net result inc. losses) ──
 function seqStats(s){
-  const actTr=s.BT.filter((t,i)=>t!==0&&s.FR[i]>0).length;
-  const wins=s.BT.filter((t,i)=>t>0&&s.FR[i]>0).length;
-  const losses=s.BT.filter((t,i)=>t<0&&s.FR[i]>0).length;
-  const net=s.BT.reduce((a,t,i)=>a+(t!==0&&s.FR[i]>0?t*s.KPI/100*s.FR[i]:0),0)*100;
-  const upside=s.BT.reduce((a,t,i)=>a+(t>0&&s.FR[i]>0?t*s.KPI/100*s.FR[i]:0),0)*100;
-  const downside=s.BT.reduce((a,t,i)=>a+(t<0&&s.FR[i]>0?t*s.KPI/100*s.FR[i]:0),0)*100;
+  const actTr=s.BT.filter(t=>t!==0).length;
+  const wins=s.BT.filter(t=>t>0).length;
+  const losses=s.BT.filter(t=>t<0).length;
+  const net=s.BT.reduce((a,t)=>a+(t!==0?t*s.KPI/100:0),0)*100;
+  const upside=s.BT.reduce((a,t)=>a+(t>0?t*s.KPI/100:0),0)*100;
+  const downside=s.BT.reduce((a,t)=>a+(t<0?t*s.KPI/100:0),0)*100;
   return{actTr,wins,losses,net,upside,downside};
 }
 
@@ -8709,7 +8734,7 @@ function render(){
       <span id="spot-badge" class="spot-badge ${s.SPOT?'spot':'lev'}" style="margin:0;margin-right:8px;border-left:none;align-self:stretch;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:0 6px 6px 0">${s.SPOT?'◈ spot dashboard':'⚡ leverage dashboard'}<span class="spot-badge-sub">current mode</span></span>
     </div>
     <div class="top-panel-body" id="top-panel-body" style="max-height:2000px;opacity:1"><div class="top-panel-body-inner">${topBody}</div></div>
-  </div>`+togH+`<div class="tw"><table id="tbl"></table></div><div id="guide-content" style="display:none"></div><p class="ft">${LANG==='id'?'liq% = akun ÷ notional × 100 · lebih tinggi = lebih aman · target atau freq = 0 → trade dilewati':'liq% = account ÷ notional × 100 · higher = safer · 0 target or freq = trade skipped'}</p>`;
+  </div>`+togH+`<div class="tw"><table id="tbl"></table></div><div id="guide-content" style="display:none"></div><p class="ft">${LANG==='id'?'liq% = akun ÷ notional × 100 · lebih tinggi = lebih aman · target = 0 → trade dilewati':'liq% = account ÷ notional × 100 · higher = safer · set target = 0 to skip trade'}</p>`;
   _applyTopPanel();
 
   // if chart already exists, transplant the live canvas back in so we don't recreate it
@@ -8920,7 +8945,6 @@ function renderTbl(months){
       <th style="width:6%">${s.SPOT?'—':'fm%'}</th>
       <th style="width:6%">${s.SPOT?'◈':'liq%'}</th>
       <th style="width:7%">target%</th>
-      <th style="width:5%">freq</th>
       <th style="width:8%">gross profit<br><span style="font-weight:400;font-size:7px;text-transform:none;color:var(--tx3)">single trade</span></th>
       <th style="width:8%">combine<br><span style="font-weight:400;font-size:7px;text-transform:none;color:var(--tx3)">pnl pre-fee</span></th>
       <th style="width:7%;color:#E24B4A">fee paid</th>
@@ -9015,7 +9039,6 @@ function renderTbl(months){
         <td style="font-size:7px;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2)">${s.SPOT?'—':'fm%'}</td>
         <td style="font-size:7px;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2)">${s.SPOT?'◈':'liq%'}</td>
         <td style="font-size:7px;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2)">tgt%</td>
-        <td style="font-size:7px;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2)">freq</td>
         <td style="font-size:7px;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2)">gross</td>
         <td style="font-size:7px;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2)">pnl pre-fee</td>
         <td style="font-size:7px;color:#E24B4A;text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2)">fee</td>
@@ -9034,11 +9057,10 @@ function renderTbl(months){
               <td style="padding-left:8px;text-align:left"><input class="lbl-in lbl-trade" value="${tLabel}" placeholder="trade ${t.no}..." onchange="onTradeLabel(${mo.m},${t.no},this.value)" onclick="this.select()"></td>
               <td colspan="4" style="color:var(--tx3);font-size:9px;font-style:italic">skipped</td>
               <td><div class="tg-cell" style="width:54px"><button class="tg-btn" onclick="manStep('bt',${mo.m},${t.no-1},-0.5)" tabindex="-1">−</button><input type="number" id="mbt-${mo.m}-${t.no-1}" value="${btVal}" min="-500" max="500" step="0.5" placeholder="tgt%" style="flex:1;min-width:0;padding:1px 0;font-size:9px;text-align:center;border:none;background:transparent;color:var(--acc);font-weight:700;-moz-appearance:textfield" oninput="dInput(this,v=>onManualBT(${mo.m},${t.no-1},v),400)"><button class="tg-btn" onclick="manStep('bt',${mo.m},${t.no-1},0.5)" tabindex="-1">+</button></div></td>
-              <td><div class="tg-cell fi" style="width:48px;border-color:var(--acc2)"><button class="tg-btn" style="color:var(--acc2)" onclick="manStep('fr',${mo.m},${t.no-1},-1)" tabindex="-1">−</button><input type="number" id="mfr-${mo.m}-${t.no-1}" value="${frVal}" min="0" max="20" step="1" placeholder="freq" style="flex:1;min-width:0;padding:1px 0;font-size:9px;text-align:center;border:none;background:transparent;color:var(--acc2);font-weight:700;-moz-appearance:textfield" oninput="onManualFR(${mo.m},${t.no-1},this.value)"><button class="tg-btn" style="color:var(--acc2)" onclick="manStep('fr',${mo.m},${t.no-1},1)" tabindex="-1">+</button></div></td>
-              <td colspan="7" style="color:var(--tx3);font-size:9px;text-align:center;font-style:italic">set both > 0 to activate</td>
+              <td colspan="8" style="color:var(--tx3);font-size:9px;text-align:center;font-style:italic">set target > 0 to activate</td>
             </tr>`;
           } else {
-            h+=`<tr class="skip-row"><td style="padding-left:10px;text-align:left;color:var(--tx3);font-size:9px">${tLabel}</td><td colspan="12" style="text-align:center"><span class="sk">skipped · 0 target or freq</span></td></tr>`;
+            h+=`<tr class="skip-row"><td style="padding-left:10px;text-align:left;color:var(--tx3);font-size:9px">${tLabel}</td><td colspan="11" style="text-align:center"><span class="sk">skipped · target = 0</span></td></tr>`;
           }
           return;
         }
@@ -9053,7 +9075,6 @@ function renderTbl(months){
         // outcome class: green=hit or exceeded, red=miss/loss, orange=partial
         let outcomeClass='';
         if(lk&&ha){
-          const actLev=t.actualCp!==null?((t.actualCp+t.actualFee)/t.not*100*t.freq):null; // rough actual levered %
           if(t.actualCp>=0&&t.tgt>0&&(t.actualCp+t.actualFee)>=(t.projCp*0.9)) outcomeClass='actual-hit';
           else if(t.actualCp>=0) outcomeClass='actual-neutral';
           else outcomeClass='actual-miss';
@@ -9087,13 +9108,9 @@ function renderTbl(months){
             :(!GLOBAL_MODE
               ?'<div class="tg-cell" style="width:54px"><button class="tg-btn" onclick="manStep(\'bt\','+mo.m+','+(t.no-1)+',-0.5)" tabindex="-1">−</button><input type="number" id="mbt-'+mo.m+'-'+(t.no-1)+'" value="'+((gs().MT[mo.m]?.bt[t.no-1]??t.tgt/s.KPI)).toFixed(1)+'" min="-500" max="500" step="0.5" style="flex:1;min-width:0;padding:1px 0;font-size:9px;text-align:center;border:none;background:transparent;color:var(--acc);font-weight:700;-moz-appearance:textfield" oninput="dInput(this,v=>onManualBT('+mo.m+','+(t.no-1)+',v),400)"><button class="tg-btn" onclick="manStep(\'bt\','+mo.m+','+(t.no-1)+',0.5)" tabindex="-1">+</button></div>'
               :t.tgt.toFixed(2)+'%')}</td>
-          <td>${lk
-            ?'<span class="locked-overlay" style="color:var(--tx2);font-size:9px">'+t.freq+'×</span>'
-            :(!GLOBAL_MODE
-              ?'<div class="tg-cell fi" style="width:48px;border-color:var(--acc2)"><button class="tg-btn" style="color:var(--acc2)" onclick="manStep(\'fr\','+mo.m+','+(t.no-1)+',-1)" tabindex="-1">−</button><input type="number" id="mfr-'+mo.m+'-'+(t.no-1)+'" value="'+(gs().MT[mo.m]?.fr[t.no-1]??t.freq)+'" min="0" max="20" step="1" style="flex:1;min-width:0;padding:1px 0;font-size:9px;text-align:center;border:none;background:transparent;color:var(--acc2);font-weight:700;-moz-appearance:textfield" oninput="onManualFR('+mo.m+','+(t.no-1)+',this.value)"><button class="tg-btn" style="color:var(--acc2)" onclick="manStep(\'fr\','+mo.m+','+(t.no-1)+',1)" tabindex="-1">+</button></div>'
-              :'<span style="color:var(--tx2)">'+t.freq+'×</span>')}</td>
+
           <td style="color:${t.tgt<0?'#E24B4A':'var(--acc2)'}">
-            ${ha?ba(fmt(t.projCp/Math.max(t.freq,1)),fmt((actNetPnl+actFee)/Math.max(t.freq,1)),actNetPnl+actFee>=0?'#00c47a':'#E24B4A'):(t.tgt>=0?'+':'')+fmt(t.sp)}
+            ${ha?ba(fmt(t.projCp),fmt(actNetPnl+actFee),actNetPnl+actFee>=0?'#00c47a':'#E24B4A'):(t.tgt>=0?'+':'')+fmt(t.sp)}
           </td>
           <td style="color:${t.tgt<0?'#E24B4A':'var(--acc2)'};font-weight:600">
             ${ha?ba((t.projCp>=0?'+':'')+fmt(t.projCp),(actNetPnl+actFee>=0?'+':'')+fmt(actNetPnl+actFee),actNetPnl+actFee>=0?'#00c47a':'#E24B4A'):(t.tgt>=0?'+':'')+fmt(t.cp)}
