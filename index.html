@@ -1025,7 +1025,9 @@ body.t-lavender{--bg:#f0eef8;--panel:#fff;--bd:#d8d4f0;--bd2:#e4e0f4;--sf:#f8f6f
 .panel-trade.collapsed .pt-body{display:none}
 .pt-body{padding-bottom:16px}
 .pt-head{padding:9px 10px 7px;border-bottom:0.5px solid var(--bd2);display:flex;flex-direction:column;gap:3px}
-.panel-right{flex:1;height:100vh;overflow-y:auto;background:var(--bg);padding:52px 14px 24px 14px;transition:background .25s;min-width:0;scrollbar-width:none}
+.panel-right{flex:1;height:100vh;overflow-y:auto;background:var(--bg);padding:52px 0 24px 0;transition:background .25s;min-width:0;scrollbar-width:none}
+#right-content{padding:0 14px}
+.tw{overflow-x:auto;margin:0 -14px}
 .panel-right::-webkit-scrollbar{display:none}
 #right-content{transition:opacity .15s ease}
 
@@ -1315,7 +1317,7 @@ body.t-dark tr.wipe-row>td{background:#2a0a0a!important;color:#ff7070!important}
 
 /* table */
 .tw{overflow-x:auto;margin:0 -14px}
-table{border-collapse:collapse;font-size:10px;width:100%;min-width:960px;background:var(--panel);border-radius:0;overflow:hidden;border:0.5px solid var(--bd2);transition:background .25s}
+table{border-collapse:collapse;font-size:10px;width:100%;min-width:860px;background:var(--panel);border-radius:0;overflow:hidden;border:0.5px solid var(--bd2);transition:background .25s}
 th{padding:5px 5px;background:var(--sf2);border-bottom:0.5px solid var(--bd2);font-weight:700;font-size:8px;color:var(--tx2);text-align:right;white-space:normal;letter-spacing:.03em;text-transform:uppercase;line-height:1.3;position:sticky;top:0;z-index:10}
 th:first-child{text-align:left}
 td{padding:4px 5px;border-bottom:0.5px solid var(--bd2);text-align:right;white-space:nowrap;color:var(--tx);font-size:10px}
@@ -8860,7 +8862,6 @@ function renderTbl(months){
           <td><input class="lbl-sum" value="${getML(mo.m)}" placeholder="${mo.lb}" onchange="onMonthLabel(${mo.m},this.value)" onclick="event.stopPropagation();this.select()"></td>
           <td>${fmt(mo.sA)}</td>
           <td colspan="9" style="text-align:center;font-size:10px;color:var(--tx3)">⊘ zero month · no trades · <span style="color:var(--acc);font-size:9px">click to activate</span></td>
-          <td></td>
         </tr>`;
         return;
       }
@@ -8931,18 +8932,17 @@ function renderTbl(months){
   } else {
     h=`<thead><tr>
       <th style="text-align:left;width:10%">trade</th>
-      <th style="width:7%">${s.SPOT?'position size':'notional'}</th>
-      <th style="width:6%">${s.SPOT?'pos size':'margin'}</th>
-      <th style="width:5%">${s.SPOT?'—':'fm%'}</th>
-      <th style="width:5%">${s.SPOT?'◈':'liq%'}</th>
-      <th style="width:6%;text-align:center">target%</th>
-      <th style="width:7%">gross profit<br><span style="font-weight:400;font-size:7px;text-transform:none;color:var(--tx3)">single trade</span></th>
-      <th style="width:7%">combine<br><span style="font-weight:400;font-size:7px;text-transform:none;color:var(--tx3)">pnl pre-fee</span></th>
-      <th style="width:6%;color:#E24B4A">fee paid</th>
-      <th style="width:8%;color:var(--acc2)">net pnl<br><span style="font-weight:400;font-size:7px;text-transform:none;color:var(--acc2);opacity:.8">post-fee</span></th>
-      <th style="width:7%;color:var(--tx2)">acct bal<br><span style="font-weight:400;font-size:7px;text-transform:none">${s.SPOT?'gross':'pre-fee'}</span></th>
-      <th style="width:8%;color:var(--acc2)">acct bal<br><span style="font-weight:400;font-size:7px;text-transform:none">post-fee</span></th>
-      <th style="width:5%">note</th>
+      <th style="width:8%">${s.SPOT?'position size':'notional'}</th>
+      <th style="width:7%">${s.SPOT?'pos size':'margin'}</th>
+      <th style="width:6%">${s.SPOT?'—':'fm%'}</th>
+      <th style="width:6%">${s.SPOT?'◈':'liq%'}</th>
+      <th style="width:7%;text-align:center">target%</th>
+      <th style="width:8%">gross profit<br><span style="font-weight:400;font-size:7px;text-transform:none;color:var(--tx3)">single trade</span></th>
+      <th style="width:8%">combine<br><span style="font-weight:400;font-size:7px;text-transform:none;color:var(--tx3)">pnl pre-fee</span></th>
+      <th style="width:7%;color:#E24B4A">fee paid</th>
+      <th style="width:9%;color:var(--acc2)">net pnl<br><span style="font-weight:400;font-size:7px;text-transform:none;color:var(--acc2);opacity:.8">post-fee</span></th>
+      <th style="width:8%;color:var(--tx2)">acct bal<br><span style="font-weight:400;font-size:7px;text-transform:none">${s.SPOT?'gross':'pre-fee'}</span></th>
+      <th style="width:9%;color:var(--acc2)">acct bal<br><span style="font-weight:400;font-size:7px;text-transform:none">post-fee</span></th>
     </tr></thead><tbody>`;
     months.forEach(mo=>{
       if(mo.isZ){
@@ -8970,7 +8970,6 @@ function renderTbl(months){
           <td colspan="2" style="padding:6px 5px;text-align:right">
             <input type="number" class="wd-inp active" id="wd-inp-d-${mo.m}" value="${mo.wd||''}" min="0" step="1" placeholder="0" onchange="onWdInline(${mo.m},this.value)" onblur="onWdInline(${mo.m},this.value)" style="width:60px;border-color:#8B5CF6;background:#2a0a4a;color:#c084fc;font-weight:700">
           </td>
-          <td></td>
         </tr>`;
         return;
       }
@@ -9038,7 +9037,6 @@ function renderTbl(months){
         <td style="font-size:7px;color:var(--acc2);text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2)">net pnl</td>
         <td style="font-size:7px;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2)">bal pre-fee</td>
         <td style="font-size:7px;color:var(--acc2);text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2)">bal post-fee</td>
-        <td style="font-size:7px;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2)">note</td>
       </tr>`;
       mo.trades.forEach(t=>{
         const tLabel=getTL(mo.m,t.no);
@@ -9051,10 +9049,9 @@ function renderTbl(months){
               <td colspan="4" style="color:var(--tx3);font-size:9px;font-style:italic">skipped</td>
               <td><div class="tg-cell" style="width:54px"><button class="tg-btn" onclick="manStep('bt',${mo.m},${t.no-1},-0.5)" tabindex="-1">−</button><input type="number" id="mbt-${mo.m}-${t.no-1}" value="${btVal}" min="-500" max="500" step="0.5" placeholder="tgt%" style="flex:1;min-width:0;padding:1px 0;font-size:9px;text-align:center;border:none;background:transparent;color:var(--acc);font-weight:700;-moz-appearance:textfield" oninput="dInput(this,v=>onManualBT(${mo.m},${t.no-1},v),400)"><button class="tg-btn" onclick="manStep('bt',${mo.m},${t.no-1},0.5)" tabindex="-1">+</button></div></td>
               <td colspan="8" style="color:var(--tx3);font-size:9px;text-align:center;font-style:italic">set target > 0 to activate</td>
-              <td></td>
             </tr>`;
           } else {
-            h+=`<tr class="skip-row"><td style="padding-left:10px;text-align:left;color:var(--tx3);font-size:9px">${tLabel}</td><td colspan="11" style="text-align:center"><span class="sk">skipped · target = 0</span></td><td></td></tr>`;
+            h+=`<tr class="skip-row"><td style="padding-left:10px;text-align:left;color:var(--tx3);font-size:9px">${tLabel}</td><td colspan="11" style="text-align:center"><span class="sk">skipped · target = 0</span></td></tr>`;
           }
           return;
         }
@@ -9121,7 +9118,6 @@ function renderTbl(months){
             ${ha?ba(fmt(t.projAccAF),fmt(t.accAF),t.accAF>=mo.sA?'var(--acc2)':'#E24B4A'):(fmt(t.accAF))}
             ${s.SPOT?'':'<div style="font-size:7px;color:'+liqAFc+'">liq '+liqAF.toFixed(0)+'%</div>'}
           </td>
-          <td></td>
         </tr>`;
       });
       // month end separator — colored bar + spacer before next month
