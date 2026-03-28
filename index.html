@@ -7112,6 +7112,21 @@ async function ljFetchFunding(manual){
   ljCalc();
 }
 
+function ljFormatMoneyInput(el){
+  const raw=el.value.replace(/[^0-9.]/g,"");
+  const num=parseFloat(raw)||0;
+  el.dataset.raw=num>0?raw:"";
+  if(!raw){el.value="";return;}
+  // format with commas, keep decimals as typed
+  const parts=raw.split(".");
+  parts[0]=parts[0].replace(/\B(?=(\d{3})+(?!\d))/g,",");
+  const cursorFromEnd=el.value.length-el.selectionEnd;
+  el.value=parts.join(".");
+  // restore cursor position
+  const newPos=el.value.length-cursorFromEnd;
+  el.setSelectionRange(newPos,newPos);
+}
+
 function ljSyncActualMargin(notVal){
   const s=gs();
   const leverage=s.SPOT?1:s.LEV;
@@ -7275,9 +7290,9 @@ function ljShowLockModal(m, tno, draft=null){
         </div>
         <div>
           <div style="font-size:8px;color:#5b7fff;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">actual notional</div>
-          <input type="number" id="lj-actual-not" placeholder="${notional.toFixed(2)}" step="0.01" min="0"
-            style="width:100%;background:#0a0a0a;border:1px solid #1e3a6a;border-radius:4px;padding:3px 5px;font-size:10px;font-weight:700;color:#5b7fff;font-family:inherit;-moz-appearance:textfield"
-            oninput="ljSyncActualMargin(this.value)">
+          <input type="text" id="lj-actual-not" placeholder="${notional.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}" inputmode="decimal"
+            style="width:100%;background:#0a0a0a;border:1px solid #1e3a6a;border-radius:4px;padding:3px 5px;font-size:10px;font-weight:700;color:#5b7fff;font-family:inherit"
+            oninput="ljFormatMoneyInput(this);ljSyncActualMargin(this.dataset.raw);ljCalc()">
         </div>
         <div id="lj-fee-cockpit-cell">
           <div style="font-size:8px;color:#5b7fff;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">actual margin</div>
@@ -7654,8 +7669,11 @@ function ljCalc(){
   const _months=sim();
   const _mo=_months.find(x=>x.m===m);
   const _tr=_mo?_mo.trades.find(t=>t.no===tno):null;
-  const notional=_tr?_tr.not:s.NOT;
-  const margin=_tr?_tr.am:(s.SPOT?s.NOT:s.NOT/leverage);
+  const _simNotional=_tr?_tr.not:s.NOT;
+  const _simMargin=_tr?_tr.am:(s.SPOT?s.NOT:s.NOT/leverage);
+  const _actualNotInput=parseFloat(document.getElementById('lj-actual-not')?.dataset.raw||'')||0;
+  const notional=_actualNotInput>0?_actualNotInput:_simNotional;
+  const margin=_actualNotInput>0?(_actualNotInput/leverage):_simMargin;
   // spot: price always goes up or down regardless of side label — only long makes sense
   const priceDiff=s.SPOT?(exit-entry):(side==='long'?exit-entry:entry-exit);
   const grossPnl=(priceDiff/entry)*notional;
@@ -7902,7 +7920,7 @@ async function ljConfirmLock(){
   const _simTr=_simMo?_simMo.trades.find(t=>t.no===tno):null;
   const _projNotional=_simTr?_simTr.not:s.NOT;
   const _projMargin=_simTr?_simTr.am:(s.SPOT?s.NOT:s.NOT/leverage);
-  const _actualNotInput=parseFloat(document.getElementById('lj-actual-not')?.value||'')||0;
+  const _actualNotInput=parseFloat(document.getElementById('lj-actual-not')?.dataset.raw||'')||0;
   // actual margin is always derived from actual notional
   const notional=_actualNotInput||_projNotional;
   const margin=_actualNotInput?(s.SPOT?_actualNotInput:_actualNotInput/leverage):_projMargin;
