@@ -3743,7 +3743,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 
   <!-- leverage -->
   <div class="sec-head" data-sec="sec-lev" onclick="toggleSec('sec-lev')">
-    <div class="seclbl">leverage · spot mode</div>
+    <div class="seclbl">leverage · spot mode <span id="lev-lock-badge" style="display:none;font-size:7px;color:#555;background:#1a1a1a;border:1px solid #252525;border-radius:3px;padding:1px 5px;margin-left:4px;font-weight:600;vertical-align:middle">🔒 preset</span></div>
     <span class="sec-toggle">▾</span>
   </div>
   <div class="sec-body" id="sec-lev">
@@ -3780,7 +3780,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 
   <!-- capital -->
   <div class="sec-head" data-sec="sec-cap" onclick="toggleSec('sec-cap')">
-    <div class="seclbl">starting capital</div>
+    <div class="seclbl">starting capital <span id="cap-lock-badge" style="display:none;font-size:7px;color:#555;background:#1a1a1a;border:1px solid #252525;border-radius:3px;padding:1px 5px;margin-left:4px;font-weight:600;vertical-align:middle">🔒 preset</span></div>
     <span class="sec-toggle">▾</span>
   </div>
   <div class="sec-body" id="sec-cap">
@@ -3818,7 +3818,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
   <!-- notional -->
   <div class="sec-head" data-sec="sec-not" style="--arrow-rot:-90deg" onclick="toggleSec('sec-not')">
     <div style="display:flex;align-items:center;gap:6px">
-      <div class="seclbl" style="margin-bottom:0">notional (trade 1)</div>
+      <div class="seclbl" style="margin-bottom:0">notional (trade 1) <span id="not-lock-badge" style="display:none;font-size:7px;color:#555;background:#1a1a1a;border:1px solid #252525;border-radius:3px;padding:1px 5px;margin-left:4px;font-weight:600;vertical-align:middle">🔒 preset</span></div>
       <span style="font-size:8px;color:var(--tx3)">link</span>
       <button id="not-link-btn" onclick="event.stopPropagation();toggleNotLink()" title="link notional to capital" style="font-size:9px;padding:3px 10px;border-radius:10px;border:0.5px solid var(--bd2);background:var(--sf2);color:var(--tx3);cursor:pointer;font-weight:700;transition:all .2s;letter-spacing:.03em">off</button>
       <span style="font-size:8px;color:var(--tx3)">carry</span>
@@ -5155,6 +5155,32 @@ function syncControls(){
     if(bt)bt.value=s.BT[i];
     if(fr)fr.value=s.FR[i];
   }
+  // ── preset lock visual — dim capital/leverage/notional when preset active ──
+  const isPreset=!!window._ACTIVE_PRESET;
+  const lockIds=['cap-in','cap-sl','lv-in','lv-sl','not-in','not-sl'];
+  lockIds.forEach(id=>{
+    const el=document.getElementById(id);
+    if(!el) return;
+    el.style.opacity=isPreset?'0.35':'';
+    el.style.pointerEvents=isPreset?'none':'';
+  });
+  // dim preset quick-pick buttons
+  ['#cap-prs','#lv-prs','#not-prs'].forEach(sel=>{
+    document.querySelectorAll(sel+' .pr').forEach(b=>{
+      b.style.opacity=isPreset?'0.3':'';
+      b.style.pointerEvents=isPreset?'none':'';
+    });
+  });
+  // dim value labels
+  ['cap-vl','lv-vl','not-vl'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.style.opacity=isPreset?'0.4':'';
+  });
+  // show/hide lock indicator on section headers
+  ['cap-lock-badge','lev-lock-badge','not-lock-badge'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.style.display=isPreset?'inline':'none';
+  });
   // preset buttons
   document.querySelectorAll('#cap-prs .pr').forEach(b=>{
     const txt=b.textContent.trim().replace('$','');
@@ -8293,80 +8319,32 @@ function buildAssessment(months, s){
 
 // 36-month side panel: 3-col × 2-row, 6 precision cards, aligns flush with chart
 function buildAssessmentCards(months, s){
-  // wipe state — funny cards
-  if(IS_WIPED){
-    const fmVal = s.NOT/s.LEV/s.P*100;
-    const isFmError = fmVal > 100;
-    const wipeFunny= isFmError ? [
-      ['risk score',   '🚫 invalid',       'position rejected'],
-      ['FM%',          fmVal.toFixed(0)+'%', 'margin > capital'],
-      ['leverage',     s.LEV+'×',          'need higher lev'],
-      ['avg monthly',  'n/a',              'can\'t even start'],
-      ['3yr CAGR',     'error 404',        'fix FM% first'],
-      ['lifespan',     '0 seconds',        'exchange says no'],
-      ['net seq',      'denied',           'increase lev or cap'],
-      ['verdict',      'fix FM% ≤100%',    'margin exceeds account'],
-    ] : [
-      ['risk score',   '💀 infinite',      'broke the universe'],
-      ['liq% buffer',  '0.0%',             'any move = instant wipe'],
-      ['leverage',     s.LEV+'×',          'the murder weapon'],
-      ['avg monthly',  'theoretical',      'none of this is real'],
-      ['3yr CAGR',     'lmao',             'reduce notional first'],
-      ['lifespan',     'milliseconds',     'one bad tick = gone'],
-      ['net seq',      '+15.0% in theory', 'irrelevant rn'],
-      ['verdict',      'fix liq% first',   'notional > account'],
-    ];
-    return '<div class="sc-grid" style="grid-template-columns:repeat(4,1fr);height:100%;background:#2a0a0a;border-color:#7a0000">'+
-      wipeFunny.map(([l,v,sub])=>`<div class="sc-item" style="background:#2a0a0a;border-color:#3a0a0a"><div class="sc-lbl" style="color:#E24B4A">${l}</div><div class="sc-val" style="color:#ff7070;font-size:11px">${v}</div><div class="sc-sub" style="color:#A32D2D">${sub}</div></div>`).join('')+
-    '</div>';
-  }
-  // bust state — funny cards
-  if(bustMonth){
-    const bustCards=[
-      ['risk score',  '💀 busted',        'you withdrew the vibe'],
-      ['liq% buffer', 'wallet empty',      'not a liq problem'],
-      ['mode',        s.SPOT?'◈ spot':'⚡ '+s.LEV+'×', s.SPOT?'no lev · wd did this':'innocent bystander'],
-      ['avg monthly', 'one good run',      'then chaos'],
-      ['3yr CAGR',    'negative memory',   'account + regrets'],
-      ['lifespan',    'flatlined',         'stopped at '+getML(bustMonth.m)],
-      ['net seq',     'pointless now',     'fix the wd first'],
-      ['verdict',     'go fix m'+bustMonth.m, 'withdrawal > balance'],
-    ];
-    return '<div class="sc-grid" style="grid-template-columns:repeat(4,1fr);height:100%;background:#1a0a2e;border-color:#8B5CF6">'+
-      bustCards.map(([l,v,sub])=>`<div class="sc-item" style="background:#1a0a2e;border-color:#2a0a4a"><div class="sc-lbl" style="color:#8B5CF6">${l}</div><div class="sc-val" style="color:#c084fc;font-size:11px">${v}</div><div class="sc-sub" style="color:#6B21A8">${sub}</div></div>`).join('')+
-    '</div>';
-  }
   const isSpot=s.SPOT||false;
-  const liqT1=isSpot?100:s.P/s.NOT*100;
+  const liqT1=isSpot?999:s.P/s.NOT*100;
   const fm=isSpot?100:s.NOT/s.LEV/s.P*100;
+  const margin=isSpot?s.P:s.NOT/s.LEV;
+  const feeRate=s.FEE.method==='maker'?s.FEE.maker:s.FEE.taker;
+  const feePerTrade=s.NOT*feeRate/100*2;
+  const {actTr,wins,losses,net:mp}=seqStats(s);
   const act=months.filter(r=>!r.isZ);
-  const avgPct=act.length?act.reduce((a,r)=>a+r.pct,0)/act.length:0;
   const last=months[months.length-1];
   const cagr=(Math.pow(Math.max(last.nw,s.P)/s.P,1/3)-1)*100;
-  const {actTr,wins,losses,net:mp}=seqStats(s);
+
+  // risk score
   let rs=0,rr=[];
   if(isSpot){
-    const feeRate=(s.FEE.method==='maker'?s.FEE.maker:s.FEE.taker);
-    if(feeRate>=0.1){rs+=20;rr.push(LANG==='id'?'biaya spot tinggi ('+feeRate+'%)':'high spot fee ('+feeRate+'%)');}
-    else if(feeRate>=0.05){rs+=10;}
-    if(actTr<=3){rs+=25;rr.push(LANG==='id'?'hanya '+actTr+' trade aktif':'only '+actTr+' active trades');}
-    else if(actTr<=5){rs+=10;}
-    const avgTgt=actTr?s.BT.filter((t,i)=>t>0&&s.FR[i]>0).reduce((a,t)=>a+t,0)/Math.max(wins,1):0;
-    if(avgTgt>15){rs+=20;rr.push(LANG==='id'?'target agresif (avg '+avgTgt.toFixed(0)+'%)':'aggressive targets (avg '+avgTgt.toFixed(0)+'%)');}
-    else if(avgTgt>8){rs+=8;}
-    if(losses>=wins&&wins>0){rs+=20;rr.push(LANG==='id'?'lebih banyak loss dari win':'more losses than wins');}
-    else if(losses>0&&losses>=wins*0.5){rs+=8;}
-    if(mp<0){rs+=15;rr.push(LANG==='id'?'net sekuens negatif':'negative net sequence');}
+    if(feeRate>=0.1){rs+=20;rr.push('high spot fee ('+feeRate+'%)');}
+    if(actTr<=3){rs+=25;rr.push('only '+actTr+' active trades');}
+    if(mp<0){rs+=15;rr.push('negative net sequence');}
   } else {
-    if(liqT1<20){rs+=40;rr.push(LANG==='id'?'buffer liq kritis (<20%)':'liq buffer critical (<20%)');}
-    else if(liqT1<35){rs+=25;rr.push(LANG==='id'?'buffer liq sempit (<35%)':'liq buffer tight (<35%)');}
+    if(liqT1<20){rs+=40;rr.push('liq buffer critical (<20%)');}
+    else if(liqT1<35){rs+=25;rr.push('liq buffer tight (<35%)');}
     else if(liqT1<50){rs+=10;}
-    if(s.LEV>=25){rs+=25;rr.push(LANG==='id'?'leverage sangat tinggi (≥25×)':'very high leverage (≥25×)');}
+    if(s.LEV>=25){rs+=25;rr.push('very high leverage (≥25×)');}
     else if(s.LEV>=20){rs+=15;}else if(s.LEV>=15){rs+=8;}
-    if(fm>40){rs+=20;rr.push(LANG==='id'?'margin >40% dari akun':'margin >40% of account');}
+    if(fm>40){rs+=20;rr.push('margin >40% of account');}
     else if(fm>25){rs+=10;}else if(fm>15){rs+=4;}
-    if(actTr<=3){rs+=10;rr.push(LANG==='id'?'hanya '+actTr+' trade aktif':'only '+actTr+' active trades');}
-    else if(actTr<=5){rs+=4;}
+    if(actTr<=3){rs+=10;rr.push('only '+actTr+' active trades');}
   }
   rs=Math.min(100,rs);
   let rlKey,rc2,re;
@@ -8374,54 +8352,125 @@ function buildAssessmentCards(months, s){
   else if(rs<=45){rlKey='MODERATE';rc2='rp-med';re='⚡';}
   else if(rs<=70){rlKey='HIGH';rc2='rp-high';re='⚠';}
   else{rlKey='EXTREME';rc2='rp-extreme';re='✕';}
-  const rl=t('rl_'+rlKey);
+  const riskLabel=t('rl_'+rlKey);
   const liqC=liqT1>=60?'#1D9E75':liqT1>=40?'#EF9F27':'#E24B4A';
-  const riskC=rs<=20?'#1D9E75':rs<=45?'#EF9F27':rs<=70?'#E24B4A':'#7a0000';
-  // lifespan estimate — leverage only
+  const liqW=Math.min(liqT1,100);
+  const tooltip=rr.length?rr.join(' · '):t('verdict_solid');
+
+  // lifespan
   let av='n/a',as2='spot mode',ac='#5DC96A';
   if(!isSpot){
     const liqF=Math.pow(liqT1/100,2),levF=Math.max(0.1,s.LEV/10),fmF=Math.max(0.1,fm/20);
     const sv=liqF/levF/fmF;
     if(sv<0.001){av='minutes';as2='one bad candle ends it';ac='#A32D2D';}
     else if(sv<0.01){av='hours';as2='extremely fragile';ac='#A32D2D';}
-    else if(sv<0.05){av='days';as2='volatile session gone';ac='#E24B4A';}
-    else if(sv<0.15){av='weeks';as2='dangerous tighten risk';ac='#EF9F27';}
-    else if(sv<0.5){av='months';as2='manageable stay sharp';ac='#EF9F27';}
-    else if(sv<1.5){av='~1 year';as2='solid respect the plan';ac='#1D9E75';}
+    else if(sv<0.05){av='days';as2='volatile session → gone';ac='#E24B4A';}
+    else if(sv<0.15){av='weeks';as2='dangerous · tighten risk';ac='#EF9F27';}
+    else if(sv<0.5){av='months';as2='manageable, stay sharp';ac='#EF9F27';}
+    else if(sv<1.5){av='~1 year';as2='solid · respect the plan';ac='#1D9E75';}
     else if(sv<5){av='years';as2='disciplined trader energy';ac='#1D9E75';}
     else if(sv<12){av='a decade';as2='institutional grade';ac='#185FA5';}
     else{av='generational';as2='almost unliquidatable';ac='#185FA5';}
   }
-  const tooltip=rr.length?rr.join(' · '):t('verdict_solid');
-  // Use global IS_WIPED for error state in indicator cards
-  const _wiped=IS_WIPED;
-  const bk=(pct,col)=>_wiped?'':`<div style="width:100%;height:3px;background:var(--bd2);overflow:hidden;margin-top:3px"><div style="width:${Math.min(pct,100)}%;height:100%;background:${col}"></div></div>`;
-  const c=(lbl,valH,sub,ex='')=>_wiped?`<div class="sc-item"><div class="sc-lbl">${lbl}</div><div class="sc-val wipe-val">wiped</div><div class="sc-sub" style="color:#E24B4A">— invalid —</div></div>`:`<div class="sc-item"><div class="sc-lbl">${lbl}</div>${valH}<div class="sc-sub">${sub}</div>${ex}</div>`;
   const tAge=t('age_'+av);
+  const ageVal=tAge!==('age_'+av)?tAge:av;
   const tAgeSub=t('age_sub_'+av);
-  const cards=isSpot?[
-    c(t('sc_risk'),'<div class="sc-val"><span class="risk-pill '+rc2+'">'+re+' '+rl+'</span></div>',rs+'/100',bk(rs,riskC)),
-    c('◈ spot mode','<div class="sc-val" style="color:#5DC96A">no liq%</div>','no liquidation risk'),
-    c('fee method','<div class="sc-val" style="color:var(--acc2)">'+s.FEE.method+'</div>','×2 per trade · open+close'),
-    c(t('sc_avg'),'<div class="sc-val">'+avgPct.toFixed(1)+'%</div>',t('sc_avg_sub')),
-    c(t('sc_cagr'),'<div class="sc-val" style="color:#BA7517">'+cagr.toFixed(1)+'%</div>',t('sc_cagr_sub')),
-    c('total return','<div class="sc-val" style="color:var(--acc2)">+'+(((last.nw/s.P)-1)*100).toFixed(1)+'%</div>','account + banked'),
-    c(t('sc_seq'),'<div class="sc-val" style="color:'+(mp>=0?'#1D9E75':'#E24B4A')+'">'+(mp>0?'+':'')+mp.toFixed(1)+'%</div>',wins+'W/'+losses+'L · '+actTr+'/10'),
-    c(t('sc_verdict'),'<div class="sc-val" style="font-size:10px;color:var(--tx2);line-height:1.3;white-space:normal;font-weight:600">'+tooltip+'</div>',''),
-  ]:[
-    c(t('sc_risk'),'<div class="sc-val"><span class="risk-pill '+rc2+'">'+re+' '+rl+'</span></div>',rs+'/100',bk(rs,riskC)),
-    c(t('sc_liq'),'<div class="sc-val" style="color:'+liqC+'">'+liqT1.toFixed(1)+'%</div>',t('sc_liq_sub'),bk(Math.min(liqT1,100),liqC)),
-    c(t('sc_lev'),'<div class="sc-val" style="color:'+(s.LEV>=20?'#E24B4A':s.LEV>=15?'#EF9F27':'#1D9E75')+'">'+s.LEV+'×</div>','fm '+fm.toFixed(1)+'% '+t('sc_of_acct')),
-    c(t('sc_avg'),'<div class="sc-val">'+avgPct.toFixed(1)+'%</div>',t('sc_avg_sub')),
-    c(t('sc_cagr'),'<div class="sc-val" style="color:#BA7517">'+cagr.toFixed(1)+'%</div>',t('sc_cagr_sub')),
-    c(t('sc_life'),'<div class="sc-val" style="color:'+ac+'">'+(tAge!==('age_'+av)?tAge:av)+'</div>',(tAgeSub!==('age_sub_'+av)?tAgeSub:as2)),
-    c(t('sc_seq'),'<div class="sc-val" style="color:'+(mp>=0?'#1D9E75':'#E24B4A')+'">'+(mp>0?'+':'')+mp.toFixed(1)+'%</div>',wins+'W/'+losses+'L · '+actTr+'/10'),
-    c(t('sc_verdict'),'<div class="sc-val" style="font-size:10px;color:var(--tx2);line-height:1.3;white-space:normal;font-weight:600">'+tooltip+'</div>',''),
-  ];
-  return '<div class="sc-grid" style="grid-template-columns:repeat(4,1fr);height:100%">'+cards.join('')+'</div>';
+  const ageSub=tAgeSub!==('age_sub_'+av)?tAgeSub:as2;
+
+  // preset + status pills
+  const presetName=window._ACTIVE_PRESET?window._ACTIVE_PRESET.name:null;
+  const cfOn=s.CF!==false;
+  const gmOn=typeof GLOBAL_MODE!=='undefined'?GLOBAL_MODE:false;
+  const pillOn=(txt)=>`<span style="font-size:8px;padding:2px 6px;border-radius:8px;background:rgba(0,196,122,0.08);color:#00c47a;border:0.5px solid rgba(0,196,122,0.2);white-space:nowrap">${txt}</span>`;
+  const pillOff=(txt)=>`<span style="font-size:8px;padding:2px 6px;border-radius:8px;background:var(--sf2);color:var(--tx3);border:0.5px solid var(--bd2);white-space:nowrap">${txt}</span>`;
+  const pillWarn=(txt)=>`<span style="font-size:8px;padding:2px 6px;border-radius:8px;background:rgba(245,158,11,0.08);color:#EF9F27;border:0.5px solid rgba(245,158,11,0.2);white-space:nowrap">${txt}</span>`;
+
+  // wipe/bust override
+  if(IS_WIPED||bustMonth){
+    const wipeFm=s.NOT/s.LEV/s.P*100;
+    const isFmErr=wipeFm>100;
+    const col=bustMonth?'#8B5CF6':'#E24B4A';
+    const bg=bustMonth?'#1a0a2e':'#2a0a0a';
+    const bd=bustMonth?'#2a0a4e':'#3a0a0a';
+    const msg=bustMonth?'go fix m'+bustMonth.m:isFmErr?'fix FM% ≤100%':'fix liq% first';
+    const sub=bustMonth?'withdrawal > balance':isFmErr?'margin exceeds account':'notional > account';
+    return `<div style="height:100%;background:${bg};border:0.5px solid ${col}33;border-radius:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;padding:16px">
+      <div style="font-size:13px;font-weight:700;color:${col}">${bustMonth?'💀 busted':'🚫 invalid setup'}</div>
+      <div style="font-size:10px;color:${col};opacity:.7">${msg}</div>
+      <div style="font-size:9px;color:${col};opacity:.5">${sub}</div>
+    </div>`;
+  }
+
+  const mc=(content)=>`<div style="padding:7px 9px;background:var(--sf2);border-radius:6px">${content}</div>`;
+  const lbl=(t)=>`<div style="font-size:8px;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px">${t}</div>`;
+  const val=(v,col='var(--tx)',size='12px')=>`<div style="font-size:${size};font-weight:500;color:${col};line-height:1.2">${v}</div>`;
+  const sub=(v)=>`<div style="font-size:8px;color:var(--tx2);margin-top:2px">${v}</div>`;
+
+  return `<div style="height:100%;display:grid;grid-template-columns:1fr 1fr;border:0.5px solid var(--bd2);border-radius:0 6px 6px 0;overflow:hidden;background:var(--panel)">
+
+    <!-- LEFT: setup -->
+    <div style="display:flex;flex-direction:column;border-right:0.5px solid var(--bd2)">
+      <div style="padding:6px 12px;background:var(--sf2);border-bottom:0.5px solid var(--bd2);display:flex;align-items:center;gap:5px">
+        <div style="width:5px;height:5px;border-radius:50%;background:#00c47a;flex-shrink:0"></div>
+        <span style="font-size:9px;font-weight:500;color:var(--tx2)">your cockpit${presetName?` · <span style="color:#00c47a">${presetName}</span>`:''}</span>
+        <span style="font-size:8px;color:var(--tx3);margin-left:auto">M01 · T1</span>
+      </div>
+      <div style="font-size:7px;font-weight:500;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;padding:5px 10px 3px;background:var(--sf2);border-bottom:0.5px solid var(--bd2)">setup</div>
+      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:7px 5px;gap:4px">
+        ${mc(lbl('capital')+val('$'+s.P.toLocaleString())+sub('starting'))}
+        ${mc(lbl('leverage')+val(isSpot?'1× spot':s.LEV+'×',isSpot?'#5DC96A':s.LEV>=20?'#E24B4A':s.LEV>=15?'#EF9F27':'#1D9E75')+sub(isSpot?'no liq':'perp mode'))}
+        ${mc(lbl('notional T1')+val('$'+s.NOT.toLocaleString())+sub((s.NOT/s.P).toFixed(2)+'× capital'))}
+      </div>
+      <div style="padding:3px 10px 7px">
+        <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--tx2);margin-bottom:4px">
+          <span>liq t1 buffer</span>
+          <span style="color:${liqC};font-weight:500">${isSpot?'no liq · spot mode':liqT1.toFixed(1)+'% · '+riskLabel.toLowerCase()}</span>
+        </div>
+        <div style="height:4px;background:var(--sf2);border-radius:2px;overflow:hidden">
+          <div style="width:${isSpot?100:liqW}%;height:100%;background:${isSpot?'#5DC96A':liqC};border-radius:2px"></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:3px;flex-wrap:wrap;padding:0 10px 9px;margin-top:auto">
+        ${isSpot?pillOn('◈ spot'):pillOn('⚡ lev')}
+        ${cfOn?pillOn('CF on'):pillOff('CF off')}
+        ${gmOn?pillOn('global on'):pillOff('global off')}
+        ${pillOn(s.FEE.method+' fee')}
+        ${actTr>=7?pillWarn(actTr+'/10 slots'):actTr>0?pillOn(actTr+'/10 slots'):pillOff('0/10 slots')}
+        ${pillOn('tab '+TAB)}
+      </div>
+    </div>
+
+    <!-- RIGHT: risk & cost -->
+    <div style="display:flex;flex-direction:column">
+      <div style="padding:6px 12px;background:var(--sf2);border-bottom:0.5px solid var(--bd2)">
+        <span style="font-size:9px;font-weight:500;color:var(--tx2);visibility:hidden">spacer</span>
+      </div>
+      <div style="font-size:7px;font-weight:500;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;padding:5px 10px 3px;background:var(--sf2);border-bottom:0.5px solid var(--bd2)">risk & cost</div>
+
+      <!-- row 1: margin · fee · risk score · fm% -->
+      <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:7px 5px 4px;gap:4px">
+        ${mc(lbl('margin')+val('$'+margin.toFixed(2))+sub(fm.toFixed(1)+'% of acct'))}
+        ${mc(lbl('fee/trade')+val('$'+feePerTrade.toFixed(3),'var(--tx3)','11px')+sub(s.FEE.method+' '+feeRate+'%×2'))}
+        ${mc(lbl('risk score')+`<div style="font-size:10px;font-weight:500;color:${rs<=20?'#1D9E75':rs<=45?'#EF9F27':rs<=70?'#E24B4A':'#7a0000'}">${re} ${riskLabel.toLowerCase()}</div>`+sub(rs+'/100'))}
+        ${mc(lbl('fm%')+val(fm.toFixed(1)+'%',fm>40?'#E24B4A':fm>20?'#EF9F27':'#1D9E75')+sub('margin of acct'))}
+      </div>
+
+      <!-- row 2: verdict · lifespan -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;padding:0 5px 8px;gap:4px;margin-top:auto">
+        <div style="padding:7px 9px;background:var(--sf2);border-radius:6px">
+          <div style="font-size:8px;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px">verdict</div>
+          <div style="font-size:9px;font-weight:500;color:var(--tx2);line-height:1.4">${tooltip}</div>
+        </div>
+        <div style="padding:7px 9px;background:var(--sf2);border-radius:6px">
+          <div style="font-size:8px;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px">${isSpot?'position size':'lifespan'}</div>
+          <div style="font-size:13px;font-weight:500;color:${isSpot?'#5DC96A':ac}">${isSpot?'$'+s.NOT.toLocaleString():ageVal}</div>
+          <div style="font-size:8px;color:var(--tx2);margin-top:2px">${isSpot?'full capital · no margin':ageSub}</div>
+        </div>
+      </div>
+    </div>
+
+  </div>`;
 }
-
-
 // ── SEQ STATS (net result inc. losses) ──
 function seqStats(s){
   const actTr=s.BT.filter((t,i)=>t!==0&&s.FR[i]>0).length;
@@ -9147,6 +9196,7 @@ function setP(v,btn){
   saveSection('cap');render();
 }
 function onCapIn(v){
+  if(window._ACTIVE_PRESET){showToast('🔒 exit preset to change setup','info',2000);return;}
   const s=gs();
   const ratio=s.NOT/s.P; // preserve current ratio
   s.P=Math.max(1,parseFloat(v)||s.P);
@@ -9161,6 +9211,7 @@ function onCapIn(v){
   document.querySelectorAll('#cap-prs .pr').forEach(b=>b.classList.remove('on'));saveSection('cap');softUpdate();
 }
 function onCapSl(v){
+  if(window._ACTIVE_PRESET){showToast('🔒 exit preset to change setup','info',2000);return;}
   _captureUndo();const s=gs();
   const ratio=s.NOT/s.P; // preserve current ratio
   s.P=parseInt(v);
@@ -9175,34 +9226,40 @@ function onCapSl(v){
   document.querySelectorAll('#cap-prs .pr').forEach(b=>b.classList.remove('on'));saveSection('cap');softUpdate();
 }
 function setLev(v,btn){
+  if(window._ACTIVE_PRESET){showToast('🔒 exit preset to change setup','info',2000);return;}
   _captureUndo();const s=gs();s.LEV=v;
   document.getElementById('lv-sl').value=v;document.getElementById('lv-in').value=v;document.getElementById('lv-vl').textContent=v+'×';
   document.querySelectorAll('#lv-prs .pr').forEach(b=>b.classList.remove('on'));
   if(btn)btn.classList.add('on');saveSection('pos');softUpdate();
 }
 function onLevIn(v){
+  if(window._ACTIVE_PRESET){showToast('🔒 exit preset to change setup','info',2000);return;}
   const s=gs();s.LEV=Math.max(1,parseInt(v)||s.LEV);
   document.getElementById('lv-sl').value=Math.min(s.LEV,50);document.getElementById('lv-vl').textContent=s.LEV+'×';
   document.querySelectorAll('#lv-prs .pr').forEach(b=>b.classList.remove('on'));saveSection('pos');softUpdate();
 }
 function onLevSl(v){
+  if(window._ACTIVE_PRESET){showToast('🔒 exit preset to change setup','info',2000);return;}
   _captureUndo();const s=gs();s.LEV=parseInt(v);
   document.getElementById('lv-in').value=s.LEV;document.getElementById('lv-vl').textContent=s.LEV+'×';
   document.querySelectorAll('#lv-prs .pr').forEach(b=>b.classList.remove('on'));saveSection('pos');softUpdate();
 }
 function onNotIn(v){
+  if(window._ACTIVE_PRESET){showToast('🔒 exit preset to change setup','info',2000);return;}
   const s=gs();s.NOT=Math.max(1,parseFloat(v)||s.NOT);
   document.getElementById('not-sl').value=Math.min(s.NOT,100000000000);
   document.getElementById('not-vl').textContent='$'+s.NOT.toLocaleString();
   document.querySelectorAll('#not-prs .pr').forEach(b=>b.classList.remove('on'));saveSection('pos');softUpdate();
 }
 function onNotSl(v){
+  if(window._ACTIVE_PRESET){showToast('🔒 exit preset to change setup','info',2000);return;}
   _captureUndo();const s=gs();s.NOT=parseInt(v);
   document.getElementById('not-in').value=s.NOT;
   document.getElementById('not-vl').textContent='$'+s.NOT.toLocaleString();
   document.querySelectorAll('#not-prs .pr').forEach(b=>b.classList.remove('on'));saveSection('pos');softUpdate();
 }
 function setNot(v,btn){
+  if(window._ACTIVE_PRESET){showToast('🔒 exit preset to change setup','info',2000);return;}
   _captureUndo();const s=gs();s.NOT=v;
   document.getElementById('not-in').value=v;
   document.getElementById('not-sl').value=Math.min(v,100000000000);
