@@ -38,6 +38,23 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
+// localStorage safety shim — silently falls back to in-memory if blocked (private mode etc)
+(function(){
+  try{ localStorage.getItem('__batt_test__'); }
+  catch(e){
+    var _mem={};
+    window.localStorage={
+      getItem:function(k){return _mem.hasOwnProperty(k)?_mem[k]:null;},
+      setItem:function(k,v){_mem[k]=String(v);},
+      removeItem:function(k){delete _mem[k];},
+      clear:function(){_mem={};},
+      key:function(i){return Object.keys(_mem)[i]||null;},
+      get length(){return Object.keys(_mem).length;}
+    };
+  }
+})();
+</script>
+<script>
 // Register Service Worker
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
@@ -13944,7 +13961,6 @@ function tpCalculate() {
   
 // Place order
 function tpPlaceOrder() {
-  console.log('tpPlaceOrder called'); // debug
   const sizeInput = document.getElementById('tp-size');
   const size = parseFloat(sizeInput?.value) || 0;
   const priceData = TP_STATE.prices[TP_STATE.pair];
@@ -15415,7 +15431,8 @@ document.addEventListener('DOMContentLoaded', async ()=>{
   // Fetch live prices (with small delay for network init)
   setTimeout(fetchLivePrices, 500);
   // Refresh prices every 60 seconds
-  setInterval(fetchLivePrices, 60000);
+  if(window._livePriceInterval) clearInterval(window._livePriceInterval);
+  window._livePriceInterval = setInterval(fetchLivePrices, 60000);
   
   // Check login streak
   if(typeof checkLoginStreak==='function') checkLoginStreak();
