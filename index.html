@@ -7834,6 +7834,12 @@ async function ljConfirmLock(){
     document.getElementById('lj-tf')?.focus();
     return;
   }
+  const _exitType=document.getElementById('lj-exit-type')?.value||'';
+  if(!_exitType){
+    if(errEl){errEl.textContent='⚠ Exit type is required — select price, signal or conditional';errEl.style.display='block';}
+    document.getElementById('lj-exit-type')?.focus();
+    return;
+  }
   if(!_tvOpen&&!_tvClose){
     if(errEl){errEl.textContent='⚠ At least one chart proof (open or close) is required';errEl.style.display='block';}
     document.getElementById('lj-tv-open')?.focus();
