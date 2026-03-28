@@ -445,7 +445,7 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
 
 /* ── TRADE SLOTS PANEL ── */
 .panel-trade{position:relative}
-.panel-trade{width:224px;min-width:224px;background:var(--panel);border-right:0.5px solid var(--bd);overflow-y:auto;overflow-x:hidden;flex-shrink:0;padding-bottom:24px;transition:background .25s,border-color .25s,width .3s ease,min-width .3s ease;scrollbar-width:none;height:100vh}
+.panel-trade{width:224px;min-width:224px;background:var(--panel);border-right:0.5px solid var(--bd);overflow-y:auto;overflow-x:hidden;flex-shrink:0;padding-bottom:24px;transition:background .25s,border-color .25s,width .3s ease,min-width .3s ease;scrollbar-width:none;height:calc(100vh / 1.1)}
 .panel-trade::-webkit-scrollbar{display:none}
 .panel-trade.collapsed{width:0!important;min-width:0!important;overflow:hidden;border:none}
 .panel-trade.collapsed .pt-body{display:none}
@@ -991,7 +991,7 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
 
 body.t-lavender{--bg:#f0eef8;--panel:#fff;--bd:#d8d4f0;--bd2:#e4e0f4;--sf:#f8f6ff;--sf2:#f0eef8;--tx:#2a1a4a;--tx2:#8070b0;--tx3:#c0b0e0;--acc:#7050c0;--acc2:#5060e0;--mh:#4030a0;--mhc:#fff;--mhs:#c0b8f0;--inp:#f8f6ff;--btn:#f0eef8;--btno:#e0d8f8;--btonc:#7050c0;--tog:#fff;--togon:#4030a0;--togonc:#fff;--tabact:#4030a0;--tabactc:#fff;--wd-on:#e0d8f8;--wd-onc:#7050c0}
 
-.app{zoom:1.1;display:flex;height:100vh;overflow:hidden;background:#000;color:var(--tx);opacity:0;transition:opacity .5s cubic-bezier(0.4,0,0.2,1);}
+.app{zoom:1.1;display:flex;height:calc(100vh / 1.1);overflow:hidden;background:#000;color:var(--tx);opacity:0;transition:opacity .5s cubic-bezier(0.4,0,0.2,1);}
 .panel-left.collapsed{width:0;min-width:0;overflow:hidden;border:none}
 .panel-left.collapsed .pl-body{opacity:0;pointer-events:none}
 .panel-left.collapsed .panel-left-toggle{opacity:1;pointer-events:all}
@@ -1007,7 +1007,7 @@ body.t-lavender{--bg:#f0eef8;--panel:#fff;--bd:#d8d4f0;--bd2:#e4e0f4;--sf:#f8f6f
 @keyframes togglePulseLeft{0%,100%{box-shadow:4px 0 20px rgba(0,0,0,0.3)}50%{box-shadow:4px 0 30px rgba(29,158,117,0.5)}}
 @keyframes bounceIconLeft{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
 .panel-left{position:relative}
-.panel-left{width:224px;min-width:224px;height:100vh;background:var(--panel);border-right:0.5px solid var(--bd);overflow-y:auto;overflow-x:hidden;flex-shrink:0;padding-top:52px;padding-bottom:24px;transition:background .25s,border-color .25s,width .35s cubic-bezier(.4,0,.2,1),min-width .35s cubic-bezier(.4,0,.2,1);scrollbar-width:none}
+.panel-left{width:224px;min-width:224px;height:calc(100vh / 1.1);background:var(--panel);border-right:0.5px solid var(--bd);overflow-y:auto;overflow-x:hidden;flex-shrink:0;padding-top:52px;padding-bottom:24px;transition:background .25s,border-color .25s,width .35s cubic-bezier(.4,0,.2,1),min-width .35s cubic-bezier(.4,0,.2,1);scrollbar-width:none}
 .panel-left::-webkit-scrollbar{display:none}
 
 /* ── TRADE SLOTS PANEL (mirrors left panel) ── */
@@ -1025,7 +1025,7 @@ body.t-lavender{--bg:#f0eef8;--panel:#fff;--bd:#d8d4f0;--bd2:#e4e0f4;--sf:#f8f6f
 .panel-trade.collapsed .pt-body{display:none}
 .pt-body{padding-bottom:16px}
 .pt-head{padding:9px 10px 7px;border-bottom:0.5px solid var(--bd2);display:flex;flex-direction:column;gap:3px}
-.panel-right{flex:1;height:100vh;overflow-y:auto;background:var(--bg);padding:52px 0 24px 0;transition:background .25s;min-width:0;scrollbar-width:none}
+.panel-right{flex:1;height:calc(100vh / 1.1);overflow-y:auto;background:var(--bg);padding:52px 0 24px 0;transition:background .25s;min-width:0;scrollbar-width:none}
 #right-content{padding:0 14px}
 .panel-right::-webkit-scrollbar{display:none}
 #right-content{transition:opacity .15s ease}
