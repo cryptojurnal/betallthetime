@@ -55,7 +55,13 @@
 })();
 </script>
 <script>
-// Register Service Worker
+// Safe JSON parse helper — returns fallback instead of throwing on bad data
+function _safeJSON(str, fallback){
+  if(str===null||str===undefined) return fallback;
+  try{ return JSON.parse(str); }
+  catch(e){ return fallback; }
+}
+
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('/sw.js').catch(()=>{});
@@ -2494,6 +2500,10 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
           <div class="admin-stat-value" id="admin-total-syncs">-</div>
           <div class="admin-stat-label">Total Syncs</div>
         </div>
+        <div class="admin-stat">
+          <div class="admin-stat-value" id="admin-shared-presets">-</div>
+          <div class="admin-stat-label">Shared Presets</div>
+        </div>
       </div>
 
       <!-- Tabs -->
@@ -2515,6 +2525,7 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
               <tr>
                 <th>Username</th>
                 <th>Email</th>
+                <th>Auth</th>
                 <th>Registered</th>
                 <th>Last Login</th>
                 <th>Presets</th>
@@ -2531,7 +2542,17 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 
       <!-- Activity Tab -->
       <div id="admin-activity-tab" class="admin-section" style="display:none">
-        <div class="admin-section-title">📜 Recent Activity</div>
+        <div class="admin-section-title">📜 Recent Activity
+          <select id="admin-activity-filter" onchange="adminLoadActivity(1)" style="margin-left:auto;background:#0a0a0a;border:1px solid #1a1a1a;color:#ccc;padding:4px 8px;border-radius:6px;font-size:11px;cursor:pointer">
+            <option value="">All actions</option>
+            <option value="sync">sync</option>
+            <option value="login">login</option>
+            <option value="preset_save">preset_save</option>
+            <option value="preset_load">preset_load</option>
+            <option value="preset_delete">preset_delete</option>
+            <option value="password_change">password_change</option>
+          </select>
+        </div>
         <div style="overflow-x:auto">
           <table class="admin-table">
             <thead>
@@ -5070,14 +5091,14 @@ function loadTabRegistry(){
   try{
     const raw=localStorage.getItem('batt_custom_tabs');
     if(raw){
-      const arr=JSON.parse(raw);
+      const arr=_safeJSON(raw,[]);
       arr.forEach(t=>{
         CUSTOM_TABS.push(t);
         if(!S[t.id])S[t.id]=mkState();
       });
     }
     const nid=localStorage.getItem('batt_next_tab_id');
-    if(nid){const p=JSON.parse(nid);if(p&&typeof p==='object')_nextTabId=p;}
+    if(nid){const p=_safeJSON(nid,null);if(p&&typeof p==='object')_nextTabId=p;}
   }catch(e){}
 }
 
@@ -5138,7 +5159,7 @@ function loadAll(){
       try{
         const raw=localStorage.getItem(key);
         if(!raw)return;
-        const d=JSON.parse(raw);
+        const d=_safeJSON(raw,null);
         if(sec==='cap'&&d.P) S[tab].P=d.P;
         if(sec==='pos'){if(d.LEV)S[tab].LEV=d.LEV;if(d.NOT)S[tab].NOT=d.NOT;if(d.KPI)S[tab].KPI=d.KPI;if(typeof d.CF!=='undefined')S[tab].CF=d.CF;}
         if(sec==='trades'){if(d.BT)S[tab].BT=[...d.BT];if(d.FR)S[tab].FR=[...d.FR];}
@@ -5161,7 +5182,7 @@ function loadAll(){
   }catch(e){}
   // apply slot pref last — user's explicit slot choices always win over preset/cloud
   try{
-    const slotPref=JSON.parse(localStorage.getItem('batt_slot_pref')||'{}');
+    const slotPref=_safeJSON(localStorage.getItem('batt_slot_pref'), {});
     Object.keys(slotPref).forEach(tabId=>{
       if(S[tabId]&&slotPref[tabId]){
         S[tabId].BT=[...slotPref[tabId].BT];
@@ -5297,7 +5318,7 @@ function onBT(i,v){
   updGrid();saveSection('trades');
   // save slots as user preference — survives preset load
   try{
-    const slotPref=JSON.parse(localStorage.getItem('batt_slot_pref')||'{}');
+    const slotPref=_safeJSON(localStorage.getItem('batt_slot_pref'), {});
     if(!slotPref[TAB]) slotPref[TAB]={BT:[...gs().BT],FR:[...gs().FR]};
     slotPref[TAB].BT[i]=val;
     localStorage.setItem('batt_slot_pref',JSON.stringify(slotPref));
@@ -5309,7 +5330,7 @@ function onFR(i,v){
   gs().FR[i]=val;
   updGrid();saveSection('trades');
   try{
-    const slotPref=JSON.parse(localStorage.getItem('batt_slot_pref')||'{}');
+    const slotPref=_safeJSON(localStorage.getItem('batt_slot_pref'), {});
     if(!slotPref[TAB]) slotPref[TAB]={BT:[...gs().BT],FR:[...gs().FR]};
     slotPref[TAB].FR[i]=val;
     localStorage.setItem('batt_slot_pref',JSON.stringify(slotPref));
@@ -10942,7 +10963,7 @@ async function presetLoad(id){
     if(typeof logActivity==='function') logActivity('preset_load',{name:preset.name});
     // apply user slot preference on top of preset — user choice wins
     try{
-      const slotPref=JSON.parse(localStorage.getItem('batt_slot_pref')||'{}');
+      const slotPref=_safeJSON(localStorage.getItem('batt_slot_pref'), {});
       Object.keys(slotPref).forEach(tabId=>{
         if(S[tabId]&&slotPref[tabId]){
           S[tabId].BT=[...slotPref[tabId].BT];
@@ -11308,13 +11329,13 @@ async function adminLoadStats(){
       headers: { 'X-Admin-Key': ADMIN_KEY }
     });
     const d = await r.json();
-    
     if(d.ok && d.stats){
       document.getElementById('admin-total-users').textContent = d.stats.total_users || 0;
       document.getElementById('admin-new-users').textContent = d.stats.new_users_7d || 0;
       document.getElementById('admin-active-users').textContent = d.stats.active_users_7d || 0;
       document.getElementById('admin-total-presets').textContent = d.stats.total_presets || 0;
       document.getElementById('admin-total-syncs').textContent = d.stats.total_syncs || 0;
+      document.getElementById('admin-shared-presets').textContent = d.stats.shared_presets || '—';
     }
   } catch(e){
     console.error('Admin stats error:', e);
@@ -11337,18 +11358,26 @@ async function adminLoadUsers(page = 1, search = ''){
     
     if(d.ok && d.users){
       if(d.users.length === 0){
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#555;padding:20px">No users found</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#555;padding:20px">No users found</td></tr>';
       } else {
-        tbody.innerHTML = d.users.map(u => `
+        tbody.innerHTML = d.users.map(u => {
+          const isGoogle = u.password_hash ? u.password_hash.startsWith('google:') : null;
+          const authBadge = isGoogle === null
+            ? '<span style="color:#333;font-size:9px">—</span>'
+            : isGoogle
+              ? '<span style="background:#1a3060;color:#4a9eff;padding:2px 6px;border-radius:4px;font-size:9px;font-weight:700">G</span>'
+              : '<span style="background:#1a1a1a;color:#888;padding:2px 6px;border-radius:4px;font-size:9px;font-weight:700">✉</span>';
+          return `
           <tr>
             <td><strong>${escHtml(u.username)}</strong></td>
             <td>${escHtml(u.email)}</td>
+            <td style="text-align:center">${authBadge}</td>
             <td>${formatDate(u.created_at)}</td>
             <td>${u.last_login ? formatDate(u.last_login) : '—'}</td>
             <td>${u.preset_count || 0}</td>
             <td>${u.sync_count || 0}</td>
           </tr>
-        `).join('');
+        `}).join('');
       }
       
       // Pagination
@@ -11386,13 +11415,12 @@ async function adminLoadActivity(page = 1){
   ADMIN_ACTIVITY_PAGE = page;
   const tbody = document.getElementById('admin-activity-tbody');
   tbody.innerHTML = '<tr><td colspan="4" class="admin-loading">Loading...</td></tr>';
-  
+  const filter = document.getElementById('admin-activity-filter')?.value || '';
   try {
-    const r = await fetch(AUTH_URL + '/admin/activity?page=' + page, {
-      headers: { 'X-Admin-Key': ADMIN_KEY }
-    });
+    let url = AUTH_URL + '/admin/activity?page=' + page;
+    if(filter) url += '&action=' + encodeURIComponent(filter);
+    const r = await fetch(url, { headers: { 'X-Admin-Key': ADMIN_KEY } });
     const d = await r.json();
-    
     if(d.ok && d.activity){
       if(d.activity.length === 0){
         tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:#555;padding:20px">No activity found</td></tr>';
@@ -11510,7 +11538,7 @@ async function loadAccountPage(){
   // Preferences
   const prefTheme=document.getElementById('acc-pref-theme');
   const prefLang=document.getElementById('acc-pref-lang');
-  const prefs=JSON.parse(localStorage.getItem('batt_prefs')||'{}');
+  const prefs=_safeJSON(localStorage.getItem('batt_prefs'), {});
   if(prefTheme) prefTheme.value=prefs.ma_theme||'ma-dark';
   if(prefLang) prefLang.value=prefs.lang||'en';
   // sync pill active states
@@ -11596,7 +11624,7 @@ async function loadSidebarData(){
   if(sbGoogle) sbGoogle.style.display=isGoogle?'block':'none';
 
   // Preferences
-  var prefs=JSON.parse(localStorage.getItem('batt_prefs')||'{}');
+  var prefs=_safeJSON(localStorage.getItem('batt_prefs'), {});
   _syncSidebarThemePills(prefs.ma_theme||'ma-dark');
   _syncSidebarLangPills(prefs.lang||'en');
 
@@ -11627,7 +11655,7 @@ function _syncSidebarLangPills(val){
 function loadSidebarActivity(){
   var container=document.getElementById('sb-activity-log');
   if(!container) return;
-  var log=JSON.parse(localStorage.getItem('batt_activity_log')||'[]');
+  var log=_safeJSON(localStorage.getItem('batt_activity_log'), []);
   if(!log.length){ container.innerHTML='<div style="font-size:9px;color:#222;padding:8px 0;text-align:center">no activity yet</div>'; return; }
   var html='';
   log.slice(0,8).forEach(function(item){
@@ -11704,7 +11732,7 @@ function accSetLang(val){
   savePref('lang', val);
 }
 function savePrefSilent(key,value){
-  const prefs=JSON.parse(localStorage.getItem('batt_prefs')||'{}');
+  const prefs=_safeJSON(localStorage.getItem('batt_prefs'), {});
   prefs[key]=value;
   localStorage.setItem('batt_prefs',JSON.stringify(prefs));
   if(key==='ma_theme') applyMemberTheme(value);
@@ -11714,7 +11742,7 @@ function savePrefSilent(key,value){
   }
 }
 function savePref(key,value){
-  const prefs=JSON.parse(localStorage.getItem('batt_prefs')||'{}');
+  const prefs=_safeJSON(localStorage.getItem('batt_prefs'), {});
   prefs[key]=value;
   localStorage.setItem('batt_prefs',JSON.stringify(prefs));
   
@@ -11748,7 +11776,7 @@ async function loadCloudPrefs(){
     const d=await r.json();
     if(d.ok && d.prefs){
       // Merge with localStorage (cloud takes priority)
-      const local=JSON.parse(localStorage.getItem('batt_prefs')||'{}');
+      const local=_safeJSON(localStorage.getItem('batt_prefs'), {});
       const merged={...local,...d.prefs};
       localStorage.setItem('batt_prefs',JSON.stringify(merged));
       // Apply member theme if set
@@ -11819,7 +11847,7 @@ function exportAllData(){
     user:AUTH_USER,
     state:{},
     customTabs:typeof CUSTOM_TABS!=='undefined'?CUSTOM_TABS:[],
-    prefs:JSON.parse(localStorage.getItem('batt_prefs')||'{}')
+    prefs:_safeJSON(localStorage.getItem('batt_prefs'), {})
   };
   
   // Export current state
@@ -12027,7 +12055,7 @@ function goLayer3(){
     requestAnimationFrame(()=>requestAnimationFrame(()=>{l3.classList.add('visible');}));
   }
   // Apply saved member theme
-  const prefs=JSON.parse(localStorage.getItem('batt_prefs')||'{}');
+  const prefs=_safeJSON(localStorage.getItem('batt_prefs'), {});
   if(prefs.ma_theme && typeof applyMemberTheme==='function'){
     applyMemberTheme(prefs.ma_theme);
   }
@@ -12042,7 +12070,7 @@ function goLayer3(){
     greetEl.textContent=h<12?'Good morning':h<17?'Good afternoon':'Good evening';
   }
   // Sync active theme pill
-  var prefs2=JSON.parse(localStorage.getItem('batt_prefs')||'{}');
+  var prefs2=_safeJSON(localStorage.getItem('batt_prefs'), {});
   var curTheme=prefs2.ma_theme||'ma-dark';
   ['dark','midnight','light'].forEach(function(t){
     var btn=document.getElementById('l3t-'+t);
@@ -12211,7 +12239,7 @@ async function authRestoreSession(){
       ]);
       // apply user slot preference on top of cloud data
       try{
-        const slotPref=JSON.parse(localStorage.getItem('batt_slot_pref')||'{}');
+        const slotPref=_safeJSON(localStorage.getItem('batt_slot_pref'), {});
         Object.keys(slotPref).forEach(tabId=>{
           if(S[tabId]&&slotPref[tabId]){
             S[tabId].BT=[...slotPref[tabId].BT];
@@ -12498,7 +12526,7 @@ async function loadActivityLog(reset=false){
           const title=ACTIVITY_TITLES[a.action]||a.action;
           let details='';
           try{
-            const det=JSON.parse(a.details||'{}');
+            const det=_safeJSON(a.details,{});
             if(det.name) details=det.name;
             if(det.browser) details=(details?details+' · ':'')+det.browser;
             if(det.format) details=(details?details+' · ':'')+det.format.toUpperCase();
@@ -12975,7 +13003,7 @@ function tpLoadState() {
   const saved = localStorage.getItem('tp_state');
   if (saved) {
     try {
-      const parsed = JSON.parse(saved);
+      const parsed=_safeJSON(saved,null);
       TP_STATE = { ...TP_STATE, ...parsed };
     } catch (e) {}
   }
@@ -15731,7 +15759,7 @@ window.addEventListener('resize',function(){
     var f=document.getElementById('ai-fab');
     if(!f)return;
     try{
-      var saved=JSON.parse(localStorage.getItem('batt_ai_pos'));
+      var saved=_safeJSON(localStorage.getItem('batt_ai_pos'), null);
       if(saved){f.style.left=saved.x+'px';f.style.top=saved.y+'px';f.style.right='auto';f.style.bottom='auto';}
     }catch(ex){}
     window.addEventListener('mousemove',onMove);
@@ -15813,7 +15841,7 @@ window.addEventListener('resize',function(){
     if(!u)return;
     // restore saved position
     try{
-      var saved=JSON.parse(localStorage.getItem('batt_ub_pos'));
+      var saved=_safeJSON(localStorage.getItem('batt_ub_pos'), null);
       if(saved){u.style.left=saved.x+'px';u.style.top=saved.y+'px';u.style.right='auto';}
     }catch(ex){}
     // attach drag listeners
@@ -15898,7 +15926,7 @@ window.addEventListener('resize',function(){
     if(!b)return;
     // restore saved position
     try{
-      var saved=JSON.parse(localStorage.getItem('batt_back_pos'));
+      var saved=_safeJSON(localStorage.getItem('batt_back_pos'), null);
       if(saved){b.style.left=saved.x+'px';b.style.top=saved.y+'px';}
     }catch(ex){}
     // intercept click if dragged
@@ -16368,7 +16396,7 @@ document.getElementById('compare-modal')?.addEventListener('click', (e) => {
 });
 
 function populateCompareSelects() {
-  const presets = JSON.parse(localStorage.getItem('batt_presets_cache') || '[]');
+  const presets = _safeJSON(localStorage.getItem('batt_presets_cache'), []);
   const opt1 = '<option value="">Select preset...</option>' + presets.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
   const opt2 = opt1;
   document.getElementById('compare-select-1').innerHTML = opt1;
@@ -16387,7 +16415,7 @@ function loadComparePreset(colNum) {
   }
   
   // Load from cache (in real implementation, would fetch from server)
-  const presets = JSON.parse(localStorage.getItem('batt_presets_cache') || '[]');
+  const presets = _safeJSON(localStorage.getItem('batt_presets_cache'), []);
   const preset = presets.find(p => p.id == presetId);
   
   if (!preset || !preset.data) {
@@ -16729,7 +16757,7 @@ function triggerConfetti() {
 }
 
 // ── POWER USER TRACKING ──
-var POWER_USER_ACTIONS = JSON.parse(localStorage.getItem('batt_power_actions') || '[]');
+var POWER_USER_ACTIONS = _safeJSON(localStorage.getItem('batt_power_actions'), []);
 
 function trackPowerUser(action) {
   if (!POWER_USER_ACTIONS.includes(action)) {
@@ -16930,7 +16958,7 @@ function setCurrency(currency) {
 }
 
 // ── PRICE ALERTS ──
-var PRICE_ALERTS = JSON.parse(localStorage.getItem('batt_alerts') || '[]');
+var PRICE_ALERTS = _safeJSON(localStorage.getItem('batt_alerts'), []);
 var ALERT_CHECK_INTERVAL = null;
 
 function openAlertsPanel() {
@@ -17065,7 +17093,7 @@ async function fetchPricesForAlerts(symbols) {
 }
 
 // ── WEBHOOKS ──
-var WEBHOOKS = JSON.parse(localStorage.getItem('batt_webhooks') || '[]');
+var WEBHOOKS = _safeJSON(localStorage.getItem('batt_webhooks'), []);
 
 function openWebhooksPanel() {
   document.getElementById('webhooks-panel').classList.add('show');
@@ -17221,7 +17249,7 @@ async function triggerWebhook(eventType, data) {
 }
 
 // ── CUSTOM THEME CREATOR ──
-var CUSTOM_THEMES = JSON.parse(localStorage.getItem('batt_custom_themes') || '[]');
+var CUSTOM_THEMES = _safeJSON(localStorage.getItem('batt_custom_themes'), []);
 
 function openThemeCreator() {
   document.getElementById('theme-creator').classList.add('show');
@@ -17408,13 +17436,13 @@ function copyApiKey() {
 // Expose API for developers (hidden)
 window.BATT_API = {
   getState: () => JSON.parse(JSON.stringify(S)),
-  getPresets: () => JSON.parse(localStorage.getItem('batt_presets_cache') || '[]'),
+  getPresets: () => _safeJSON(localStorage.getItem('batt_presets_cache'), []),
   getCurrency: () => CURRENT_CURRENCY,
   formatCurrency: formatCurrency,
   triggerWebhook: triggerWebhook,
   exportData: () => ({
     state: S,
-    presets: JSON.parse(localStorage.getItem('batt_presets_cache') || '[]'),
+    presets: _safeJSON(localStorage.getItem('batt_presets_cache'), []),
     alerts: PRICE_ALERTS,
     webhooks: WEBHOOKS.map(w => ({ name: w.name, events: w.events })),
     currency: CURRENT_CURRENCY
@@ -18265,7 +18293,7 @@ async function jnLoad(){
   // local first
   try{
     const loc=localStorage.getItem('batt_journal');
-    if(loc) Object.assign(JN, JSON.parse(loc));
+    if(loc) Object.assign(JN,_safeJSON(loc,{}));
   }catch(e){}
   // then cloud
   const tok=_battToken();
