@@ -7092,7 +7092,8 @@ async function ljFetchFunding(manual){
   const ex=document.getElementById('lj-exchange')?.value||document.getElementById('fee-exchange')?.value||'binance';
   const pair=(window._ljPair||document.getElementById('lj-pair-input')?.value||'BTCUSDT').replace(/[\s\/]/g,'').toUpperCase();
   const side=window._ljSide||'long';
-  const notional=s.NOT;
+  const _actualNotRaw=parseFloat(document.getElementById('lj-actual-not')?.dataset.raw||'')||0;
+  const notional=_actualNotRaw>0?_actualNotRaw:s.NOT;
 
   try{
     const rates=await fetchHistoricalFunding(ex,pair,startMs,endMs);
@@ -7143,12 +7144,12 @@ function ljSyncActualMargin(notVal){
   const not=parseFloat(notVal)||0;
   const disp=document.getElementById('lj-actual-margin-display');
   if(!disp) return;
-  if(not>0) disp.textContent='$'+(s.SPOT?not:not/leverage).toFixed(2);
+  if(not>0) disp.textContent='$'+Math.round(s.SPOT?not:not/leverage).toLocaleString('en-US');
   else {
     const mo=sim().find(x=>x.m===_ljPending.m);
     const tr=mo?mo.trades.find(t=>t.no===_ljPending.tno):null;
     const margin=tr?tr.am:(s.SPOT?s.NOT:s.NOT/leverage);
-    disp.textContent='$'+margin.toFixed(2);
+    disp.textContent='$'+Math.round(margin).toLocaleString('en-US');
   }
 }
 
@@ -7277,7 +7278,7 @@ function ljShowLockModal(m, tno, draft=null){
           <div style="font-size:11px;font-weight:700;color:#aaa">${s.SPOT?'spot ◈':`leverage · ${leverage}×`}</div>
         </div>
         <div><div style="font-size:8px;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">proj. notional</div><div style="font-size:11px;font-weight:700;color:#888">$${notional.toLocaleString('en',{maximumFractionDigits:2})}</div></div>
-        <div><div style="font-size:8px;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">proj. margin</div><div style="font-size:11px;font-weight:700;color:#888">$${margin.toFixed(2)}</div></div>
+        <div><div style="font-size:8px;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">proj. margin</div><div style="font-size:11px;font-weight:700;color:#888">$${Math.round(margin).toLocaleString('en-US')}</div></div>
         <div><div style="font-size:8px;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">target</div><div style="font-size:11px;font-weight:700;color:#00c47a">${tgt.toFixed(2)}%</div></div>
         <div style="grid-column:span 2">
           <div style="font-size:8px;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">exit type <span style="color:#e05555">*</span></div>
@@ -7296,7 +7297,7 @@ function ljShowLockModal(m, tno, draft=null){
         </div>
         <div id="lj-fee-cockpit-cell">
           <div style="font-size:8px;color:#5b7fff;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">actual margin</div>
-          <div id="lj-actual-margin-display" style="font-size:11px;font-weight:700;color:#5b7fff;padding:3px 0">$${margin.toFixed(2)}</div>
+          <div id="lj-actual-margin-display" style="font-size:11px;font-weight:700;color:#5b7fff;padding:3px 0">$${Math.round(margin).toLocaleString('en-US')}</div>
           <div style="font-size:8px;color:#444;margin-top:1px">notional ÷ ${leverage}×</div>
           <div style="font-size:8px;color:#888" id="lj-fee-rate-val">${feeRate}% ${s.FEE.method}</div>
         </div>
