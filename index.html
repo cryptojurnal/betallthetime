@@ -6884,7 +6884,7 @@ function toggleLock(m, tno){
   // enforce mandatory trade label
   const _tl=getTL(m,tno);
   if(!_tl||_tl===('trade '+tno)||_tl.toLowerCase()===('trade'+tno)){
-    showToast('⚠ Name this trade first — click the label to rename it (e.g. BTCUSDT)','info',3500);
+    showToast('⚠ Name this trade first — click the label to rename it (e.g. <b>BTCUSDT</b>)','info',3500);
     const lbl=document.querySelector(`input.lbl-trade[value="${_tl}"]`);
     if(lbl){lbl.style.borderBottom='1.5px solid #e05555';lbl.focus();setTimeout(()=>{lbl.style.borderBottom='';},2500);}
     return;
@@ -7107,16 +7107,23 @@ function ljShowLockModal(m, tno, draft=null){
   window._ljExchange=_exSel?_exSel.value:'binance';
 
   const cockpitEx=document.getElementById('fee-exchange')?.value||'binance';
+  // calculate row number
+  const _presetName=window._ACTIVE_PRESET?window._ACTIVE_PRESET.name:null;
+  const _jnFolder=_presetName?JN.folders.find(f=>f.name===_presetName):null;
+  const _jnTrades=_jnFolder?JN.trades[_jnFolder.id]||[]:[];
+  const _rowNo=_jnTrades.length+1;
   const box=document.getElementById('lj-box');
   box.innerHTML=`
     <!-- HEADER -->
     <div class="lj-title">🔒 Log Trade to Journal</div>
     <div class="lj-sub">
-      <span style="color:#555">folder:</span> <b style="color:#00c47a">${escHtml(window._ACTIVE_PRESET.name)}</b>
-      <span style="color:#333;margin:0 6px">·</span>
-      <span style="color:#555">month:</span> <b style="color:#aaa">${escHtml(mLabel)}</b>
-      <span style="color:#333;margin:0 6px">·</span>
-      <span style="color:#555">trade:</span> <b style="color:#aaa">${escHtml(tLabel)}</b>
+      <span style="color:#888">folder:</span> <b style="color:#00c47a">${escHtml(window._ACTIVE_PRESET.name)}</b>
+      <span style="color:#555;margin:0 6px">·</span>
+      <span style="color:#888">month:</span> <b style="color:#ccc">${escHtml(mLabel)}</b>
+      <span style="color:#555;margin:0 6px">·</span>
+      <span style="color:#888">trade:</span> <b style="color:#ccc">${escHtml(tLabel)}</b>
+      <span style="color:#555;margin:0 6px">·</span>
+      <span style="font-size:9px;background:rgba(91,127,255,0.1);color:#5b7fff;padding:1px 7px;border-radius:3px;border:1px solid rgba(91,127,255,0.2);font-weight:700">row #${_rowNo}</span>
     </div>
 
     <!-- ROW 1: COCKPIT DATA (left) + SIDE TOGGLE (right) -->
@@ -7158,7 +7165,7 @@ function ljShowLockModal(m, tno, draft=null){
             <div id="lj-side-indicator" style="height:3px;border-radius:0 0 6px 6px;background:#00c47a;transition:all .15s;display:none"></div>`
         }
         <div style="margin-top:12px;border-top:1px solid #1e1e1e;padding-top:12px">
-          <div style="font-size:8px;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:700">timeframe</div>
+          <div style="font-size:8px;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:700">timeframe <span style="color:#e05555">*</span></div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
             <select id="lj-tf" onchange="ljUpdateTfVerdict('preset',this.value)"
               style="width:100%;background:#111;border:1px solid #252525;border-radius:7px;color:#ccc;font-size:12px;padding:7px 10px;font-family:inherit;outline:none;cursor:pointer;color-scheme:dark;box-sizing:border-box">
@@ -7195,28 +7202,40 @@ function ljShowLockModal(m, tno, draft=null){
         </div>
         <div style="margin-bottom:10px">
           <div style="font-size:8px;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px">opened <span style="color:#e05555">*</span></div>
-          <div style="position:relative">
-            <div class="lj-dt-display" id="lj-open-display" onclick="document.getElementById('lj-open-dt').showPicker()">
-              <span class="lj-dt-val" id="lj-open-val">—</span>
-              <span class="lj-dt-icon">📅</span>
+          <div style="display:flex;gap:6px;align-items:center">
+            <div style="position:relative;flex:1">
+              <div class="lj-dt-display" id="lj-open-display" onclick="document.getElementById('lj-open-dt').showPicker()">
+                <span class="lj-dt-val" id="lj-open-val">—</span>
+                <span class="lj-dt-icon">📅</span>
+              </div>
+              <input id="lj-open-dt" type="datetime-local"
+                value="${new Date(Date.now()-3600000).toISOString().slice(0,16)}"
+                style="position:absolute;opacity:0;width:1px;height:1px;top:0;left:0;pointer-events:none;color-scheme:dark"
+                onchange="ljUpdateDtDisplay('open',this.value);ljFetchFundingDebounced()">
             </div>
-            <input id="lj-open-dt" type="datetime-local"
-              value="${new Date(Date.now()-3600000).toISOString().slice(0,16)}"
-              style="position:absolute;opacity:0;width:1px;height:1px;top:0;left:0;pointer-events:none;color-scheme:dark"
-              onchange="ljUpdateDtDisplay('open',this.value);ljFetchFundingDebounced()">
+            <button onclick="const n=new Date().toISOString().slice(0,16);document.getElementById('lj-open-dt').value=n;ljUpdateDtDisplay('open',n);ljFetchFundingDebounced()"
+              style="background:#111;border:1px solid #252525;border-radius:7px;color:#888;font-size:10px;padding:6px 10px;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .15s;flex-shrink:0"
+              onmouseover="this.style.color='#ccc';this.style.borderColor='#444'"
+              onmouseout="this.style.color='#888';this.style.borderColor='#252525'">now</button>
           </div>
         </div>
         <div>
           <div style="font-size:8px;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px">closed <span style="color:#e05555">*</span></div>
-          <div style="position:relative">
-            <div class="lj-dt-display" id="lj-close-display" onclick="document.getElementById('lj-close-dt').showPicker()">
-              <span class="lj-dt-val" id="lj-close-val">—</span>
-              <span class="lj-dt-icon">📅</span>
+          <div style="display:flex;gap:6px;align-items:center">
+            <div style="position:relative;flex:1">
+              <div class="lj-dt-display" id="lj-close-display" onclick="document.getElementById('lj-close-dt').showPicker()">
+                <span class="lj-dt-val" id="lj-close-val">—</span>
+                <span class="lj-dt-icon">📅</span>
+              </div>
+              <input id="lj-close-dt" type="datetime-local"
+                value="${new Date().toISOString().slice(0,16)}"
+                style="position:absolute;opacity:0;width:1px;height:1px;top:0;left:0;pointer-events:none;color-scheme:dark"
+                onchange="ljUpdateDtDisplay('close',this.value);ljFetchFundingDebounced()">
             </div>
-            <input id="lj-close-dt" type="datetime-local"
-              value="${new Date().toISOString().slice(0,16)}"
-              style="position:absolute;opacity:0;width:1px;height:1px;top:0;left:0;pointer-events:none;color-scheme:dark"
-              onchange="ljUpdateDtDisplay('close',this.value);ljFetchFundingDebounced()">
+            <button onclick="const n=new Date().toISOString().slice(0,16);document.getElementById('lj-close-dt').value=n;ljUpdateDtDisplay('close',n);ljFetchFundingDebounced()"
+              style="background:#111;border:1px solid #252525;border-radius:7px;color:#888;font-size:10px;padding:6px 10px;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .15s;flex-shrink:0"
+              onmouseover="this.style.color='#ccc';this.style.borderColor='#444'"
+              onmouseout="this.style.color='#888';this.style.borderColor='#252525'">now</button>
           </div>
         </div>
       </div>
@@ -7291,12 +7310,12 @@ function ljShowLockModal(m, tno, draft=null){
 
     <!-- TV CHART PROOF — two side by side -->
     <div style="margin-bottom:14px">
-      <div style="font-size:8px;color:#666;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;font-weight:700">
-        chart proof <span style="color:#222;font-weight:400;text-transform:none;letter-spacing:0;font-size:9px">optional · tradingview.com/x/… snapshot link</span>
+      <div style="font-size:8px;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;font-weight:700">
+        chart proof <span style="color:#e05555">*</span> <span style="color:#444;font-weight:400;text-transform:none;letter-spacing:0;font-size:9px">tradingview.com/x/… snapshot link</span>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
         <div>
-          <div style="font-size:8px;color:#2a2a2a;margin-bottom:4px;font-weight:600">proof open</div>
+          <div style="font-size:8px;color:#888;margin-bottom:4px;font-weight:600">proof open <span style="color:#e05555">*</span></div>
           <input id="lj-tv-open" type="url"
             placeholder="https://www.tradingview.com/x/…"
             style="width:100%;background:#111;border:1px solid #1e1e1e;border-radius:7px;color:#666;font-size:10px;padding:8px 10px;font-family:inherit;outline:none;box-sizing:border-box;transition:border-color .15s"
@@ -7308,7 +7327,7 @@ function ljShowLockModal(m, tno, draft=null){
           </div>
         </div>
         <div>
-          <div style="font-size:8px;color:#2a2a2a;margin-bottom:4px;font-weight:600">proof close</div>
+          <div style="font-size:8px;color:#888;margin-bottom:4px;font-weight:600">proof close <span style="color:#e05555">*</span></div>
           <input id="lj-tv-close" type="url"
             placeholder="https://www.tradingview.com/x/…"
             style="width:100%;background:#111;border:1px solid #1e1e1e;border-radius:7px;color:#666;font-size:10px;padding:8px 10px;font-family:inherit;outline:none;box-sizing:border-box;transition:border-color .15s"
@@ -7673,10 +7692,25 @@ async function ljConfirmLock(){
   const exit=parseFloat(document.getElementById('lj-exit')?.value)||0;
   // validation
   const errEl=document.getElementById('lj-error');
+  const _tfSelV=document.getElementById('lj-tf')?.value||'';
+  const _tfCustomV=document.getElementById('lj-tf-custom')?.value||'';
+  const _tfVal=_tfCustomV||_tfSelV;
+  const _tvOpen=(document.getElementById('lj-tv-open')?.value||'').trim();
+  const _tvClose=(document.getElementById('lj-tv-close')?.value||'').trim();
   if(!entry||!exit){
     if(errEl){errEl.textContent='⚠ Entry price and exit price are required';errEl.style.display='block';}
     if(!entry){const el=document.getElementById('lj-entry');if(el){el.style.borderColor='#e05555';el.focus();}}
     else{const el=document.getElementById('lj-exit');if(el){el.style.borderColor='#e05555';el.focus();}}
+    return;
+  }
+  if(!_tfVal){
+    if(errEl){errEl.textContent='⚠ Timeframe is required — pick a preset or type custom';errEl.style.display='block';}
+    document.getElementById('lj-tf')?.focus();
+    return;
+  }
+  if(!_tvOpen&&!_tvClose){
+    if(errEl){errEl.textContent='⚠ At least one chart proof (open or close) is required';errEl.style.display='block';}
+    document.getElementById('lj-tv-open')?.focus();
     return;
   }
   if(errEl) errEl.style.display='none';
@@ -8966,7 +9000,7 @@ function renderTbl(months){
     months.forEach(mo=>{
       if(mo.isZ){
         h+=`<tr class="zero-row" style="cursor:pointer" onclick="toggleZeroMonth(${mo.m})" title="click to remove zero month">
-          <td><input class="lbl-sum" value="${getML(mo.m)}" placeholder="${mo.lb}" onchange="onMonthLabel(${mo.m},this.value)" onclick="event.stopPropagation();this.select()"></td>
+          <td><input class="lbl-sum" value="${getML(mo.m)}" placeholder="e.g. JAN 26" oninput="this.value=this.value.toUpperCase()" onchange="onMonthLabel(${mo.m},this.value.toUpperCase())" onclick="event.stopPropagation();this.select()"></td>
           <td>${fmt(mo.sA)}</td>
           <td colspan="9" style="text-align:center;font-size:10px;color:var(--tx3)">⊘ zero month · no trades · <span style="color:var(--acc);font-size:9px">click to activate</span></td>
         </tr>`;
@@ -9002,7 +9036,7 @@ function renderTbl(months){
         return;
       }
       h+=`<tr>
-        <td style="white-space:nowrap"><input class="lbl-sum" value="${getML(mo.m)}" placeholder="${mo.lb}" onchange="onMonthLabel(${mo.m},this.value)" onclick="this.select()" style="width:72px"> <span title="jump to full detail" onclick="event.stopPropagation();jumpToDetail(${mo.m})" style="cursor:pointer;font-size:9px;color:var(--acc2);padding:1px 4px;border:0.5px solid var(--acc2);border-radius:3px;user-select:none;margin-left:2px" onmouseover="this.style.background='var(--btno)'" onmouseout="this.style.background='transparent'">→</span> <span onclick="toggleZeroMonth(${mo.m})" title="set as zero month" style="cursor:pointer;font-size:9px;color:var(--tx3);padding:1px 4px;border:0.5px solid var(--bd2);border-radius:3px;user-select:none" onmouseover="this.style.color='var(--acc)'" onmouseout="this.style.color='var(--tx3)'">⊘</span>${mo.mp>1?'<span style="background:#EAF3DE;color:#3B6D11;font-size:9px;padding:1px 4px;border-radius:3px;font-weight:700;margin-left:2px">⚡'+mo.mp.toFixed(1)+'×</span>':''}</td>
+        <td style="white-space:nowrap"><input class="lbl-sum" value="${getML(mo.m)}" placeholder="e.g. JAN 26" oninput="this.value=this.value.toUpperCase()" onchange="onMonthLabel(${mo.m},this.value.toUpperCase())" onclick="this.select()" style="width:72px"> <span title="jump to full detail" onclick="event.stopPropagation();jumpToDetail(${mo.m})" style="cursor:pointer;font-size:9px;color:var(--acc2);padding:1px 4px;border:0.5px solid var(--acc2);border-radius:3px;user-select:none;margin-left:2px" onmouseover="this.style.background='var(--btno)'" onmouseout="this.style.background='transparent'">→</span> <span onclick="toggleZeroMonth(${mo.m})" title="set as zero month" style="cursor:pointer;font-size:9px;color:var(--tx3);padding:1px 4px;border:0.5px solid var(--bd2);border-radius:3px;user-select:none" onmouseover="this.style.color='var(--acc)'" onmouseout="this.style.color='var(--tx3)'">⊘</span>${mo.mp>1?'<span style="background:#EAF3DE;color:#3B6D11;font-size:9px;padding:1px 4px;border-radius:3px;font-weight:700;margin-left:2px">⚡'+mo.mp.toFixed(1)+'×</span>':''}</td>
         <td>${fmt(mo.sA)}</td>
         <td style="color:var(--acc2);font-weight:700">${mo.wd>0?'<span style="color:var(--tx2);font-size:10px">'+fmt(mo.gA)+'</span> <span style="color:#E24B4A;font-size:9px">−'+fmt(mo.wd)+'</span><br><span style="font-weight:700">'+fmt(mo.eA)+'</span>':fmt(mo.eA)}</td>
         <td>${mo.pct.toFixed(1)}%</td>
@@ -9089,7 +9123,7 @@ function renderTbl(months){
       h+=`<tr class="mh">
         <td style="text-align:left;padding:4px 4px 4px 6px">
           <div style="display:flex;align-items:center;gap:3px">
-            <input class="lbl-in" value="${mLabel}" placeholder="label..." onchange="onMonthLabel(${mo.m},this.value)" onclick="this.select()" style="width:56px">
+            <input class="lbl-in" value="${mLabel}" placeholder="e.g. JAN 26" oninput="this.value=this.value.toUpperCase()" onchange="onMonthLabel(${mo.m},this.value.toUpperCase())" onclick="this.select()" style="width:56px">
             <span onclick="toggleZeroMonth(${mo.m})" title="zero month" style="cursor:pointer;font-size:8px;color:var(--mhs);opacity:.6;padding:0 3px;border:0.5px solid var(--mhs);border-radius:2px;user-select:none">⊘</span>
           </div>
         </td>
@@ -9154,7 +9188,7 @@ function renderTbl(months){
             const mt=gs().MT[mo.m];
             const btVal=mt?mt.bt[t.no-1]:0;
                         h+=`<tr class="skip-row">
-              <td style="padding-left:8px;text-align:left"><input class="lbl-in lbl-trade" value="${tLabel}" placeholder="trade ${t.no}..." onchange="onTradeLabel(${mo.m},${t.no},this.value)" onclick="this.select()"></td>
+              <td style="padding-left:8px;text-align:left"><input class="lbl-in lbl-trade" value="${tLabel}" oninput="this.value=this.value.toUpperCase()" onchange="onTradeLabel(${mo.m},${t.no},this.value.toUpperCase())" placeholder="trade ${t.no}..." onchange="onTradeLabel(${mo.m},${t.no},this.value)" onclick="this.select()"></td>
               <td colspan="4" style="color:var(--tx3);font-size:9px;font-style:italic">skipped</td>
               <td><div class="tg-cell" style="width:54px"><button class="tg-btn" onclick="manStep('bt',${mo.m},${t.no-1},-0.5)" tabindex="-1">−</button><input type="number" id="mbt-${mo.m}-${t.no-1}" value="${btVal}" min="-500" max="500" step="0.5" placeholder="tgt%" style="flex:1;min-width:0;padding:1px 0;font-size:9px;text-align:center;border:none;background:transparent;color:var(--acc);font-weight:700;-moz-appearance:textfield" oninput="dInput(this,v=>onManualBT(${mo.m},${t.no-1},v),400)"><button class="tg-btn" onclick="manStep('bt',${mo.m},${t.no-1},0.5)" tabindex="-1">+</button></div></td>
               <td colspan="8" style="color:var(--tx3);font-size:9px;text-align:center;font-style:italic">set target > 0 to activate</td>
