@@ -8671,9 +8671,9 @@ function render(){
         <button id="lang-id-btn" onclick="setLang('id')" style="font-size:9px;font-weight:700;padding:1px 6px;border:0.5px solid ${LANG==='id'?'var(--acc)':'var(--bd2)'};background:${LANG==='id'?'var(--acc)':'transparent'};color:${LANG==='id'?'#fff':'var(--tx2)'};cursor:pointer">ID</button>
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:3fr 7fr;gap:0;align-items:stretch;margin-bottom:8px">
-      <div class="cw" style="margin-bottom:0;height:168px;position:relative;border-right:none;overflow:hidden"><canvas id="gc"></canvas><button class="chart-zoom-btn" onclick="openChartZoom()" title="expand chart">⤢ zoom</button></div>
-      <div id="assess-side"></div>
+    <div style="display:grid;grid-template-columns:3fr 7fr;gap:0;align-items:start;margin-bottom:8px">
+      <div class="cw" style="margin-bottom:0;height:168px;min-height:168px;max-height:168px;position:relative;border-right:none;overflow:hidden;flex-shrink:0"><canvas id="gc"></canvas><button class="chart-zoom-btn" onclick="openChartZoom()" title="expand chart">⤢ zoom</button></div>
+      <div id="assess-side" style="align-self:stretch"></div>
     </div>`;
   }
 
