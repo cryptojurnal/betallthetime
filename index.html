@@ -9484,7 +9484,22 @@ function renderTbl(months){
             ${ha?ba(fmt(t.projAccAF),fmt(t.accAF),t.accAF>=mo.sA?'var(--acc2)':'#E24B4A'):(fmt(t.accAF))}
             ${s.SPOT?'':'<div style="font-size:7px;color:'+liqAFc+'">liq '+liqAF.toFixed(0)+'%</div>'}
           </td>
-          <td></td>
+          <td style="text-align:center;padding:3px 4px">
+            ${lk?(()=>{
+              // determine outcome state
+              const _ap=ha?t.actualCp:null;
+              const _af=ha?t.actualFee:0;
+              const _proj=t.projCp||t.cp||0;
+              let _mark='—',_col='var(--tx3)';
+              if(ha&&_ap!==null){
+                if(_ap<0){_mark='✕';_col='#E24B4A';}
+                else if(_ap===0||(_ap>0&&(_ap+_af)<_af)){_mark='—';_col='#555';}
+                else if(_ap>0&&(_ap+_af)>=_proj*0.9){_mark='✓';_col='#1D9E75';}
+                else{_mark='~';_col='#EF9F27';}
+              }
+              return `<span style="font-size:11px;font-weight:700;color:${_col};margin-right:4px">${_mark}</span><button onclick="ljJumpToJournal(${mo.m},${t.no})" style="font-size:8px;padding:1px 5px;border-radius:3px;border:0.5px solid #5b7fff;background:rgba(91,127,255,0.08);color:#5b7fff;cursor:pointer;font-family:inherit;white-space:nowrap" onmouseover="this.style.background='rgba(91,127,255,0.2)'" onmouseout="this.style.background='rgba(91,127,255,0.08)'">→ journal</button>`;
+            })():''}
+          </td>
         </tr>`;
       });
       // month end separator — colored bar + spacer before next month
@@ -18884,6 +18899,27 @@ function jnRenderDetail(){
         ${t.tvUrl?`<a href="${escHtml(t.tvUrl)}" target="_blank" class="jn-btn-sm" style="text-decoration:none">open chart ↗</a>`:''}
       </div>
     </div>`;
+}
+
+
+function ljJumpToJournal(m, tno){
+  // find the locked trade in JN for this cockpit slot
+  for(const fid of Object.keys(JN.trades||{})){
+    const found=(JN.trades[fid]||[]).find(t=>
+      t.status!=='draft'&&t.cockpit&&
+      t.cockpit.tab===TAB&&
+      parseInt(t.cockpit.month)===parseInt(m)&&
+      parseInt(t.cockpit.tradeNo)===parseInt(tno)
+    );
+    if(found){
+      // navigate to journal panel and open trade detail
+      JN.activeFolder=fid;
+      battNav('journal');
+      setTimeout(()=>{jnOpenTrade(found.id);},150);
+      return;
+    }
+  }
+  showToast('Trade not found in journal','info',2000);
 }
 
 function jnOpenTrade(id){
