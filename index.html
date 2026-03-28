@@ -1224,7 +1224,7 @@ input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-
 @keyframes flashDown{0%{color:#E24B4A;transform:translateY(3px)}100%{transform:translateY(0)}}
 .ms{font-size:8px;color:var(--tx2);margin-top:1px}
 .note{background:var(--panel);border-left:2px solid var(--acc);padding:5px 10px;font-size:10px;color:var(--tx2);margin-bottom:8px;line-height:1.6;transition:background .25s}
-.cw{position:relative;width:100%;height:180px;margin-bottom:0;background:var(--panel);border-radius:0;padding:10px;border:0.5px solid var(--bd2);transition:background .25s}
+.cw{position:relative;width:100%;height:168px;margin-bottom:0;background:var(--panel);border-radius:0;padding:10px;border:0.5px solid var(--bd2);transition:background .25s}
 .tog{display:flex;border:0.5px solid var(--bd2);border-radius:0;overflow:hidden;width:fit-content;margin-bottom:8px;background:var(--tog);transition:all .25s}
 .tb{padding:4px 11px;font-size:11px;cursor:pointer;border:none;background:transparent;color:var(--tx2)}
 .tb.on{background:var(--togon);color:var(--togonc);font-weight:600}
@@ -6445,6 +6445,7 @@ function _softUpdateCore(){
   if(!isQ){
     const aside=document.getElementById('assess-side');
     if(aside) aside.innerHTML=buildAssessmentCards(months,s);
+    if(ch) requestAnimationFrame(()=>ch.resize());
   } else {
     const assessEl=document.querySelector('.assess-bar')?.parentElement;
     // re-render assess bar in place
@@ -6750,9 +6751,9 @@ function togglePanel(){
     panel.classList.add('collapsed');
   }
   setTimeout(_syncTradeToggleLeft, 10);
-  setTimeout(()=>{
-    if(ch){ if(ch._errorPulse){clearInterval(ch._errorPulse);ch._errorPulse=null;} _applyChartErrorStyle(); requestAnimationFrame(()=>ch.resize()); }
-  },320);
+  [50,150,250,350,420].forEach(d=>setTimeout(()=>{
+    if(ch){if(ch._errorPulse){clearInterval(ch._errorPulse);ch._errorPulse=null;}_applyChartErrorStyle();requestAnimationFrame(()=>ch.resize());}
+  },d));
 }
 
 function toggleTradePanel(){
@@ -6762,9 +6763,9 @@ function toggleTradePanel(){
   const isCollapsed=panel.classList.contains('collapsed');
   // _syncTradeToggleLeft owns left position, not .expanded
   setTimeout(_syncTradeToggleLeft, 10);
-  setTimeout(()=>{
-    if(ch){ if(ch._errorPulse){clearInterval(ch._errorPulse);ch._errorPulse=null;} _applyChartErrorStyle(); requestAnimationFrame(()=>ch.resize()); }
-  },320);
+  [50,150,250,350,420].forEach(d=>setTimeout(()=>{
+    if(ch){if(ch._errorPulse){clearInterval(ch._errorPulse);ch._errorPulse=null;}_applyChartErrorStyle();requestAnimationFrame(()=>ch.resize());}
+  },d));
 }
 
 // ── TRADE PANEL TOGGLE DRAG ──
@@ -8424,7 +8425,7 @@ function buildAssessmentCards(months, s){
   const val=(v,col='var(--tx)',size='12px')=>`<div style="font-size:${size};font-weight:500;color:${col};line-height:1.2">${v}</div>`;
   const sub=(v)=>`<div style="font-size:8px;color:var(--tx2);margin-top:2px">${v}</div>`;
 
-  return `<div style="height:100%;display:grid;grid-template-columns:1fr 1fr;border:0.5px solid var(--bd2);border-radius:0 6px 6px 0;overflow:hidden;background:var(--panel)">
+  return `<div style="height:100%;display:grid;grid-template-columns:1fr 1fr;border:0.5px solid var(--bd2);border-radius:0 6px 6px 0;overflow:auto;background:var(--panel)">
 
     <!-- SHARED HEADER spans both columns -->
     <div style="grid-column:1/-1;display:flex;align-items:center;gap:5px;padding:5px 10px;background:var(--sf2);border-bottom:0.5px solid var(--bd2)">
@@ -8671,9 +8672,9 @@ function render(){
         <button id="lang-id-btn" onclick="setLang('id')" style="font-size:9px;font-weight:700;padding:1px 6px;border:0.5px solid ${LANG==='id'?'var(--acc)':'var(--bd2)'};background:${LANG==='id'?'var(--acc)':'transparent'};color:${LANG==='id'?'#fff':'var(--tx2)'};cursor:pointer">ID</button>
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:3fr 7fr;gap:0;align-items:stretch;margin-bottom:8px">
+    <div style="display:grid;grid-template-columns:3fr 7fr;gap:0;margin-bottom:8px;height:168px">
       <div class="cw" style="margin-bottom:0;height:168px;position:relative;border-right:none;overflow:hidden"><canvas id="gc"></canvas><button class="chart-zoom-btn" onclick="openChartZoom()" title="expand chart">⤢ zoom</button></div>
-      <div id="assess-side"></div>
+      <div id="assess-side" style="height:168px;overflow:hidden"></div>
     </div>`;
   }
 
@@ -8767,6 +8768,11 @@ function render(){
   } // end if(!isQ) chart block
   // watch chart container for size changes and auto-resize chart
   if(!isQ){
+    // also listen to window resize
+    if(!window._chartWinResize){
+      window._chartWinResize=()=>{if(ch) requestAnimationFrame(()=>ch.resize());};
+      window.addEventListener('resize',window._chartWinResize);
+    }
     const cw=document.querySelector('#gc')?.parentElement;
     if(cw && window.ResizeObserver){
       if(window._chartResizeObserver) window._chartResizeObserver.disconnect();
