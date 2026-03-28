@@ -6856,6 +6856,45 @@ async function _autoResaveActivePreset(){
   }catch(e){} // silent — never interrupt the user
 }
 
+
+function ljShowTvReminder(onContinue, isDraft=false){
+  const existing=document.getElementById('lj-tv-reminder');
+  if(existing) existing.remove();
+  const overlay=document.createElement('div');
+  overlay.id='lj-tv-reminder';
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px';
+  overlay.innerHTML=`
+    <div style="background:#111;border:1px solid #252525;border-radius:12px;padding:24px;max-width:420px;width:100%">
+      <div style="font-size:18px;margin-bottom:4px">📸</div>
+      <div style="font-size:14px;font-weight:800;color:#e0e0e0;margin-bottom:6px">${isDraft?'Save your open chart now':'Grab your TradingView snapshot'}</div>
+      <div style="font-size:11px;color:#888;line-height:1.7;margin-bottom:16px">${isDraft
+        ?'Open position — chart proof is super mandatory. Grab your entry chart now, save close chart when you exit.'
+        :'Chart proof makes your journal credible. Screenshot your setup <b style="color:#ccc">before closing</b> this log.'
+      }</div>
+      <div style="background:#0a0a0a;border:1px solid #1e1e1e;border-radius:8px;padding:12px;margin-bottom:16px">
+        <div style="font-size:9px;color:#5b7fff;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">how to get the link</div>
+        <div style="font-size:10px;color:#888;line-height:1.9">
+          1. Open your chart on <b style="color:#ccc">TradingView</b><br>
+          2. Click <b style="color:#ccc">📷 Camera icon</b> (top toolbar)<br>
+          3. Select <b style="color:#ccc">Publish chart image</b><br>
+          4. Copy the <b style="color:#ccc">tradingview.com/x/…</b> link<br>
+          5. Paste it in <b style="color:#ccc">proof open / proof close</b>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button onclick="document.getElementById('lj-tv-reminder').remove();(${onContinue.toString()})()"
+          style="flex:1;padding:10px;background:#00c47a;border:none;border-radius:7px;color:#000;font-size:12px;font-weight:800;cursor:pointer;font-family:inherit">
+          I have it — continue
+        </button>
+        <button onclick="document.getElementById('lj-tv-reminder').remove();(${onContinue.toString()})()"
+          style="padding:10px 14px;background:none;border:1px solid #252525;border-radius:7px;color:#666;font-size:11px;cursor:pointer;font-family:inherit;white-space:nowrap">
+          skip for now
+        </button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+
 function toggleLock(m, tno){
   _captureUndo();const s=gs();
   if(!s.LK) s.LK=new Set();
@@ -6895,7 +6934,7 @@ function toggleLock(m, tno){
     showToast('⚠ Name this month first — click the month label to set it (e.g. "Jan 2025")','info',3500);
     return;
   }
-  ljShowLockModal(m, tno);
+  ljShowTvReminder(()=>ljShowLockModal(m, tno), false);
 }
 
 // ── LOCK TO JOURNAL ──
@@ -7126,6 +7165,8 @@ function ljShowLockModal(m, tno, draft=null){
       <span style="font-size:9px;background:rgba(91,127,255,0.1);color:#5b7fff;padding:1px 7px;border-radius:3px;border:1px solid rgba(91,127,255,0.2);font-weight:700">row #${_rowNo}</span>
     </div>
 
+    <div style="font-size:9px;color:#888;margin-bottom:12px">⚠ pick your side first — it affects the direction of PnL calculation</div>
+
     <!-- ROW 1: COCKPIT DATA (left) + SIDE TOGGLE (right) -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;align-items:stretch">
       <!-- cockpit data -->
@@ -7294,7 +7335,7 @@ function ljShowLockModal(m, tno, draft=null){
         </div>
       </div>
     </div>
-    <div style="font-size:9px;color:#2a2a2a;margin-bottom:14px">side selection affects direction of PnL calculation</div>
+
 
     <!-- LIVE CALC -->
     <div class="lj-calc" id="lj-calc" style="display:none;margin-bottom:16px">
@@ -7361,7 +7402,7 @@ function ljShowLockModal(m, tno, draft=null){
 
     <!-- MOOD dropdown — right above the lock button -->
     <div style="margin-bottom:14px">
-      <div style="font-size:9px;color:#666;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:700">mood <span style="color:#333;font-weight:400;text-transform:none;letter-spacing:0;font-size:9px">optional · set once, permanent after lock</span></div>
+      <div style="font-size:9px;color:#666;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:700">mood <span style="color:#666;font-weight:400;text-transform:none;letter-spacing:0;font-size:9px">optional · set once, permanent after lock</span></div>
       <select id="lj-mood-select" style="width:100%;background:#111;border:1px solid #252525;border-radius:7px;color:#ccc;font-size:13px;padding:9px 12px;font-family:inherit;outline:none;cursor:pointer;box-sizing:border-box;color-scheme:dark">
         <option value="">— select mood —</option>
         ${JN_EMOTIONS.map(e=>`<option value="${e}">${e} ${{'😤':'frustrated','😰':'anxious','😐':'neutral','😊':'confident','🔥':'on fire'}[e]||''}</option>`).join('')}
@@ -7379,7 +7420,7 @@ function ljShowLockModal(m, tno, draft=null){
         onmouseover="this.style.background='#00e08a'" onmouseout="this.style.background='#00c47a'">
         🔒 lock &amp; log to journal
       </button>
-      <div style="font-size:9px;color:#2a2a2a;text-align:center;margin-top:-4px">permanent · cannot be undone · entry + exit required</div>
+      <div style="font-size:9px;color:#666;text-align:center;margin-top:-4px">permanent · cannot be undone · entry + exit required</div>
 
       <div style="border-top:1px solid #1a1a1a;margin:4px 0"></div>
 
@@ -7389,7 +7430,7 @@ function ljShowLockModal(m, tno, draft=null){
         onmouseover="this.style.borderColor='#f59e0b88';this.style.background='#1f1800'" onmouseout="this.style.borderColor='#f59e0b44';this.style.background='#1a1400'">
         📝 save as open position
       </button>
-      <div id="lj-draft-btn-hint" style="font-size:9px;color:#2a2a2a;text-align:center;margin-top:-4px">only entry price required · edit anytime · lock when closed</div>
+      <div id="lj-draft-btn-hint" style="font-size:9px;color:#666;text-align:center;margin-top:-4px">only entry price required · edit anytime · lock when closed</div>
 
       <!-- TERTIARY: Delete draft — only shown when editing existing draft -->
       <button id="lj-delete-draft-btn" onclick="ljDeleteDraft()" style="display:none;width:100%;background:none;border:1px solid #2a0a0a;border-radius:10px;color:#4a1a1a;font-size:11px;font-weight:700;padding:9px 20px;cursor:pointer;font-family:inherit;outline:none;transition:all .15s"
@@ -7888,7 +7929,13 @@ async function ljDeleteDraft(){
   showToast('🗑 Draft deleted — trade removed','info',2000);
 }
 
+function _ljDraftContinue(){
+  ljSaveDraftCore();
+}
 async function ljSaveDraft(){
+  ljShowTvReminder(()=>ljSaveDraftCore(), true);
+}
+async function ljSaveDraftCore(){
   const s=gs();
   const {m,tno}=_ljPending;
   const entry=parseFloat(document.getElementById('lj-entry')?.value)||0;
