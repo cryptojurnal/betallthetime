@@ -7130,19 +7130,36 @@ function ljShowLockModal(m, tno){
       <div class="lj-calc-row"><span class="lj-calc-lbl">% return on margin</span><span class="lj-calc-val" id="lj-pct" style="font-size:13px">—</span></div>
     </div>
 
-    <!-- TV CHART PROOF -->
+    <!-- TV CHART PROOF — two side by side -->
     <div style="margin-bottom:14px">
-      <div style="font-size:8px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:700">
+      <div style="font-size:8px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;font-weight:700">
         chart proof <span style="color:#222;font-weight:400;text-transform:none;letter-spacing:0;font-size:9px">optional · tradingview.com/x/… snapshot link</span>
       </div>
-      <input id="lj-tv" type="url"
-        placeholder="https://www.tradingview.com/x/xxxxxxxx/"
-        style="width:100%;background:#111;border:1px solid #1e1e1e;border-radius:7px;color:#666;font-size:11px;padding:9px 12px;font-family:inherit;outline:none;box-sizing:border-box;transition:border-color .15s"
-        oninput="ljPreviewTV(this.value)"
-        onfocus="this.style.borderColor='#444'"
-        onblur="this.style.borderColor='#1e1e1e'">
-      <div id="lj-tv-preview-wrap" style="display:none;margin-top:8px;border-radius:7px;overflow:hidden;border:1px solid #1e1e1e">
-        <img id="lj-tv-preview-img" style="width:100%;display:block;border-radius:6px" alt="chart snapshot">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div>
+          <div style="font-size:8px;color:#2a2a2a;margin-bottom:4px;font-weight:600">proof open</div>
+          <input id="lj-tv-open" type="url"
+            placeholder="https://www.tradingview.com/x/…"
+            style="width:100%;background:#111;border:1px solid #1e1e1e;border-radius:7px;color:#666;font-size:10px;padding:8px 10px;font-family:inherit;outline:none;box-sizing:border-box;transition:border-color .15s"
+            oninput="ljPreviewTV(this.value,'lj-tv-preview-open')"
+            onfocus="this.style.borderColor='#444'"
+            onblur="this.style.borderColor='#1e1e1e'">
+          <div id="lj-tv-preview-open" style="display:none;margin-top:6px;border-radius:6px;overflow:hidden;border:1px solid #1e1e1e">
+            <img style="width:100%;display:block" alt="open chart">
+          </div>
+        </div>
+        <div>
+          <div style="font-size:8px;color:#2a2a2a;margin-bottom:4px;font-weight:600">proof close</div>
+          <input id="lj-tv-close" type="url"
+            placeholder="https://www.tradingview.com/x/…"
+            style="width:100%;background:#111;border:1px solid #1e1e1e;border-radius:7px;color:#666;font-size:10px;padding:8px 10px;font-family:inherit;outline:none;box-sizing:border-box;transition:border-color .15s"
+            oninput="ljPreviewTV(this.value,'lj-tv-preview-close')"
+            onfocus="this.style.borderColor='#444'"
+            onblur="this.style.borderColor='#1e1e1e'">
+          <div id="lj-tv-preview-close" style="display:none;margin-top:6px;border-radius:6px;overflow:hidden;border:1px solid #1e1e1e">
+            <img style="width:100%;display:block" alt="close chart">
+          </div>
+        </div>
       </div>
     </div>
 
@@ -7395,21 +7412,16 @@ function ljSelectPair(symbol){
   ljFetchFunding(true);
 }
 
-function ljPreviewTV(url){
-  const wrap=document.getElementById('lj-tv-preview-wrap');
-  const img=document.getElementById('lj-tv-preview-img');
-  if(!wrap||!img) return;
+function ljPreviewTV(url, wrapId){
+  const wrap=document.getElementById(wrapId||'lj-tv-preview-open');
+  if(!wrap) return;
+  const img=wrap.querySelector('img');
+  if(!img) return;
   if(url&&url.includes('tradingview.com/x/')){
-    // /x/ links are snapshot images — show as <img>
-    // the image URL is the same link with og:image metadata, direct src works
     img.src=url;
     img.onerror=()=>{wrap.style.display='none';};
     img.onload=()=>{wrap.style.display='block';};
     wrap.style.display='block';
-    img.src=url; // trigger load
-  } else if(url&&url.includes('tradingview.com')){
-    // other TV links — just show as link, no preview
-    wrap.style.display='none';
   } else {
     wrap.style.display='none';
   }
@@ -7436,7 +7448,9 @@ async function ljConfirmLock(){
   const feeRate=_exFees/100;
   const funding=s.FEE.funding/100;
   const holds=s.FEE.holds;
-  const tvUrl=(document.getElementById('lj-tv')?.value||'').trim();
+  const tvUrlOpen=(document.getElementById('lj-tv-open')?.value||'').trim();
+  const tvUrlClose=(document.getElementById('lj-tv-close')?.value||'').trim();
+  const tvUrl=tvUrlOpen||tvUrlClose; // legacy fallback
   const notes=document.getElementById('lj-notes')?.value||'';
   const emotion=document.getElementById('lj-mood-select')?.value||'';
   const dateVal=document.getElementById('lj-close-dt')?.value||document.getElementById('lj-date')?.value||new Date().toISOString().slice(0,16);
@@ -7501,6 +7515,8 @@ async function ljConfirmLock(){
     emotion,
     source:'cockpit',
     tvUrl,
+    tvUrlOpen,
+    tvUrlClose,
     bucket:activeBucket,
     // cockpit specifics
     cockpit:{
@@ -17453,11 +17469,26 @@ function clearActivePreset(){
   const btn=document.getElementById('auth-preset-clear');
   if(lbl){lbl.textContent='';lbl.style.display='none';}
   if(btn) btn.style.display='none';
-  // refresh preset list so ● active badge disappears from card
+  // reset cockpit to clean neutral state — no preset data bleeds through
+  ['36','q',...(typeof CUSTOM_TABS!=='undefined'?CUSTOM_TABS.map(t=>t.id):[])].forEach(tabId=>{
+    if(!S||!S[tabId]) return;
+    // clear locked rows — they belong to the preset
+    S[tabId].LK=new Set();
+    // clear slot pref so slots reset to defaults
+    try{localStorage.removeItem('batt_slot_pref');}catch(e){}
+    S[tabId].BT=[...DEF_BT];
+    S[tabId].FR=[...DEF_FR];
+    // save clean state to localStorage
+    try{
+      localStorage.setItem('batt_'+tabId+'_lk', JSON.stringify({LK:[]}));
+      localStorage.setItem('batt_'+tabId+'_trades', JSON.stringify({BT:[...DEF_BT],FR:[...DEF_FR]}));
+    }catch(e){}
+  });
+  // refresh preset list so active badge disappears
   if(typeof presetRenderList==='function') presetRenderList();
-  // re-render cockpit so actual overlays disappear (no active preset = no journal link)
+  // re-render cockpit clean
   if(typeof render==='function') render();
-  showToast('Preset unlinked — auto-save disabled','info',2000);
+  showToast('Preset exited — cockpit reset to neutral','info',2500);
 }
 
 function guestGoLogin(){
@@ -17857,17 +17888,38 @@ function jnRenderDetail(){
     }
   }
 
-  // TradingView
+  // TradingView — side by side open/close
   let tvHtml='';
-  if(t.tvUrl&&t.tvUrl.includes('tradingview.com')){
-    const isSnapshot=t.tvUrl.includes('/x/');
-    tvHtml=`<div style="margin-bottom:20px">
-      <div class="jn-sec-title" style="margin-bottom:8px">chart proof <a href="${escHtml(t.tvUrl)}" target="_blank" style="color:#5b7fff;font-weight:600;text-transform:none;letter-spacing:0;font-size:9px;margin-left:6px">open in TradingView ↗</a></div>
-      ${isSnapshot
-        ?`<img src="${escHtml(t.tvUrl)}" style="width:100%;border-radius:8px;border:1px solid #1e1e1e;display:block" alt="chart snapshot" onerror="this.style.display='none';this.nextSibling.style.display='block'"><div style="display:none;padding:16px;text-align:center;color:#444;font-size:11px;background:#0f0f0f;border-radius:8px">could not load preview</div>`
-        :`<iframe src="${escHtml(t.tvUrl.replace('/chart/','/embed-chart/'))}" style="width:100%;height:240px;border:1px solid #1e1e1e;border-radius:8px;background:#0a0a0a" frameborder="0" allowfullscreen sandbox="allow-scripts allow-same-origin allow-popups"></iframe>`
-      }
-    </div>`;
+  const hasOpen=t.tvUrlOpen&&t.tvUrlOpen.includes('tradingview.com/x/');
+  const hasClose=t.tvUrlClose&&t.tvUrlClose.includes('tradingview.com/x/');
+  const hasLegacy=!hasOpen&&!hasClose&&t.tvUrl&&t.tvUrl.includes('tradingview.com');
+  if(hasOpen||hasClose||hasLegacy){
+    if(hasLegacy){
+      // old single URL — show full width
+      tvHtml=`<div style="margin-bottom:16px">
+        <div class="jn-sec-title" style="margin-bottom:8px">chart proof <a href="${escHtml(t.tvUrl)}" target="_blank" style="color:#5b7fff;font-size:9px;font-weight:600;text-transform:none;letter-spacing:0;margin-left:6px">open ↗</a></div>
+        <img src="${escHtml(t.tvUrl)}" style="width:100%;border-radius:8px;border:1px solid #1e1e1e;display:block" alt="chart" onerror="this.style.display='none'">
+      </div>`;
+    } else {
+      // new side-by-side open/close
+      const openHtml=hasOpen?`
+        <div>
+          <div style="font-size:8px;color:#2a2a2a;font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:.07em">proof open <a href="${escHtml(t.tvUrlOpen)}" target="_blank" style="color:#5b7fff;font-size:8px;font-weight:600;text-transform:none;letter-spacing:0;margin-left:4px">↗</a></div>
+          <img src="${escHtml(t.tvUrlOpen)}" style="width:100%;border-radius:7px;border:1px solid #1e1e1e;display:block" alt="open chart" onerror="this.style.display='none'">
+        </div>`:'<div style="display:flex;align-items:center;justify-content:center;height:80px;border:1px solid #1a1a1a;border-radius:7px;color:#2a2a2a;font-size:10px">no open proof</div>';
+      const closeHtml=hasClose?`
+        <div>
+          <div style="font-size:8px;color:#2a2a2a;font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:.07em">proof close <a href="${escHtml(t.tvUrlClose)}" target="_blank" style="color:#5b7fff;font-size:8px;font-weight:600;text-transform:none;letter-spacing:0;margin-left:4px">↗</a></div>
+          <img src="${escHtml(t.tvUrlClose)}" style="width:100%;border-radius:7px;border:1px solid #1e1e1e;display:block" alt="close chart" onerror="this.style.display='none'">
+        </div>`:'<div style="display:flex;align-items:center;justify-content:center;height:80px;border:1px solid #1a1a1a;border-radius:7px;color:#2a2a2a;font-size:10px">no close proof</div>';
+      tvHtml=`<div style="margin-bottom:16px">
+        <div class="jn-sec-title" style="margin-bottom:10px">chart proof</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          ${openHtml}
+          ${closeHtml}
+        </div>
+      </div>`;
+    }
   }
 
   // cockpit projection — actual vs projected overlay
