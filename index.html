@@ -15428,11 +15428,8 @@ document.addEventListener('DOMContentLoaded', async ()=>{
     const l1=document.getElementById('layer1');
     if(l1){l1.classList.add('hidden');}
     goLayer3();
-    // if URL was #cockpit on refresh, navigate there and journal is already
-    // loaded by authRestoreSession — just ensure render fires
-    if((window.location.hash||'').replace('#','') === 'cockpit'){
-      if(typeof openDashboard==='function') openDashboard();
-    }
+    // restore to correct page on reload — covers cockpit, journal, account, trade, etc
+    if(typeof battRestoreFromHash==='function') setTimeout(battRestoreFromHash,100);
     
     // Show push notification prompt after login
     if(typeof pushPromptShow==='function') pushPromptShow();
@@ -18081,6 +18078,7 @@ function battNav(page){
     'cockpit': 'BATT · Cockpit',
     'trade':   'BATT · Trade Hub',
     'account': 'BATT · Account',
+    'journal': 'BATT · Journal',
     'about':   'BATT · About CJ',
     'auth':    'BATT · Login',
   };
@@ -18103,98 +18101,51 @@ function battNav(page){
 function battSetRoute(page){ battNav(page); }
 function battSetTitle(page){ battNav(page); }
 
-window.addEventListener('popstate', function(){
-  if(_battInAppNav) return;
 
-  // ── PRO APPROACH: if any overlay/popup is visible, dismiss it and re-push current state ──
-  // browser back should close overlays, not navigate away from the page
-  var guidePopup = document.getElementById('guide-popup');
-  var layer2 = document.getElementById('layer2');
-  var confirmOverlay = document.getElementById('confirm-overlay') || document.querySelector('.confirm-overlay');
-
-  // if guide popup is visible — block back entirely, only "okay" can dismiss it
-  if(guidePopup && guidePopup.classList.contains('visible')){
-    history.replaceState({batt:'guide-lock'}, '', '#cockpit');
-    return;
-  }
-  // if risk disclosure (layer2) is visible — go back to member area
-  if(layer2 && !layer2.classList.contains('hidden') && !layer2.classList.contains('out')){
-    // hide instantly — no fade, prevent any visual linger
-    layer2.classList.add('hidden');
-    layer2.classList.remove('out');
-    layer2.style.opacity='';
-    // reset launch button for next visit
-    var lb2 = layer2.querySelector('.launch-btn');
-    if(lb2){ lb2.disabled=false; lb2.style.opacity=''; }
-    // show member area
-    var l3b = document.getElementById('layer3');
-    document.body.style.overflow='auto';
-    if(l3b){ l3b.classList.remove('hidden'); requestAnimationFrame(function(){ l3b.classList.add('visible'); }); }
-    history.replaceState({batt:'member'}, '', '#member');
-    document.title = 'BATT · Member Area';
-    if(typeof mbnSetActive==='function') mbnSetActive('member');
-    return;
-  }
-  // if confirm/alert popup is open — close it
-  if(confirmOverlay && confirmOverlay.style.display !== 'none' && confirmOverlay.offsetParent !== null){
-    if(typeof closeConfirm==='function') closeConfirm();
-    history.pushState({}, '', window.location.hash||'');
-    return;
-  }
-
-  var hash = (window.location.hash||'').replace('#','');
-  var titles = {'member':'BATT · Member Area','cockpit':'BATT · Cockpit','trade':'BATT · Trade Panel','account':'BATT · Account','about':'BATT · About CJ','risk':'BATT · Risk Disclosure'};
-  if(titles[hash]) document.title = titles[hash];
-
-  var account = document.getElementById('account-page');
-  var trading = document.getElementById('trading-page');
-  var about   = document.getElementById('about-cj-page');
-  var l3      = document.getElementById('layer3');
-  var app     = document.querySelector('.app');
-
-  if(hash === 'member'){
-    if(account) account.classList.remove('visible');
-    if(trading){ trading.classList.remove('visible'); trading.style.opacity=''; trading.style.transform=''; }
-    if(about){ about.style.display='none'; about.style.opacity='0'; about.classList.remove('acj-visible'); }
-    var hub = document.getElementById('trade-hub');
-    if(hub){ hub.style.display='none'; hub.style.opacity=''; hub.style.transform=''; }
-    var swPg = document.getElementById('swap-page');
-    if(swPg){ swPg.style.display='none'; swPg.style.opacity=''; swPg.style.transform=''; }
-    if(app) app.style.opacity='0';
-    document.body.style.overflow='auto';
-    if(l3){ l3.classList.remove('hidden'); requestAnimationFrame(function(){ l3.classList.add('visible'); }); }
-    if(typeof mbnSetActive==='function') mbnSetActive('member');
-  } else if(hash === 'cockpit'){
-    if(account) account.classList.remove('visible');
-    if(trading) trading.classList.remove('visible');
-    if(about){ about.style.display='none'; about.style.opacity='0'; about.classList.remove('acj-visible'); }
-    if(l3){ l3.classList.remove('visible'); setTimeout(function(){ l3.classList.add('hidden'); },300); }
-    document.body.style.overflow='hidden';
-    if(app){ app.style.opacity='1'; app.style.transform=''; }
-    if(typeof mbnSetActive==='function') mbnSetActive('cockpit');
-  } else if(hash === 'account'){
-    if(account){ account.classList.add('visible'); if(typeof loadAccountPage==='function') loadAccountPage(); }
-    document.body.style.overflow='auto';
-    if(typeof mbnSetActive==='function') mbnSetActive('account');
-  } else if(hash === 'simulate'){
-    history.pushState({batt:'simulate'}, '', '#simulate');
-    return;
-  } else if(hash === 'swap'){
-    // back from swap — close swap, show hub
-    if(typeof closeSwapPage==='function') closeSwapPage();
-    return;
-  } else if(hash === 'trade'){
-    // show trade hub
-    var hub = document.getElementById('trade-hub');
-    if(trading){ trading.classList.remove('visible'); trading.style.opacity=''; trading.style.transform=''; }
-    if(l3) l3.classList.remove('visible');
+// ── CLEAN HASH-BASED ROUTING ──
+// single source of truth — called on load and popstate
+function battRestoreFromHash(){
+  var hash=(window.location.hash||'').replace('#',"");
+  // dismiss any open overlays first
+  var ljBox=document.getElementById('lj-box');
+  if(ljBox&&ljBox.closest&&ljBox.closest('.lj-modal-wrap')){ var mo=ljBox.closest('.lj-modal-wrap'); if(mo) mo.style.display='none'; }
+  if(hash==='cockpit'&&typeof openDashboard==='function'){ openDashboard(); return; }
+  if(hash==='journal'&&typeof openJournal==='function'){ openJournal(); return; }
+  if(hash==='trade'&&typeof battNav==='function'){
+    var hub=document.getElementById('trade-hub');
     if(hub){ hub.style.display='flex'; requestAnimationFrame(function(){ hub.style.opacity='1'; hub.style.transform='scale(1)'; }); }
     document.body.style.overflow='auto';
     if(typeof mbnSetActive==='function') mbnSetActive('trade');
-  } else if(hash === 'about'){
-    if(about){ about.style.display='block'; requestAnimationFrame(function(){ about.style.opacity='1'; about.classList.add('acj-visible'); }); }
-    document.body.style.overflow='auto';
+    return;
   }
+  if(hash==='account'&&typeof loadAccountPage==='function'){
+    var ap=document.getElementById('account-page');
+    if(ap) ap.classList.add('visible');
+    loadAccountPage();
+    document.body.style.overflow='auto';
+    if(typeof mbnSetActive==='function') mbnSetActive('account');
+    return;
+  }
+  if(hash==='about'){
+    var ab=document.getElementById('about-cj-page');
+    if(ab){ ab.style.display='block'; requestAnimationFrame(function(){ ab.style.opacity='1'; ab.classList.add('acj-visible'); }); }
+    document.body.style.overflow='auto';
+    return;
+  }
+  // default — member area
+  var l3=document.getElementById('layer3');
+  if(l3){ l3.classList.remove('hidden'); requestAnimationFrame(function(){ l3.classList.add('visible'); }); }
+  document.body.style.overflow='auto';
+  if(typeof mbnSetActive==='function') mbnSetActive('member');
+}
+
+window.addEventListener('popstate', function(e){
+  // close log modal if open
+  if(typeof ljCloseModal==='function') ljCloseModal();
+  // close any confirm overlay
+  var co=document.getElementById('confirm-overlay')||document.querySelector('.confirm-overlay');
+  if(co&&co.offsetParent){ if(typeof closeConfirm==='function') closeConfirm(); history.pushState({},"'',window.location.hash||''); return; }
+  battRestoreFromHash();
 });
 
 // ── GUEST / AUTH VISIBILITY HELPERS ──
