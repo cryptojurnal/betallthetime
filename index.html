@@ -8063,12 +8063,27 @@ async function ljSaveDraftCore(){
   const s=gs();
   const {m,tno}=_ljPending;
   const entry=parseFloat(document.getElementById('lj-entry')?.value)||0;
+  const errEl=document.getElementById('lj-error');
   if(!entry){
     const el=document.getElementById('lj-entry');
     if(el){el.style.borderColor='#e05555';el.focus();}
-    showToast('⚠ Entry price is required to save draft','info',2000);
+    if(errEl){errEl.textContent='⚠ Entry price is required to save draft';errEl.style.display='block';}
     return;
   }
+  // side required for draft
+  if(!window._ljSide&&!s.SPOT){
+    if(errEl){errEl.textContent='⚠ Pick your side first — LONG or SHORT';errEl.style.display='block';}
+    document.getElementById('ljside-long')?.focus();
+    return;
+  }
+  // chart proof open required for draft
+  const _tvOpen=(document.getElementById('lj-tv-open')?.value||'').trim();
+  if(!_tvOpen||!_tvOpen.includes('tradingview.com/x/')){
+    if(errEl){errEl.textContent='⚠ Chart proof (open) is required — grab your TradingView snapshot link';errEl.style.display='block';}
+    document.getElementById('lj-tv-open')?.focus();
+    return;
+  }
+  if(errEl) errEl.style.display='none';
   if(!window._ACTIVE_PRESET){
     showToast('⚠ Load or save a preset first','info',2500);
     return;
