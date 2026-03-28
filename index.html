@@ -7249,6 +7249,15 @@ function ljShowLockModal(m, tno, draft=null){
         <div><div style="font-size:8px;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">proj. notional</div><div style="font-size:11px;font-weight:700;color:#888">$${notional.toLocaleString('en',{maximumFractionDigits:2})}</div></div>
         <div><div style="font-size:8px;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">proj. margin</div><div style="font-size:11px;font-weight:700;color:#888">$${margin.toFixed(2)}</div></div>
         <div><div style="font-size:8px;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">target</div><div style="font-size:11px;font-weight:700;color:#00c47a">${tgt.toFixed(2)}%</div></div>
+        <div style="grid-column:span 2">
+          <div style="font-size:8px;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">exit type <span style="color:#e05555">*</span></div>
+          <select id="lj-exit-type" style="width:100%;background:#0a0a0a;border:1px solid #252525;border-radius:6px;color:#ccc;font-size:11px;padding:6px 10px;font-family:inherit;outline:none;cursor:pointer;color-scheme:dark">
+            <option value="">— select exit type —</option>
+            <option value="price">price-based (TP / SL / trail / partial)</option>
+            <option value="signal">signal-based (flip / pullback / time)</option>
+            <option value="conditional">conditional (BE / news / funding / liq%)</option>
+          </select>
+        </div>
         <div>
           <div style="font-size:8px;color:#5b7fff;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">actual notional</div>
           <input type="number" id="lj-actual-not" placeholder="${notional.toFixed(2)}" step="0.01" min="0"
@@ -7843,6 +7852,7 @@ async function ljConfirmLock(){
   const tvUrl=tvUrlOpen||tvUrlClose; // legacy fallback
   const notes=document.getElementById('lj-notes')?.value||'';
   const notePsych=document.getElementById('lj-notes-psych')?.value||'';
+  const exitType=document.getElementById('lj-exit-type')?.value||'';
   const _tfSel=document.getElementById('lj-tf')?.value||'';
   const _tfCustom=document.getElementById('lj-tf-custom')?.value||'';
   const tf=_tfCustom||_tfSel;
@@ -7913,6 +7923,7 @@ async function ljConfirmLock(){
     note:notes,
     notePsych,
     tf,
+    exitType,
     emotion,
     source:'cockpit',
     tvUrl,
@@ -8032,6 +8043,7 @@ async function ljSaveDraftCore(){
   const tvUrlClose=(document.getElementById('lj-tv-close')?.value||'').trim();
   const notes=document.getElementById('lj-notes')?.value||'';
   const notePsych=document.getElementById('lj-notes-psych')?.value||'';
+  const exitType=document.getElementById('lj-exit-type')?.value||'';
   const _tfSel=document.getElementById('lj-tf')?.value||'';
   const _tfCustom=document.getElementById('lj-tf-custom')?.value||'';
   const tf=_tfCustom||_tfSel;
@@ -8069,6 +8081,7 @@ async function ljSaveDraftCore(){
     if(notes) t.note=notes;
     if(notePsych) t.notePsych=notePsych;
     if(tf) t.tf=tf;
+    if(exitType) t.exitType=exitType;
     t.updatedAt=Date.now();
     await jnSave();
     ljCloseModal();
@@ -8381,6 +8394,19 @@ function onManualBT(m,i,v){
   _silentCloudSync();
   softUpdate();
 }
+function onTradeExit(m,tno,val){
+  // store exit type on the simulated trade object for display
+  const mo=sim().find(x=>x.m===m);
+  const tr=mo?mo.trades.find(t=>t.no===tno):null;
+  if(tr) tr.exit=val;
+  // also save to MT state
+  const s=gs();
+  if(!s.MT[m]) s.MT[m]={bt:[...s.BT],fr:[...s.FR]};
+  if(!s.MT[m].exitTypes) s.MT[m].exitTypes={};
+  s.MT[m].exitTypes[tno]=val;
+  _silentCloudSync();
+}
+
 function onManualFR(m,i,v){
   _captureUndo();if(isLocked(m,i+1)) return; // locked — ignore edit
   const s=gs();
@@ -9202,6 +9228,7 @@ function renderTbl(months){
       <th style="width:5%">${s.SPOT?'—':'fm%'}</th>
       <th style="width:5%">${s.SPOT?'◈':'liq%'}</th>
       <th style="width:7%;text-align:center">target%</th>
+      <th style="width:5%;text-align:center">exit</th>
       <th style="width:8%">gross profit<br><span style="font-weight:400;font-size:7px;text-transform:none;color:var(--tx3)">single trade</span></th>
       <th style="width:8%">combine<br><span style="font-weight:400;font-size:7px;text-transform:none;color:var(--tx3)">pnl pre-fee</span></th>
       <th style="width:6%;color:#E24B4A">fee paid</th>
@@ -9213,7 +9240,7 @@ function renderTbl(months){
     months.forEach(mo=>{
       if(mo.isZ){
         h+=`<tr class="mh-z" style="cursor:pointer" onclick="toggleZeroMonth(${mo.m})" title="click to remove zero month">
-          <td colspan="14" style="text-align:left">${getML(mo.m)} · ⊘ zero month · account: ${fmt(mo.sA)} · <span style="color:var(--acc);font-size:9px">click to activate</span></td>
+          <td colspan="15" style="text-align:left">${getML(mo.m)} · ⊘ zero month · account: ${fmt(mo.sA)} · <span style="color:var(--acc);font-size:9px">click to activate</span></td>
         </tr>`;
         return;
       }
@@ -9224,7 +9251,7 @@ function renderTbl(months){
       if(IS_WIPED){
         const fmVal = s.NOT/s.LEV/s.P*100;
         const isFmError = fmVal > 100;
-        h+=`<tr class="wipe-row"><td style="text-align:left">${getML(mo.m)}</td><td colspan="13">${isFmError?'🚫':'💸'} ${lbl_w?(isFmError?'setup tidak valid — FM% > 100%':'setup tidak valid — liq% < 1%'):(isFmError?'invalid setup — FM% > 100%':'invalid setup — liq% < 1%')}</td></tr>`;
+        h+=`<tr class="wipe-row"><td style="text-align:left">${getML(mo.m)}</td><td colspan="14">${isFmError?'🚫':'💸'} ${lbl_w?(isFmError?'setup tidak valid — FM% > 100%':'setup tidak valid — liq% < 1%'):(isFmError?'invalid setup — FM% > 100%':'invalid setup — liq% < 1%')}</td></tr>`;
         return;
       }
       if(mo.bust){
@@ -9297,6 +9324,7 @@ function renderTbl(months){
         <td style="font-size:7px;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2)">${s.SPOT?'—':'fm%'}</td>
         <td style="font-size:7px;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2)">${s.SPOT?'◈':'liq%'}</td>
         <td style="font-size:7px;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2);text-align:center">tgt%</td>
+        <td style="font-size:7px;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2);text-align:center">exit</td>
         <td style="font-size:7px;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2)">gross</td>
         <td style="font-size:7px;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2)">pnl pre-fee</td>
         <td style="font-size:7px;color:#E24B4A;text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2)">fee</td>
@@ -9315,11 +9343,11 @@ function renderTbl(months){
               <td style="padding-left:8px;text-align:left"><input class="lbl-in lbl-trade" value="${tLabel}" oninput="this.value=this.value.toUpperCase()" onchange="onTradeLabel(${mo.m},${t.no},this.value.toUpperCase())" placeholder="trade ${t.no}..." onchange="onTradeLabel(${mo.m},${t.no},this.value)" onclick="this.select()"></td>
               <td colspan="4" style="color:var(--tx3);font-size:9px;font-style:italic">skipped</td>
               <td><div class="tg-cell" style="width:54px"><button class="tg-btn" onclick="manStep('bt',${mo.m},${t.no-1},-0.5)" tabindex="-1">−</button><input type="number" id="mbt-${mo.m}-${t.no-1}" value="${btVal}" min="-500" max="500" step="0.5" placeholder="tgt%" style="flex:1;min-width:0;padding:1px 0;font-size:9px;text-align:center;border:none;background:transparent;color:var(--acc);font-weight:700;-moz-appearance:textfield" oninput="dInput(this,v=>onManualBT(${mo.m},${t.no-1},v),400)"><button class="tg-btn" onclick="manStep('bt',${mo.m},${t.no-1},0.5)" tabindex="-1">+</button></div></td>
-              <td colspan="8" style="color:var(--tx3);font-size:9px;text-align:center;font-style:italic">set target > 0 to activate</td>
+              <td colspan="9" style="color:var(--tx3);font-size:9px;text-align:center;font-style:italic">set target > 0 to activate</td>
               <td></td>
             </tr>`;
           } else {
-            h+=`<tr class="skip-row"><td style="padding-left:10px;text-align:left;color:var(--tx3);font-size:9px">${tLabel}</td><td colspan="11" style="text-align:center"><span class="sk">skipped · target = 0</span></td><td></td></tr>`;
+            h+=`<tr class="skip-row"><td style="padding-left:10px;text-align:left;color:var(--tx3);font-size:9px">${tLabel}</td><td colspan="12" style="text-align:center"><span class="sk">skipped · target = 0</span></td><td></td></tr>`;
           }
           return;
         }
@@ -9367,6 +9395,17 @@ function renderTbl(months){
             :(!GLOBAL_MODE
               ?'<div class="tg-cell" style="width:54px"><button class="tg-btn" onclick="manStep(\'bt\','+mo.m+','+(t.no-1)+',-0.5)" tabindex="-1">−</button><input type="number" id="mbt-'+mo.m+'-'+(t.no-1)+'" value="'+((gs().MT[mo.m]?.bt[t.no-1]??t.tgt/s.KPI)).toFixed(1)+'" min="-500" max="500" step="0.5" style="flex:1;min-width:0;padding:1px 0;font-size:9px;text-align:center;border:none;background:transparent;color:var(--acc);font-weight:700;-moz-appearance:textfield" oninput="dInput(this,v=>onManualBT('+mo.m+','+(t.no-1)+',v),400)"><button class="tg-btn" onclick="manStep(\'bt\','+mo.m+','+(t.no-1)+',0.5)" tabindex="-1">+</button></div>'
               :t.tgt.toFixed(2)+'%')}</td>
+          <td style="text-align:center;padding:4px 3px">
+            ${lk
+              ?`<span style="font-size:9px;color:var(--tx3)">${t.exit||'—'}</span>`
+              :`<select onchange="onTradeExit(${mo.m},${t.no},this.value)" style="width:100%;background:var(--sf2);border:0.5px solid var(--bd2);border-radius:4px;color:var(--tx2);font-size:9px;padding:2px 3px;font-family:inherit;outline:none;cursor:pointer;-webkit-appearance:none;text-align:center">
+                <option value=""${!t.exit?' selected':''}>—</option>
+                <option value="price"${t.exit==='price'?' selected':''}>price</option>
+                <option value="signal"${t.exit==='signal'?' selected':''}>signal</option>
+                <option value="conditional"${t.exit==='conditional'?' selected':''}>conditional</option>
+              </select>`
+            }
+          </td>
 
           <td style="color:${t.tgt<0?'#E24B4A':'var(--acc2)'}">
             ${ha?ba(fmt(t.projCp),fmt(actNetPnl+actFee),actNetPnl+actFee>=0?'#00c47a':'#E24B4A'):(t.tgt>=0?'+':'')+fmt(t.sp)}
@@ -18616,6 +18655,7 @@ function jnRenderDetail(){
         <span class="${t.side==='long'?'jn-side-long':'jn-side-short'}" style="font-size:9px;padding:3px 9px">${(t.side||'').toUpperCase()}</span>
         ${t.leverage>1?`<span style="font-size:9px;color:#888;background:#1a1a1a;padding:2px 8px;border-radius:3px;border:1px solid #222;font-weight:700">${t.leverage}×</span>`:''}
         ${t.tf?`<span style="font-size:9px;color:#5b7fff;background:rgba(91,127,255,0.08);padding:2px 8px;border-radius:3px;border:1px solid rgba(91,127,255,0.2);font-weight:700">${t.tf}</span>`:''}
+        ${t.exitType?`<span style="font-size:9px;color:#EF9F27;background:rgba(239,159,39,0.08);padding:2px 8px;border-radius:3px;border:1px solid rgba(239,159,39,0.2);font-weight:700">${t.exitType}</span>`:''}
         ${outcomeLabel?`<span style="font-size:10px;font-weight:700;padding:2px 10px;border-radius:4px;background:${t.pnl>=0?'rgba(0,196,122,0.08)':'rgba(224,85,85,0.08)'};color:${outcomeColor}">${outcomeLabel}</span>`:''}
         ${t.emotion?`<span style="font-size:18px">${t.emotion}</span>`:''}
         <span style="font-size:9px;color:#2a2a2a;margin-left:auto">${dateStr}</span>
