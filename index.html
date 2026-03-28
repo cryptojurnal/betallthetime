@@ -6857,6 +6857,37 @@ async function _autoResaveActivePreset(){
 }
 
 
+
+function ljVerifyTvLink(input, warnId){
+  const val=(input.value||'').trim();
+  const warn=document.getElementById(warnId);
+  if(!val){
+    input.style.borderColor='#1e1e1e';
+    if(warn){warn.style.display='none';}
+    return;
+  }
+  // format check first
+  if(!val.includes('tradingview.com/x/')){
+    input.style.borderColor='#e05555';
+    if(warn){warn.style.display='block';warn.style.color='#e05555';warn.textContent='⚠ invalid format — must be tradingview.com/x/… snapshot link';}
+    return;
+  }
+  // format ok — try loading image
+  if(warn){warn.style.display='block';warn.style.color='#888';warn.textContent='⏳ verifying link…';}
+  input.style.borderColor='#252525';
+  const img=new Image();
+  img.onload=()=>{
+    input.style.borderColor='#00c47a';
+    if(warn){warn.style.color='#00c47a';warn.textContent='✓ chart verified';}
+    ljPreviewTV(val, warnId==='lj-tv-warn-open'?'lj-tv-preview-open':'lj-tv-preview-close');
+  };
+  img.onerror=()=>{
+    input.style.borderColor='#e05555';
+    if(warn){warn.style.color='#e05555';warn.textContent='⚠ link unreachable — check the snapshot URL';}
+  };
+  img.src=val;
+}
+
 function ljValidateTvLink(input, warnId){
   const val=(input.value||'').trim();
   const warn=document.getElementById(warnId);
@@ -7165,7 +7196,9 @@ function ljShowLockModal(m, tno, draft=null){
   const _presetName=window._ACTIVE_PRESET?window._ACTIVE_PRESET.name:null;
   const _jnFolder=_presetName?JN.folders.find(f=>f.name===_presetName):null;
   const _jnTrades=_jnFolder?JN.trades[_jnFolder.id]||[]:[];
-  const _rowNo=_jnTrades.length+1;
+  // if editing a draft, show its actual position; otherwise show next row number
+  const _draftIdx=draft?_jnTrades.findIndex(t=>t.id===draft.id):-1;
+  const _rowNo=_draftIdx>=0?(_draftIdx+1):(_jnTrades.filter(t=>t.status!=='draft').length+1);
   const box=document.getElementById('lj-box');
   box.innerHTML=`
     <!-- HEADER -->
@@ -7375,7 +7408,7 @@ function ljShowLockModal(m, tno, draft=null){
           <input id="lj-tv-open" type="url"
             placeholder="https://www.tradingview.com/x/…"
             style="width:100%;background:#111;border:1px solid #1e1e1e;border-radius:7px;color:#666;font-size:10px;padding:8px 10px;font-family:inherit;outline:none;box-sizing:border-box;transition:border-color .15s"
-            oninput="ljValidateTvLink(this,'lj-tv-warn-open');ljPreviewTV(this.value,'lj-tv-preview-open')"
+            oninput="clearTimeout(this._vt);this._vt=setTimeout(()=>ljVerifyTvLink(this,'lj-tv-warn-open'),600)"
             onfocus="this.style.borderColor='#444'"
             onblur="this.style.borderColor=this.value&&!this.value.includes('tradingview.com/x/')?'#e05555':'#1e1e1e'">
           <div id="lj-tv-warn-open" style="display:none;font-size:9px;color:#e05555;margin-top:3px">⚠ invalid — must be a tradingview.com/x/… snapshot link</div>
@@ -7388,7 +7421,7 @@ function ljShowLockModal(m, tno, draft=null){
           <input id="lj-tv-close" type="url"
             placeholder="https://www.tradingview.com/x/…"
             style="width:100%;background:#111;border:1px solid #1e1e1e;border-radius:7px;color:#666;font-size:10px;padding:8px 10px;font-family:inherit;outline:none;box-sizing:border-box;transition:border-color .15s"
-            oninput="ljValidateTvLink(this,'lj-tv-warn-close');ljPreviewTV(this.value,'lj-tv-preview-close')"
+            oninput="clearTimeout(this._vt);this._vt=setTimeout(()=>ljVerifyTvLink(this,'lj-tv-warn-close'),600)"
             onfocus="this.style.borderColor='#444'"
             onblur="this.style.borderColor=this.value&&!this.value.includes('tradingview.com/x/')?'#e05555':'#1e1e1e'">
           <div id="lj-tv-warn-close" style="display:none;font-size:9px;color:#e05555;margin-top:3px">⚠ invalid — must be a tradingview.com/x/… snapshot link</div>
