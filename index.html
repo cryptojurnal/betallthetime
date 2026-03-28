@@ -13073,12 +13073,7 @@ function openSimulation(){
     const aiFab = document.getElementById('ai-fab');
     if(userBar) userBar.style.display='none';
     if(aiFab) aiFab.style.display='none';
-    var _sb=document.getElementById('tp-submit');
-    if(_sb){_sb.disabled=true;_sb.style.opacity='0.5';}
-    tpFetchPrices().finally(function(){
-      var _sb2=document.getElementById('tp-submit');
-      if(_sb2){_sb2.disabled=false;_sb2.style.opacity='';}
-    });
+    tpFetchPrices();
     tpInitChart();
     tpUpdateUI();
     tpRenderPositions();
@@ -13569,6 +13564,7 @@ function _tpTryWS(){
           tpUpdatePriceDisplay();
           tpUpdatePositionsPnL();
           if(typeof tpCheckPendingOrders==="function") tpCheckPendingOrders();
+          if(typeof tpUpdateSubmitButton==='function') tpUpdateSubmitButton();
           _tpFlashPrice(price,prev);
         }
         if(s.includes('@depth')&&msg.data.asks&&msg.data.bids){
@@ -13588,6 +13584,7 @@ function _tpTryWS(){
           tpUpdatePriceDisplay();
           tpUpdatePositionsPnL();
           if(typeof tpCheckPendingOrders==="function") tpCheckPendingOrders();
+          if(typeof tpUpdateSubmitButton==='function') tpUpdateSubmitButton();
           _tpFlashPrice(price,prev);
         }
         if(t.startsWith('orderbook')&&msg.data){
@@ -13614,6 +13611,7 @@ function _tpTryWS(){
           tpUpdatePriceDisplay();
           tpUpdatePositionsPnL();
           if(typeof tpCheckPendingOrders==="function") tpCheckPendingOrders();
+          if(typeof tpUpdateSubmitButton==='function') tpUpdateSubmitButton();
           _tpFlashPrice(price,prev);
         }
         if((ch==='books'||ch==='books5')&&msg.data?.[0]){
@@ -13727,6 +13725,7 @@ async function tpFetchPrices() {
     tpUpdatePriceDisplay();
     tpUpdatePositionsPnL();
     tpRenderPairList();
+    if(typeof tpUpdateSubmitButton==='function') tpUpdateSubmitButton();
     if(typeof tpUpdateSubmitButton==='function') tpUpdateSubmitButton();
   } catch(e) {
     console.error('Price fetch error:', e);
@@ -14945,17 +14944,6 @@ function tpUpdateSubmitButton() {
   const isSpot    = TP_STATE.marketType === 'spot';
   const side      = TP_STATE.side;
   const pairShort = TP_STATE.pair.replace('USDT', '');
-  const priceReady = TP_STATE.prices[TP_STATE.pair]?.price > 0;
-  const isLimitOrStop = TP_STATE.orderType === 'limit' || TP_STATE.orderType === 'stop';
-
-  // limit/stop orders don't need a live price to submit
-  if (!priceReady && !isLimitOrStop) {
-    btn.textContent = 'Loading price...';
-    btn.className   = 'tp-submit-btn long';
-    btn.style.opacity = '0.5';
-    btn.style.cursor  = 'not-allowed';
-    return;
-  }
 
   btn.style.opacity = '';
   btn.style.cursor  = '';
@@ -15315,79 +15303,8 @@ tpSelectSide = function(side) {
   TP_STATE.side = side;
   document.getElementById('tp-side-long').classList.toggle('active', side === 'long');
   document.getElementById('tp-side-short').classList.toggle('active', side === 'short');
-  
-  // Update submit button
   tpUpdateSubmitButton();
   tpCalculate();
-};
-
-// Update calculate for spot/perpetual
-var _origCalculate = tpCalculate;
-tpCalculate = function() {
-  const size = parseFloat(document.getElementById('tp-size')?.value) || 0;
-  const tp = parseFloat(document.getElementById('tp-tp')?.value) || 10;
-  const sl = parseFloat(document.getElementById('tp-sl')?.value) || 5;
-  const priceData = TP_STATE.prices[TP_STATE.pair] || { price: 69000 };
-  const price = (TP_STATE.orderType === 'limit' || TP_STATE.orderType === 'stop')
-    ? (parseFloat(document.getElementById('tp-limit-price')?.value) || parseFloat(document.getElementById('tp-stop-price')?.value) || priceData.price)
-    : priceData.price;
-  const lev = TP_STATE.marketType === 'spot' ? 1 : TP_STATE.leverage;
-  const side = TP_STATE.side;
-  const isSpot = TP_STATE.marketType === 'spot';
-  const isSell = side === 'short';
-  
-  const posValue = isSpot ? size : size * lev;
-  const margin = size;
-  const liqMove = 100 / lev * 0.9;
-  const liqPrice = side === 'long' ? price * (1 - liqMove / 100) : price * (1 + liqMove / 100);
-  const tpPrice = side === 'long' ? price * (1 + tp / 100) : price * (1 - tp / 100);
-  const slPrice = side === 'long' ? price * (1 - sl / 100) : price * (1 + sl / 100);
-  const fee = posValue * 0.001; // 0.1% fee
-  
-  const fmt = (n) => fmtPrice(n);
-  
-  // Update size label based on mode
-  const sizeLabel = document.getElementById('tp-size-label');
-  if (sizeLabel) {
-    if (isSpot && isSell) {
-      sizeLabel.textContent = 'Sell Amount';
-    } else {
-      sizeLabel.textContent = 'Size';
-    }
-  }
-  
-  // Calculate holdings for spot
-  if (isSpot) {
-    const holding = TP_STATE.positions.find(p => 
-      p.pair === TP_STATE.pair && (p.marketType === 'spot' || p.leverage === 1)
-    );
-    const holdingAmount = holding ? (holding.size / holding.entryPrice) : 0;
-    const holdingValue = holdingAmount * price;
-    
-    document.getElementById('tp-sum-value-label').textContent = isSell ? 'You Receive' : 'Total Cost';
-    document.getElementById('tp-sum-value').textContent = fmt(size);
-    
-    // Show holdings info in entry price row for spot
-    if (isSell) {
-      document.getElementById('tp-sum-entry').textContent = holdingAmount > 0 ? 
-        `${holdingAmount.toFixed(6)} (~${fmt(holdingValue)})` : 'No holdings';
-      document.querySelector('#tp-sum-entry').closest('.tp-summary-row').querySelector('span:first-child').textContent = 'Your Holdings';
-    } else {
-      document.getElementById('tp-sum-entry').textContent = fmt(price);
-      document.querySelector('#tp-sum-entry').closest('.tp-summary-row').querySelector('span:first-child').textContent = 'Entry Price';
-    }
-  } else {
-    document.getElementById('tp-sum-entry').textContent = fmt(price);
-    document.querySelector('#tp-sum-entry').closest('.tp-summary-row').querySelector('span:first-child').textContent = 'Entry Price';
-    document.getElementById('tp-sum-value').textContent = fmt(posValue);
-    document.getElementById('tp-sum-value-label').textContent = 'Position Value';
-    document.getElementById('tp-sum-margin').textContent = fmt(margin);
-    document.getElementById('tp-sum-liq').textContent = fmt(liqPrice);
-    document.getElementById('tp-sum-tp').textContent = fmt(tpPrice);
-    document.getElementById('tp-sum-sl').textContent = fmt(slPrice);
-  }
-  
-  document.getElementById('tp-sum-fee').textContent = '~' + fmt(fee);
 };
 
 // ── PUSH NOTIFICATIONS ──
@@ -19518,4 +19435,3 @@ document.addEventListener('click',function(e){
 
 </body>
 </html>
-  
