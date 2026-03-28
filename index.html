@@ -10456,6 +10456,8 @@ async function presetLoad(id){
     const _pbc2=document.getElementById('auth-preset-clear');
     if(_pbl2){_pbl2.textContent='● '+preset.name;_pbl2.style.display='';}
     if(_pbc2) _pbc2.style.display='';
+    // lock controls immediately — don't wait for softUpdate
+    if(typeof syncControls==='function') syncControls();
 
     showToast('Preset "'+preset.name+'" loaded!','success');
     if(typeof logActivity==='function') logActivity('preset_load',{name:preset.name});
