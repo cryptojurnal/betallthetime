@@ -8408,29 +8408,34 @@ function buildAssessmentCards(months, s){
 
   return `<div style="height:100%;display:grid;grid-template-columns:1fr 1fr;border:0.5px solid var(--bd2);border-radius:0 6px 6px 0;overflow:hidden;background:var(--panel)">
 
-    <!-- LEFT: setup -->
+    <!-- SHARED HEADER spans both columns -->
+    <div style="grid-column:1/-1;display:flex;align-items:center;gap:5px;padding:5px 10px;background:var(--sf2);border-bottom:0.5px solid var(--bd2)">
+      <div style="width:5px;height:5px;border-radius:50%;background:#00c47a;flex-shrink:0"></div>
+      <span style="font-size:9px;font-weight:500;color:var(--tx2)">your cockpit${presetName?` · <span style="color:#00c47a">${presetName}</span>`:''}</span>
+      <span style="font-size:8px;color:var(--tx3);margin-left:auto">M01 · T1</span>
+    </div>
+
+    <!-- SECTION LABELS — same row, side by side -->
+    <div style="font-size:7px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;padding:4px 8px 2px;background:var(--sf2);border-bottom:0.5px solid var(--bd2);border-right:0.5px solid var(--bd2)">setup</div>
+    <div style="font-size:7px;font-weight:600;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;padding:4px 8px 2px;background:var(--sf2);border-bottom:0.5px solid var(--bd2)">risk & cost</div>
+
+    <!-- LEFT: setup metrics -->
     <div style="display:flex;flex-direction:column;border-right:0.5px solid var(--bd2)">
-      <div style="padding:6px 12px;background:var(--sf2);border-bottom:0.5px solid var(--bd2);display:flex;align-items:center;gap:5px">
-        <div style="width:5px;height:5px;border-radius:50%;background:#00c47a;flex-shrink:0"></div>
-        <span style="font-size:9px;font-weight:500;color:var(--tx2)">your cockpit${presetName?` · <span style="color:#00c47a">${presetName}</span>`:''}</span>
-        <span style="font-size:8px;color:var(--tx3);margin-left:auto">M01 · T1</span>
-      </div>
-      <div style="font-size:7px;font-weight:500;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;padding:5px 10px 3px;background:var(--sf2);border-bottom:0.5px solid var(--bd2)">setup</div>
-      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:7px 5px;gap:4px">
+      <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));padding:6px 5px 4px;gap:4px">
         ${mc(lbl('capital')+val('$'+s.P.toLocaleString())+sub('starting'))}
         ${mc(lbl('leverage')+val(isSpot?'1× spot':s.LEV+'×',isSpot?'#5DC96A':s.LEV>=20?'#E24B4A':s.LEV>=15?'#EF9F27':'#1D9E75')+sub(isSpot?'no liq':'perp mode'))}
         ${mc(lbl('notional T1')+val('$'+s.NOT.toLocaleString())+sub((s.NOT/s.P).toFixed(2)+'× capital'))}
       </div>
-      <div style="padding:3px 10px 7px">
-        <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--tx2);margin-bottom:4px">
+      <div style="padding:2px 8px 5px">
+        <div style="display:flex;justify-content:space-between;font-size:8px;color:var(--tx2);margin-bottom:3px">
           <span>liq t1 buffer</span>
-          <span style="color:${liqC};font-weight:500">${isSpot?'no liq · spot mode':liqT1.toFixed(1)+'% · '+riskLabel.toLowerCase()}</span>
+          <span style="color:${liqC};font-weight:500">${isSpot?'no liq · spot':liqT1.toFixed(1)+'% · '+riskLabel.toLowerCase()}</span>
         </div>
-        <div style="height:4px;background:var(--sf2);border-radius:2px;overflow:hidden">
+        <div style="height:3px;background:var(--sf2);border-radius:2px;overflow:hidden">
           <div style="width:${isSpot?100:liqW}%;height:100%;background:${isSpot?'#5DC96A':liqC};border-radius:2px"></div>
         </div>
       </div>
-      <div style="display:flex;gap:3px;flex-wrap:wrap;padding:0 10px 9px;margin-top:auto">
+      <div style="display:flex;gap:3px;flex-wrap:wrap;padding:4px 8px 6px">
         ${isSpot?pillOn('◈ spot'):pillOn('⚡ lev')}
         ${cfOn?pillOn('CF on'):pillOff('CF off')}
         ${gmOn?pillOn('global on'):pillOff('global off')}
@@ -8440,31 +8445,23 @@ function buildAssessmentCards(months, s){
       </div>
     </div>
 
-    <!-- RIGHT: risk & cost -->
+    <!-- RIGHT: risk & cost metrics -->
     <div style="display:flex;flex-direction:column">
-      <div style="padding:6px 12px;background:var(--sf2);border-bottom:0.5px solid var(--bd2)">
-        <span style="font-size:9px;font-weight:500;color:var(--tx2);visibility:hidden">spacer</span>
-      </div>
-      <div style="font-size:7px;font-weight:500;color:var(--tx3);text-transform:uppercase;letter-spacing:.08em;padding:5px 10px 3px;background:var(--sf2);border-bottom:0.5px solid var(--bd2)">risk & cost</div>
-
-      <!-- row 1: margin · fee · risk score · fm% -->
-      <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:7px 5px 4px;gap:4px">
+      <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:6px 5px 4px;gap:4px">
         ${mc(lbl('margin')+val('$'+margin.toFixed(2))+sub(fm.toFixed(1)+'% of acct'))}
         ${mc(lbl('fee/trade')+val('$'+feePerTrade.toFixed(3),'var(--tx3)','11px')+sub(s.FEE.method+' '+feeRate+'%×2'))}
         ${mc(lbl('risk score')+`<div style="font-size:10px;font-weight:500;color:${rs<=20?'#1D9E75':rs<=45?'#EF9F27':rs<=70?'#E24B4A':'#7a0000'}">${re} ${riskLabel.toLowerCase()}</div>`+sub(rs+'/100'))}
-        ${mc(lbl('fm%')+val(fm.toFixed(1)+'%',fm>40?'#E24B4A':fm>20?'#EF9F27':'#1D9E75')+sub('margin of acct'))}
+        ${mc(lbl('fm%')+val(fm.toFixed(1)+'%',fm>40?'#E24B4A':fm>20?'#EF9F27':'#1D9E75')+sub('of acct'))}
       </div>
-
-      <!-- row 2: verdict · lifespan -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;padding:0 5px 8px;gap:4px;margin-top:auto">
-        <div style="padding:7px 9px;background:var(--sf2);border-radius:6px">
-          <div style="font-size:8px;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px">verdict</div>
-          <div style="font-size:9px;font-weight:500;color:var(--tx2);line-height:1.4">${tooltip}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;padding:0 5px 6px;gap:4px">
+        <div style="padding:6px 8px;background:var(--sf2);border-radius:6px">
+          <div style="font-size:7px;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">verdict</div>
+          <div style="font-size:9px;font-weight:500;color:var(--tx2);line-height:1.3">${tooltip}</div>
         </div>
-        <div style="padding:7px 9px;background:var(--sf2);border-radius:6px">
-          <div style="font-size:8px;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px">${isSpot?'position size':'lifespan'}</div>
-          <div style="font-size:13px;font-weight:500;color:${isSpot?'#5DC96A':ac}">${isSpot?'$'+s.NOT.toLocaleString():ageVal}</div>
-          <div style="font-size:8px;color:var(--tx2);margin-top:2px">${isSpot?'full capital · no margin':ageSub}</div>
+        <div style="padding:6px 8px;background:var(--sf2);border-radius:6px">
+          <div style="font-size:7px;color:var(--tx3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">${isSpot?'position size':'lifespan'}</div>
+          <div style="font-size:13px;font-weight:500;color:${isSpot?'#5DC96A':ac};line-height:1.2">${isSpot?'$'+s.NOT.toLocaleString():ageVal}</div>
+          <div style="font-size:8px;color:var(--tx2);margin-top:1px">${isSpot?'full capital · no margin':ageSub}</div>
         </div>
       </div>
     </div>
