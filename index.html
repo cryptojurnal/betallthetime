@@ -6892,6 +6892,20 @@ function ljVerifyTvLink(input, warnId){
   img.src=val;
 }
 
+function ljSyncExitType(val){
+  // sync exit type from log back to cockpit MT state — log always wins
+  const {m,tno}=_ljPending;
+  if(!m||!tno) return;
+  const s=gs();
+  if(!s.MT[m]) s.MT[m]={bt:[...s.BT],fr:[...s.FR]};
+  if(!s.MT[m].exitTypes) s.MT[m].exitTypes={};
+  s.MT[m].exitTypes[tno]=val;
+  // also update table row dropdown if visible
+  const sel=document.querySelector(`select[onchange="onTradeExit(${m},${tno},this.value)"]`);
+  if(sel) sel.value=val;
+  _silentCloudSync();
+}
+
 function ljValidateTvLink(input, warnId){
   const val=(input.value||'').trim();
   const warn=document.getElementById(warnId);
@@ -7212,6 +7226,7 @@ function ljShowLockModal(m, tno, draft=null){
   _ljFundingData={rates:[],total:0,fetched:false,fetching:false,_key:''}; // reset each modal open
   if(_ljFundTimer){clearTimeout(_ljFundTimer);_ljFundTimer=null;}
   window._ljExFeeRate=null; // reset to cockpit fee rate
+  window._ljSide=null; // reset side — user must pick
   window._ljPair=tLabel.replace(/[\s\/]/g,'').toUpperCase();
   // sync exchange from cockpit fee setting
   const _exSel=document.getElementById('fee-exchange');
@@ -7251,7 +7266,7 @@ function ljShowLockModal(m, tno, draft=null){
         <div><div style="font-size:8px;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">target</div><div style="font-size:11px;font-weight:700;color:#00c47a">${tgt.toFixed(2)}%</div></div>
         <div style="grid-column:span 2">
           <div style="font-size:8px;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">exit type <span style="color:#e05555">*</span></div>
-          <select id="lj-exit-type" style="width:100%;background:#0a0a0a;border:1px solid #252525;border-radius:6px;color:#ccc;font-size:11px;padding:6px 10px;font-family:inherit;outline:none;cursor:pointer;color-scheme:dark">
+          <select id="lj-exit-type" onchange="ljSyncExitType(this.value)" style="width:100%;background:#0a0a0a;border:1px solid #252525;border-radius:6px;color:#ccc;font-size:11px;padding:6px 10px;font-family:inherit;outline:none;cursor:pointer;color-scheme:dark">
             <option value="">— select exit type —</option>
             <option value="price">price-based (TP / SL / trail / partial)</option>
             <option value="signal">signal-based (flip / pullback / time)</option>
@@ -7558,6 +7573,9 @@ function ljShowLockModal(m, tno, draft=null){
       if(draft.tvUrlOpen){const el=document.getElementById('lj-tv-open');if(el){el.value=draft.tvUrlOpen;ljPreviewTV(draft.tvUrlOpen,'lj-tv-preview-open');}}
       if(draft.tvUrlClose){const el=document.getElementById('lj-tv-close');if(el){el.value=draft.tvUrlClose;ljPreviewTV(draft.tvUrlClose,'lj-tv-preview-close');}}
       if(draft.note){const el=document.getElementById('lj-notes');if(el) el.value=draft.note;}
+      if(draft.notePsych){const el=document.getElementById('lj-notes-psych');if(el) el.value=draft.notePsych;}
+      if(draft.tf){const el=document.getElementById('lj-tf');if(el){el.value=draft.tf;ljUpdateTfVerdict('preset',draft.tf);}}
+      if(draft.exitType){const el=document.getElementById('lj-exit-type');if(el) el.value=draft.exitType;}
       if(draft.emotion){const el=document.getElementById('lj-mood-select');if(el) el.value=draft.emotion;}
       // update button labels + show delete
       const lockBtn=document.getElementById('lj-lock-btn');
@@ -7575,6 +7593,13 @@ function ljShowLockModal(m, tno, draft=null){
       window._ljDraftId=draft.id;
     } else {
       window._ljDraftId=null;
+      // pre-fill exit type from cockpit MT state if set
+      setTimeout(()=>{
+        const _s=gs();const _mt=_s.MT[_ljPending.m];
+        const _savedExit=_mt?.exitTypes?.[_ljPending.tno]||'';
+        const _exitEl=document.getElementById('lj-exit-type');
+        if(_exitEl&&_savedExit) _exitEl.value=_savedExit;
+      },160);
       const lockBtn=document.getElementById('lj-lock-btn');
       const draftBtn=document.getElementById('lj-draft-btn');
       const draftHint=document.getElementById('lj-draft-btn-hint');
@@ -7823,6 +7848,12 @@ async function ljConfirmLock(){
   const _tfVal=_tfCustomV||_tfSelV;
   const _tvOpen=(document.getElementById('lj-tv-open')?.value||'').trim();
   const _tvClose=(document.getElementById('lj-tv-close')?.value||'').trim();
+  const _side=window._ljSide||null;
+  if(!_side&&!gs().SPOT){
+    if(errEl){errEl.textContent='⚠ Pick your side first — LONG or SHORT';errEl.style.display='block';}
+    document.getElementById('ljside-long')?.focus();
+    return;
+  }
   if(!entry||!exit){
     if(errEl){errEl.textContent='⚠ Entry price and exit price are required';errEl.style.display='block';}
     if(!entry){const el=document.getElementById('lj-entry');if(el){el.style.borderColor='#e05555';el.focus();}}
@@ -8405,11 +8436,16 @@ function onTradeExit(m,tno,val){
   const mo=sim().find(x=>x.m===m);
   const tr=mo?mo.trades.find(t=>t.no===tno):null;
   if(tr) tr.exit=val;
-  // also save to MT state
+  // save to MT state
   const s=gs();
   if(!s.MT[m]) s.MT[m]={bt:[...s.BT],fr:[...s.FR]};
   if(!s.MT[m].exitTypes) s.MT[m].exitTypes={};
   s.MT[m].exitTypes[tno]=val;
+  // sync to log modal if open for this slot
+  if(_ljPending.m===m&&_ljPending.tno===tno){
+    const el=document.getElementById('lj-exit-type');
+    if(el) el.value=val;
+  }
   _silentCloudSync();
 }
 
