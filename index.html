@@ -6864,6 +6864,10 @@ function ljVerifyTvLink(input, warnId){
   if(!val){
     input.style.borderColor='#1e1e1e';
     if(warn){warn.style.display='none';}
+    // hide preview
+    const previewId=warnId==='lj-tv-warn-open'?'lj-tv-preview-open':'lj-tv-preview-close';
+    const prev=document.getElementById(previewId);
+    if(prev){prev.style.display='none';const img=prev.querySelector('img');if(img)img.src='';}
     return;
   }
   // format check first
