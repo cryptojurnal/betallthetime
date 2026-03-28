@@ -9290,9 +9290,9 @@ function renderTbl(months){
       <th style="width:8%">combine<br><span style="font-weight:400;font-size:7px;text-transform:none;color:var(--tx3)">pnl pre-fee</span></th>
       <th style="width:6%;color:#E24B4A">fee paid</th>
       <th style="width:8%;color:var(--acc2)">net pnl<br><span style="font-weight:400;font-size:7px;text-transform:none;color:var(--acc2);opacity:.8">post-fee</span></th>
-      <th style="width:8%;color:var(--tx2)">acct bal<br><span style="font-weight:400;font-size:7px;text-transform:none">${s.SPOT?'gross':'pre-fee'}</span></th>
-      <th style="width:9%;color:var(--acc2)">acct bal<br><span style="font-weight:400;font-size:7px;text-transform:none">post-fee</span></th>
-      <th style="width:9%">note</th>
+      <th style="width:8%;color:var(--tx2);padding:5px 5px">acct bal<br><span style="font-weight:400;font-size:7px;text-transform:none">${s.SPOT?'gross':'pre-fee'}</span></th>
+      <th style="width:9%;color:var(--acc2);padding:5px 5px">acct bal<br><span style="font-weight:400;font-size:7px;text-transform:none">post-fee</span></th>
+      <th style="width:9%;padding:5px 5px">note</th>
     </tr></thead><tbody>`;
     months.forEach(mo=>{
       if(mo.isZ){
