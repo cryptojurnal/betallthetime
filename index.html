@@ -3817,12 +3817,18 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 
   <!-- notional -->
   <div class="sec-head" data-sec="sec-not" style="--arrow-rot:-90deg" onclick="toggleSec('sec-not')">
-    <div style="display:flex;align-items:center;gap:6px">
-      <div class="seclbl" style="margin-bottom:0">notional (trade 1) <span id="not-lock-badge" style="display:none;font-size:7px;color:#555;background:#1a1a1a;border:1px solid #252525;border-radius:3px;padding:1px 5px;margin-left:4px;font-weight:600;vertical-align:middle">🔒 preset</span></div>
-      <span style="font-size:8px;color:var(--tx3)">link</span>
-      <button id="not-link-btn" onclick="event.stopPropagation();toggleNotLink()" title="link notional to capital" style="font-size:9px;padding:3px 10px;border-radius:10px;border:0.5px solid var(--bd2);background:var(--sf2);color:var(--tx3);cursor:pointer;font-weight:700;transition:all .2s;letter-spacing:.03em">off</button>
-      <span style="font-size:8px;color:var(--tx3)">carry</span>
-      <button id="cf-btn" onclick="event.stopPropagation();toggleCarryForward()" title="carry forward ON: notional compounds within trades and across months. OFF: notional/position stays fixed at your set value — every trade, every month." style="font-size:9px;padding:3px 10px;border-radius:10px;border:0.5px solid var(--acc2);background:var(--btno);color:var(--acc2);cursor:pointer;font-weight:700;transition:all .2s;letter-spacing:.03em">on</button>
+    <div style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:0">
+      <div style="display:flex;align-items:center;gap:5px">
+        <div class="seclbl" style="margin-bottom:0">notional (trade 1)</div>
+        <span id="not-lock-badge" style="display:none;font-size:7px;color:#555;background:#1a1a1a;border:1px solid #252525;border-radius:3px;padding:1px 5px;font-weight:600">🔒 preset</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px" onclick="event.stopPropagation()">
+        <span style="font-size:8px;color:var(--tx3)">link</span>
+        <button id="not-link-btn" onclick="toggleNotLink()" title="link notional to capital" style="font-size:9px;padding:2px 8px;border-radius:8px;border:0.5px solid var(--bd2);background:var(--sf2);color:var(--tx3);cursor:pointer;font-weight:700;transition:all .2s">off</button>
+        <span style="width:1px;height:10px;background:var(--bd2);display:inline-block"></span>
+        <span style="font-size:8px;color:var(--tx3)">carry</span>
+        <button id="cf-btn" onclick="toggleCarryForward()" title="carry forward ON: notional compounds within trades and across months. OFF: fixed every trade." style="font-size:9px;padding:2px 8px;border-radius:8px;border:0.5px solid var(--acc2);background:var(--btno);color:var(--acc2);cursor:pointer;font-weight:700;transition:all .2s">on</button>
+      </div>
     </div>
     <span class="sec-toggle">▾</span>
   </div>
@@ -3850,10 +3856,22 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
       <input type="range" id="not-sl" min="1" max="100000000000" step="1000" value="2500" oninput="onNotSl(this.value)">
     </div>
     <div style="display:flex;justify-content:space-between;align-items:center;margin:3px 0 4px"><span style="font-size:9px;color:var(--tx3)">current</span><span style="font-size:12px;font-weight:700;color:var(--acc2);background:var(--sf2);padding:2px 6px;border-radius:4px;border:0.5px solid var(--bd2)" id="not-vl">$2,500</span></div>
-    <div class="comp-row" id="lev-comp-row">
-      <div class="ci"><div class="cl">actual margin</div><div class="cv" id="c-am">$500</div><div style="font-size:7px;color:var(--tx3)">notional ÷ lev</div></div>
-      <div class="ci"><div class="cl">fm% of acct</div><div class="cv" id="c-fm">50.0%</div><div style="font-size:7px;color:var(--tx3)">capital at risk</div></div>
-      <div class="ci"><div class="cl">liq% t1 m01</div><div class="cv" id="c-lq" style="color:#EF9F27">40.0%</div><div style="font-size:7px;color:var(--tx3)">spot drop → wipe</div></div>
+    <div class="comp-row" id="lev-comp-row" style="gap:4px;margin-top:6px">
+      <div class="ci" style="background:var(--sf2);border-radius:6px;padding:6px 8px;border:0.5px solid var(--bd2)">
+        <div class="cl" style="font-size:8px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">margin</div>
+        <div class="cv" id="c-am" style="font-size:13px">$500</div>
+        <div style="font-size:7px;color:var(--tx3);margin-top:1px">notional ÷ lev</div>
+      </div>
+      <div class="ci" style="background:var(--sf2);border-radius:6px;padding:6px 8px;border:0.5px solid var(--bd2)">
+        <div class="cl" style="font-size:8px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">fm% of acct</div>
+        <div class="cv" id="c-fm" style="font-size:13px">50.0%</div>
+        <div style="font-size:7px;color:var(--tx3);margin-top:1px">capital at risk</div>
+      </div>
+      <div class="ci" style="background:var(--sf2);border-radius:6px;padding:6px 8px;border:0.5px solid var(--bd2)">
+        <div class="cl" style="font-size:8px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px">liq% T1</div>
+        <div class="cv" id="c-lq" style="color:#EF9F27;font-size:13px">40.0%</div>
+        <div style="font-size:7px;color:var(--tx3);margin-top:1px">spot drop → wipe</div>
+      </div>
     </div>
     <div id="lev-ratio-row" style="font-size:8px;color:var(--tx3);padding:3px 1px;line-height:1.6;margin-top:3px">
       <span style="color:var(--tx2)">notional</span> <span id="c-not2" style="font-weight:600">$2,500</span>
