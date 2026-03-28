@@ -7002,22 +7002,22 @@ function ljShowLockModal(m, tno, draft=null){
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;align-items:stretch">
       <!-- cockpit data -->
       <div style="background:#0f0f0f;border:1px solid #1e1e1e;border-radius:8px;padding:14px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
-        <div><div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">mode</div>
+        <div><div style="font-size:8px;color:#666;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">mode</div>
           <div style="font-size:11px;font-weight:700;color:#888">${s.SPOT?'spot ◈':'leverage'}</div>
           ${s.SPOT?'':('<div style="font-size:13px;font-weight:800;color:#aaa;margin-top:2px">'+leverage+'×</div>')}
         </div>
-        <div><div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">notional</div><div style="font-size:11px;font-weight:700;color:#888">$${notional.toLocaleString('en',{maximumFractionDigits:2})}</div></div>
-        <div><div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">margin</div><div style="font-size:11px;font-weight:700;color:#888">$${margin.toFixed(2)}</div></div>
-        <div><div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">target</div><div style="font-size:11px;font-weight:700;color:#00c47a">${tgt.toFixed(2)}%</div></div>
-        <div><div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">freq</div><div style="font-size:11px;font-weight:700;color:#888">${freq}× /mo</div></div>
-        <div id="lj-fee-cockpit-cell"><div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">fee</div>
+        <div><div style="font-size:8px;color:#666;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">notional</div><div style="font-size:11px;font-weight:700;color:#888">$${notional.toLocaleString('en',{maximumFractionDigits:2})}</div></div>
+        <div><div style="font-size:8px;color:#666;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">margin</div><div style="font-size:11px;font-weight:700;color:#888">$${margin.toFixed(2)}</div></div>
+        <div><div style="font-size:8px;color:#666;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">target</div><div style="font-size:11px;font-weight:700;color:#00c47a">${tgt.toFixed(2)}%</div></div>
+        <div><div style="font-size:8px;color:#666;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">freq</div><div style="font-size:11px;font-weight:700;color:#888">${freq}× /mo</div></div>
+        <div id="lj-fee-cockpit-cell"><div style="font-size:8px;color:#666;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">fee</div>
           <div style="font-size:11px;font-weight:700;color:#888" id="lj-fee-rate-val">${feeRate}% ${s.FEE.method}</div>
           <div style="font-size:9px;color:#333;margin-top:1px" id="lj-fee-ex-val">${window._ljExchange||'binance'}</div>
         </div>
       </div>
       <!-- side toggle -->
       <div style="background:#0f0f0f;border:1px solid #1e1e1e;border-radius:8px;padding:14px;display:flex;flex-direction:column;justify-content:center">
-        <div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;font-weight:700">side <span style="color:#e05555">*</span></div>
+        <div style="font-size:8px;color:#666;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;font-weight:700">side <span style="color:#e05555">*</span></div>
         ${s.SPOT
           ?`<div style="background:#0d0d0d;border:1px solid #1a1a1a;border-radius:7px;padding:12px;text-align:center">
               <div style="font-size:18px;margin-bottom:4px">◈</div>
@@ -7037,12 +7037,12 @@ function ljShowLockModal(m, tno, draft=null){
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;align-items:stretch">
       <!-- position timing -->
       <div style="background:#0f0f0f;border:1px solid #1e1e1e;border-radius:8px;padding:14px">
-        <div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px;font-weight:700;display:flex;align-items:center;gap:6px">
+        <div style="font-size:8px;color:#666;text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px;font-weight:700;display:flex;align-items:center;gap:6px">
           position timing
           <span id="lj-duration-badge" style="color:#2a5a3a;font-weight:600;text-transform:none;letter-spacing:0;font-size:9px"></span>
         </div>
         <div style="margin-bottom:10px">
-          <div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px">opened <span style="color:#e05555">*</span></div>
+          <div style="font-size:8px;color:#666;text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px">opened <span style="color:#e05555">*</span></div>
           <div style="position:relative">
             <div class="lj-dt-display" id="lj-open-display" onclick="document.getElementById('lj-open-dt').showPicker()">
               <span class="lj-dt-val" id="lj-open-val">—</span>
@@ -7055,7 +7055,7 @@ function ljShowLockModal(m, tno, draft=null){
           </div>
         </div>
         <div>
-          <div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px">closed <span style="color:#e05555">*</span></div>
+          <div style="font-size:8px;color:#666;text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px">closed <span style="color:#e05555">*</span></div>
           <div style="position:relative">
             <div class="lj-dt-display" id="lj-close-display" onclick="document.getElementById('lj-close-dt').showPicker()">
               <span class="lj-dt-val" id="lj-close-val">—</span>
@@ -7070,9 +7070,9 @@ function ljShowLockModal(m, tno, draft=null){
       </div>
       <!-- funding data source -->
       <div style="background:#0f0f0f;border:1px solid #1e1e1e;border-radius:8px;padding:14px">
-        <div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px;font-weight:700">funding data source${s.SPOT?' <span style="color:#2a5a3a;font-size:8px;font-weight:400">· spot — no funding</span>':''}</div>
+        <div style="font-size:8px;color:#666;text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px;font-weight:700">funding data source${s.SPOT?' <span style="color:#2a5a3a;font-size:8px;font-weight:400">· spot — no funding</span>':''}</div>
         <div style="margin-bottom:8px">
-          <div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px">exchange</div>
+          <div style="font-size:8px;color:#666;text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px">exchange</div>
           <select id="lj-exchange" onchange="ljOnExchangeChange()"
             style="width:100%;background:#111;border:1px solid #252525;border-radius:7px;color:#ccc;font-size:11px;padding:8px 10px;font-family:inherit;outline:none;cursor:pointer;box-sizing:border-box;color-scheme:dark">
             <option value="binance"${cockpitEx==='binance'?' selected':''}>Binance</option>
@@ -7081,7 +7081,7 @@ function ljShowLockModal(m, tno, draft=null){
           </select>
         </div>
         <div style="margin-bottom:8px">
-          <div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px">pair / symbol</div>
+          <div style="font-size:8px;color:#666;text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px">pair / symbol</div>
           <select id="lj-pair-input" onchange="window._ljPair=this.value;ljFetchFundingDebounced()"
             style="width:100%;background:#111;border:1px solid #252525;border-radius:7px;color:#e0e0e0;font-size:11px;font-weight:700;padding:8px 10px;font-family:inherit;outline:none;box-sizing:border-box;cursor:pointer;color-scheme:dark">
             ${(()=>{const cur=(window._ljPair||'BTCUSDT');const list=[..._LJ_COMMON_PAIRS];if(!list.includes(cur))list.unshift(cur);return list.map(p=>`<option value="${p}"${p===cur?' selected':''}>${p}</option>`).join('');})()}
@@ -7101,7 +7101,7 @@ function ljShowLockModal(m, tno, draft=null){
     <!-- ENTRY / EXIT PRICES -->
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:4px">
       <div>
-        <div style="font-size:8px;color:#444;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:700">entry price <span style="color:#e05555">*</span></div>
+        <div style="font-size:8px;color:#666;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:700">entry price <span style="color:#e05555">*</span></div>
         <div style="position:relative">
           <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#333;font-size:13px;font-weight:700;pointer-events:none">$</span>
           <input id="lj-entry" type="number" step="any" placeholder="0.00"
@@ -7112,7 +7112,7 @@ function ljShowLockModal(m, tno, draft=null){
         </div>
       </div>
       <div>
-        <div style="font-size:8px;color:#444;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:700">exit price <span style="color:#e05555">*</span></div>
+        <div style="font-size:8px;color:#666;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:700">exit price <span style="color:#e05555">*</span></div>
         <div style="position:relative">
           <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#333;font-size:13px;font-weight:700;pointer-events:none">$</span>
           <input id="lj-exit" type="number" step="any" placeholder="0.00"
@@ -7139,7 +7139,7 @@ function ljShowLockModal(m, tno, draft=null){
 
     <!-- TV CHART PROOF — two side by side -->
     <div style="margin-bottom:14px">
-      <div style="font-size:8px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;font-weight:700">
+      <div style="font-size:8px;color:#666;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;font-weight:700">
         chart proof <span style="color:#222;font-weight:400;text-transform:none;letter-spacing:0;font-size:9px">optional · tradingview.com/x/… snapshot link</span>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
@@ -7173,7 +7173,7 @@ function ljShowLockModal(m, tno, draft=null){
     <!-- NOTES + MOOD side by side -->
     <div style="display:grid;grid-template-columns:1fr auto;gap:12px;margin-bottom:16px;align-items:start">
       <div>
-        <div style="font-size:8px;color:#444;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:700">setup notes <span style="color:#2a2a2a;font-weight:400;text-transform:none;letter-spacing:0">optional</span></div>
+        <div style="font-size:8px;color:#666;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:700">setup notes <span style="color:#2a2a2a;font-weight:400;text-transform:none;letter-spacing:0">optional</span></div>
         <textarea id="lj-notes" rows="3" placeholder="Why you entered, what happened…"
           style="width:100%;background:#111;border:1px solid #252525;border-radius:7px;color:#aaa;font-size:11px;padding:9px 12px;font-family:inherit;outline:none;resize:vertical;line-height:1.6;box-sizing:border-box;transition:border-color .15s"
           onfocus="this.style.borderColor='#444'"
@@ -7184,7 +7184,7 @@ function ljShowLockModal(m, tno, draft=null){
 
     <!-- MOOD dropdown — right above the lock button -->
     <div style="margin-bottom:14px">
-      <div style="font-size:8px;color:#444;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:700">mood <span style="color:#2a2a2a;font-weight:400;text-transform:none;letter-spacing:0;font-size:9px">optional</span></div>
+      <div style="font-size:9px;color:#666;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:700">mood <span style="color:#333;font-weight:400;text-transform:none;letter-spacing:0;font-size:9px">optional · set once, permanent after lock</span></div>
       <select id="lj-mood-select" style="width:100%;background:#111;border:1px solid #252525;border-radius:7px;color:#ccc;font-size:13px;padding:9px 12px;font-family:inherit;outline:none;cursor:pointer;box-sizing:border-box;color-scheme:dark">
         <option value="">— select mood —</option>
         ${JN_EMOTIONS.map(e=>`<option value="${e}">${e} ${{'😤':'frustrated','😰':'anxious','😐':'neutral','😊':'confident','🔥':'on fire'}[e]||''}</option>`).join('')}
@@ -7192,12 +7192,41 @@ function ljShowLockModal(m, tno, draft=null){
     </div>
 
     <div id="lj-error" style="display:none;background:#2a0a0a;border:1px solid #4a1a1a;border-radius:6px;padding:8px 12px;font-size:11px;color:#e05555;margin-bottom:12px"></div>
-    <div class="lj-btns" style="flex-direction:column;gap:8px">
-      <button class="lj-confirm-btn" id="lj-lock-btn" onclick="ljConfirmLock()">🔒 lock &amp; log to journal</button>
-      <div style="display:flex;gap:8px">
-        <button id="lj-draft-btn" onclick="ljSaveDraft()" style="flex:1;background:#111;border:1px solid #252525;border-radius:8px;color:#888;font-size:11px;font-weight:700;padding:9px 16px;cursor:pointer;font-family:inherit;outline:none;transition:all .15s" onmouseover="this.style.borderColor='#444';this.style.color='#ccc'" onmouseout="this.style.borderColor='#252525';this.style.color='#888'">📝 save as open position</button>
-        <button class="lj-cancel-btn" onclick="ljCloseModal()">cancel</button>
-      </div>
+
+    <!-- ACTION BUTTONS -->
+    <div style="display:flex;flex-direction:column;gap:8px">
+
+      <!-- PRIMARY: Lock button — always visible, prominent -->
+      <button id="lj-lock-btn" onclick="ljConfirmLock()"
+        style="width:100%;background:#00c47a;border:none;border-radius:10px;color:#000;font-size:13px;font-weight:800;padding:14px 20px;cursor:pointer;font-family:inherit;outline:none;letter-spacing:.01em;transition:all .15s"
+        onmouseover="this.style.background='#00e08a'" onmouseout="this.style.background='#00c47a'">
+        🔒 lock &amp; log to journal
+      </button>
+      <div style="font-size:9px;color:#2a2a2a;text-align:center;margin-top:-4px">permanent · cannot be undone · entry + exit required</div>
+
+      <div style="border-top:1px solid #1a1a1a;margin:4px 0"></div>
+
+      <!-- SECONDARY: Draft button — save/update open position -->
+      <button id="lj-draft-btn" onclick="ljSaveDraft()"
+        style="width:100%;background:#1a1400;border:1px solid #f59e0b44;border-radius:10px;color:#f59e0b;font-size:12px;font-weight:700;padding:11px 20px;cursor:pointer;font-family:inherit;outline:none;transition:all .15s"
+        onmouseover="this.style.borderColor='#f59e0b88';this.style.background='#1f1800'" onmouseout="this.style.borderColor='#f59e0b44';this.style.background='#1a1400'">
+        📝 save as open position
+      </button>
+      <div id="lj-draft-btn-hint" style="font-size:9px;color:#2a2a2a;text-align:center;margin-top:-4px">only entry price required · edit anytime · lock when closed</div>
+
+      <!-- TERTIARY: Delete draft — only shown when editing existing draft -->
+      <button id="lj-delete-draft-btn" onclick="ljDeleteDraft()" style="display:none;width:100%;background:none;border:1px solid #2a0a0a;border-radius:10px;color:#4a1a1a;font-size:11px;font-weight:700;padding:9px 20px;cursor:pointer;font-family:inherit;outline:none;transition:all .15s"
+        onmouseover="this.style.borderColor='#e05555';this.style.color='#e05555'" onmouseout="this.style.borderColor='#2a0a0a';this.style.color='#4a1a1a'">
+        🗑 delete this draft
+      </button>
+      <div id="lj-delete-draft-hint" style="display:none;font-size:9px;color:#2a2a2a;text-align:center;margin-top:-4px">removes the open position — trade not logged</div>
+
+      <!-- CANCEL -->
+      <button onclick="ljCloseModal()"
+        style="width:100%;background:none;border:1px solid #1e1e1e;border-radius:10px;color:#333;font-size:11px;font-weight:600;padding:9px 20px;cursor:pointer;font-family:inherit;outline:none;transition:all .15s"
+        onmouseover="this.style.borderColor='#333';this.style.color='#888'" onmouseout="this.style.borderColor='#1e1e1e';this.style.color='#333'">
+        cancel
+      </button>
     </div>
   `;
 
@@ -7227,21 +7256,34 @@ function ljShowLockModal(m, tno, draft=null){
       if(draft.tvUrlClose){const el=document.getElementById('lj-tv-close');if(el){el.value=draft.tvUrlClose;ljPreviewTV(draft.tvUrlClose,'lj-tv-preview-close');}}
       if(draft.note){const el=document.getElementById('lj-notes');if(el) el.value=draft.note;}
       if(draft.emotion){const el=document.getElementById('lj-mood-select');if(el) el.value=draft.emotion;}
-      // update button labels to show this is closing a draft
+      // update button labels + show delete
       const lockBtn=document.getElementById('lj-lock-btn');
       const draftBtn=document.getElementById('lj-draft-btn');
+      const draftHint=document.getElementById('lj-draft-btn-hint');
+      const delBtn=document.getElementById('lj-delete-draft-btn');
+      const delHint=document.getElementById('lj-delete-draft-hint');
+      const modalTitle=document.querySelector('.lj-title');
       if(lockBtn) lockBtn.textContent='🔒 close & lock to journal';
       if(draftBtn) draftBtn.textContent='📝 update open position';
-      // store draft id for use in ljConfirmLock
+      if(draftHint) draftHint.textContent='saves your changes · still editable · lock when you close the trade';
+      if(delBtn){delBtn.style.display='block';}
+      if(delHint){delHint.style.display='block';}
+      if(modalTitle) modalTitle.textContent='📝 Open Position';
       window._ljDraftId=draft.id;
-      window._ljDraftFolderId=draft.cockpit?null:null; // resolved in confirm
     } else {
       window._ljDraftId=null;
-      window._ljDraftFolderId=null;
       const lockBtn=document.getElementById('lj-lock-btn');
       const draftBtn=document.getElementById('lj-draft-btn');
+      const draftHint=document.getElementById('lj-draft-btn-hint');
+      const delBtn=document.getElementById('lj-delete-draft-btn');
+      const delHint=document.getElementById('lj-delete-draft-hint');
+      const modalTitle=document.querySelector('.lj-title');
       if(lockBtn) lockBtn.textContent='🔒 lock & log to journal';
       if(draftBtn) draftBtn.textContent='📝 save as open position';
+      if(draftHint) draftHint.textContent='only entry price required · edit anytime · lock when closed';
+      if(delBtn){delBtn.style.display='none';}
+      if(delHint){delHint.style.display='none';}
+      if(modalTitle) modalTitle.textContent='🔒 Log Trade to Journal';
     }
     const el=document.getElementById('lj-entry');if(el&&!draft) el.focus();
     if(gs().SPOT) window._ljSide='long';
@@ -7619,6 +7661,25 @@ function ljFindDraft(m, tno){
     if(found) return {trade:found, folderId:fid};
   }
   return null;
+}
+
+async function ljDeleteDraft(){
+  const draftId=window._ljDraftId;
+  if(!draftId){ljCloseModal();return;}
+  // remove from JN
+  for(const fid of Object.keys(JN.trades||{})){
+    const idx=(JN.trades[fid]||[]).findIndex(t=>t.id===draftId);
+    if(idx!==-1){
+      JN.trades[fid].splice(idx,1);
+      break;
+    }
+  }
+  window._ljDraftId=null;
+  await jnSave();
+  // refresh cockpit so 📝 button goes back to ○
+  if(typeof softUpdate==='function') softUpdate();
+  ljCloseModal();
+  showToast('🗑 Draft deleted — trade removed','info',2000);
 }
 
 async function ljSaveDraft(){
@@ -8908,10 +8969,14 @@ function renderTbl(months){
         const actFee=ha?t.actualFee:null;
         const actCol=ha?(actNetPnl>=0?'#00c47a':'#E24B4A'):netCol;
         const actAccAF=ha?t.accAF:null;
+        const _draft=ljFindDraft&&ljFindDraft(mo.m,t.no);
+        const isDraft=!!_draft;
         h+=`<tr ${lkRowAttr}>
           <td style="padding-left:6px;text-align:left">
             <div style="display:flex;align-items:center;gap:4px">
-              <button class="lock-btn${lk?' locked':''}" onclick="toggleLock(${mo.m},${t.no})" title="${lk?'🔒 locked · cannot undo':'mark as executed'}" style="${lk?'cursor:default;':''}">${lk?'🔒':'○'}</button>
+              <button class="lock-btn${lk?' locked':isDraft?' draft':''}" onclick="toggleLock(${mo.m},${t.no})" title="${lk?'🔒 locked · cannot undo':isDraft?'📝 open position · click to close & lock':'mark as executed'}" style="${lk?'cursor:default;':isDraft?'border-color:#f59e0b;color:#f59e0b;background:rgba(245,158,11,0.08);':''}">
+                ${lk?'🔒':isDraft?'📝':'○'}
+              </button>
               <input class="lbl-in lbl-trade${lk?' locked-overlay':''}" value="${tLabel}" placeholder="trade ${t.no}..." onchange="onTradeLabel(${mo.m},${t.no},this.value)" onclick="this.select()"${lk?' disabled':''}>
             </div>
           </td>
