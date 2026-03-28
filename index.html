@@ -17775,6 +17775,8 @@ function clearActivePreset(){
   if(typeof presetRenderList==='function') presetRenderList();
   // re-render cockpit clean
   if(typeof render==='function') render();
+  // force sync controls to remove lock badges immediately
+  if(typeof syncControls==='function') syncControls();
   showToast('Preset exited — cockpit reset to neutral','info',2500);
 }
 
