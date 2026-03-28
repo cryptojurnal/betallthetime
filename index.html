@@ -6832,29 +6832,36 @@ function toggleLock(m, tno){
     // already locked — cannot unlock
     showToast('🔒 Trade is locked — logged trades cannot be undone','info',2500);
     return;
-  } else {
-    // LOCKING — must have active preset, show journal modal
-    if(!window._ACTIVE_PRESET){
-      showToast('⚠ Load or save a preset first — journal needs a folder name','info',3000);
-      return;
-    }
-    // enforce mandatory trade label
-    const _tl=getTL(m,tno);
-    if(!_tl||_tl===('trade '+tno)||_tl.toLowerCase()===('trade'+tno)){
-      showToast('⚠ Name this trade first — click the label to rename it (e.g. BTCUSDT)','info',3500);
-      // highlight the label input for this trade
-      const lbl=document.querySelector(`input.lbl-trade[value="${_tl}"]`);
-      if(lbl){lbl.style.borderBottom='1.5px solid #e05555';lbl.focus();setTimeout(()=>{lbl.style.borderBottom='';},2500);}
-      return;
-    }
-    // enforce mandatory month label
-    const _ml=gs().ML[m];
-    if(!_ml||_ml===getMLabel(m)){
-      showToast('⚠ Name this month first — click the month label to set it (e.g. "Jan 2025")','info',3500);
-      return;
-    }
-    ljShowLockModal(m, tno);
   }
+
+  // check if a draft exists for this slot
+  const existingDraft=ljFindDraft(m,tno);
+  if(existingDraft){
+    // open the draft to close/edit it
+    ljShowLockModal(m, tno, existingDraft.trade);
+    return;
+  }
+
+  // fresh lock — must have active preset
+  if(!window._ACTIVE_PRESET){
+    showToast('⚠ Load or save a preset first — journal needs a folder name','info',3000);
+    return;
+  }
+  // enforce mandatory trade label
+  const _tl=getTL(m,tno);
+  if(!_tl||_tl===('trade '+tno)||_tl.toLowerCase()===('trade'+tno)){
+    showToast('⚠ Name this trade first — click the label to rename it (e.g. BTCUSDT)','info',3500);
+    const lbl=document.querySelector(`input.lbl-trade[value="${_tl}"]`);
+    if(lbl){lbl.style.borderBottom='1.5px solid #e05555';lbl.focus();setTimeout(()=>{lbl.style.borderBottom='';},2500);}
+    return;
+  }
+  // enforce mandatory month label
+  const _ml=gs().ML[m];
+  if(!_ml||_ml===getMLabel(m)){
+    showToast('⚠ Name this month first — click the month label to set it (e.g. "Jan 2025")','info',3500);
+    return;
+  }
+  ljShowLockModal(m, tno);
 }
 
 // ── LOCK TO JOURNAL ──
@@ -6946,7 +6953,7 @@ async function ljFetchFunding(manual){
   ljCalc();
 }
 
-function ljShowLockModal(m, tno){
+function ljShowLockModal(m, tno, draft=null){
   const s=gs();
   const tLabel=getTL(m,tno);
   const mLabel=getML(m);
@@ -7185,10 +7192,12 @@ function ljShowLockModal(m, tno){
     </div>
 
     <div id="lj-error" style="display:none;background:#2a0a0a;border:1px solid #4a1a1a;border-radius:6px;padding:8px 12px;font-size:11px;color:#e05555;margin-bottom:12px"></div>
-
-    <div class="lj-btns">
-      <button class="lj-confirm-btn" onclick="ljConfirmLock()">🔒 lock &amp; log to journal</button>
-      <button class="lj-cancel-btn" onclick="ljCloseModal()">cancel</button>
+    <div class="lj-btns" style="flex-direction:column;gap:8px">
+      <button class="lj-confirm-btn" id="lj-lock-btn" onclick="ljConfirmLock()">🔒 lock &amp; log to journal</button>
+      <div style="display:flex;gap:8px">
+        <button id="lj-draft-btn" onclick="ljSaveDraft()" style="flex:1;background:#111;border:1px solid #252525;border-radius:8px;color:#888;font-size:11px;font-weight:700;padding:9px 16px;cursor:pointer;font-family:inherit;outline:none;transition:all .15s" onmouseover="this.style.borderColor='#444';this.style.color='#ccc'" onmouseout="this.style.borderColor='#252525';this.style.color='#888'">📝 save as open position</button>
+        <button class="lj-cancel-btn" onclick="ljCloseModal()">cancel</button>
+      </div>
     </div>
   `;
 
@@ -7203,8 +7212,38 @@ function ljShowLockModal(m, tno){
     // set exchange select to cockpit value
     const exSel=document.getElementById('lj-exchange');
     if(exSel) exSel.value=window._ljExchange||'binance';
-    const el=document.getElementById('lj-entry');if(el)el.focus();
-    // spot: force side to long and disable
+    // pre-fill from draft if provided
+    if(draft){
+      const entryEl=document.getElementById('lj-entry');
+      if(entryEl&&draft.entry) entryEl.value=draft.entry;
+      if(draft.side) ljSetSide(draft.side);
+      if(draft.openedAt){
+        const d=new Date(draft.openedAt);
+        const iso=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+'T'+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+        const odEl=document.getElementById('lj-open-dt');
+        if(odEl){odEl.value=iso;ljUpdateDtDisplay('open',iso);}
+      }
+      if(draft.tvUrlOpen){const el=document.getElementById('lj-tv-open');if(el){el.value=draft.tvUrlOpen;ljPreviewTV(draft.tvUrlOpen,'lj-tv-preview-open');}}
+      if(draft.tvUrlClose){const el=document.getElementById('lj-tv-close');if(el){el.value=draft.tvUrlClose;ljPreviewTV(draft.tvUrlClose,'lj-tv-preview-close');}}
+      if(draft.note){const el=document.getElementById('lj-notes');if(el) el.value=draft.note;}
+      if(draft.emotion){const el=document.getElementById('lj-mood-select');if(el) el.value=draft.emotion;}
+      // update button labels to show this is closing a draft
+      const lockBtn=document.getElementById('lj-lock-btn');
+      const draftBtn=document.getElementById('lj-draft-btn');
+      if(lockBtn) lockBtn.textContent='🔒 close & lock to journal';
+      if(draftBtn) draftBtn.textContent='📝 update open position';
+      // store draft id for use in ljConfirmLock
+      window._ljDraftId=draft.id;
+      window._ljDraftFolderId=draft.cockpit?null:null; // resolved in confirm
+    } else {
+      window._ljDraftId=null;
+      window._ljDraftFolderId=null;
+      const lockBtn=document.getElementById('lj-lock-btn');
+      const draftBtn=document.getElementById('lj-draft-btn');
+      if(lockBtn) lockBtn.textContent='🔒 lock & log to journal';
+      if(draftBtn) draftBtn.textContent='📝 save as open position';
+    }
+    const el=document.getElementById('lj-entry');if(el&&!draft) el.focus();
     if(gs().SPOT) window._ljSide='long';
     ljFetchFunding(true);
   },150);
@@ -7532,6 +7571,16 @@ async function ljConfirmLock(){
   };
 
   JN.trades[folder.id].unshift(trade);
+
+  // if closing a draft — remove it from journal first
+  if(window._ljDraftId){
+    for(const fid of Object.keys(JN.trades||{})){
+      const idx=(JN.trades[fid]||[]).findIndex(t=>t.id===window._ljDraftId);
+      if(idx!==-1){JN.trades[fid].splice(idx,1);break;}
+    }
+    window._ljDraftId=null;
+  }
+
   await jnSave();
   // refresh cockpit simulation immediately to show actual overlay
   if(typeof render==='function') setTimeout(render,50);
@@ -7552,6 +7601,125 @@ async function ljConfirmLock(){
 
 function ljCloseModal(){
   document.getElementById('lj-modal').classList.remove('visible');
+}
+
+// ── DRAFT TRADES (open positions) ──
+
+function ljGetDraftKey(m, tno){
+  return TAB+'-'+m+'-'+tno;
+}
+
+function ljFindDraft(m, tno){
+  // find a draft trade in JN for this cockpit slot
+  for(const fid of Object.keys(JN.trades||{})){
+    const found=(JN.trades[fid]||[]).find(t=>
+      t.status==='draft'&&t.cockpit&&
+      t.cockpit.tab===TAB&&t.cockpit.month===m&&t.cockpit.tradeNo===tno
+    );
+    if(found) return {trade:found, folderId:fid};
+  }
+  return null;
+}
+
+async function ljSaveDraft(){
+  const s=gs();
+  const {m,tno}=_ljPending;
+  const entry=parseFloat(document.getElementById('lj-entry')?.value)||0;
+  if(!entry){
+    const el=document.getElementById('lj-entry');
+    if(el){el.style.borderColor='#e05555';el.focus();}
+    showToast('⚠ Entry price is required to save draft','info',2000);
+    return;
+  }
+  if(!window._ACTIVE_PRESET){
+    showToast('⚠ Load or save a preset first','info',2500);
+    return;
+  }
+
+  const leverage=s.SPOT?1:s.LEV;
+  const side=window._ljSide||'long';
+  const tvUrlOpen=(document.getElementById('lj-tv-open')?.value||'').trim();
+  const tvUrlClose=(document.getElementById('lj-tv-close')?.value||'').trim();
+  const notes=document.getElementById('lj-notes')?.value||'';
+  const emotion=document.getElementById('lj-mood-select')?.value||'';
+  const openDateVal=document.getElementById('lj-open-dt')?.value||new Date().toISOString().slice(0,16);
+  const tLabel=getTL(m,tno)||('trade '+tno);
+  const _simMonths=sim();
+  const _simMo=_simMonths.find(x=>x.m===m);
+  const _simTr=_simMo?_simMo.trades.find(t=>t.no===tno):null;
+  const notional=_simTr?_simTr.not:s.NOT;
+
+  // find or create folder
+  const presetName=window._ACTIVE_PRESET.name;
+  let folder=JN.folders.find(f=>f.name===presetName);
+  if(!folder){
+    const color=JN_COLORS[JN.folders.length%JN_COLORS.length];
+    folder={id:'f'+Date.now(),name:presetName,color,type:s.SPOT?'spot':'lev',tags:[],createdAt:Date.now()};
+    JN.folders.push(folder);
+    JN.trades[folder.id]=[];
+  }
+  if(!JN.trades[folder.id]) JN.trades[folder.id]=[];
+
+  // check if draft already exists for this slot — update it
+  const existing=ljFindDraft(m,tno);
+  if(existing){
+    // update existing draft
+    const t=existing.trade;
+    t.entry=entry;
+    t.side=side;
+    t.leverage=leverage;
+    t.size=notional;
+    t.openedAt=new Date(openDateVal).getTime()||Date.now();
+    t.tvUrlOpen=tvUrlOpen||t.tvUrlOpen;
+    t.tvUrlClose=tvUrlClose||t.tvUrlClose;
+    if(notes) t.note=notes;
+    t.updatedAt=Date.now();
+    await jnSave();
+    ljCloseModal();
+    showToast('📝 Open position updated','success',2000);
+    return;
+  }
+
+  // create new draft
+  const draft={
+    id:'t'+Date.now(),
+    status:'draft',
+    pair:tLabel.replace(/\s+/g,'').toUpperCase(),
+    side, leverage,
+    size:notional,
+    entry, exit:null,
+    pnl:null, fee:null, funding:null, pct:null,
+    openedAt:new Date(openDateVal).getTime()||Date.now(),
+    closedAt:null,
+    note:notes,
+    noteLog:[],
+    emotion,
+    tvUrlOpen, tvUrlClose,
+    tvUrl:tvUrlOpen||'',
+    source:'cockpit',
+    cockpit:{
+      tab:TAB, month:m, tradeNo:tno,
+      monthLabel:getML(m),
+      lev:leverage, mode:s.SPOT?'spot':'leverage'
+    },
+    createdAt:Date.now(),
+    updatedAt:Date.now()
+  };
+
+  JN.trades[folder.id].push(draft);
+  await jnSave();
+  ljCloseModal();
+  showToast('📝 Saved as open position — lock when closed','success',3000);
+}
+
+function ljOpenDraftToClose(tradeId, folderId){
+  // find the draft
+  const t=(JN.trades[folderId]||[]).find(x=>x.id===tradeId);
+  if(!t||t.status!=='draft') return;
+  // set pending context
+  _ljPending={m:t.cockpit.month, tno:t.cockpit.tradeNo};
+  // open the modal — it will pre-fill from draft
+  ljShowLockModal(t.cockpit.month, t.cockpit.tradeNo, t);
 }
 
 async function ljConfirmUnlock(m, tno, key){
@@ -17745,9 +17913,10 @@ function jnRenderList(){
   const body=document.getElementById('jn-body');
   const f=JN.folders.find(x=>x.id===JN.activeFolder);
   if(!f){jnGoFolders();return;}
-  const trades=(JN.trades[JN.activeFolder]||[]).slice().sort((a,b)=>a.closedAt-b.closedAt); // oldest first
+  const allTrades=(JN.trades[JN.activeFolder]||[]).slice();
+  const drafts=allTrades.filter(t=>t.status==='draft').sort((a,b)=>b.createdAt-a.createdAt);
+  const trades=allTrades.filter(t=>t.status!=='draft').sort((a,b)=>a.closedAt-b.closedAt);
 
-  // stats
   const wins=trades.filter(t=>t.pnl>0).length;
   const losses=trades.filter(t=>t.pnl<=0).length;
   const wr=trades.length?Math.round(wins/trades.length*100):0;
@@ -17764,26 +17933,42 @@ function jnRenderList(){
     <div class="jn-stat"><div class="jn-stat-lbl">fees paid</div><div class="jn-stat-val" style="color:${totalFees>0?'#e05555':'#555'}">-$${totalFees.toFixed(2)}</div></div>
   </div>`;
 
-  if(trades.length===0){
+  if(drafts.length>0){
+    html+=`<div style="margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:8px;padding:7px 14px;background:#0d1a10;border:1px solid #00c47a22;border-radius:7px 7px 0 0">
+        <span style="font-size:10px;font-weight:800;color:#00c47a">● OPEN POSITIONS</span>
+        <span style="font-size:9px;color:#2a5a3a">${drafts.length} running</span>
+        <span style="font-size:9px;color:#1e3a22;margin-left:auto">click to close & lock</span>
+      </div>
+      <div class="jn-list-wrap" style="border-radius:0 0 7px 7px;border-top:none">`;
+    drafts.forEach(t=>{
+      const d=new Date(t.openedAt||t.createdAt);
+      const ds=`${d.getDate()}/${d.getMonth()+1} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+      html+=`<div class="jn-trade-row" onclick="ljOpenDraftToClose('${t.id}','${JN.activeFolder}')" style="border-left:2px solid #00c47a;cursor:pointer">
+        <div class="jn-tc date" style="display:flex;align-items:center;gap:6px">
+          <span style="font-size:8px;background:#00c47a22;color:#00c47a;border:1px solid #00c47a33;border-radius:3px;padding:1px 5px;font-weight:700">OPEN</span>${ds}
+        </div>
+        <div class="jn-tc pair">${t.pair||'—'}<span style="font-size:8px;color:#00c47a;background:rgba(0,196,122,0.08);border:1px solid rgba(0,196,122,0.15);border-radius:3px;padding:1px 5px;margin-left:4px;font-weight:700">⚡ cockpit</span></div>
+        <div class="jn-tc"><span class="${t.side==='long'?'jn-side-long':'jn-side-short'}">${(t.side||'long').toUpperCase()}</span></div>
+        <div class="jn-tc">$${parseFloat(t.entry||0).toFixed(4)}</div>
+        <div class="jn-tc" style="color:#333;font-size:9px">running…</div>
+        <div class="jn-tc">$${parseFloat(t.size||0).toFixed(0)}</div>
+        <div class="jn-tc" style="color:#555;font-size:9px">not closed</div>
+        <div class="jn-tc" style="color:#555">—</div>
+        <div class="jn-tc">${t.emotion||'—'}</div>
+        <div><button class="jn-btn-sm danger" onclick="event.stopPropagation();jnDeleteTrade('${t.id}')" style="padding:2px 5px;font-size:8px">✕</button></div>
+      </div>`;
+    });
+    html+=`</div></div>`;
+  }
+
+  if(trades.length===0&&drafts.length===0){
     html+=`<div class="jn-empty">
       <div class="jn-empty-icon">📝</div>
       <div style="margin-bottom:8px">No trades yet</div>
-      <div style="font-size:10px;color:#222">Add your first trade manually or import from Trade Panel</div>
+      <div style="font-size:10px;color:#222">Lock a trade from the cockpit or save an open position</div>
     </div>`;
-  } else {
-    html+=`<div class="jn-list-head">
-      <div class="jn-list-head-col">date</div>
-      <div class="jn-list-head-col" style="flex:1.5">pair / source</div>
-      <div class="jn-list-head-col">side</div>
-      <div class="jn-list-head-col">entry</div>
-      <div class="jn-list-head-col">exit</div>
-      <div class="jn-list-head-col">size</div>
-      <div class="jn-list-head-col">pnl</div>
-      <div class="jn-list-head-col" title="% return on margin used (not account)">% <span style="color:#252525;font-weight:400">margin</span></div>
-      <div class="jn-list-head-col">mood</div>
-      <div></div>
-    </div>`;
-    // group by bucket
+  } else if(trades.length>0){
     const buckets={};
     trades.forEach(t=>{const b=t.bucket||1;if(!buckets[b])buckets[b]=[];buckets[b].push(t);});
     const bucketNums=Object.keys(buckets).map(Number).sort((a,b)=>a-b);
@@ -17793,9 +17978,7 @@ function jnRenderList(){
       const bWins=bTrades.filter(t=>t.pnl>0).length;
       const bPnl=bTrades.reduce((a,t)=>a+(t.pnl||0),0);
       const bWr=bTrades.length?Math.round(bWins/bTrades.length*100):0;
-      // find the month label from cockpit data if available
       const firstCockpit=bTrades.find(t=>t.cockpit);
-      // prefer stored monthLabel, then current state ML, then fallback
       const monthLbl=firstCockpit
         ?(firstCockpit.cockpit.monthLabel||gs().ML[firstCockpit.cockpit.month]||('M'+String(firstCockpit.cockpit.month).padStart(2,'0')))
         :('batch '+bn);
@@ -17806,28 +17989,28 @@ function jnRenderList(){
         <span style="font-size:9px;font-weight:700;color:${bPnl>=0?'#00c47a':'#e05555'};margin-left:auto">${bPnl>=0?'+':''}$${bPnl.toFixed(2)}</span>
       </div>
       <div class="jn-list-wrap" style="border-radius:0 0 7px 7px;border-top:none">`;
-    bTrades.forEach(t=>{
-      tradeNum++;
-      const d=new Date(t.closedAt);
-      const ds=`${d.getDate()}/${d.getMonth()+1} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-      const pCls=t.pnl>=0?'win':'loss';
-      const pnlStr=(t.pnl>=0?'+':'')+parseFloat(t.pnl||0).toFixed(2);
-      const pctStr=(t.pct>=0?'+':'')+parseFloat(t.pct||0).toFixed(1)+'%';
-      const isCockpit=t.source==='cockpit'&&t.cockpit;
-      const cockpitTag=isCockpit?`<span title="linked from cockpit · ${t.cockpit.monthLabel||'M'+t.cockpit.month} T${t.cockpit.tradeNo}" style="font-size:8px;color:#00c47a;background:rgba(0,196,122,0.08);border:1px solid rgba(0,196,122,0.15);border-radius:3px;padding:1px 5px;margin-left:4px;font-weight:700;letter-spacing:.03em">⚡ cockpit</span>`:'<span style="font-size:8px;color:#2a2a2a;border:1px solid #1e1e1e;border-radius:3px;padding:1px 5px;margin-left:4px">manual</span>';
-      html+=`<div class="jn-trade-row" onclick="jnOpenTrade('${t.id}')">
-        <div class="jn-tc date" style="display:flex;align-items:center;gap:6px"><span style="font-size:9px;color:#2a2a2a;font-weight:700;min-width:16px">${tradeNum}.</span>${ds}</div>
-        <div class="jn-tc pair">${t.pair||'—'}${cockpitTag}</div>
-        <div class="jn-tc"><span class="${t.side==='long'?'jn-side-long':'jn-side-short'}">${(t.side||'long').toUpperCase()}</span></div>
-        <div class="jn-tc">$${parseFloat(t.entry||0).toFixed(2)}</div>
-        <div class="jn-tc">$${parseFloat(t.exit||0).toFixed(2)}</div>
-        <div class="jn-tc">$${parseFloat(t.size||0).toFixed(0)}</div>
-        <div class="jn-tc ${pCls}">$${pnlStr}</div>
-        <div class="jn-tc ${pCls}">${pctStr}</div>
-        <div class="jn-tc jn-emotion">${t.emotion||'—'}</div>
-        <div><button class="jn-btn-sm danger" onclick="event.stopPropagation();jnDeleteTrade('${t.id}')" style="padding:2px 5px;font-size:8px">✕</button></div>
-      </div>`;
-    });
+      bTrades.forEach(t=>{
+        tradeNum++;
+        const d=new Date(t.closedAt);
+        const ds=`${d.getDate()}/${d.getMonth()+1} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+        const pCls=t.pnl>=0?'win':'loss';
+        const pnlStr=(t.pnl>=0?'+':'')+parseFloat(t.pnl||0).toFixed(2);
+        const pctStr=(t.pct>=0?'+':'')+parseFloat(t.pct||0).toFixed(1)+'%';
+        const isCockpit=t.source==='cockpit'&&t.cockpit;
+        const cockpitTag=isCockpit?`<span style="font-size:8px;color:#00c47a;background:rgba(0,196,122,0.08);border:1px solid rgba(0,196,122,0.15);border-radius:3px;padding:1px 5px;margin-left:4px;font-weight:700">⚡ cockpit</span>`:`<span style="font-size:8px;color:#2a2a2a;border:1px solid #1e1e1e;border-radius:3px;padding:1px 5px;margin-left:4px">manual</span>`;
+        html+=`<div class="jn-trade-row" onclick="jnOpenTrade('${t.id}')">
+          <div class="jn-tc date" style="display:flex;align-items:center;gap:6px"><span style="font-size:9px;color:#2a2a2a;font-weight:700;min-width:16px">${tradeNum}.</span>${ds}</div>
+          <div class="jn-tc pair">${t.pair||'—'}${cockpitTag}</div>
+          <div class="jn-tc"><span class="${t.side==='long'?'jn-side-long':'jn-side-short'}">${(t.side||'long').toUpperCase()}</span></div>
+          <div class="jn-tc">$${parseFloat(t.entry||0).toFixed(2)}</div>
+          <div class="jn-tc">$${parseFloat(t.exit||0).toFixed(2)}</div>
+          <div class="jn-tc">$${parseFloat(t.size||0).toFixed(0)}</div>
+          <div class="jn-tc ${pCls}">$${pnlStr}</div>
+          <div class="jn-tc ${pCls}">${pctStr}</div>
+          <div class="jn-tc jn-emotion">${t.emotion||'—'}</div>
+          <div><button class="jn-btn-sm danger" onclick="event.stopPropagation();jnDeleteTrade('${t.id}')" style="padding:2px 5px;font-size:8px">✕</button></div>
+        </div>`;
+      });
       html+='</div>';
     });
   }
