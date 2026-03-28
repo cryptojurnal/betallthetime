@@ -18407,6 +18407,7 @@ function jnRenderDetail(){
         <div style="font-size:22px;font-weight:800;color:#e8e8e8;letter-spacing:-.02em">${escHtml(t.pair||'—')}</div>
         <span class="${t.side==='long'?'jn-side-long':'jn-side-short'}" style="font-size:9px;padding:3px 9px">${(t.side||'').toUpperCase()}</span>
         ${t.leverage>1?`<span style="font-size:9px;color:#888;background:#1a1a1a;padding:2px 8px;border-radius:3px;border:1px solid #222;font-weight:700">${t.leverage}×</span>`:''}
+        ${t.tf?`<span style="font-size:9px;color:#5b7fff;background:rgba(91,127,255,0.08);padding:2px 8px;border-radius:3px;border:1px solid rgba(91,127,255,0.2);font-weight:700">${t.tf}</span>`:''}
         ${outcomeLabel?`<span style="font-size:10px;font-weight:700;padding:2px 10px;border-radius:4px;background:${t.pnl>=0?'rgba(0,196,122,0.08)':'rgba(224,85,85,0.08)'};color:${outcomeColor}">${outcomeLabel}</span>`:''}
         ${t.emotion?`<span style="font-size:18px">${t.emotion}</span>`:''}
         <span style="font-size:9px;color:#2a2a2a;margin-left:auto">${dateStr}</span>
@@ -18527,7 +18528,7 @@ function jnRenderDetail(){
 
       <!-- NOTES append-only log -->
       <div style="margin-bottom:12px">
-        <div class="jn-sec-title" style="margin-bottom:8px">notes log</div>
+        <div class="jn-sec-title" style="margin-bottom:8px">technical notes</div>
         ${(()=>{
           // migrate old single note
           const logs=t.noteLog||(t.note?[{ts:t.closedAt||Date.now(),text:t.note}]:[]);
@@ -18548,6 +18549,14 @@ function jnRenderDetail(){
           <button onclick="const v=document.getElementById('jn-note-append').value;jnAppendNote('${t.id}',v)" style="background:#111;border:1px solid #252525;border-radius:7px;color:#555;font-size:10px;padding:8px 12px;cursor:pointer;font-family:inherit;outline:none;white-space:nowrap;transition:all .15s;flex-shrink:0" onmouseover="this.style.borderColor='#444';this.style.color='#aaa'" onmouseout="this.style.borderColor='#252525';this.style.color='#555'">+ add</button>
         </div>
       </div>
+      <!-- PSYCHOLOGICAL NOTES -->
+      ${t.notePsych?`<div style="margin-bottom:12px">
+        <div class="jn-sec-title" style="margin-bottom:8px">psychological notes</div>
+        <div style="padding:10px 14px;background:#0a0a0a;border:1px solid #1e1e1e;border-left:2px solid #5b7fff;border-radius:0 6px 6px 0">
+          <div style="font-size:11px;color:#aaa;line-height:1.6">${escHtml(t.notePsych)}</div>
+        </div>
+      </div>`:''}
+
       <!-- MOOD — permanent once set -->
       <div style="margin-bottom:16px;display:flex;align-items:center;gap:10px">
         <div style="font-size:8px;color:#333;text-transform:uppercase;letter-spacing:.07em;font-weight:700">mood</div>
