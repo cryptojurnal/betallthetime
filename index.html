@@ -18144,7 +18144,7 @@ window.addEventListener('popstate', function(e){
   if(typeof ljCloseModal==='function') ljCloseModal();
   // close any confirm overlay
   var co=document.getElementById('confirm-overlay')||document.querySelector('.confirm-overlay');
-  if(co&&co.offsetParent){ if(typeof closeConfirm==='function') closeConfirm(); history.pushState({},"'',window.location.hash||''); return; }
+  if(co&&co.offsetParent){ if(typeof closeConfirm==='function') closeConfirm(); history.pushState({},'',window.location.hash||''); return; }
   battRestoreFromHash();
 });
 
