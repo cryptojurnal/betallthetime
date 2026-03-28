@@ -14463,8 +14463,9 @@ function tpUpdateUI() {
 
   if(!allPricesKnown && TP_STATE.positions.length > 0) return;
 
-  // Equity = free balance + isolated margin (locked) + cross margin (in pool) + unrealized + funding
-  const totalEquity = TP_STATE.balance + isolatedMargin + crossMargin + unrealizedPnl + totalFunding;
+  // Isolated: margin deducted from balance on open, so add it back for equity
+  // Cross: margin stays IN balance (never deducted), so don't add it again
+  const totalEquity = TP_STATE.balance + isolatedMargin + unrealizedPnl + totalFunding;
   const totalPnl    = totalEquity - TP_STATE.startBalance;
   const pnlPct      = (totalPnl / TP_STATE.startBalance) * 100;
 
