@@ -6229,8 +6229,11 @@ function tpCheckPendingOrders(){
         slippage: fillPrice - order.limitPrice,
       };
       pos.liqPrice = tpCalcLiqPrice(pos);
+      // cross: deduct margin on fill (wasn't locked upfront). isolated: already deducted on order placement
+      const isCrossFill = pos.marginMode === 'cross' && pos.marketType !== 'spot';
+      if(isCrossFill) TP_STATE.balance -= (pos.initialMargin || pos.size / pos.leverage);
+      TP_STATE.balance -= openFee;
       TP_STATE.totalFeesPaid += openFee;
-      TP_STATE.positions.push(pos);
       const fillTxt = order.type === 'limit'
         ? `LIMIT filled: ${order.pair.replace('USDT','')} ${order.side.toUpperCase()} @ ${fmtPrice(fillPrice)}`
         : `STOP filled: ${order.pair.replace('USDT','')} ${order.side.toUpperCase()} @ ${fmtPrice(fillPrice)} (trigger: ${fmtPrice(order.limitPrice)})`;
@@ -6286,7 +6289,9 @@ function tpCancelOrder(id){
   const idx = TP_STATE.pendingOrders.findIndex(o=>o.id===id);
   if(idx===-1) return;
   const o = TP_STATE.pendingOrders[idx];
-  TP_STATE.balance += o.size; // refund
+  const isCross = o.marginMode === 'cross' && o.marketType !== 'spot';
+  // refund what was actually locked — isolated locks margin, cross locks nothing
+  if(!isCross) TP_STATE.balance += (o.marginNeeded || o.size / o.leverage);
   TP_STATE.pendingOrders.splice(idx,1);
   tpSaveState();
   tpRenderOrders();
@@ -13957,30 +13962,40 @@ function tpCalculate() {
     : priceData.price;
 
   const slippage = tpCalcSlippage(TP_STATE.pair, size);
-  const fillPrice = (side === 'long' || isSpot) ? entryPrice * (1 + slippage) : entryPrice * (1 - slippage);
+  // limit orders fill at exact price — no slippage in preview
+  const isLimitPreview = TP_STATE.orderType === 'limit' || TP_STATE.orderType === 'stop';
+  const fillPrice = isLimitPreview ? entryPrice
+    : (side === 'long' || isSpot) ? entryPrice * (1 + slippage) : entryPrice * (1 - slippage);
   const notional = size;
   const margin = isSpot ? size : tpCalcMarginRequired(notional, lev, TP_STATE.marginMode);
   const openFee = notional * (fees.active / 100);
 
+  // liq price — use same isolated formula as tpCalcLiqPrice for consistency
   const mmRate = 0.005;
   let liqPrice = null;
   if (!isSpot && lev > 1) {
-    if (side === 'long') liqPrice = fillPrice * (1 - (1 / lev) + mmRate);
-    else liqPrice = fillPrice * (1 + (1 / lev) - mmRate);
+    const marginPerNotional = margin / notional;
+    if (side === 'long') liqPrice = fillPrice * (1 - marginPerNotional + mmRate);
+    else                 liqPrice = fillPrice * (1 + marginPerNotional - mmRate);
   }
 
   const tpPrice = parseFloat(tpPriceInput?.value) || 0;
   const slPrice = parseFloat(slPriceInput?.value) || 0;
 
-  const tpPnl = tpPrice > 0 ? (side === 'long' ? (tpPrice - fillPrice) / fillPrice : (fillPrice - tpPrice) / fillPrice) * notional * lev : 0;
-  const slPnl = slPrice > 0 ? (side === 'long' ? (slPrice - fillPrice) / fillPrice : (fillPrice - slPrice) / fillPrice) * notional * lev : 0;
+  // TP/SL PnL: priceDelta/entryPrice * notional (no extra leverage multiply — notional already includes it)
+  const tpPnl = tpPrice > 0
+    ? (side === 'long' ? (tpPrice - fillPrice) / fillPrice : (fillPrice - tpPrice) / fillPrice) * notional
+    : 0;
+  const slPnl = slPrice > 0
+    ? (side === 'long' ? (slPrice - fillPrice) / fillPrice : (fillPrice - slPrice) / fillPrice) * notional
+    : 0;
 
   function setText(id, text) {
     const el = document.getElementById(id);
     if (el) el.textContent = text;
   }
 
-  setText('tp-sum-entry', fmtPrice(fillPrice) + (slippage > 0.0001 ? ' (slip ' + ((slippage * 100).toFixed(3)) + '%)' : ''));
+  setText('tp-sum-entry', fmtPrice(fillPrice) + (!isLimitPreview && slippage > 0.0001 ? ' (slip ' + ((slippage * 100).toFixed(3)) + '%)' : ''));
   setText('tp-sum-margin', fmtPrice(margin));
   setText('tp-sum-liq', liqPrice ? fmtPrice(liqPrice) : 'n/a');
   setText('tp-sum-tp', tpPrice > 0 ? fmtPrice(tpPrice) + ' (' + (tpPnl >= 0 ? '+' : '') + fmtPrice(tpPnl) + ')' : '—');
@@ -14023,7 +14038,13 @@ function tpPlaceOrder() {
     const limitPrice   = parseFloat(limitPriceEl?.value) || parseFloat(stopPriceEl?.value);
     if(!limitPrice || limitPrice <= 0){ showToast('Enter a limit price first', 'error'); return; }
     const marginNeeded = isSpot ? size : tpCalcMarginRequired(size, lev, TP_STATE.marginMode);
-    if(marginNeeded > TP_STATE.balance){ showToast('Insufficient balance', 'error'); return; }
+    const isCrossOrder = !isSpot && TP_STATE.marginMode === 'cross';
+    // available balance check — cross uses wallet equity, isolated uses free balance
+    const crossMarginLocked = isCrossOrder
+      ? TP_STATE.positions.filter(p=>p.marginMode==='cross').reduce((a,p)=>a+(p.initialMargin||p.size/p.leverage),0)
+      : 0;
+    const availForOrder = isCrossOrder ? TP_STATE.balance - crossMarginLocked : TP_STATE.balance;
+    if(marginNeeded > availForOrder){ showToast('Insufficient balance. Need: '+fmtPrice(marginNeeded), 'error'); return; }
     const tpPrice = parseFloat(document.getElementById('tp-tp-price')?.value) || 0;
     const slPrice = parseFloat(document.getElementById('tp-sl-price')?.value) || 0;
     const order = {
@@ -14043,7 +14064,8 @@ function tpPlaceOrder() {
       feeRate: fees.active,
       createdAt: Date.now(),
     };
-    TP_STATE.balance -= marginNeeded;
+    // isolated locks margin immediately, cross does not
+    if(!isCrossOrder) TP_STATE.balance -= marginNeeded;
     if(!TP_STATE.pendingOrders) TP_STATE.pendingOrders = [];
     TP_STATE.pendingOrders.push(order);
     tpSaveState(); tpRenderOrders(); _tpUpdateOrderBadge();
@@ -14214,23 +14236,26 @@ function tpCalcLiqPrice(pos){
   const mmRate  = 0.005; // 0.5% maintenance margin rate
   const notional = size;
   if(pos.marginMode === 'isolated'){
-    // Isolated: liq when margin = maintenance margin
-    // Long:  liqPrice = entryPrice * (1 - (margin/notional) + mmRate)
-    // Short: liqPrice = entryPrice * (1 + (margin/notional) - mmRate)
+    // Isolated: liq when remaining margin = maintenance margin
     if(side === 'long')  return entryPrice * (1 - (margin / notional) + mmRate);
     else                 return entryPrice * (1 + (margin / notional) - mmRate);
   } else {
-    // Cross: uses total wallet equity (balance + all margin + unrealized PnL)
-    const currentPrice = TP_STATE.prices[pos.pair]?.price || entryPrice;
-    const unrealizedPnl = TP_STATE.positions.reduce((a, p) => {
-      const price = TP_STATE.prices[p.pair]?.price || p.entryPrice;
-      return a + tpCalcPnL(p, price);
+    // Cross: total wallet equity backs all positions
+    // wallet equity = free balance + sum of all margins (already in pool for cross)
+    // avoid calling tpCalcPnL here (recursive risk) — use direct balance approach
+    const totalMargin = TP_STATE.positions.reduce((a, p) => {
+      if(p.marketType === 'spot') return a;
+      return a + (p.initialMargin || p.size / p.leverage);
     }, 0);
-    const totalMargin = TP_STATE.positions.reduce((a, p) => a + (p.initialMargin || p.size / p.leverage), 0);
-    const walletEquity = TP_STATE.balance + totalMargin + unrealizedPnl;
-    // liqPrice when equity = maintenance margin
-    if(side === 'long')  return entryPrice - (walletEquity / notional - mmRate) * entryPrice;
-    else                 return entryPrice + (walletEquity / notional - mmRate) * entryPrice;
+    const walletEquity = TP_STATE.balance + totalMargin;
+    // liq when walletEquity = total maintenance margin across all positions
+    const totalMaintMargin = TP_STATE.positions.reduce((a, p) => {
+      if(p.marketType === 'spot') return a;
+      return a + p.size * mmRate;
+    }, 0);
+    const availableForLoss = walletEquity - totalMaintMargin;
+    if(side === 'long')  return Math.max(0, entryPrice - (availableForLoss / notional) * entryPrice);
+    else                 return entryPrice + (availableForLoss / notional) * entryPrice;
   }
 }
 
