@@ -9568,7 +9568,7 @@ function renderTbl(months){
                 else{_mark='~';_col='#EF9F27';_tip='partial';}
               }
               return `<div style="display:flex;align-items:center;justify-content:space-between;gap:6px;width:100%">
-                <span title="${_tip}" style="font-size:11px;font-weight:700;color:${_col};cursor:default;flex-shrink:0">${_mark}</span>
+                <span title="${_tip}" style="width:7px;height:7px;border-radius:50%;background:${_col};display:inline-block;flex-shrink:0;cursor:default"></span>
                 <button onclick="ljJumpToJournal(${mo.m},${t.no})" title="open in journal" style="font-size:8px;padding:1px 5px;border-radius:3px;border:0.5px solid #5b7fff;background:rgba(91,127,255,0.08);color:#5b7fff;cursor:pointer;font-family:inherit;white-space:nowrap;margin-left:auto" onmouseover="this.style.background='rgba(91,127,255,0.2)'" onmouseout="this.style.background='rgba(91,127,255,0.08)'">→ journal</button>
               </div>`;
             })():''}
