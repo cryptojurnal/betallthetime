@@ -590,6 +590,9 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
 .cockpit-ticker.show{display:flex}
 .ticker-track{display:flex;gap:24px;animation:tickerScroll 30s linear infinite;padding:0 20px}
 @keyframes tickerScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+@keyframes presetMarquee{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+.preset-marquee{overflow:hidden;flex:1;min-width:0;-webkit-mask-image:linear-gradient(to right,transparent,#000 8%,#000 92%,transparent);mask-image:linear-gradient(to right,transparent,#000 8%,#000 92%,transparent)}
+.preset-marquee-track{display:inline-block;white-space:nowrap;animation:presetMarquee 30s linear infinite;font-size:8px;color:var(--tx3)}
 .ticker-item{display:flex;align-items:center;gap:6px;white-space:nowrap}
 .ticker-symbol{font-size:10px;font-weight:700;color:#e0e0e0}
 .ticker-price{font-size:10px;color:#888}
@@ -8890,10 +8893,11 @@ function buildAssessmentCards(months, s){
   return `<div style="height:100%;display:grid;grid-template-columns:1fr 1fr;border:0.5px solid var(--bd2);border-radius:0 6px 6px 0;overflow:hidden;background:var(--panel)">
 
     <!-- SHARED HEADER spans both columns -->
-    <div style="grid-column:1/-1;display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--sf);border-bottom:0.5px solid var(--bd2)">
+    <div style="grid-column:1/-1;display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--sf);border-bottom:0.5px solid var(--bd2);overflow:hidden">
       <div style="width:6px;height:6px;border-radius:50%;background:#00c47a;flex-shrink:0"></div>
-      <span style="font-size:10px;font-weight:600;color:var(--tx2)">your cockpit${presetName?` · <span style="color:#00c47a">${presetName}</span>`:''}</span>
-      <span style="font-size:8px;color:var(--tx3);margin-left:auto;letter-spacing:.04em">M01 · T1</span>
+      <span style="font-size:10px;font-weight:600;color:var(--tx2);white-space:nowrap;flex-shrink:0">your cockpit${presetName?` · <span style="color:#00c47a">${presetName}</span>`:''}</span>
+      ${presetName?`<div class="preset-marquee"><div class="preset-marquee-track">🔒 locked in · stop tweaking · trust the plan · hands off the wheel · the setup is done · now execute · no more adjusting · let it cook · you built this · stick to it · trade the plan not the feeling · 🔒 locked in · stop tweaking · trust the plan · hands off the wheel · the setup is done · now execute · no more adjusting · let it cook · you built this · stick to it · trade the plan not the feeling ·&nbsp;</div></div>`:''}
+      <span style="font-size:8px;color:var(--tx3);margin-left:auto;letter-spacing:.04em;flex-shrink:0">M01 · T1</span>
     </div>
 
     <!-- SECTION LABELS -->
