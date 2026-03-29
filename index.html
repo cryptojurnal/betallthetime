@@ -8387,7 +8387,7 @@ function toggleMonth(m){
   rows.forEach(r=>r.classList.toggle('mo-collapsed',isOpen));
   if(btn){btn.classList.toggle('open',!isOpen);btn.classList.toggle('closed',isOpen);}
 }
-  _captureUndo();const s=gs();
+function toggleZeroMonth(m){
   if(s.ZM.has(m)) s.ZM.delete(m);
   else s.ZM.add(m);
   try{localStorage.setItem('batt_'+TAB+'_zero',JSON.stringify({ZM:[...s.ZM]}));}catch(e){}
