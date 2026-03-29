@@ -5507,19 +5507,24 @@ function sim(){
     const{trades,endAcc:gA,endAccF:gAF,lastNotional:ln}=runSeq(acc,s.LEV,initNot,mBT,mFR,s.KPI,s.SPOT,cf,m);
     const monthFeePaid=trades.reduce((a,t)=>a+t.feePaid,0);
     const wdAmt=parseFloat(s.WD[m])||0;
+    // if all active trades are locked with actual data, use actual end balance for withdrawal
+    const activeTrades=trades.filter(t=>!t.skip);
+    const allLocked=activeTrades.length>0&&activeTrades.every(t=>t.hasActual);
+    const lastActualTrade=allLocked?activeTrades[activeTrades.length-1]:null;
+    const actualEndBal=lastActualTrade?lastActualTrade.accAF:null;
+    const effectiveGAF=allLocked&&actualEndBal!==null?actualEndBal:gAF;
     // no cap — if withdrawal exceeds balance, account is bust
     const wd=wdAmt;
-    const fA=gAF-wd;
+    const fA=effectiveGAF-wd;
     const bust=fA<=0; // account wiped by withdrawal
-    banked+=bust?gAF:wd; // only bank what was actually there
-    // liq after withdrawal uses next month's notional base
-    const lastActiveTrade=trades.filter(t=>!t.skip).slice(-1)[0];
+    banked+=bust?effectiveGAF:wd;
+    const lastActiveTrade=activeTrades.slice(-1)[0];
     const prevLN=lastActiveTrade?lastActiveTrade.not+lastActiveTrade.sp:initNot;
     const postLiq=wd>0&&!bust?(fA/prevLN*100):null;
     const pct=(gA-acc)/acc*100;
     prevLastNotional=prevLN;
-    months.push({m,lb,isZ:false,sA:acc,eA:bust?0:fA,gA,gAF,wd,banked,nw:(bust?0:fA)+banked,trades,pct,postLiq,initNot,liqT1,mp,feePaid:monthFeePaid,bust});
-    if(bust) break; // stop simulating — account is done
+    months.push({m,lb,isZ:false,sA:acc,eA:bust?0:fA,gA,gAF:effectiveGAF,wd,banked,nw:(bust?0:fA)+banked,trades,pct,postLiq,initNot,liqT1,mp,feePaid:monthFeePaid,bust});
+    if(bust) break;
     acc=fA;
   }
   return months;
