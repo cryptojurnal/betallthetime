@@ -806,35 +806,90 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
   .panel-left{display:none!important}
   .panel-trade{display:none!important}
   .panel-presets{display:none!important}
+  .panel-left-toggle{display:none!important}
+  .panel-trade-toggle{display:none!important}
+  .panel-presets-toggle{display:none!important}
 
   /* right panel takes full width */
-  .panel-right{height:100dvh!important;width:100%!important;padding:0 0 80px 0}
+  .panel-right{height:100dvh!important;width:100%!important;padding:0 0 72px 0}
 
   /* table horizontal scroll */
-  #tbl{width:100%;display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;white-space:nowrap}
-  #tbl thead,#tbl tbody,#tbl tr{display:table;width:100%;table-layout:fixed}
+  #tbl{width:800px;min-width:800px}
+  .det-tbl-wrap,#tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;width:100%}
 
   /* top panel compact */
-  .top-panel{flex-wrap:wrap;padding:6px 8px;gap:6px}
-  .tp-collapse-btn{display:none}
+  .top-panel{flex-wrap:wrap;padding:6px 8px;gap:4px;min-height:auto}
 
   /* tab bar scroll */
   .tab-bar{overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none}
   .tab-bar::-webkit-scrollbar{display:none}
 
-  /* view tabs scroll */
-  .view-tabs{overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch}
-
-  /* metrics grid 2 col on mobile */
+  /* metrics grid 3 col on mobile */
   .metrics{grid-template-columns:repeat(3,1fr)!important}
 
   /* chart shorter */
   #chart-wrap{height:120px!important}
 
-  /* toggle buttons still accessible */
-  .panel-left-toggle{display:flex!important;opacity:1!important;pointer-events:all!important}
-  .panel-trade-toggle{display:flex!important;opacity:1!important;pointer-events:all!important}
+  /* mobile bottom nav */
+  #mobile-bottom-nav{display:flex!important}
+
+  /* bottom sheet */
+  #mobile-sheet{display:flex!important}
 }
+
+/* Mobile bottom nav — hidden on desktop */
+#mobile-bottom-nav{
+  display:none;
+  position:fixed;
+  bottom:0;left:0;right:0;
+  height:60px;
+  background:var(--panel);
+  border-top:0.5px solid var(--bd);
+  z-index:9000;
+  align-items:center;
+  justify-content:space-around;
+  padding:0 8px;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.mob-nav-btn{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:2px;flex:1;height:100%;
+  background:none;border:none;cursor:pointer;
+  font-family:inherit;color:var(--tx3);
+  transition:color .15s;
+  -webkit-tap-highlight-color:transparent;
+}
+.mob-nav-btn.active{color:var(--acc2)}
+.mob-nav-btn-icon{font-size:18px;line-height:1}
+.mob-nav-btn-label{font-size:9px;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
+
+/* Bottom sheet */
+#mobile-sheet{
+  display:none;
+  position:fixed;
+  bottom:60px;left:0;right:0;
+  height:75dvh;
+  background:var(--panel);
+  border-top:0.5px solid var(--bd);
+  border-radius:16px 16px 0 0;
+  z-index:8999;
+  flex-direction:column;
+  transform:translateY(100%);
+  transition:transform .3s cubic-bezier(.4,0,.2,1);
+  overflow:hidden;
+}
+#mobile-sheet.open{transform:translateY(0)}
+#mobile-sheet-handle{
+  width:36px;height:4px;border-radius:2px;
+  background:var(--bd2);margin:10px auto 6px;flex-shrink:0;cursor:grab;
+}
+#mobile-sheet-content{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:16px}
+#mobile-sheet-overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.5);z-index:8998;
+  backdrop-filter:blur(2px);
+}
+#mobile-sheet-overlay.open{display:block}
 @media(max-width:480px){
   .tp-logo{font-family:'Trebuchet MS', 'Trebuchet', sans-serif;font-size:13px}
   .tp-pair-selector{padding:6px 10px}
@@ -19544,8 +19599,107 @@ document.addEventListener('click',function(e){
 });
 </script>
 
+<!-- MOBILE BOTTOM NAV -->
+<nav id="mobile-bottom-nav">
+  <button class="mob-nav-btn active" id="mob-nav-cockpit" onclick="mobNav('cockpit')">
+    <span class="mob-nav-btn-icon">📊</span>
+    <span class="mob-nav-btn-label">cockpit</span>
+  </button>
+  <button class="mob-nav-btn" id="mob-nav-ctrl" onclick="mobNav('ctrl')">
+    <span class="mob-nav-btn-icon">⚙️</span>
+    <span class="mob-nav-btn-label">controls</span>
+  </button>
+  <button class="mob-nav-btn" id="mob-nav-trade" onclick="mobNav('trade')">
+    <span class="mob-nav-btn-icon">⚡</span>
+    <span class="mob-nav-btn-label">trade</span>
+  </button>
+  <button class="mob-nav-btn" id="mob-nav-presets" onclick="mobNav('presets')">
+    <span class="mob-nav-btn-icon">💾</span>
+    <span class="mob-nav-btn-label">presets</span>
+  </button>
+</nav>
+
+<!-- MOBILE BOTTOM SHEET -->
+<div id="mobile-sheet-overlay" onclick="mobSheetClose()"></div>
+<div id="mobile-sheet">
+  <div id="mobile-sheet-handle"></div>
+  <div id="mobile-sheet-content"></div>
+</div>
+
+<script>
+(function(){
+  var _activeNav='cockpit';
+  var _sheetOpen=false;
+
+  window.mobNav=function(tab){
+    if(tab==='cockpit'){
+      mobSheetClose();
+      document.querySelectorAll('.mob-nav-btn').forEach(b=>b.classList.remove('active'));
+      document.getElementById('mob-nav-cockpit').classList.add('active');
+      _activeNav='cockpit';
+      return;
+    }
+    // open sheet with panel content
+    var content=document.getElementById('mobile-sheet-content');
+    var src=null;
+    if(tab==='ctrl') src=document.getElementById('left-panel');
+    else if(tab==='trade') src=document.getElementById('trade-panel');
+    else if(tab==='presets') src=document.getElementById('panel-presets');
+    if(src){
+      content.innerHTML='';
+      // clone the panel content into sheet
+      var clone=src.cloneNode(true);
+      clone.style.display='block';
+      clone.style.width='100%';
+      clone.style.height='auto';
+      clone.style.position='static';
+      clone.style.border='none';
+      content.appendChild(clone);
+    }
+    document.querySelectorAll('.mob-nav-btn').forEach(b=>b.classList.remove('active'));
+    var btn=document.getElementById('mob-nav-'+tab);
+    if(btn) btn.classList.add('active');
+    _activeNav=tab;
+    mobSheetOpen();
+  };
+
+  window.mobSheetOpen=function(){
+    document.getElementById('mobile-sheet').classList.add('open');
+    document.getElementById('mobile-sheet-overlay').classList.add('open');
+    _sheetOpen=true;
+  };
+
+  window.mobSheetClose=function(){
+    document.getElementById('mobile-sheet').classList.remove('open');
+    document.getElementById('mobile-sheet-overlay').classList.remove('open');
+    _sheetOpen=false;
+    document.querySelectorAll('.mob-nav-btn').forEach(b=>b.classList.remove('active'));
+    document.getElementById('mob-nav-cockpit').classList.add('active');
+    _activeNav='cockpit';
+  };
+
+  // drag to dismiss sheet
+  var sheet=document.getElementById('mobile-sheet');
+  var handle=document.getElementById('mobile-sheet-handle');
+  var startY=0,currentY=0,dragging=false;
+  handle.addEventListener('touchstart',function(e){
+    startY=e.touches[0].clientY;dragging=true;
+  },{passive:true});
+  handle.addEventListener('touchmove',function(e){
+    if(!dragging) return;
+    currentY=e.touches[0].clientY-startY;
+    if(currentY>0) sheet.style.transform='translateY('+currentY+'px)';
+  },{passive:true});
+  handle.addEventListener('touchend',function(){
+    dragging=false;
+    if(currentY>80) mobSheetClose();
+    sheet.style.transform='';
+    currentY=0;
+  });
+})();
+</script>
+
 <!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "52b9865191d84f9b92b6a0b25b65d1d6"}'></script><!-- End Cloudflare Web Analytics -->
 
 </body>
 </html>
-  
