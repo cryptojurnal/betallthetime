@@ -5437,9 +5437,9 @@ function runSeq(startAcc,lev,initNot,bt,fr,kpi,isSpot,cf,month){
   for(let i=0;i<10;i++){
     const skip=bt[i]===0; // freq removed — active = BT !== 0
     const am=isSpot?not:not/lev;
-    const fm=isSpot?100:am/acc*100;
-    const liq=isSpot?999:acc/not*100;
-    if(skip){trades.push({no:i+1,skip:true,not,am,fm,liq,tgt:0,freq:1,sp:0,cp:0,accB:acc,accA:acc,feePaid:0,accAF:accF,isSpot});continue;}
+    const fm=isSpot?100:am/accF*100;
+    const liq=isSpot?999:accF/not*100;
+    if(skip){trades.push({no:i+1,skip:true,not,am,fm,liq,tgt:0,freq:1,sp:0,cp:0,accB:accF,accA:accF,feePaid:0,accAF:accF,isSpot});continue;}
     const tgt=bt[i]*kpi/100;
     const sp=not*tgt,cp=sp; // freq=1, cp=sp always
     const chosenRate=(gs().FEE.method==='maker'?gs().FEE.maker:gs().FEE.taker)/100;
@@ -5461,7 +5461,7 @@ function runSeq(startAcc,lev,initNot,bt,fr,kpi,isSpot,cf,month){
     trades.push({no:i+1,skip:false,not,am,fm,liq,tgt:bt[i]*kpi,freq:1,
       sp:useActual?finalCpPreFee:sp,
       cp:useActual?finalCpPreFee:cp,
-      accB:acc,accA:useActual?accAfterActual:accAfter,
+      accB:accF,accA:useActual?accAfterActual:accAfter,
       feePaid:useActual?finalFee:feePaid,
       accAF:useActual?accAfterFActual:accAfterF,
       isSpot,
