@@ -2146,6 +2146,72 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 </style>
 </head>
 <body class="t-light">
+<style>
+/* ── MOBILE COCKPIT NAV ── */
+#cockpit-mob-nav{
+  display:none;
+  position:fixed;bottom:0;left:0;right:0;
+  height:56px;
+  background:var(--panel,#111);
+  border-top:0.5px solid var(--bd,#222);
+  z-index:9100;
+  align-items:center;
+  justify-content:space-around;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+.cmn-btn{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:2px;flex:1;height:100%;
+  background:none;border:none;cursor:pointer;
+  color:#666;font-family:inherit;
+  -webkit-tap-highlight-color:transparent;
+  transition:color .15s;
+}
+.cmn-btn.active{color:#00c47a}
+.cmn-btn-icon{font-size:20px;line-height:1}
+.cmn-btn-label{font-size:8px;font-weight:700;letter-spacing:.05em;text-transform:uppercase}
+#cockpit-mob-sheet{
+  display:none;
+  position:fixed;bottom:56px;left:0;right:0;
+  height:72dvh;
+  background:var(--panel,#111);
+  border-top:0.5px solid var(--bd,#222);
+  border-radius:16px 16px 0 0;
+  z-index:9099;
+  flex-direction:column;
+  transform:translateY(100%);
+  transition:transform .3s cubic-bezier(.4,0,.2,1);
+  overflow:hidden;
+}
+#cockpit-mob-sheet.open{transform:translateY(0)}
+#cockpit-mob-handle{
+  width:36px;height:4px;border-radius:2px;
+  background:#333;margin:10px auto 0;flex-shrink:0;cursor:grab;
+}
+#cockpit-mob-content{flex:1;overflow-y:auto;overflow-x:hidden;padding:8px 0 24px}
+#cockpit-mob-overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.6);z-index:9098;
+}
+#cockpit-mob-overlay.open{display:block}
+@media(max-width:768px){
+  #cockpit-mob-nav{display:flex}
+  #cockpit-mob-sheet{display:flex}
+  .app .panel-left{display:none!important}
+  .app .panel-trade{display:none!important}
+  .app .panel-presets{display:none!important}
+  .app .panel-left-toggle{display:none!important}
+  .app .panel-trade-toggle{display:none!important}
+  .app .panel-presets-toggle{display:none!important}
+  .app{zoom:1!important;height:100dvh!important;overflow:hidden}
+  .app .panel-right{height:100dvh!important;width:100%!important;padding:0 0 56px 0}
+  #tbl{min-width:800px}
+  .tab-bar{overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none}
+  .tab-bar::-webkit-scrollbar{display:none}
+  .metrics{grid-template-columns:repeat(3,1fr)!important}
+  #chart-wrap{height:120px!important}
+}
+</style>
 <!-- PWA INSTALL BANNER -->
 <div id="pwa-install-banner">
   <span class="pwa-icon">📲</span>
@@ -19530,6 +19596,73 @@ document.addEventListener('click',function(e){
   var wrap=document.getElementById('l3-menu-wrap');
   if(wrap&&!wrap.contains(e.target))closeL3Menu();
 });
+</script>
+
+<!-- COCKPIT MOBILE NAV -->
+<nav id="cockpit-mob-nav">
+  <button class="cmn-btn active" id="cmn-cockpit" onclick="cmnGo('cockpit')">
+    <span class="cmn-btn-icon">📊</span>
+    <span class="cmn-btn-label">cockpit</span>
+  </button>
+  <button class="cmn-btn" id="cmn-ctrl" onclick="cmnGo('ctrl')">
+    <span class="cmn-btn-icon">⚙️</span>
+    <span class="cmn-btn-label">controls</span>
+  </button>
+  <button class="cmn-btn" id="cmn-trade" onclick="cmnGo('trade')">
+    <span class="cmn-btn-icon">⚡</span>
+    <span class="cmn-btn-label">trade</span>
+  </button>
+  <button class="cmn-btn" id="cmn-presets" onclick="cmnGo('presets')">
+    <span class="cmn-btn-icon">💾</span>
+    <span class="cmn-btn-label">presets</span>
+  </button>
+</nav>
+<div id="cockpit-mob-overlay" onclick="cmnClose()"></div>
+<div id="cockpit-mob-sheet">
+  <div id="cockpit-mob-handle"></div>
+  <div id="cockpit-mob-content"></div>
+</div>
+<script>
+(function(){
+  function cmnSetActive(tab){
+    document.querySelectorAll('.cmn-btn').forEach(function(b){b.classList.remove('active');});
+    var b=document.getElementById('cmn-'+tab);
+    if(b) b.classList.add('active');
+  }
+  window.cmnGo=function(tab){
+    if(tab==='cockpit'){cmnClose();cmnSetActive('cockpit');return;}
+    var map={ctrl:'left-panel',trade:'trade-panel',presets:'panel-presets'};
+    var src=document.getElementById(map[tab]);
+    var cnt=document.getElementById('cockpit-mob-content');
+    if(src&&cnt){
+      cnt.innerHTML='';
+      var cl=src.cloneNode(true);
+      cl.removeAttribute('id');
+      cl.style.cssText='display:block!important;width:100%!important;height:auto!important;position:static!important;border:none!important;min-width:0!important;max-width:none!important';
+      cnt.appendChild(cl);
+    }
+    cmnSetActive(tab);
+    var sheet=document.getElementById('cockpit-mob-sheet');
+    var ov=document.getElementById('cockpit-mob-overlay');
+    if(sheet) sheet.classList.add('open');
+    if(ov) ov.classList.add('open');
+  };
+  window.cmnClose=function(){
+    var sheet=document.getElementById('cockpit-mob-sheet');
+    var ov=document.getElementById('cockpit-mob-overlay');
+    if(sheet) sheet.classList.remove('open');
+    if(ov) ov.classList.remove('open');
+    cmnSetActive('cockpit');
+  };
+  var handle=document.getElementById('cockpit-mob-handle');
+  var sheet=document.getElementById('cockpit-mob-sheet');
+  if(handle&&sheet){
+    var sy=0,cy=0,drag=false;
+    handle.addEventListener('touchstart',function(e){sy=e.touches[0].clientY;drag=true;},{passive:true});
+    handle.addEventListener('touchmove',function(e){if(!drag)return;cy=e.touches[0].clientY-sy;if(cy>0)sheet.style.transform='translateY('+cy+'px)';},{passive:true});
+    handle.addEventListener('touchend',function(){drag=false;if(cy>80)cmnClose();sheet.style.transform='';cy=0;});
+  }
+})();
 </script>
 
 <!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "52b9865191d84f9b92b6a0b25b65d1d6"}'></script><!-- End Cloudflare Web Analytics -->
