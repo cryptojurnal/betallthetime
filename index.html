@@ -1360,6 +1360,14 @@ tr:nth-child(even) td{background:var(--sf)}
 tr.mo-sep>td,tr.mo-gap>td{padding:0!important;border:none!important}
 tr.mh>td{background:var(--mh)!important;color:var(--mhc)!important;font-weight:700;font-size:11px;padding:4px 5px}
 tr.mh-z>td{background:var(--sf2)!important;color:var(--tx2)!important;font-size:10px;padding:5px 7px}
+tr.mo-body{transition:opacity .15s}
+tr.mo-body.mo-collapsed{display:none}
+tr.mo-subhdr.mo-collapsed{display:none}
+tr.mo-sep.mo-collapsed{display:none}
+tr.mo-gap.mo-collapsed{display:none}
+.mo-toggle-btn{background:none;border:none;cursor:pointer;font-size:10px;color:var(--mhc);padding:0 4px;opacity:.7;transition:transform .2s;display:inline-block;line-height:1;font-family:inherit}
+.mo-toggle-btn.open{transform:rotate(0deg)}
+.mo-toggle-btn.closed{transform:rotate(-90deg)}
 tr.locked-row>td{background:rgba(0,196,122,0.04)!important;opacity:.85}
 /* journal loading pulse — shown while cloud journal is fetching */
 body.jn-loading tr.locked-row>td{animation:lk-pulse 1.4s ease-in-out infinite}
@@ -8370,7 +8378,15 @@ function isLocked(m, tno){
   return s.LK.has(m+'-'+tno);
 }
 
-function toggleZeroMonth(m){
+function toggleMonth(m){
+  const tbl=document.getElementById('tbl');
+  if(!tbl) return;
+  const rows=tbl.querySelectorAll('[data-mo="'+m+'"]');
+  const btn=tbl.querySelector('.mo-toggle-btn[data-mo="'+m+'"]');
+  const isOpen=btn&&btn.classList.contains('open');
+  rows.forEach(r=>r.classList.toggle('mo-collapsed',isOpen));
+  if(btn){btn.classList.toggle('open',!isOpen);btn.classList.toggle('closed',isOpen);}
+}
   _captureUndo();const s=gs();
   if(s.ZM.has(m)) s.ZM.delete(m);
   else s.ZM.add(m);
@@ -9402,6 +9418,7 @@ function renderTbl(months){
       h+=`<tr class="mh">
         <td style="text-align:left;padding:4px 4px 4px 6px">
           <div style="display:flex;align-items:center;gap:3px">
+            <button class="mo-toggle-btn open" data-mo="${mo.m}" onclick="toggleMonth(${mo.m})" title="collapse/expand">▾</button>
             <input class="lbl-in" value="${mLabel}" placeholder="e.g. JAN 26" oninput="this.value=this.value.toUpperCase()" onchange="onMonthLabel(${mo.m},this.value.toUpperCase())" onclick="this.select()" style="width:56px">
             <span onclick="toggleZeroMonth(${mo.m})" title="zero month" style="cursor:pointer;font-size:8px;color:var(--mhs);opacity:.6;padding:0 3px;border:0.5px solid var(--mhs);border-radius:2px;user-select:none">⊘</span>
           </div>
@@ -9447,7 +9464,7 @@ function renderTbl(months){
         <td></td>
         <td></td>
       </tr>
-      <tr style="background:var(--bg)">
+      <tr class="mo-subhdr" data-mo="${mo.m}" style="background:var(--bg)">
         <td style="font-size:7px;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;text-align:left;border-bottom:0.5px solid var(--bd2)">trade</td>
         <td style="font-size:7px;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2)">${s.SPOT?'size':'notional'}</td>
         <td style="font-size:7px;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2)">${s.SPOT?'size':'margin'}</td>
@@ -9469,7 +9486,7 @@ function renderTbl(months){
           if(!GLOBAL_MODE){
             const mt=gs().MT[mo.m];
             const btVal=mt?mt.bt[t.no-1]:0;
-                        h+=`<tr class="skip-row">
+                        h+=`<tr class="skip-row mo-body" data-mo="${mo.m}">
               <td style="padding-left:8px;text-align:left"><input class="lbl-in lbl-trade" value="${tLabel}" oninput="this.value=this.value.toUpperCase()" onchange="onTradeLabel(${mo.m},${t.no},this.value.toUpperCase())" placeholder="trade ${t.no}..." onchange="onTradeLabel(${mo.m},${t.no},this.value)" onclick="this.select()"></td>
               <td colspan="4" style="color:var(--tx3);font-size:9px;font-style:italic">skipped</td>
               <td><div class="tg-cell" style="width:54px"><button class="tg-btn" onclick="manStep('bt',${mo.m},${t.no-1},-0.5)" tabindex="-1">−</button><input type="number" id="mbt-${mo.m}-${t.no-1}" value="${btVal}" min="-500" max="500" step="0.5" placeholder="tgt%" style="flex:1;min-width:0;padding:1px 0;font-size:9px;text-align:center;border:none;background:transparent;color:var(--acc);font-weight:700;-moz-appearance:textfield" oninput="dInput(this,v=>onManualBT(${mo.m},${t.no-1},v),400)"><button class="tg-btn" onclick="manStep('bt',${mo.m},${t.no-1},0.5)" tabindex="-1">+</button></div></td>
@@ -9477,7 +9494,7 @@ function renderTbl(months){
               <td></td>
             </tr>`;
           } else {
-            h+=`<tr class="skip-row"><td style="padding-left:10px;text-align:left;color:var(--tx3);font-size:9px">${tLabel}</td><td colspan="12" style="text-align:center"><span class="sk">skipped · target = 0</span></td><td></td></tr>`;
+            h+=`<tr class="skip-row mo-body" data-mo="${mo.m}"><td style="padding-left:10px;text-align:left;color:var(--tx3);font-size:9px">${tLabel}</td><td colspan="12" style="text-align:center"><span class="sk">skipped · target = 0</span></td><td></td></tr>`;
           }
           return;
         }
@@ -9496,7 +9513,7 @@ function renderTbl(months){
           else if(t.actualCp>=0) outcomeClass='actual-neutral';
           else outcomeClass='actual-miss';
         }
-        const lkRowAttr=lk?('class="locked-row'+( outcomeClass?' '+outcomeClass:'')+'"'):(isT1Push?'style="background:rgba(96,192,48,0.06)"':'');
+        const lkRowAttr=lk?('class="locked-row mo-body'+( outcomeClass?' '+outcomeClass:'')+'" data-mo="'+mo.m+'"'):'class="mo-body" data-mo="'+mo.m+'"'+(isT1Push?' style="background:rgba(96,192,48,0.06)"':'');
         // before→after helper: strikethrough proj, show actual in color
         const ba=(projVal,actualVal,actualColor)=>
           ha?`<span style="color:var(--tx3);text-decoration:line-through;font-size:8px;opacity:.45">${projVal}</span><br><span style="color:${actualColor};font-weight:800;font-size:10px">${actualVal}</span>`
@@ -9584,7 +9601,7 @@ function renderTbl(months){
         const grossCol=mo.pct>=0?'#5DC96A':'#E24B4A';
         const sb='background:#111827;border-top:1px solid #1e2a3a;border-bottom:1px solid #1e2a3a;padding:10px 8px;vertical-align:middle';
         const wdRound=Math.round(mo.wd);
-        h+=`<tr class="mo-sep">
+        h+=`<tr class="mo-sep" data-mo="${mo.m}">
           <!-- col1: label + net -->
           <td style="${sb};text-align:left;padding-left:12px">
             <div style="font-size:8px;font-weight:700;color:#6b7fa8;letter-spacing:.07em;text-transform:uppercase;margin-bottom:4px">end of ${getML(mo.m)}</div>
@@ -9622,7 +9639,7 @@ function renderTbl(months){
           </td>
           <td style="${sb}"></td>
         </tr>
-        <tr class="mo-gap"><td colspan="15" style="height:10px;background:var(--bg);border:none;padding:0"></td></tr>`;
+        <tr class="mo-gap" data-mo="${mo.m}"><td colspan="15" style="height:10px;background:var(--bg);border:none;padding:0"></td></tr>`;
       }
     });
   }
