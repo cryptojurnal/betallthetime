@@ -858,22 +858,11 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
 
   /* bottom sheet */
   #mobile-sheet{display:flex!important}
+  #cockpit-mobile-nav{display:flex!important}
 }
 
-/* Mobile bottom nav — hidden on desktop */
-#mobile-bottom-nav{
-  display:none;
-  position:fixed;
-  bottom:0;left:0;right:0;
-  height:60px;
-  background:var(--panel);
-  border-top:0.5px solid var(--bd);
-  z-index:9000;
-  align-items:center;
-  justify-content:space-around;
-  padding:0 8px;
-  padding-bottom:env(safe-area-inset-bottom);
-}
+/* Cockpit mobile nav — hidden by default, shown via media query on mobile */
+#cockpit-mobile-nav{display:none}
 .mob-nav-btn{
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:2px;flex:1;height:100%;
@@ -18398,7 +18387,7 @@ function battSetTitle(page){ battNav(page); }
 function battRestoreFromHash(){
   var hash=(window.location.hash||'').replace('#',"");
   // show/hide mobile bottom nav — only on cockpit
-  var mbn=document.getElementById('mobile-bottom-nav');
+  var mbn=document.getElementById('cockpit-mobile-nav');
   var mbs=document.getElementById('mobile-sheet');
   var mbo=document.getElementById('mobile-sheet-overlay');
   if(mbn){
@@ -19656,8 +19645,8 @@ document.addEventListener('click',function(e){
 });
 </script>
 
-<!-- MOBILE BOTTOM NAV -->
-<nav id="mobile-bottom-nav">
+<!-- COCKPIT MOBILE BOTTOM NAV -->
+<nav id="cockpit-mobile-nav" style="display:none;position:fixed;bottom:0;left:0;right:0;height:60px;background:var(--panel);border-top:0.5px solid var(--bd);z-index:9000;align-items:center;justify-content:space-around;padding:0 8px;padding-bottom:env(safe-area-inset-bottom)">
   <button class="mob-nav-btn active" id="mob-nav-cockpit" onclick="mobNav('cockpit')">
     <span class="mob-nav-btn-icon">📊</span>
     <span class="mob-nav-btn-label">cockpit</span>
@@ -19686,73 +19675,56 @@ document.addEventListener('click',function(e){
 <script>
 (function(){
   var _activeNav='cockpit';
-  var _sheetOpen=false;
+
+  function isMobile(){ return window.innerWidth<=768; }
 
   window.mobNav=function(tab){
     if(tab==='cockpit'){
       mobSheetClose();
       document.querySelectorAll('.mob-nav-btn').forEach(b=>b.classList.remove('active'));
-      document.getElementById('mob-nav-cockpit').classList.add('active');
+      var cb=document.getElementById('mob-nav-cockpit'); if(cb) cb.classList.add('active');
       _activeNav='cockpit';
       return;
     }
-    // open sheet with panel content
     var content=document.getElementById('mobile-sheet-content');
     var src=null;
     if(tab==='ctrl') src=document.getElementById('left-panel');
     else if(tab==='trade') src=document.getElementById('trade-panel');
     else if(tab==='presets') src=document.getElementById('panel-presets');
-    if(src){
+    if(src&&content){
       content.innerHTML='';
-      // clone the panel content into sheet
       var clone=src.cloneNode(true);
-      clone.style.display='block';
-      clone.style.width='100%';
-      clone.style.height='auto';
-      clone.style.position='static';
-      clone.style.border='none';
+      clone.style.cssText='display:block!important;width:100%;height:auto;position:static;border:none;min-width:0';
       content.appendChild(clone);
     }
     document.querySelectorAll('.mob-nav-btn').forEach(b=>b.classList.remove('active'));
-    var btn=document.getElementById('mob-nav-'+tab);
-    if(btn) btn.classList.add('active');
+    var btn=document.getElementById('mob-nav-'+tab); if(btn) btn.classList.add('active');
     _activeNav=tab;
     mobSheetOpen();
   };
 
   window.mobSheetOpen=function(){
-    document.getElementById('mobile-sheet').classList.add('open');
-    document.getElementById('mobile-sheet-overlay').classList.add('open');
-    _sheetOpen=true;
+    var s=document.getElementById('mobile-sheet'); if(s) s.classList.add('open');
+    var o=document.getElementById('mobile-sheet-overlay'); if(o) o.classList.add('open');
   };
 
   window.mobSheetClose=function(){
-    document.getElementById('mobile-sheet').classList.remove('open');
-    document.getElementById('mobile-sheet-overlay').classList.remove('open');
-    _sheetOpen=false;
+    var s=document.getElementById('mobile-sheet'); if(s) s.classList.remove('open');
+    var o=document.getElementById('mobile-sheet-overlay'); if(o) o.classList.remove('open');
     document.querySelectorAll('.mob-nav-btn').forEach(b=>b.classList.remove('active'));
-    document.getElementById('mob-nav-cockpit').classList.add('active');
+    var cb=document.getElementById('mob-nav-cockpit'); if(cb) cb.classList.add('active');
     _activeNav='cockpit';
   };
 
-  // drag to dismiss sheet
+  // drag to dismiss
   var sheet=document.getElementById('mobile-sheet');
   var handle=document.getElementById('mobile-sheet-handle');
-  var startY=0,currentY=0,dragging=false;
-  handle.addEventListener('touchstart',function(e){
-    startY=e.touches[0].clientY;dragging=true;
-  },{passive:true});
-  handle.addEventListener('touchmove',function(e){
-    if(!dragging) return;
-    currentY=e.touches[0].clientY-startY;
-    if(currentY>0) sheet.style.transform='translateY('+currentY+'px)';
-  },{passive:true});
-  handle.addEventListener('touchend',function(){
-    dragging=false;
-    if(currentY>80) mobSheetClose();
-    sheet.style.transform='';
-    currentY=0;
-  });
+  if(handle&&sheet){
+    var startY=0,currentY=0,dragging=false;
+    handle.addEventListener('touchstart',function(e){ startY=e.touches[0].clientY;dragging=true; },{passive:true});
+    handle.addEventListener('touchmove',function(e){ if(!dragging)return; currentY=e.touches[0].clientY-startY; if(currentY>0) sheet.style.transform='translateY('+currentY+'px)'; },{passive:true});
+    handle.addEventListener('touchend',function(){ dragging=false; if(currentY>80) mobSheetClose(); sheet.style.transform=''; currentY=0; });
+  }
 })();
 </script>
 
