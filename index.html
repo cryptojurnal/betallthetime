@@ -5466,9 +5466,9 @@ function runSeq(startAcc,lev,initNot,bt,fr,kpi,isSpot,cf,month){
     });
     acc=useActual?accAfterActual:accAfter;
     accF=useActual?accAfterFActual:accAfterF;
-    const actualSp=useActual?finalCpPreFee:sp;
+    const actualNetPnlCF=useActual?finalCp:(cp-feePaid); // net pnl post-fee for carry-forward
     if(cfOn){
-      not=isSpot?acc:not+actualSp;
+      not=isSpot?accF:not+actualNetPnlCF;
     } else {
       not=isSpot?startAcc:initNot;
     }
@@ -9365,7 +9365,7 @@ function renderTbl(months){
       }
     }
   } else {
-    h=`<colgroup><col style="width:12%"><col style="width:8%"><col style="width:6%"><col style="width:5%"><col style="width:5%"><col style="width:7%"><col style="width:7%"><col style="width:6%"><col style="width:6%"><col style="width:6%"><col style="width:6%"><col style="width:6%"><col style="width:9%"><col style="width:9%"></colgroup><thead><tr>
+    h=`<colgroup><col style="width:13%"><col style="width:9%"><col style="width:7%"><col style="width:5%"><col style="width:5%"><col style="width:7%"><col style="width:7%"><col style="width:7%"><col style="width:6%"><col style="width:6%"><col style="width:6%"><col style="width:7%"><col style="width:8%"><col style="width:8%"></colgroup><thead><tr>
       <th style="text-align:left;width:13%">trade</th>
       <th style="width:9%">${s.SPOT?'position size':'notional'}<div style="font-size:6px;font-weight:400;color:var(--tx3);margin-top:1px;opacity:.8">${s.SPOT?'entry size':'margin × lev'}</div></th>
       <th style="width:7%">${s.SPOT?'pos size':'margin'}<div style="font-size:6px;font-weight:400;color:var(--tx3);margin-top:1px;opacity:.8">${s.SPOT?'capital used':'notional ÷ lev'}</div></th>
@@ -9373,18 +9373,18 @@ function renderTbl(months){
       <th style="width:5%">${s.SPOT?'◈':'liq%'}<div style="font-size:6px;font-weight:400;color:var(--tx3);margin-top:1px;opacity:.8">${s.SPOT?'no liq':'acc ÷ notional × 100'}</div></th>
       <th style="width:7%;text-align:center">target%<div style="font-size:6px;font-weight:400;color:var(--tx3);margin-top:1px;opacity:.8">${s.SPOT?'price move %':'% gain on notional'}</div></th>
       <th style="width:7%;text-align:center">exit<div style="font-size:6px;font-weight:400;color:var(--tx3);margin-top:1px;opacity:.8">actual % logged</div></th>
-      <th style="width:6%;padding:4px 4px">gross profit<br><span style="font-weight:400;font-size:7px;text-transform:none;color:var(--tx3)">single trade</span><div style="font-size:6px;font-weight:400;color:var(--tx3);margin-top:1px;opacity:.8">notional × tgt%</div></th>
-      <th style="width:6%;padding:4px 4px">combine<br><span style="font-weight:400;font-size:7px;text-transform:none;color:var(--tx3)">pnl pre-fee</span><div style="font-size:6px;font-weight:400;color:var(--tx3);margin-top:1px;opacity:.8">running total, pre-fee</div></th>
+      <th style="width:7%;padding:4px 4px">gross profit<br><span style="font-weight:400;font-size:7px;text-transform:none;color:var(--tx3)">single trade</span><div style="font-size:6px;font-weight:400;color:var(--tx3);margin-top:1px;opacity:.8">notional × tgt%</div></th>
       <th style="width:6%;color:#E24B4A;padding:4px 4px">fee paid<div style="font-size:6px;font-weight:400;color:var(--tx3);margin-top:1px;opacity:.8">(open+close) + funding</div></th>
       <th style="width:6%;color:var(--acc2);padding:4px 4px">net pnl<br><span style="font-weight:400;font-size:7px;text-transform:none;color:var(--acc2);opacity:.8">post-fee</span><div style="font-size:6px;font-weight:400;color:var(--tx3);margin-top:1px;opacity:.8">gross − all fees</div></th>
       <th style="width:6%;color:var(--tx2);padding:5px 5px">acct bal<br><span style="font-weight:400;font-size:7px;text-transform:none">${s.SPOT?'gross':'pre-fee'}</span><div style="font-size:6px;font-weight:400;color:var(--tx3);margin-top:1px;opacity:.8">bal + gross pnl</div></th>
       <th style="width:7%;color:var(--acc2);padding:5px 5px">acct bal<br><span style="font-weight:400;font-size:7px;text-transform:none">post-fee</span><div style="font-size:6px;font-weight:400;color:var(--tx3);margin-top:1px;opacity:.8">deployable balance</div></th>
-      <th style="width:10%;padding:5px 5px;text-align:center">note</th>
+      <th style="width:8%;color:#5b7fff;padding:5px 5px;text-align:center">actual result<div style="font-size:6px;font-weight:400;color:var(--tx3);margin-top:1px;opacity:.8">from journal</div></th>
+      <th style="width:8%;padding:5px 5px;text-align:center">note</th>
     </tr></thead><tbody>`;
     months.forEach(mo=>{
       if(mo.isZ){
         h+=`<tr class="mh-z" style="cursor:pointer" onclick="toggleZeroMonth(${mo.m})" title="click to remove zero month">
-          <td colspan="15" style="text-align:left">${getML(mo.m)} · ⊘ zero month · account: ${fmt(mo.sA)} · <span style="color:var(--acc);font-size:9px">click to activate</span></td>
+          <td colspan="13" style="text-align:left">${getML(mo.m)} · ⊘ zero month · account: ${fmt(mo.sA)} · <span style="color:var(--acc);font-size:9px">click to activate</span></td>
         </tr>`;
         return;
       }
@@ -9395,7 +9395,7 @@ function renderTbl(months){
       if(IS_WIPED){
         const fmVal = s.NOT/s.LEV/s.P*100;
         const isFmError = fmVal > 100;
-        h+=`<tr class="wipe-row"><td style="text-align:left">${getML(mo.m)}</td><td colspan="15">${isFmError?'🚫':'💸'} ${lbl_w?(isFmError?'setup tidak valid — FM% > 100%':'setup tidak valid — liq% < 1%'):(isFmError?'invalid setup — FM% > 100%':'invalid setup — liq% < 1%')}</td></tr>`;
+        h+=`<tr class="wipe-row"><td style="text-align:left">${getML(mo.m)}</td><td colspan="13">${isFmError?'🚫':'💸'} ${lbl_w?(isFmError?'setup tidak valid — FM% > 100%':'setup tidak valid — liq% < 1%'):(isFmError?'invalid setup — FM% > 100%':'invalid setup — liq% < 1%')}</td></tr>`;
         return;
       }
       if(mo.bust){
@@ -9473,11 +9473,11 @@ function renderTbl(months){
         <td style="font-size:7px;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2);text-align:center">tgt%</td>
         <td style="font-size:7px;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2);text-align:center">exit</td>
         <td style="font-size:7px;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2)">gross</td>
-        <td style="font-size:7px;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2)">pnl pre-fee</td>
         <td style="font-size:7px;color:#E24B4A;text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2)">fee</td>
         <td style="font-size:7px;color:var(--acc2);text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2)">net pnl</td>
         <td style="font-size:7px;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2)">bal pre-fee</td>
         <td style="font-size:7px;color:var(--acc2);text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2)">bal post-fee</td>
+        <td style="font-size:7px;color:#5b7fff;text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2);text-align:center">actual result</td>
         <td style="font-size:7px;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2);text-align:center">note</td>
       </tr>`;
       mo.trades.forEach(t=>{
@@ -9490,11 +9490,12 @@ function renderTbl(months){
               <td style="padding-left:8px;text-align:left"><input class="lbl-in lbl-trade" value="${tLabel}" oninput="this.value=this.value.toUpperCase()" onchange="onTradeLabel(${mo.m},${t.no},this.value.toUpperCase())" placeholder="trade ${t.no}..." onchange="onTradeLabel(${mo.m},${t.no},this.value)" onclick="this.select()"></td>
               <td colspan="4" style="color:var(--tx3);font-size:9px;font-style:italic">skipped</td>
               <td><div class="tg-cell" style="width:54px"><button class="tg-btn" onclick="manStep('bt',${mo.m},${t.no-1},-0.5)" tabindex="-1">−</button><input type="number" id="mbt-${mo.m}-${t.no-1}" value="${btVal}" min="-500" max="500" step="0.5" placeholder="tgt%" style="flex:1;min-width:0;padding:1px 0;font-size:9px;text-align:center;border:none;background:transparent;color:var(--acc);font-weight:700;-moz-appearance:textfield" oninput="dInput(this,v=>onManualBT(${mo.m},${t.no-1},v),400)"><button class="tg-btn" onclick="manStep('bt',${mo.m},${t.no-1},0.5)" tabindex="-1">+</button></div></td>
-              <td colspan="9" style="color:var(--tx3);font-size:9px;text-align:center;font-style:italic">set target > 0 to activate</td>
+              <td colspan="7" style="color:var(--tx3);font-size:9px;text-align:center;font-style:italic">set target > 0 to activate</td>
+              <td></td>
               <td></td>
             </tr>`;
           } else {
-            h+=`<tr class="skip-row mo-body" data-mo="${mo.m}"><td style="padding-left:10px;text-align:left;color:var(--tx3);font-size:9px">${tLabel}</td><td colspan="12" style="text-align:center"><span class="sk">skipped · target = 0</span></td><td></td></tr>`;
+            h+=`<tr class="skip-row mo-body" data-mo="${mo.m}"><td style="padding-left:10px;text-align:left;color:var(--tx3);font-size:9px">${tLabel}</td><td colspan="11" style="text-align:center"><span class="sk">skipped · target = 0</span></td><td></td><td></td></tr>`;
           }
           return;
         }
@@ -9557,9 +9558,6 @@ function renderTbl(months){
           <td style="color:${t.tgt<0?'#E24B4A':'var(--acc2)'}">
             ${ha?ba(fmt(t.projCp),fmt(actNetPnl+actFee),actNetPnl+actFee>=0?'#00c47a':'#E24B4A'):(t.tgt>=0?'+':'')+fmt(t.sp)}
           </td>
-          <td style="color:${t.tgt<0?'#E24B4A':'var(--acc2)'};font-weight:600">
-            ${ha?ba((t.projCp>=0?'+':'')+fmt(t.projCp),(actNetPnl+actFee>=0?'+':'')+fmt(actNetPnl+actFee),actNetPnl+actFee>=0?'#00c47a':'#E24B4A'):(t.tgt>=0?'+':'')+fmt(t.cp)}
-          </td>
           <td style="color:#E24B4A">
             ${ha?ba('−'+fmt(t.projFee),'−'+fmt(actFee),'#E24B4A'):('−'+fmt(feePaid))}
             <div style="font-size:7px;color:var(--tx3);opacity:.7">2×${gs().FEE.method}</div>
@@ -9571,6 +9569,10 @@ function renderTbl(months){
           <td style="font-weight:700">
             ${ha?ba(fmt(t.projAccAF),fmt(t.accAF),t.accAF>=mo.sA?'var(--acc2)':'#E24B4A'):(fmt(t.accAF))}
             ${s.SPOT?'':'<div style="font-size:7px;color:'+liqAFc+'">liq '+liqAF.toFixed(0)+'%</div>'}
+          </td>
+          <td style="text-align:center;padding:3px 4px;color:#5b7fff;font-size:10px;font-weight:700">
+            ${ha?(actNetPnl>=0?'<span style="color:#00c47a">+'+fmt(actNetPnl)+'</span>':'<span style="color:#E24B4A">'+fmt(actNetPnl)+'</span>'):''}
+            ${ha?'<div style="font-size:7px;color:var(--tx3);font-weight:400">actual</div>':''}
           </td>
           <td style="text-align:center;padding:3px 4px">
             ${lk?(()=>{
@@ -9619,27 +9621,28 @@ function renderTbl(months){
             <div style="font-size:12px;font-weight:700;color:${grossCol};line-height:1">${mo.pct>=0?'+':''}${mo.pct.toFixed(1)}%</div>
             <div style="font-size:7px;color:#fff;margin-top:3px">pre-fee</div>
           </td>
-          <!-- col9: combine → empty -->
-          <td style="${sb}"></td>
-          <!-- col10: fee paid → month fees -->
+          <!-- col9: fee paid → month fees -->
           <td style="${sb};text-align:right;padding-right:8px">
             <div style="font-size:7px;color:#fff;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">month fees</div>
             <div style="font-size:12px;font-weight:700;color:#E24B4A;line-height:1">−${fmt(mo.feePaid||0)}</div>
             <div style="font-size:7px;color:#fff;margin-top:3px">2×${gs().FEE.method}</div>
           </td>
-          <!-- col11: net pnl → empty -->
+          <!-- col10: net pnl → empty -->
           <td style="${sb}"></td>
-          <!-- col12: acct bal gross → empty -->
+          <!-- col11: acct bal pre-fee → empty -->
           <td style="${sb}"></td>
-          <!-- col13: acct bal post-fee → end balance -->
+          <!-- col12: acct bal post-fee → end balance -->
           <td style="${sb};text-align:right;padding-right:12px">
             <div style="font-size:7px;color:#fff;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">end · acc balance</div>
             <div style="font-size:12px;font-weight:700;color:#8ab4e8;line-height:1">${fmt(mo.eA)}</div>
             <div style="font-size:7px;color:#fff;margin-top:3px">${mo.wd>0?'wd −$'+wdRound:'&nbsp;'}</div>
           </td>
+          <!-- col13: actual result → empty -->
+          <td style="${sb}"></td>
+          <!-- col14: note → empty -->
           <td style="${sb}"></td>
         </tr>
-        <tr class="mo-gap" data-mo="${mo.m}"><td colspan="15" style="height:10px;background:var(--bg);border:none;padding:0"></td></tr>`;
+        <tr class="mo-gap" data-mo="${mo.m}"><td colspan="14" style="height:10px;background:var(--bg);border:none;padding:0"></td></tr>`;
       }
     });
   }
