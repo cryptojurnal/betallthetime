@@ -109,8 +109,6 @@ function goLayer2(){
 function showGuidePopup(){
   const p=document.getElementById('guide-popup');
   if(!p) return;
-  // push ONE sentinel so back button has something to absorb — replaceState never grows stack
-  try{ window.location.hash='cockpit'; }catch(e){}
   // reset display in case it was hidden from a previous session
   p.style.display='';
   p.classList.remove('visible');
@@ -18297,7 +18295,7 @@ function battNav(page){
   document.title=_BATT_TITLES[page]||'bet all the time, bet with style';
   var cur=(window.location.hash||'').replace('#','');
   if(cur===page) return;
-  window.location.hash=page; // hashchange fires automatically — no pushState needed
+  window.location.hash=page;
 }
 function battSetRoute(page){ battNav(page); }
 function battSetTitle(page){ battNav(page); }
@@ -18308,6 +18306,8 @@ function battSetTitle(page){ battNav(page); }
 function battRestoreFromHash(){
   var hash=(window.location.hash||'').replace('#','');
   if(!hash) hash='member';
+  // these are overlay/sentinel states — don't touch page visibility
+  if(hash==='risk'||hash==='guide-lock'||hash==='swap') return;
 
   // ── hide all pages first ──
   var pages={
