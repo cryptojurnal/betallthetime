@@ -5221,7 +5221,7 @@ function syncControls(){
   }
   // ── preset lock visual — dim capital/leverage/notional when preset active ──
   const isPreset=!!window._ACTIVE_PRESET;
-  const lockIds=['cap-in','cap-sl','lv-in','lv-sl','not-in','not-sl'];
+  const lockIds=['cap-in','cap-sl','lv-in','lv-sl','not-in','not-sl','cf-btn'];
   lockIds.forEach(id=>{
     const el=document.getElementById(id);
     if(!el) return;
