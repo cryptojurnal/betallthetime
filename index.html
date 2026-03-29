@@ -5527,7 +5527,7 @@ function sim(){
     const lastActiveTrade=activeTrades.slice(-1)[0];
     const prevLN=lastActiveTrade?lastActiveTrade.not+lastActiveTrade.sp:initNot;
     const postLiq=wd>0&&!bust?(fA/prevLN*100):null;
-    const pct=(gA-acc)/acc*100;
+    const pct=(effectiveGAF-acc)/acc*100;
     prevLastNotional=prevLN;
     months.push({m,lb,isZ:false,sA:acc,eA:bust?0:fA,gA,gAF:effectiveGAF,wd,banked,nw:(bust?0:fA)+banked,trades,pct,postLiq,initNot,liqT1,mp,feePaid:monthFeePaid,bust});
     if(bust) break;
@@ -9329,7 +9329,7 @@ function renderTbl(months){
         </tr>`;
         return;
       }
-      const gain=mo.gA-mo.sA;
+      const gain=mo.gAF-mo.sA;
       const actTr=mo.trades.filter(t=>!t.skip);
       const l1=mo.liqT1||0;
       const ll=actTr.length?actTr[actTr.length-1].liq:0;
