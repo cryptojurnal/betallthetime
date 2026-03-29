@@ -9567,9 +9567,9 @@ function renderTbl(months){
                 else if(_ap>0&&(_ap+_af)>=_proj*0.9){_mark='✓';_col='#1D9E75';_tip='win';}
                 else{_mark='~';_col='#EF9F27';_tip='partial';}
               }
-              return `<div style="display:flex;align-items:center;justify-content:space-between;gap:6px;width:100%">
+              return `<div style="display:flex;align-items:center;justify-content:flex-end;gap:8px;width:100%;padding-right:2px">
                 <span title="${_tip}" style="width:7px;height:7px;border-radius:50%;background:${_col};display:inline-block;flex-shrink:0;cursor:default"></span>
-                <button onclick="ljJumpToJournal(${mo.m},${t.no})" title="open in journal" style="font-size:8px;padding:1px 5px;border-radius:3px;border:0.5px solid #5b7fff;background:rgba(91,127,255,0.08);color:#5b7fff;cursor:pointer;font-family:inherit;white-space:nowrap;margin-left:auto" onmouseover="this.style.background='rgba(91,127,255,0.2)'" onmouseout="this.style.background='rgba(91,127,255,0.08)'">→ journal</button>
+                <button onclick="ljJumpToJournal(${mo.m},${t.no})" title="open in journal" style="font-size:8px;padding:1px 5px;border-radius:3px;border:0.5px solid #5b7fff;background:rgba(91,127,255,0.08);color:#5b7fff;cursor:pointer;font-family:inherit;white-space:nowrap" onmouseover="this.style.background='rgba(91,127,255,0.2)'" onmouseout="this.style.background='rgba(91,127,255,0.08)'">→ journal</button>
               </div>`;
             })():''}
           </td>
