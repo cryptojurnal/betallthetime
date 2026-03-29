@@ -8896,7 +8896,23 @@ function buildAssessmentCards(months, s){
     <div style="grid-column:1/-1;display:flex;align-items:center;gap:6px;padding:6px 10px;background:var(--sf);border-bottom:0.5px solid var(--bd2);overflow:hidden">
       <div style="width:6px;height:6px;border-radius:50%;background:#00c47a;flex-shrink:0"></div>
       <span style="font-size:10px;font-weight:600;color:var(--tx2);white-space:nowrap;flex-shrink:0">your cockpit${presetName?` · <span style="color:#00c47a">${presetName}</span>`:''}</span>
-      ${presetName?`<div class="preset-marquee"><div class="preset-marquee-track">🔒 locked in · stop tweaking · trust the plan · hands off the wheel · the setup is done · now execute · no more adjusting · let it cook · you built this · stick to it · trade the plan not the feeling · 🔒 locked in · stop tweaking · trust the plan · hands off the wheel · the setup is done · now execute · no more adjusting · let it cook · you built this · stick to it · trade the plan not the feeling ·&nbsp;</div></div>`:''}
+      ${presetName?(()=>{
+        const _tpl=[
+          '🔒 locked in · stop tweaking · trust the plan · hands off the wheel · the setup is done · now execute · no more adjusting · let it cook · you built this · stick to it · trade the plan not the feeling',
+          '📋 preset mode: activated · your rules your game · no impulse trades · the plan is the boss · eyes on the target · stay disciplined · the market will test you · don\'t flinch · you prepared for this · execute',
+          '🎯 this is the plan · this is the moment · stop second-guessing · the setup was built for a reason · trust your past self · they knew what they were doing · now go · execute · don\'t overthink it',
+          '🧊 ice cold · no emotions · no tweaks · no panic · the preset is the preset · your job is to follow it · breathe · wait for the setup · execute when it\'s time · simple as that',
+          '⚡ locked and loaded · @'+presetName+' is in charge · you planned this in cold blood · now trade it in cold blood · no FOMO · no revenge trading · just the plan · just the execution',
+          '🏹 you set the trap · now let it snap · stop watching every candle · the preset doesn\'t care about your feelings · it only cares about the levels · trust the levels · trust the plan · execute',
+          '🔥 no cap this is the move · you did the math · you checked the liq% · you set the slots · now let it breathe · stop hovering · the trade either hits or it doesn\'t · that\'s the game',
+          '🛡️ protected by the plan · your liq% is set · your notional is set · your targets are set · there is nothing left to decide · only to execute · remove emotion · follow the system · that\'s it',
+          '🚀 conviction mode · you built this preset with intention · every number here was chosen · every slot was deliberate · this isn\'t guessing · this is a system · work the system · let the system work',
+          '💎 diamond hands energy · the plan is your edge · your edge is your discipline · discipline beats intelligence every time · you\'re not smarter than the market · but your plan is · trust it',
+        ];
+        const _t=_tpl[Math.floor(Math.random()*_tpl.length)];
+        const _txt=_t+' · '+_t+' ·\u00a0';
+        return `<div class="preset-marquee"><div class="preset-marquee-track">${_txt}</div></div>`;
+      })():''}
       <span style="font-size:8px;color:var(--tx3);margin-left:auto;letter-spacing:.04em;flex-shrink:0">M01 · T1</span>
     </div>
 
