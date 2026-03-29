@@ -830,8 +830,34 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
   /* chart shorter */
   #chart-wrap{height:120px!important}
 
-  /* mobile bottom nav */
-  #mobile-bottom-nav{display:flex!important}
+  /* journal mobile */
+  .jn-header{padding:0 12px;gap:8px;height:48px}
+  .jn-title{font-size:12px}
+  .jn-back{padding:4px 8px;font-size:10px}
+  .jn-btn-sm{padding:4px 8px;font-size:9px}
+  .jn-body{padding:12px 12px 80px}
+  .jn-folder-row-meta{min-width:0;display:none}
+  .jn-folder-row-pnl{min-width:60px;font-size:10px}
+  .jn-folders{grid-template-columns:1fr 1fr!important}
+  .jn-folder-row-name{font-size:11px;padding:0 8px}
+  .jn-folder-row-actions{padding:0 6px}
+
+  /* journal trade list mobile */
+  .jn-trade-row{flex-wrap:wrap;gap:4px;padding:8px 10px}
+  .jn-trade-meta{flex-wrap:wrap;gap:4px}
+
+  /* journal trade form mobile */
+  .jn-form-grid{grid-template-columns:1fr!important}
+  .jn-stats-grid{grid-template-columns:repeat(2,1fr)!important}
+
+  /* trade hub mobile */
+  #trade-hub>div{padding:16px!important}
+  #trade-hub [style*="repeat(2,1fr)"]{grid-template-columns:1fr!important}
+
+  /* simulator mobile */
+  #trading-page{flex-direction:column!important}
+  .tp-pos-panel{width:100%!important;min-width:0!important;border-right:none!important;border-bottom:0.5px solid #1a1a1a!important;max-height:50dvh}
+  .tp-sidebar{width:100%!important;min-width:0!important;border-left:none!important;border-top:0.5px solid #1a1a1a!important;max-height:50dvh}
 
   /* bottom sheet */
   #mobile-sheet{display:flex!important}
@@ -18350,10 +18376,20 @@ function battSetTitle(page){ battNav(page); }
 // single source of truth — called on load and popstate
 function battRestoreFromHash(){
   var hash=(window.location.hash||'').replace('#',"");
+  // show/hide mobile bottom nav — only on cockpit
+  var mbn=document.getElementById('mobile-bottom-nav');
+  var mbs=document.getElementById('mobile-sheet');
+  var mbo=document.getElementById('mobile-sheet-overlay');
+  if(mbn){
+    var isCockpit=hash===''||hash==='cockpit';
+    mbn.style.display=isCockpit?'':'none';
+    if(!isCockpit&&mbs){ mbs.classList.remove('open'); }
+    if(!isCockpit&&mbo){ mbo.classList.remove('open'); }
+  }
   // dismiss any open overlays first
   var ljBox=document.getElementById('lj-box');
   if(ljBox&&ljBox.closest&&ljBox.closest('.lj-modal-wrap')){ var mo=ljBox.closest('.lj-modal-wrap'); if(mo) mo.style.display='none'; }
-  if(hash==='cockpit'&&typeof openDashboard==='function'){ openDashboard(); return; }
+  if(hash==='cockpit'&&typeof openDashboard==='function'){ openDashboard(); if(mbn) mbn.style.display=''; return; }
   if(hash==='journal'&&typeof openJournal==='function'){ openJournal(); return; }
   if(hash==='simulate'){
     document.body.style.overflow='auto';
