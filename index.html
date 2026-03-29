@@ -2210,6 +2210,8 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
   .tab-bar::-webkit-scrollbar{display:none}
   .metrics{grid-template-columns:repeat(3,1fr)!important}
   #chart-wrap{height:120px!important}
+  #ai-fab{bottom:66px!important;z-index:9200!important}
+  #ai-chat-panel{bottom:66px!important;z-index:9200!important}
 }
 </style>
 <!-- PWA INSTALL BANNER -->
@@ -10073,44 +10075,15 @@ function launchApp(){
   if(lb && lb.disabled) return;
   if(lb) lb.disabled=true;
 
-  // instantly kill layer2 — no fade, no lag
   l2.style.transition='none';
   l2.classList.add('hidden');
 
-  // set up cockpit state synchronously
   window.RISK_SHOWN=true;
   document.body.style.overflow='hidden';
   document.documentElement.style.overflow='auto';
 
   battNav('cockpit');
-  mbnSetActive('cockpit');
-
-  const app=document.querySelector('.app');
-  if(app){ app.style.transition='none'; app.style.opacity='1'; }
-
-  const leftToggle=document.getElementById('left-panel-toggle');
-  if(leftToggle) leftToggle.classList.add('visible');
-  const tradeToggle=document.getElementById('trade-panel-toggle');
-  if(tradeToggle) tradeToggle.classList.add('visible');
-
-  // defer non-critical extras to next frame so cockpit paints first
-  requestAnimationFrame(()=>{
-    if(typeof setSpotMode==='function') setSpotMode(false);
-    const fab=document.getElementById('ai-fab');
-    if(fab){ fab.style.display=''; fab.style.opacity='1'; fab.style.pointerEvents='all'; }
-    if(window._attachAiFabDrag) window._attachAiFabDrag();
-    if(typeof _syncTradeToggleLeft==='function') _syncTradeToggleLeft();
-    if(localStorage.getItem('batt_token')){
-      const backBtn=document.getElementById('back-to-member');
-      if(backBtn) backBtn.style.display='flex';
-      const kbdHint=document.getElementById('kbd-hint');
-      if(kbdHint) setTimeout(()=>{kbdHint.classList.add('visible');},2000);
-      const presetsBtn=document.getElementById('presets-toggle-btn');
-      if(presetsBtn){ presetsBtn.classList.remove('visible'); setTimeout(()=>presetsBtn.classList.add('visible'),50); }
-    }
-    if(typeof battUpdateGuestUI==='function') battUpdateGuestUI();
-    showGuidePopup();
-  });
+  openDashboard();
 }
 </script>
 <script>
