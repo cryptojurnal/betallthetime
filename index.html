@@ -797,8 +797,45 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
   .tp-pos-tab{white-space:nowrap;flex-shrink:0}
   .tp-stats-grid{grid-template-columns:repeat(2,1fr)}
 }
+@media(max-width:768px){
+  /* reset zoom on mobile */
+  html{zoom:1!important}
+  .app{zoom:1!important;height:100dvh!important;flex-direction:column;overflow:hidden}
+
+  /* hide left panel and trade panel by default on mobile */
+  .panel-left{display:none!important}
+  .panel-trade{display:none!important}
+  .panel-presets{display:none!important}
+
+  /* right panel takes full width */
+  .panel-right{height:100dvh!important;width:100%!important;padding:0 0 80px 0}
+
+  /* table horizontal scroll */
+  #tbl{width:100%;display:block;overflow-x:auto;-webkit-overflow-scrolling:touch;white-space:nowrap}
+  #tbl thead,#tbl tbody,#tbl tr{display:table;width:100%;table-layout:fixed}
+
+  /* top panel compact */
+  .top-panel{flex-wrap:wrap;padding:6px 8px;gap:6px}
+  .tp-collapse-btn{display:none}
+
+  /* tab bar scroll */
+  .tab-bar{overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none}
+  .tab-bar::-webkit-scrollbar{display:none}
+
+  /* view tabs scroll */
+  .view-tabs{overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch}
+
+  /* metrics grid 2 col on mobile */
+  .metrics{grid-template-columns:repeat(3,1fr)!important}
+
+  /* chart shorter */
+  #chart-wrap{height:120px!important}
+
+  /* toggle buttons still accessible */
+  .panel-left-toggle{display:flex!important;opacity:1!important;pointer-events:all!important}
+  .panel-trade-toggle{display:flex!important;opacity:1!important;pointer-events:all!important}
+}
 @media(max-width:480px){
-  .tp-topbar{padding:8px}
   .tp-logo{font-family:'Trebuchet MS', 'Trebuchet', sans-serif;font-size:13px}
   .tp-pair-selector{padding:6px 10px}
   .tp-pair-selector-name{font-family:'Trebuchet MS', 'Trebuchet', sans-serif;font-size:12px}
@@ -816,10 +853,8 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
   .tp-pos-actions button{padding:6px 8px;font-size:8px}
   .tp-stats-grid{gap:4px}
   .tp-stat-box{padding:8px}
-  .tp-stat-value{font-size:14px}
-}
-
-/* Order Book */
+@media(max-width:480px){
+  .tp-topbar{padding:8px}
 .tp-ob-header{font-family:'Trebuchet MS', 'Trebuchet', sans-serif;padding:8px 10px;border-bottom:1px solid #1a1a1a;font-size:10px;font-weight:700;color:#555;text-transform:uppercase;display:flex;justify-content:space-between}
 .tp-ob-header span{color:#888}
 .tp-ob-content{flex:1;overflow:hidden;display:flex;flex-direction:column}
@@ -19513,3 +19548,4 @@ document.addEventListener('click',function(e){
 
 </body>
 </html>
+  
