@@ -9367,18 +9367,18 @@ function renderTbl(months){
   } else {
     h=`<colgroup><col style="width:12%"><col style="width:8%"><col style="width:6%"><col style="width:5%"><col style="width:5%"><col style="width:7%"><col style="width:7%"><col style="width:6%"><col style="width:6%"><col style="width:6%"><col style="width:6%"><col style="width:6%"><col style="width:9%"><col style="width:9%"></colgroup><thead><tr>
       <th style="text-align:left;width:13%">trade</th>
-      <th style="width:9%">${s.SPOT?'position size':'notional'}</th>
-      <th style="width:7%">${s.SPOT?'pos size':'margin'}</th>
-      <th style="width:5%">${s.SPOT?'—':'fm%'}</th>
-      <th style="width:5%">${s.SPOT?'◈':'liq%'}</th>
-      <th style="width:7%;text-align:center">target%</th>
-      <th style="width:7%;text-align:center">exit</th>
-      <th style="width:6%;padding:4px 4px">gross profit<br><span style="font-weight:400;font-size:7px;text-transform:none;color:var(--tx3)">single trade</span></th>
-      <th style="width:6%;padding:4px 4px">combine<br><span style="font-weight:400;font-size:7px;text-transform:none;color:var(--tx3)">pnl pre-fee</span></th>
-      <th style="width:6%;color:#E24B4A;padding:4px 4px">fee paid</th>
-      <th style="width:6%;color:var(--acc2);padding:4px 4px">net pnl<br><span style="font-weight:400;font-size:7px;text-transform:none;color:var(--acc2);opacity:.8">post-fee</span></th>
-      <th style="width:6%;color:var(--tx2);padding:5px 5px">acct bal<br><span style="font-weight:400;font-size:7px;text-transform:none">${s.SPOT?'gross':'pre-fee'}</span></th>
-      <th style="width:7%;color:var(--acc2);padding:5px 5px">acct bal<br><span style="font-weight:400;font-size:7px;text-transform:none">post-fee</span></th>
+      <th style="width:9%">${s.SPOT?'position size':'notional'}<div style="font-size:6px;font-weight:400;color:var(--tx3);margin-top:1px;opacity:.8">${s.SPOT?'entry size':'acc × lev'}</div></th>
+      <th style="width:7%">${s.SPOT?'pos size':'margin'}<div style="font-size:6px;font-weight:400;color:var(--tx3);margin-top:1px;opacity:.8">${s.SPOT?'capital used':'notional ÷ lev'}</div></th>
+      <th style="width:5%">${s.SPOT?'—':'fm%'}<div style="font-size:6px;font-weight:400;color:var(--tx3);margin-top:1px;opacity:.8">${s.SPOT?'':'margin ÷ acc'}</div></th>
+      <th style="width:5%">${s.SPOT?'◈':'liq%'}<div style="font-size:6px;font-weight:400;color:var(--tx3);margin-top:1px;opacity:.8">${s.SPOT?'spot':'acc ÷ notional'}</div></th>
+      <th style="width:7%;text-align:center">target%<div style="font-size:6px;font-weight:400;color:var(--tx3);margin-top:1px;opacity:.8">${s.SPOT?'price move':'notional gain'}</div></th>
+      <th style="width:7%;text-align:center">exit<div style="font-size:6px;font-weight:400;color:var(--tx3);margin-top:1px;opacity:.8">actual result</div></th>
+      <th style="width:6%;padding:4px 4px">gross profit<br><span style="font-weight:400;font-size:7px;text-transform:none;color:var(--tx3)">single trade</span><div style="font-size:6px;font-weight:400;color:var(--tx3);margin-top:1px;opacity:.8">before fees</div></th>
+      <th style="width:6%;padding:4px 4px">combine<br><span style="font-weight:400;font-size:7px;text-transform:none;color:var(--tx3)">pnl pre-fee</span><div style="font-size:6px;font-weight:400;color:var(--tx3);margin-top:1px;opacity:.8">cumulative</div></th>
+      <th style="width:6%;color:#E24B4A;padding:4px 4px">fee paid<div style="font-size:6px;font-weight:400;color:var(--tx3);margin-top:1px;opacity:.8">trade + funding</div></th>
+      <th style="width:6%;color:var(--acc2);padding:4px 4px">net pnl<br><span style="font-weight:400;font-size:7px;text-transform:none;color:var(--acc2);opacity:.8">post-fee</span><div style="font-size:6px;font-weight:400;color:var(--tx3);margin-top:1px;opacity:.8">gross − fees</div></th>
+      <th style="width:6%;color:var(--tx2);padding:5px 5px">acct bal<br><span style="font-weight:400;font-size:7px;text-transform:none">${s.SPOT?'gross':'pre-fee'}</span><div style="font-size:6px;font-weight:400;color:var(--tx3);margin-top:1px;opacity:.8">after trade</div></th>
+      <th style="width:7%;color:var(--acc2);padding:5px 5px">acct bal<br><span style="font-weight:400;font-size:7px;text-transform:none">post-fee</span><div style="font-size:6px;font-weight:400;color:var(--tx3);margin-top:1px;opacity:.8">real balance</div></th>
       <th style="width:10%;padding:5px 5px;text-align:center">note</th>
     </tr></thead><tbody>`;
     months.forEach(mo=>{
