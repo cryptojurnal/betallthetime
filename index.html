@@ -9313,16 +9313,16 @@ function renderTbl(months){
   if(VIEW==='sum'){
     h=`<thead><tr>
       <th style="width:14%;text-align:left">month</th>
-      <th style="width:13%;text-align:center">start<br><span style="font-weight:400;color:var(--tx3);text-transform:none;letter-spacing:0;font-size:8px">${s.SPOT?'position t1':'notional t1'}</span></th>
+      <th style="width:13%">start<br><span style="font-weight:400;color:var(--tx3);text-transform:none;letter-spacing:0;font-size:8px">${s.SPOT?'position t1':'notional t1'}</span></th>
       <th style="width:5%;text-align:center">target%<br><span style="font-weight:400;color:var(--tx3);text-transform:none;letter-spacing:0;font-size:8px">kpi total</span></th>
-      <th style="width:12%;text-align:center">end<br><span style="font-weight:400;color:var(--tx3);text-transform:none;letter-spacing:0;font-size:8px">acct balance</span></th>
+      <th style="width:12%">end<br><span style="font-weight:400;color:var(--tx3);text-transform:none;letter-spacing:0;font-size:8px">acct balance</span></th>
       <th style="width:5%;text-align:center">monthly%</th>
       <th style="width:5%;text-align:center">net gain</th>
       <th style="width:18%;text-align:center">withdrawal ✏️</th>
       <th style="width:6%;text-align:center">banked</th>
-      <th style="width:9%;text-align:center">NW</th>
-      <th style="width:4%;text-align:center">${s.SPOT?'—':'liq t1'}</th>
-      <th style="width:5%;text-align:center">${s.SPOT?'—':'liq last'}</th>
+      <th style="width:9%">NW</th>
+      <th style="width:4%">${s.SPOT?'—':'liq t1'}</th>
+      <th style="width:5%">${s.SPOT?'—':'liq last'}</th>
       <th style="width:4%;text-align:center">risk</th>
     </tr></thead><tbody>`;
     months.forEach(mo=>{
