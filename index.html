@@ -110,7 +110,7 @@ function showGuidePopup(){
   const p=document.getElementById('guide-popup');
   if(!p) return;
   // push ONE sentinel so back button has something to absorb — replaceState never grows stack
-  try{ history.replaceState({batt:'guide-lock'}, '', '#cockpit'); }catch(e){}
+  try{ window.location.hash='cockpit'; }catch(e){}
   // reset display in case it was hidden from a previous session
   p.style.display='';
   p.classList.remove('visible');
@@ -10053,7 +10053,7 @@ function goLayer2(){
   // push sentinel so browser back has somewhere to go
   try{
     if((window.location.hash||'').replace('#','') !== 'risk'){
-      history.replaceState({batt:'risk'}, '', '#risk');
+      window.location.hash='risk';
     }
   }catch(e){}
   document.title = 'BATT · Risk Disclosure';
@@ -10380,7 +10380,7 @@ function authGuest(){
       if(l2) l2.style.transition='';
       // always lock to leverage mode as guest default
       if(typeof setSpotMode==='function') setSpotMode(false);
-      try{ history.replaceState({batt:'risk'},'','#risk'); }catch(e){}
+      try{ window.location.hash='risk'; }catch(e){}
       document.title='BATT · Risk Disclosure';
     },500);
   });
@@ -13192,7 +13192,7 @@ function openSimulation(){
   const hub = document.getElementById('trade-hub');
   if(hub){ hub.style.opacity='0'; hub.style.transform='scale(0.98)'; setTimeout(()=>{ hub.style.display='none'; hub.style.opacity=''; hub.style.transform=''; },300); }
   // own history entry so back goes to hub
-  history.pushState({batt:'simulate'}, '', '#simulate');
+  window.location.hash='simulate';
   document.title = 'BATT · Simulator';
   tpLoadState();
   const page = document.getElementById('trading-page');
@@ -13258,7 +13258,7 @@ function closeTradingPage() {
   if(typeof tpStopTradeWS==='function') tpStopTradeWS();
   _tpSetWSStatus('offline'); // reset so next open starts clean
   document.body.style.overflow='auto';
-  history.replaceState({batt:'trade'}, '', '#trade');
+  window.location.hash='trade';
   document.title = 'BATT · Trade Hub';
   const page = document.getElementById('trading-page');
   if (page) {
@@ -15307,7 +15307,7 @@ var _swState = {
 };
 
 function openSwapPage(){
-  history.pushState({batt:'swap'}, '', '#swap');
+  window.location.hash='swap';
   document.title = 'BATT · DEX Swap';
   const hub = document.getElementById('trade-hub');
   if(hub){ hub.style.opacity='0'; hub.style.transform='scale(0.98)'; setTimeout(()=>{ hub.style.display='none'; hub.style.opacity=''; hub.style.transform=''; },300); }
@@ -15319,7 +15319,7 @@ function openSwapPage(){
 }
 
 function closeSwapPage(){
-  history.replaceState({batt:'trade'}, '', '#trade');
+  window.location.hash='trade';
   document.title = 'BATT · Trade Hub';
   const pg = document.getElementById('swap-page');
   if(pg){ pg.style.opacity='0'; pg.style.transform='scale(0.98)'; setTimeout(()=>{ pg.style.display='none'; pg.style.opacity=''; pg.style.transform=''; },300); }
@@ -15520,7 +15520,7 @@ function checkSharedPresetUrl(){
   const shareCode=params.get('p');
   if(shareCode){
     // Clean URL
-    window.history.replaceState({},'',window.location.pathname);
+    window.location.hash='';
     loadSharedPreset(shareCode);
   }
 }
@@ -18287,33 +18287,17 @@ function _battToken(){
 }
 
 // ── ROUTER ──
-var _battInAppNav = false;
-
+var _BATT_TITLES={
+  member:'BATT · Member Area',cockpit:'BATT · Cockpit',
+  trade:'BATT · Trade Hub',account:'BATT · Account',
+  journal:'BATT · Journal',about:'BATT · About CJ',
+  auth:'BATT · Login',simulate:'BATT · Simulator',
+};
 function battNav(page){
-  var titles = {
-    'member':  'BATT · Member Area',
-    'cockpit': 'BATT · Cockpit',
-    'trade':   'BATT · Trade Hub',
-    'account': 'BATT · Account',
-    'journal': 'BATT · Journal',
-    'about':   'BATT · About CJ',
-    'auth':    'BATT · Login',
-  };
-  document.title = titles[page] || 'bet all the time, bet with style';
-  try{
-    var hash = '#' + page;
-    var cur = (window.location.hash||'').replace('#','');
-    if(cur === page) return;
-    // overlay states (#risk, #guide-lock) should be replaced, not stacked
-    var overlayStates = ['risk','guide-lock'];
-    _battInAppNav = true;
-    if(overlayStates.indexOf(cur) !== -1){
-      history.replaceState({batt:page}, '', hash);
-    } else {
-      history.pushState({batt:page}, '', hash);
-    }
-    _battInAppNav = false;
-  }catch(e){ _battInAppNav = false; }
+  document.title=_BATT_TITLES[page]||'bet all the time, bet with style';
+  var cur=(window.location.hash||'').replace('#','');
+  if(cur===page) return;
+  window.location.hash=page; // hashchange fires automatically — no pushState needed
 }
 function battSetRoute(page){ battNav(page); }
 function battSetTitle(page){ battNav(page); }
@@ -18420,12 +18404,8 @@ function battRestoreFromHash(){
   if(typeof mbnSetActive==='function') mbnSetActive('member');
 }
 
-window.addEventListener('popstate', function(e){
-  // close log modal if open
+window.addEventListener('hashchange', function(){
   if(typeof ljCloseModal==='function') ljCloseModal();
-  // close any confirm overlay
-  var co=document.getElementById('confirm-overlay')||document.querySelector('.confirm-overlay');
-  if(co&&co.offsetParent){ if(typeof closeConfirm==='function') closeConfirm(); history.pushState({},'',window.location.hash||''); return; }
   battRestoreFromHash();
 });
 
