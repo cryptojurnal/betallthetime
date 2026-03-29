@@ -5525,7 +5525,8 @@ function sim(){
     const bust=fA<=0; // account wiped by withdrawal
     banked+=bust?effectiveGAF:wd;
     const lastActiveTrade=activeTrades.slice(-1)[0];
-    const prevLN=lastActiveTrade?lastActiveTrade.not+lastActiveTrade.sp:initNot;
+    const _lastNetPnl=lastActiveTrade?(lastActiveTrade.hasActual?lastActiveTrade.actualCp:(lastActiveTrade.cp-lastActiveTrade.feePaid)):0;
+    const prevLN=lastActiveTrade?lastActiveTrade.not+_lastNetPnl:initNot;
     const postLiq=wd>0&&!bust?(fA/prevLN*100):null;
     const pct=(effectiveGAF-acc)/acc*100;
     prevLastNotional=prevLN;
