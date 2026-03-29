@@ -9557,18 +9557,20 @@ function renderTbl(months){
           </td>
           <td style="text-align:center;padding:3px 4px">
             ${lk?(()=>{
-              // determine outcome state
               const _ap=ha?t.actualCp:null;
               const _af=ha?t.actualFee:0;
               const _proj=t.projCp||t.cp||0;
-              let _mark='—',_col='var(--tx3)';
+              let _mark='—',_col='var(--tx3)',_tip='pending';
               if(ha&&_ap!==null){
-                if(_ap<0){_mark='✕';_col='#E24B4A';}
-                else if(_ap===0||(_ap>0&&(_ap+_af)<_af)){_mark='—';_col='#555';}
-                else if(_ap>0&&(_ap+_af)>=_proj*0.9){_mark='✓';_col='#1D9E75';}
-                else{_mark='~';_col='#EF9F27';}
+                if(_ap<0){_mark='✕';_col='#E24B4A';_tip='loss';}
+                else if(_ap===0||(_ap>0&&(_ap+_af)<_af)){_mark='—';_col='#555';_tip='breakeven';}
+                else if(_ap>0&&(_ap+_af)>=_proj*0.9){_mark='✓';_col='#1D9E75';_tip='win';}
+                else{_mark='~';_col='#EF9F27';_tip='partial';}
               }
-              return `<span style="font-size:11px;font-weight:700;color:${_col};margin-right:4px">${_mark}</span><button onclick="ljJumpToJournal(${mo.m},${t.no})" style="font-size:8px;padding:1px 5px;border-radius:3px;border:0.5px solid #5b7fff;background:rgba(91,127,255,0.08);color:#5b7fff;cursor:pointer;font-family:inherit;white-space:nowrap" onmouseover="this.style.background='rgba(91,127,255,0.2)'" onmouseout="this.style.background='rgba(91,127,255,0.08)'">→ journal</button>`;
+              return `<div style="display:flex;align-items:center;justify-content:space-between;gap:6px;width:100%">
+                <span title="${_tip}" style="font-size:11px;font-weight:700;color:${_col};cursor:default;flex-shrink:0">${_mark}</span>
+                <button onclick="ljJumpToJournal(${mo.m},${t.no})" title="open in journal" style="font-size:8px;padding:1px 5px;border-radius:3px;border:0.5px solid #5b7fff;background:rgba(91,127,255,0.08);color:#5b7fff;cursor:pointer;font-family:inherit;white-space:nowrap;margin-left:auto" onmouseover="this.style.background='rgba(91,127,255,0.2)'" onmouseout="this.style.background='rgba(91,127,255,0.08)'">→ journal</button>
+              </div>`;
             })():''}
           </td>
         </tr>`;
@@ -19179,7 +19181,6 @@ function jnRenderDetail(){
 
 
 function ljJumpToJournal(m, tno){
-  // find the locked trade in JN for this cockpit slot
   for(const fid of Object.keys(JN.trades||{})){
     const found=(JN.trades[fid]||[]).find(t=>
       t.status!=='draft'&&t.cockpit&&
@@ -19188,10 +19189,15 @@ function ljJumpToJournal(m, tno){
       parseInt(t.cockpit.tradeNo)===parseInt(tno)
     );
     if(found){
-      // navigate to journal panel and open trade detail
       JN.activeFolder=fid;
-      battNav('journal');
-      setTimeout(()=>{jnOpenTrade(found.id);},150);
+      // actually open the journal page then navigate to trade
+      if(typeof openJournal==='function'){
+        openJournal();
+        setTimeout(()=>{ jnOpenTrade(found.id); }, 300);
+      } else {
+        battNav('journal');
+        setTimeout(()=>{ jnOpenTrade(found.id); }, 150);
+      }
       return;
     }
   }
