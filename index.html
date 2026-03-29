@@ -18346,13 +18346,8 @@ function battRestoreFromHash(){
     return;
   }
   if(hash==='journal'){
-    document.body.style.overflow='auto';
     document.title='BATT · Journal';
-    var jp=pages.journal;
-    if(jp){ jp.style.display='flex'; requestAnimationFrame(function(){ requestAnimationFrame(function(){ jp.classList.add('visible'); }); }); }
-    if(typeof jnLoad==='function') jnLoad().then(function(){
-      if(typeof jnRender==='function') jnRender();
-    });
+    if(typeof _showJournal==='function') _showJournal();
     return;
   }
   if(hash==='simulate'){
@@ -18526,8 +18521,32 @@ async function jnLoad(){
 }
 
 function openJournal(){
-  battNav('journal');
-  // battRestoreFromHash will handle the actual display via popstate
+  var cur=(window.location.hash||'').replace('#','');
+  if(cur!=='journal') window.location.hash='journal'; // update URL
+  _showJournal(); // show immediately without waiting for hashchange
+}
+
+function _showJournal(){
+  const p=document.getElementById('journal-page');
+  if(!p||p.style.display==='flex') return; // already showing
+  p.style.display='flex';
+  requestAnimationFrame(()=>requestAnimationFrame(()=>p.classList.add('visible')));
+  document.body.style.overflow='auto';
+  jnLoad().then(()=>{
+    const savedView=localStorage.getItem('batt_jn_view')||'list';
+    const savedFolder=localStorage.getItem('batt_jn_folder');
+    const savedTrade=localStorage.getItem('batt_jn_trade');
+    if(savedView==='detail'&&savedFolder&&savedTrade&&JN.trades[savedFolder]){
+      const tradeExists=JN.trades[savedFolder].find(t=>t.id===savedTrade);
+      if(tradeExists){JN.activeFolder=savedFolder;JN.activeTrade=savedTrade;JN.view='detail';jnRender();return;}
+    }
+    if(savedView==='list'&&savedFolder&&JN.folders.find(f=>f.id===savedFolder)){
+      JN.activeFolder=savedFolder;JN.view='list';jnRender();return;
+    }
+    if(JN.folders.length>0){if(!JN.activeFolder)JN.activeFolder=JN.folders[0].id;JN.view='list';}
+    else{JN.view='folders';}
+    jnRender();
+  });
 }
 
 function closeJournal(){
