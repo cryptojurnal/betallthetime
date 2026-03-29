@@ -9567,24 +9567,23 @@ function renderTbl(months){
           </td>
           <td style="color:var(--tx3);font-size:10px">${s.SPOT?'<span style="color:var(--tx3);font-size:9px">n/a</span>':fmt(t.accA)}</td>
           <td style="font-weight:700">
-            ${ha?ba(fmt(t.projAccAF),fmt(t.accAF),t.accAF>=mo.sA?'var(--acc2)':'#E24B4A'):(fmt(t.accAF))}
+            ${ha?ba(fmt(t.projAccAF),fmt(t.accAF),actNetPnl>=0?'#00c47a':'#E24B4A'):(fmt(t.accAF))}
             ${s.SPOT?'':'<div style="font-size:7px;color:'+liqAFc+'">liq '+liqAF.toFixed(0)+'%</div>'}
           </td>
-          <td style="text-align:center;padding:3px 4px;color:#5b7fff;font-size:10px;font-weight:700">
-            ${ha?(actNetPnl>=0?'<span style="color:#00c47a">+'+fmt(actNetPnl)+'</span>':'<span style="color:#E24B4A">'+fmt(actNetPnl)+'</span>'):''}
-            ${ha?'<div style="font-size:7px;color:var(--tx3);font-weight:400">actual</div>':''}
+          <td style="text-align:center;padding:3px 4px;font-size:10px;font-weight:700">
+            ${ha?`<span style="color:${actNetPnl>=0?'#00c47a':'#E24B4A'}">${actNetPnl>=0?'+':''}${fmt(actNetPnl)}</span><div style="font-size:7px;color:var(--tx3);font-weight:400">actual</div>`:''}
           </td>
           <td style="text-align:center;padding:3px 4px">
             ${lk?(()=>{
               const _ap=ha?t.actualCp:null;
               const _af=ha?t.actualFee:0;
               const _proj=t.projCp||t.cp||0;
-              let _mark='—',_col='var(--tx3)',_tip='pending';
+              let _col='var(--tx3)',_tip='pending';
               if(ha&&_ap!==null){
-                if(_ap<0){_mark='✕';_col='#E24B4A';_tip='loss';}
-                else if(_ap===0||(_ap>0&&(_ap+_af)<_af)){_mark='—';_col='#555';_tip='breakeven';}
-                else if(_ap>0&&(_ap+_af)>=_proj*0.9){_mark='✓';_col='#1D9E75';_tip='win';}
-                else{_mark='~';_col='#EF9F27';_tip='partial';}
+                if(_ap<0){_col='#E24B4A';_tip='loss';}
+                else if(_ap===0||(_ap>0&&(_ap+_af)<_af)){_col='#555';_tip='breakeven';}
+                else if(_ap>0&&(_ap+_af)>=_proj*0.9){_col='#1D9E75';_tip='win';}
+                else{_col='#EF9F27';_tip='partial';}
               }
               return `<div style="display:flex;align-items:center;justify-content:center;gap:6px;width:100%">
                 <span title="${_tip}" style="width:7px;height:7px;border-radius:50%;background:${_col};display:inline-block;flex-shrink:0;cursor:default"></span>
