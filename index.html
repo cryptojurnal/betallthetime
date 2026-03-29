@@ -797,111 +797,6 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
   .tp-pos-tab{white-space:nowrap;flex-shrink:0}
   .tp-stats-grid{grid-template-columns:repeat(2,1fr)}
 }
-@media(max-width:768px){
-  /* reset zoom only on cockpit app */
-  .app{zoom:1!important;height:100dvh!important;overflow:hidden}
-
-  /* hide left panel and trade panel — cockpit only */
-  .app .panel-left{display:none!important}
-  .app .panel-trade{display:none!important}
-  .app .panel-presets{display:none!important}
-  .app .panel-left-toggle{display:none!important}
-  .app .panel-trade-toggle{display:none!important}
-  .app .panel-presets-toggle{display:none!important}
-
-  /* right panel takes full width */
-  .app .panel-right{height:100dvh!important;width:100%!important;padding:0 0 72px 0}
-
-  /* table horizontal scroll */
-  #tbl{width:800px;min-width:800px}
-  .det-tbl-wrap,#tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;width:100%}
-
-  /* top panel compact */
-  .top-panel{flex-wrap:wrap;padding:6px 8px;gap:4px;min-height:auto}
-
-  /* tab bar scroll */
-  .tab-bar{overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none}
-  .tab-bar::-webkit-scrollbar{display:none}
-
-  /* metrics grid 3 col on mobile */
-  .metrics{grid-template-columns:repeat(3,1fr)!important}
-
-  /* chart shorter */
-  #chart-wrap{height:120px!important}
-
-  /* journal mobile */
-  .jn-header{padding:0 12px;gap:8px;height:48px}
-  .jn-title{font-size:12px}
-  .jn-back{padding:4px 8px;font-size:10px}
-  .jn-btn-sm{padding:4px 8px;font-size:9px}
-  .jn-body{padding:12px 12px 80px}
-  .jn-folder-row-meta{min-width:0;display:none}
-  .jn-folder-row-pnl{min-width:60px;font-size:10px}
-  .jn-folders{grid-template-columns:1fr 1fr!important}
-  .jn-folder-row-name{font-size:11px;padding:0 8px}
-  .jn-folder-row-actions{padding:0 6px}
-
-  /* journal trade list mobile */
-  .jn-trade-row{flex-wrap:wrap;gap:4px;padding:8px 10px}
-  .jn-trade-meta{flex-wrap:wrap;gap:4px}
-
-  /* journal trade form mobile */
-  .jn-form-grid{grid-template-columns:1fr!important}
-  .jn-stats-grid{grid-template-columns:repeat(2,1fr)!important}
-
-  /* trade hub mobile */
-  #trade-hub>div{padding:16px!important}
-
-  /* simulator mobile */
-  .tp-pos-panel{width:100%!important;min-width:0!important;border-right:none!important;border-bottom:0.5px solid #1a1a1a!important;max-height:50dvh}
-  .tp-sidebar{width:100%!important;min-width:0!important;border-left:none!important;border-top:0.5px solid #1a1a1a!important;max-height:50dvh}
-
-  /* bottom sheet */
-  #mobile-sheet{display:flex!important}
-  #cockpit-mobile-nav{display:flex!important}
-}
-
-/* Cockpit mobile nav — hidden by default, shown via media query on mobile */
-#cockpit-mobile-nav{display:none}
-.mob-nav-btn{
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:2px;flex:1;height:100%;
-  background:none;border:none;cursor:pointer;
-  font-family:inherit;color:var(--tx3);
-  transition:color .15s;
-  -webkit-tap-highlight-color:transparent;
-}
-.mob-nav-btn.active{color:var(--acc2)}
-.mob-nav-btn-icon{font-size:18px;line-height:1}
-.mob-nav-btn-label{font-size:9px;font-weight:600;letter-spacing:.04em;text-transform:uppercase}
-
-/* Bottom sheet */
-#mobile-sheet{
-  display:none;
-  position:fixed;
-  bottom:60px;left:0;right:0;
-  height:75dvh;
-  background:var(--panel);
-  border-top:0.5px solid var(--bd);
-  border-radius:16px 16px 0 0;
-  z-index:8999;
-  flex-direction:column;
-  transform:translateY(100%);
-  transition:transform .3s cubic-bezier(.4,0,.2,1);
-  overflow:hidden;
-}
-#mobile-sheet.open{transform:translateY(0)}
-#mobile-sheet-handle{
-  width:36px;height:4px;border-radius:2px;
-  background:var(--bd2);margin:10px auto 6px;flex-shrink:0;cursor:grab;
-}
-#mobile-sheet-content{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:16px}
-#mobile-sheet-overlay{
-  display:none;position:fixed;inset:0;
-  background:rgba(0,0,0,.5);z-index:8998;
-  backdrop-filter:blur(2px);
-}
-#mobile-sheet-overlay.open{display:block}
 @media(max-width:480px){
   .tp-logo{font-family:'Trebuchet MS', 'Trebuchet', sans-serif;font-size:13px}
   .tp-pair-selector{padding:6px 10px}
@@ -920,8 +815,9 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
   .tp-pos-actions button{padding:6px 8px;font-size:8px}
   .tp-stats-grid{gap:4px}
   .tp-stat-box{padding:8px}
-@media(max-width:480px){
-  .tp-topbar{padding:8px}
+  .tp-stat-value{font-size:14px}
+}
+/* Order Book */
 .tp-ob-header{font-family:'Trebuchet MS', 'Trebuchet', sans-serif;padding:8px 10px;border-bottom:1px solid #1a1a1a;font-size:10px;font-weight:700;color:#555;text-transform:uppercase;display:flex;justify-content:space-between}
 .tp-ob-header span{color:#888}
 .tp-ob-content{flex:1;overflow:hidden;display:flex;flex-direction:column}
@@ -18386,20 +18282,10 @@ function battSetTitle(page){ battNav(page); }
 // single source of truth — called on load and popstate
 function battRestoreFromHash(){
   var hash=(window.location.hash||'').replace('#',"");
-  // show/hide mobile bottom nav — only on cockpit
-  var mbn=document.getElementById('cockpit-mobile-nav');
-  var mbs=document.getElementById('mobile-sheet');
-  var mbo=document.getElementById('mobile-sheet-overlay');
-  if(mbn){
-    var isCockpit=hash===''||hash==='cockpit';
-    mbn.style.display=isCockpit?'':'none';
-    if(!isCockpit&&mbs){ mbs.classList.remove('open'); }
-    if(!isCockpit&&mbo){ mbo.classList.remove('open'); }
-  }
   // dismiss any open overlays first
   var ljBox=document.getElementById('lj-box');
   if(ljBox&&ljBox.closest&&ljBox.closest('.lj-modal-wrap')){ var mo=ljBox.closest('.lj-modal-wrap'); if(mo) mo.style.display='none'; }
-  if(hash==='cockpit'&&typeof openDashboard==='function'){ openDashboard(); if(mbn) mbn.style.display=''; return; }
+  if(hash==='cockpit'&&typeof openDashboard==='function'){ openDashboard(); return; }
   if(hash==='journal'&&typeof openJournal==='function'){ openJournal(); return; }
   if(hash==='simulate'){
     document.body.style.overflow='auto';
@@ -19643,89 +19529,6 @@ document.addEventListener('click',function(e){
   var wrap=document.getElementById('l3-menu-wrap');
   if(wrap&&!wrap.contains(e.target))closeL3Menu();
 });
-</script>
-
-<!-- COCKPIT MOBILE BOTTOM NAV -->
-<nav id="cockpit-mobile-nav" style="display:none;position:fixed;bottom:0;left:0;right:0;height:60px;background:var(--panel);border-top:0.5px solid var(--bd);z-index:9000;align-items:center;justify-content:space-around;padding:0 8px;padding-bottom:env(safe-area-inset-bottom)">
-  <button class="mob-nav-btn active" id="mob-nav-cockpit" onclick="mobNav('cockpit')">
-    <span class="mob-nav-btn-icon">📊</span>
-    <span class="mob-nav-btn-label">cockpit</span>
-  </button>
-  <button class="mob-nav-btn" id="mob-nav-ctrl" onclick="mobNav('ctrl')">
-    <span class="mob-nav-btn-icon">⚙️</span>
-    <span class="mob-nav-btn-label">controls</span>
-  </button>
-  <button class="mob-nav-btn" id="mob-nav-trade" onclick="mobNav('trade')">
-    <span class="mob-nav-btn-icon">⚡</span>
-    <span class="mob-nav-btn-label">trade</span>
-  </button>
-  <button class="mob-nav-btn" id="mob-nav-presets" onclick="mobNav('presets')">
-    <span class="mob-nav-btn-icon">💾</span>
-    <span class="mob-nav-btn-label">presets</span>
-  </button>
-</nav>
-
-<!-- MOBILE BOTTOM SHEET -->
-<div id="mobile-sheet-overlay" onclick="mobSheetClose()"></div>
-<div id="mobile-sheet">
-  <div id="mobile-sheet-handle"></div>
-  <div id="mobile-sheet-content"></div>
-</div>
-
-<script>
-(function(){
-  var _activeNav='cockpit';
-
-  function isMobile(){ return window.innerWidth<=768; }
-
-  window.mobNav=function(tab){
-    if(tab==='cockpit'){
-      mobSheetClose();
-      document.querySelectorAll('.mob-nav-btn').forEach(b=>b.classList.remove('active'));
-      var cb=document.getElementById('mob-nav-cockpit'); if(cb) cb.classList.add('active');
-      _activeNav='cockpit';
-      return;
-    }
-    var content=document.getElementById('mobile-sheet-content');
-    var src=null;
-    if(tab==='ctrl') src=document.getElementById('left-panel');
-    else if(tab==='trade') src=document.getElementById('trade-panel');
-    else if(tab==='presets') src=document.getElementById('panel-presets');
-    if(src&&content){
-      content.innerHTML='';
-      var clone=src.cloneNode(true);
-      clone.style.cssText='display:block!important;width:100%;height:auto;position:static;border:none;min-width:0';
-      content.appendChild(clone);
-    }
-    document.querySelectorAll('.mob-nav-btn').forEach(b=>b.classList.remove('active'));
-    var btn=document.getElementById('mob-nav-'+tab); if(btn) btn.classList.add('active');
-    _activeNav=tab;
-    mobSheetOpen();
-  };
-
-  window.mobSheetOpen=function(){
-    var s=document.getElementById('mobile-sheet'); if(s) s.classList.add('open');
-    var o=document.getElementById('mobile-sheet-overlay'); if(o) o.classList.add('open');
-  };
-
-  window.mobSheetClose=function(){
-    var s=document.getElementById('mobile-sheet'); if(s) s.classList.remove('open');
-    var o=document.getElementById('mobile-sheet-overlay'); if(o) o.classList.remove('open');
-    document.querySelectorAll('.mob-nav-btn').forEach(b=>b.classList.remove('active'));
-    var cb=document.getElementById('mob-nav-cockpit'); if(cb) cb.classList.add('active');
-    _activeNav='cockpit';
-  };
-
-  // drag to dismiss
-  var sheet=document.getElementById('mobile-sheet');
-  var handle=document.getElementById('mobile-sheet-handle');
-  if(handle&&sheet){
-    var startY=0,currentY=0,dragging=false;
-    handle.addEventListener('touchstart',function(e){ startY=e.touches[0].clientY;dragging=true; },{passive:true});
-    handle.addEventListener('touchmove',function(e){ if(!dragging)return; currentY=e.touches[0].clientY-startY; if(currentY>0) sheet.style.transform='translateY('+currentY+'px)'; },{passive:true});
-    handle.addEventListener('touchend',function(){ dragging=false; if(currentY>80) mobSheetClose(); sheet.style.transform=''; currentY=0; });
-  }
-})();
 </script>
 
 <!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "52b9865191d84f9b92b6a0b25b65d1d6"}'></script><!-- End Cloudflare Web Analytics -->
