@@ -12230,7 +12230,6 @@ var RISK_SHOWN = false;
 
 function openDashboard(){
   document.body.style.overflow='hidden';
-  battNav('cockpit');
   mbnSetActive('cockpit');
   // sync journal so cockpit overlays are always fresh
   if(typeof jnLoad==='function') jnLoad();
@@ -18364,7 +18363,11 @@ function battRestoreFromHash(){
   if(hash==='journal'){
     document.body.style.overflow='auto';
     document.title='BATT · Journal';
-    if(typeof openJournal==='function') openJournal();
+    var jp=pages.journal;
+    if(jp){ jp.style.display='flex'; requestAnimationFrame(function(){ requestAnimationFrame(function(){ jp.classList.add('visible'); }); }); }
+    if(typeof jnLoad==='function') jnLoad().then(function(){
+      if(typeof jnRender==='function') jnRender();
+    });
     return;
   }
   if(hash==='simulate'){
@@ -18542,27 +18545,8 @@ async function jnLoad(){
 }
 
 function openJournal(){
-  const p=document.getElementById('journal-page');
-  if(!p) return;
   battNav('journal');
-  p.style.display='flex';
-  requestAnimationFrame(()=>requestAnimationFrame(()=>p.classList.add('visible')));
-  document.body.style.overflow='auto';
-  jnLoad().then(()=>{
-    const savedView=localStorage.getItem("batt_jn_view")||"list";
-    const savedFolder=localStorage.getItem("batt_jn_folder");
-    const savedTrade=localStorage.getItem("batt_jn_trade");
-    if(savedView==="detail"&&savedFolder&&savedTrade&&JN.trades[savedFolder]){
-      const tradeExists=JN.trades[savedFolder].find(t=>t.id===savedTrade);
-      if(tradeExists){JN.activeFolder=savedFolder;JN.activeTrade=savedTrade;JN.view="detail";jnRender();return;}
-    }
-    if(savedView==="list"&&savedFolder&&JN.folders.find(f=>f.id===savedFolder)){
-      JN.activeFolder=savedFolder;JN.view="list";jnRender();return;
-    }
-    if(JN.folders.length>0){if(!JN.activeFolder)JN.activeFolder=JN.folders[0].id;JN.view="list";}
-    else{JN.view="folders";}
-    jnRender();
-  });
+  // battRestoreFromHash will handle the actual display via popstate
 }
 
 function closeJournal(){
