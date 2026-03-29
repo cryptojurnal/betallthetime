@@ -2195,8 +2195,6 @@ body.t-dark .mp-inp.active{background:#0a2a1a;color:#00c47a;border-color:#00c47a
 }
 #cockpit-mob-overlay.open{display:block}
 @media(max-width:768px){
-  #cockpit-mob-nav{display:flex}
-  #cockpit-mob-sheet{display:flex}
   .app .panel-left{display:none!important}
   .app .panel-trade{display:none!important}
   .app .panel-presets{display:none!important}
@@ -10081,6 +10079,10 @@ function launchApp(){
   window.RISK_SHOWN=true;
   document.body.style.overflow='hidden';
   document.documentElement.style.overflow='auto';
+
+  // show mobile nav only on cockpit
+  var mn=document.getElementById('cockpit-mob-nav');
+  if(mn) mn.style.display='';
 
   battNav('cockpit');
   openDashboard();
@@ -18322,6 +18324,10 @@ function battSetTitle(page){ battNav(page); }
 // single source of truth — called on load and popstate
 function battRestoreFromHash(){
   var hash=(window.location.hash||'').replace('#',"");
+  // mobile nav — only on cockpit
+  var mn=document.getElementById('cockpit-mob-nav');
+  if(mn) mn.style.display=(hash===''||hash==='cockpit')?'':'none';
+  if(mn&&hash!=='cockpit') cmnClose&&cmnClose();
   // dismiss any open overlays first
   var ljBox=document.getElementById('lj-box');
   if(ljBox&&ljBox.closest&&ljBox.closest('.lj-modal-wrap')){ var mo=ljBox.closest('.lj-modal-wrap'); if(mo) mo.style.display='none'; }
@@ -19617,13 +19623,13 @@ document.addEventListener('click',function(e){
     cmnSetActive(tab);
     var sheet=document.getElementById('cockpit-mob-sheet');
     var ov=document.getElementById('cockpit-mob-overlay');
-    if(sheet) sheet.classList.add('open');
+    if(sheet){sheet.style.display='flex';sheet.classList.add('open');}
     if(ov) ov.classList.add('open');
   };
   window.cmnClose=function(){
     var sheet=document.getElementById('cockpit-mob-sheet');
     var ov=document.getElementById('cockpit-mob-overlay');
-    if(sheet) sheet.classList.remove('open');
+    if(sheet){sheet.classList.remove('open');sheet.style.display='none';}
     if(ov) ov.classList.remove('open');
     cmnSetActive('cockpit');
   };
