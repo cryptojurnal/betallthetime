@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+\<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -6592,8 +6592,10 @@ function _softUpdateCore(){
     _applyChartErrorStyle();
     ch.update('none');
   }
-  // patch table only
-  renderTbl(months);
+  // patch table only — skip if user is actively typing in a trade input
+  const _active=document.activeElement;
+  const _isTyping=_active&&(_active.id&&(_active.id.startsWith('mbt-')||_active.id.startsWith('mfr-')||_active.id.startsWith('wd-inp')));
+  if(!_isTyping) renderTbl(months);
   // update notional comp row (actual margin, fm%, liq%)
   updComp();
 }
