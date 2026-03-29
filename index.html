@@ -9371,7 +9371,8 @@ function renderTbl(months){
             return `<span style="color:var(--tx3);text-decoration:line-through;font-size:8px;opacity:.45">${_projTgt.toFixed(1)}%</span><br><span style="color:${_actTgt>=0?'#00c47a':'#E24B4A'};font-weight:800;font-size:10px">${_actTgt.toFixed(1)}%</span>`;
           }
           return `<span style="font-size:10px;font-weight:700;color:var(--acc)">${_projTgt.toFixed(1)}%</span>`;
-        })()}</td> <span style="color:#E24B4A;font-size:9px">−'+fmt(mo.wd)+'</span><br><span style="font-weight:700">'+fmt(mo.eA)+'</span>':fmt(mo.eA)}</td>
+        })()}</td>
+        <td style="color:var(--acc2);font-weight:700">${mo.wd>0?'<span style="color:var(--tx2);font-size:10px">'+fmt(mo.gA)+'</span> <span style="color:#E24B4A;font-size:9px">−'+fmt(mo.wd)+'</span><br><span style="font-weight:700">'+fmt(mo.eA)+'</span>':fmt(mo.eA)}</td>
         <td>${mo.pct.toFixed(1)}%</td>
         <td>+${fmt(gain)}</td>
         <td><div class="wd-cell" style="flex-wrap:wrap;gap:2px"><input type="number" class="wd-inp${wdVal>0?' active':''}" id="wd-inp-${mo.m}" value="${wdVal||''}" min="0" step="1" placeholder="0" onchange="onWdInline(${mo.m},this.value)" onblur="onWdInline(${mo.m},this.value)">${(()=>{
