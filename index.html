@@ -9337,7 +9337,8 @@ function renderTbl(months){
       const gain=mo.gAF-mo.sA;
       const actTr=mo.trades.filter(t=>!t.skip);
       const l1=mo.liqT1||0;
-      const ll=actTr.length?actTr[actTr.length-1].liq:0;
+      const _lastT=actTr.length?actTr[actTr.length-1]:null;
+      const ll=_lastT?(_lastT.hasActual&&_lastT.not>0?_lastT.accAF/_lastT.not*100:_lastT.liq):0;
       const wdVal=s.WD[mo.m]||0;
       // Wipe state: show error row instead of calculated values
       if(IS_WIPED){
@@ -9434,7 +9435,8 @@ function renderTbl(months){
       }
       const actTr=mo.trades.filter(t=>!t.skip);
       const l1=mo.liqT1||0;
-      const ll=actTr.length?actTr[actTr.length-1].liq:0;
+      const _lastActTr=actTr.length?actTr[actTr.length-1]:null;
+      const ll=_lastActTr?(_lastActTr.hasActual&&_lastActTr.not>0?_lastActTr.accAF/_lastActTr.not*100:_lastActTr.liq):0;
       const wdVal=s.WD[mo.m]||0;
       if(IS_WIPED){
         const fmVal = s.NOT/s.LEV/s.P*100;
