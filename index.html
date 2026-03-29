@@ -798,20 +798,19 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
   .tp-stats-grid{grid-template-columns:repeat(2,1fr)}
 }
 @media(max-width:768px){
-  /* reset zoom on mobile */
-  html{zoom:1!important}
-  .app{zoom:1!important;height:100dvh!important;flex-direction:column;overflow:hidden}
+  /* reset zoom only on cockpit app */
+  .app{zoom:1!important;height:100dvh!important;overflow:hidden}
 
-  /* hide left panel and trade panel by default on mobile */
-  .panel-left{display:none!important}
-  .panel-trade{display:none!important}
-  .panel-presets{display:none!important}
-  .panel-left-toggle{display:none!important}
-  .panel-trade-toggle{display:none!important}
-  .panel-presets-toggle{display:none!important}
+  /* hide left panel and trade panel — cockpit only */
+  .app .panel-left{display:none!important}
+  .app .panel-trade{display:none!important}
+  .app .panel-presets{display:none!important}
+  .app .panel-left-toggle{display:none!important}
+  .app .panel-trade-toggle{display:none!important}
+  .app .panel-presets-toggle{display:none!important}
 
   /* right panel takes full width */
-  .panel-right{height:100dvh!important;width:100%!important;padding:0 0 72px 0}
+  .app .panel-right{height:100dvh!important;width:100%!important;padding:0 0 72px 0}
 
   /* table horizontal scroll */
   #tbl{width:800px;min-width:800px}
@@ -852,10 +851,8 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
 
   /* trade hub mobile */
   #trade-hub>div{padding:16px!important}
-  #trade-hub [style*="repeat(2,1fr)"]{grid-template-columns:1fr!important}
 
   /* simulator mobile */
-  #trading-page{flex-direction:column!important}
   .tp-pos-panel{width:100%!important;min-width:0!important;border-right:none!important;border-bottom:0.5px solid #1a1a1a!important;max-height:50dvh}
   .tp-sidebar{width:100%!important;min-width:0!important;border-left:none!important;border-top:0.5px solid #1a1a1a!important;max-height:50dvh}
 
