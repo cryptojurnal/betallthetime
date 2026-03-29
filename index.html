@@ -10872,7 +10872,30 @@ async function updateMemberStats(){
 
 // ── KEYBOARD SHORTCUTS ──
 document.addEventListener('keydown',function(e){
-  // Ctrl+S or Cmd+S = sync
+  // ignore if typing in an input/textarea
+  const tag=document.activeElement&&document.activeElement.tagName;
+  const isTyping=tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT';
+
+  // Q = collapse/expand all month groups in full trade detail
+  if(e.key==='q'&&!e.ctrlKey&&!e.metaKey&&!e.shiftKey&&!isTyping){
+    if(VIEW==='det'){
+      const tbl=document.getElementById('tbl');
+      if(!tbl) return;
+      const btns=tbl.querySelectorAll('.mo-toggle-btn');
+      if(!btns.length) return;
+      const anyOpen=[...btns].some(b=>b.classList.contains('open'));
+      btns.forEach(b=>{
+        const m=b.getAttribute('data-mo');
+        if(m){
+          const rows=tbl.querySelectorAll('[data-mo="'+m+'"]');
+          rows.forEach(r=>r.classList.toggle('mo-collapsed',anyOpen));
+          b.classList.toggle('open',!anyOpen);
+          b.classList.toggle('closed',anyOpen);
+        }
+      });
+      showToast(anyOpen?'all months collapsed':'all months expanded','info',1500);
+    }
+  }
   if((e.ctrlKey||e.metaKey)&&e.key==='s'){
     e.preventDefault();
     if(AUTH_TOKEN){
@@ -17833,6 +17856,7 @@ document.addEventListener('keydown', (e) => {
         <div class="shortcut-row"><span class="shortcut-label">Toggle global mode</span><span class="shortcut-keys"><kbd>G</kbd></span></div>
         <div class="shortcut-row"><span class="shortcut-label">Open presets panel</span><span class="shortcut-keys"><kbd>Tab</kbd></span></div>
         <div class="shortcut-row"><span class="shortcut-label">Projection chart</span><span class="shortcut-keys"><kbd>P</kbd></span></div>
+        <div class="shortcut-row"><span class="shortcut-label">Collapse/expand all months</span><span class="shortcut-keys"><kbd>Q</kbd></span></div>
       </div>
       <div class="shortcut-group">
         <div class="shortcut-group-title">Analysis</div>
