@@ -18304,13 +18304,12 @@ function battNav(page){
   try{
     var hash = '#' + page;
     var cur = (window.location.hash||'').replace('#','');
-    if(cur === page) return;
     // overlay states (#risk, #guide-lock) should be replaced, not stacked
     var overlayStates = ['risk','guide-lock'];
     _battInAppNav = true;
     if(overlayStates.indexOf(cur) !== -1){
       history.replaceState({batt:page}, '', hash);
-    } else {
+    } else if(cur !== page) {
       history.pushState({batt:page}, '', hash);
     }
     _battInAppNav = false;
@@ -18323,21 +18322,55 @@ function battSetTitle(page){ battNav(page); }
 // ── CLEAN HASH-BASED ROUTING ──
 // single source of truth — called on load and popstate
 function battRestoreFromHash(){
-  var hash=(window.location.hash||'').replace('#',"");
-  // mobile nav — only on cockpit
+  var hash=(window.location.hash||'').replace('#','');
+  if(!hash) hash='member';
+
+  // ── hide all pages first ──
+  var pages={
+    'layer3':      document.getElementById('layer3'),
+    'journal':     document.getElementById('journal-page'),
+    'account':     document.getElementById('account-page'),
+    'trading':     document.getElementById('trading-page'),
+    'trade-hub':   document.getElementById('trade-hub'),
+    'about':       document.getElementById('about-cj-page'),
+    'auth':        document.getElementById('auth-layer'),
+  };
+  // hide journal
+  if(pages.journal){ pages.journal.style.display='none'; pages.journal.classList.remove('visible'); pages.journal.style.opacity='0'; }
+  // hide account
+  if(pages.account) pages.account.classList.remove('visible');
+  // hide trading/simulator
+  if(pages.trading) pages.trading.classList.remove('visible');
+  // hide trade hub
+  if(pages['trade-hub']){ pages['trade-hub'].style.display='none'; pages['trade-hub'].style.opacity='0'; }
+  // hide about
+  if(pages.about){ pages.about.style.display='none'; pages.about.style.opacity='0'; pages.about.classList.remove('acj-visible'); }
+  // close any modal overlays
+  if(typeof ljCloseModal==='function') ljCloseModal();
+  if(typeof cmnClose==='function') cmnClose();
+
+  // ── mobile nav: only on cockpit ──
   var mn=document.getElementById('cockpit-mob-nav');
-  if(mn) mn.style.display=(hash===''||hash==='cockpit')?'':'none';
-  if(mn&&hash!=='cockpit') cmnClose&&cmnClose();
-  // dismiss any open overlays first
-  var ljBox=document.getElementById('lj-box');
-  if(ljBox&&ljBox.closest&&ljBox.closest('.lj-modal-wrap')){ var mo=ljBox.closest('.lj-modal-wrap'); if(mo) mo.style.display='none'; }
-  if(hash==='cockpit'&&typeof openDashboard==='function'){ openDashboard(); return; }
-  if(hash==='journal'&&typeof openJournal==='function'){ openJournal(); return; }
+  if(mn) mn.style.display=(hash==='cockpit')?'':'none';
+
+  // ── show target page ──
+  if(hash==='cockpit'){
+    document.body.style.overflow='hidden';
+    document.title='BATT · Cockpit';
+    if(typeof openDashboard==='function') openDashboard();
+    if(mn) mn.style.display='';
+    return;
+  }
+  if(hash==='journal'){
+    document.body.style.overflow='auto';
+    document.title='BATT · Journal';
+    if(typeof openJournal==='function') openJournal();
+    return;
+  }
   if(hash==='simulate'){
     document.body.style.overflow='auto';
     document.title='BATT · Simulator';
-    var tp=document.getElementById('trading-page');
-    if(tp) tp.classList.add('visible');
+    if(pages.trading) pages.trading.classList.add('visible');
     if(typeof tpFetchPrices==='function') tpFetchPrices();
     if(typeof tpStartWebSocket==='function') tpStartWebSocket();
     if(typeof tpFetchOrderBook==='function') tpFetchOrderBook();
@@ -18346,31 +18379,40 @@ function battRestoreFromHash(){
     if(typeof tpUpdateSubmitButton==='function') tpUpdateSubmitButton();
     return;
   }
-  if(hash==='trade'&&typeof battNav==='function'){
-    var hub=document.getElementById('trade-hub');
-    if(hub){ hub.style.display='flex'; requestAnimationFrame(function(){ hub.style.opacity='1'; hub.style.transform='scale(1)'; }); }
+  if(hash==='trade'){
     document.body.style.overflow='auto';
+    document.title='BATT · Trade Hub';
+    var hub=pages['trade-hub'];
+    if(hub){ hub.style.display='flex'; requestAnimationFrame(function(){ hub.style.opacity='1'; hub.style.transform='scale(1)'; }); }
     if(typeof mbnSetActive==='function') mbnSetActive('trade');
     return;
   }
-  if(hash==='account'&&typeof loadAccountPage==='function'){
-    var ap=document.getElementById('account-page');
-    if(ap) ap.classList.add('visible');
-    loadAccountPage();
+  if(hash==='account'){
     document.body.style.overflow='auto';
+    document.title='BATT · Account';
+    if(pages.account) pages.account.classList.add('visible');
+    if(typeof loadAccountPage==='function') loadAccountPage();
     if(typeof mbnSetActive==='function') mbnSetActive('account');
     return;
   }
   if(hash==='about'){
-    var ab=document.getElementById('about-cj-page');
-    if(ab){ ab.style.display='block'; requestAnimationFrame(function(){ ab.style.opacity='1'; ab.classList.add('acj-visible'); }); }
     document.body.style.overflow='auto';
+    document.title='BATT · About';
+    if(pages.about){ pages.about.style.display='block'; requestAnimationFrame(function(){ pages.about.style.opacity='1'; pages.about.classList.add('acj-visible'); }); }
+    return;
+  }
+  if(hash==='auth'){
+    document.body.style.overflow='auto';
+    document.title='BATT · Login';
+    var al=pages.auth;
+    if(al){ al.classList.remove('hidden'); requestAnimationFrame(function(){ al.style.opacity='1'; }); }
     return;
   }
   // default — member area
-  var l3=document.getElementById('layer3');
-  if(l3){ l3.classList.remove('hidden'); requestAnimationFrame(function(){ l3.classList.add('visible'); }); }
   document.body.style.overflow='auto';
+  document.title='BATT · Member Area';
+  var l3=pages.layer3;
+  if(l3){ l3.classList.remove('hidden'); requestAnimationFrame(function(){ l3.classList.add('visible'); }); }
   if(typeof mbnSetActive==='function') mbnSetActive('member');
 }
 
