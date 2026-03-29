@@ -9378,7 +9378,7 @@ function renderTbl(months){
       <th style="width:6%;color:var(--acc2);padding:4px 4px">net pnl<br><span style="font-weight:400;font-size:7px;text-transform:none;color:var(--acc2);opacity:.8">post-fee</span><div style="font-size:6px;font-weight:400;color:var(--tx3);margin-top:1px;opacity:.8">gross − all fees</div></th>
       <th style="width:6%;color:var(--tx2);padding:5px 5px">acct bal<br><span style="font-weight:400;font-size:7px;text-transform:none">${s.SPOT?'gross':'pre-fee'}</span><div style="font-size:6px;font-weight:400;color:var(--tx3);margin-top:1px;opacity:.8">bal + gross pnl</div></th>
       <th style="width:7%;color:var(--acc2);padding:5px 5px">acct bal<br><span style="font-weight:400;font-size:7px;text-transform:none">post-fee</span><div style="font-size:6px;font-weight:400;color:var(--tx3);margin-top:1px;opacity:.8">deployable balance</div></th>
-      <th style="width:8%;color:#5b7fff;padding:5px 5px;text-align:center">actual result<div style="font-size:6px;font-weight:400;color:var(--tx3);margin-top:1px;opacity:.8">from journal</div></th>
+      <th style="width:8%;color:#5b7fff;padding:5px 5px;text-align:center">actual balance result<div style="font-size:6px;font-weight:400;color:var(--tx3);margin-top:1px;opacity:.8">from journal</div></th>
       <th style="width:8%;padding:5px 5px;text-align:center">note</th>
     </tr></thead><tbody>`;
     months.forEach(mo=>{
@@ -9477,7 +9477,7 @@ function renderTbl(months){
         <td style="font-size:7px;color:var(--acc2);text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2)">net pnl</td>
         <td style="font-size:7px;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2)">bal pre-fee</td>
         <td style="font-size:7px;color:var(--acc2);text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2)">bal post-fee</td>
-        <td style="font-size:7px;color:#5b7fff;text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2);text-align:center">actual result</td>
+        <td style="font-size:7px;color:#5b7fff;text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2);text-align:center">actual balance result</td>
         <td style="font-size:7px;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2);text-align:center">note</td>
       </tr>`;
       mo.trades.forEach(t=>{
