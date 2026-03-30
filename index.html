@@ -8484,6 +8484,15 @@ function toggleZeroMonth(m){
 // ── GLOBAL / MANUAL MODE ──
 function toggleGlobal(){
   _captureUndo();GLOBAL_MODE=!GLOBAL_MODE;
+  // when switching TO global mode, seed BT from current month's MT if BT is all zero
+  if(GLOBAL_MODE){
+    const s=gs();
+    const allZero=s.BT.every(v=>v===0);
+    if(allZero){
+      const curMT=s.MT[1]||s.MT[Object.keys(s.MT)[0]];
+      if(curMT&&curMT.bt) s.BT=curMT.bt.slice();
+    }
+  }
   try{localStorage.setItem('batt_global_mode',GLOBAL_MODE?'1':'0');}catch(e){}
   const btn=document.getElementById('global-toggle');
   const globalPanel=document.getElementById('sec-trd-global');
@@ -10970,13 +10979,13 @@ async function presetRenderList(){
       return `
         <div class="pp-card" data-id="${p.id}">
           <div class="pp-card-head">
-            <button class="pp-card-name" onclick="presetLoad('${p.id}')">${escHtml(p.name)}${window._ACTIVE_PRESET&&window._ACTIVE_PRESET.id===p.id?'<span style="font-size:7px;color:#00c47a;margin-left:5px;letter-spacing:.04em;font-weight:700">● active</span>':''}</button>
+            <button class="pp-card-name" data-name="${escHtml(p.name)}" onclick="presetLoad('${p.id}')">${escHtml(p.name)}${window._ACTIVE_PRESET&&window._ACTIVE_PRESET.id===p.id?'<span style="font-size:7px;color:#00c47a;margin-left:5px;letter-spacing:.04em;font-weight:700">● active</span>':''}</button>
             <div class="pp-card-actions">
-              <button class="pp-card-btn" onclick="sharePreset('${p.id}','${escHtml(p.name)}')" title="Share">🔗</button>
-              <button class="pp-card-btn" onclick="presetRename('${p.id}','${escHtml(p.name)}')" title="Rename name">✏️</button>
-              <button class="pp-card-btn resave" onclick="presetResave('${p.id}','${escHtml(p.name)}')" title="Overwrite with current state">💾</button>
+              <button class="pp-card-btn" onclick="sharePreset('${p.id}',this.closest('.pp-card').querySelector('.pp-card-name').dataset.name)" title="Share">🔗</button>
+              <button class="pp-card-btn" onclick="presetRename('${p.id}',this.closest('.pp-card').querySelector('.pp-card-name').dataset.name)" title="Rename name">✏️</button>
+              <button class="pp-card-btn resave" onclick="presetResave('${p.id}',this.closest('.pp-card').querySelector('.pp-card-name').dataset.name)" title="Overwrite with current state">💾</button>
               <button class="pp-card-btn load" onclick="presetLoad('${p.id}')">load</button>
-              <button class="pp-card-btn del" onclick="presetDelete('${p.id}','${escHtml(p.name)}')">✕</button>
+              <button class="pp-card-btn del" onclick="presetDelete('${p.id}',this.closest('.pp-card').querySelector('.pp-card-name').dataset.name)">✕</button>
             </div>
           </div>
           <div class="pp-card-meta">
