@@ -19222,7 +19222,7 @@ function jnRenderDetail(){
           </div>
           <div style="background:#0a0a0a;border:1px solid #1a1a1a;border-radius:8px;padding:12px">
             <div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">notional</div>
-            <div style="font-size:11px;font-weight:700;color:#888">$${notional.toLocaleString()}</div>
+            <div style="font-size:11px;font-weight:700;color:#888">$${notional.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
           </div>
           <div style="background:#0a0a0a;border:1px solid #1a1a1a;border-radius:8px;padding:12px">
             <div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">margin</div>
