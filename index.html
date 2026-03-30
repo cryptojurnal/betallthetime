@@ -10026,46 +10026,49 @@ async function frFetchOKX(){
 }
 
 async function frFetchGate(){
-  // gate.io blocks direct browser requests with CORS — route through proxy
-  const PROXY='https://corsproxy.io/?url=';
-  const endpoints=[
-    PROXY+encodeURIComponent('https://api.gateio.ws/api/v4/futures/usdt/contracts?limit=500&settle=usdt'),
-    'https://api.gateio.ws/api/v4/futures/usdt/contracts?limit=500&settle=usdt',
-  ];
-  for(const url of endpoints){
-    try{
-      const r=await fetch(url,{headers:{'Accept':'application/json'}});
-      if(!r.ok) continue;
+  // gate.io tickers endpoint — has live funding_rate, better CORS than contracts
+  const tried=new Set();
+  const applyTickers=(arr)=>{
+    arr.forEach(x=>{
+      const raw=x.contract||x.name||'';
+      const sym=raw.replace(/_/g,'');
+      if(!sym.endsWith('USDT')) return;
+      const rate=x.funding_rate??x.last_funding_rate;
+      if(rate==null) return;
+      if(!_frData[sym]) _frData[sym]={};
+      _frData[sym].gate=parseFloat(rate)*100;
+    });
+  };
+  // 1. tickers (live, has funding_rate, usually CORS-ok)
+  try{
+    const r=await fetch('https://api.gateio.ws/api/v4/futures/usdt/tickers',{headers:{'Accept':'application/json'}});
+    if(r.ok){
       const d=await r.json();
-      if(!Array.isArray(d)||d.length===0) continue;
-      d.forEach(x=>{
-        if(x.funding_rate==null) return;
-        // gate uses BTC_USDT format — remove underscores → BTCUSDT
-        const sym=(x.name||'').replace(/_/g,'');
-        if(!sym.endsWith('USDT')) return; // skip non-USDT
-        if(!_frData[sym]) _frData[sym]={};
-        _frData[sym].gate=parseFloat(x.funding_rate)*100;
-        if(x.funding_next_apply&&!_frData[sym].nextTs){
-          _frData[sym].nextTs=parseInt(x.funding_next_apply)*1000;
-        }
-      });
-      return; // success — stop trying
+      if(Array.isArray(d)&&d.length>0){ applyTickers(d); tried.add('tickers'); }
+    }
+  }catch(e){}
+  // 2. contracts endpoint via allorigins proxy (reliable free CORS proxy)
+  if(!tried.has('tickers')){
+    try{
+      const url='https://api.allorigins.win/raw?url='+encodeURIComponent('https://api.gateio.ws/api/v4/futures/usdt/tickers');
+      const r=await fetch(url);
+      if(r.ok){
+        const d=await r.json();
+        if(Array.isArray(d)&&d.length>0){ applyTickers(d); tried.add('proxy'); }
+      }
     }catch(e){}
   }
-  // last resort: tickers endpoint (less data but no CORS issues sometimes)
-  try{
-    const r2=await fetch('https://api.gateio.ws/api/v4/futures/usdt/tickers');
-    if(r2.ok){
-      const d2=await r2.json();
-      (d2||[]).forEach(x=>{
-        if(x.funding_rate==null) return;
-        const sym=(x.contract||'').replace(/_/g,'');
-        if(!sym.endsWith('USDT')) return;
-        if(!_frData[sym]) _frData[sym]={};
-        _frData[sym].gate=parseFloat(x.funding_rate)*100;
-      });
-    }
-  }catch(e2){}
+  // 3. corsproxy.io fallback
+  if(!tried.has('tickers')&&!tried.has('proxy')){
+    try{
+      const url='https://corsproxy.io/?url='+encodeURIComponent('https://api.gateio.ws/api/v4/futures/usdt/tickers');
+      const r=await fetch(url);
+      if(r.ok){
+        const d=await r.json();
+        if(Array.isArray(d)&&d.length>0) applyTickers(d);
+      }
+    }catch(e){}
+  }
 }
 
 function frSetStatus(msg){
@@ -10238,72 +10241,131 @@ function frRender(){
     return `<button onclick="frSetFilter('${f}')" style="background:${active?'var(--acc,#5b7fff)':'var(--btn,#111)'};border:1px solid ${active?'var(--acc,#5b7fff)':'var(--bd,#252525)'};border-radius:5px;color:${active?'var(--mhc,#fff)':'var(--tx2,#666)'};font-size:9px;padding:4px 10px;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .15s">${labels[f]}</button>`;
   }).join('');
 
-  // coin icon — coingecko asset CDN uses coin id, map the common ones + fallback to symbol-based url
-  const _cgIds={BTCUSDT:'bitcoin',ETHUSDT:'ethereum',BNBUSDT:'binancecoin',SOLUSDT:'solana',XRPUSDT:'ripple',DOGEUSDT:'dogecoin',ADAUSDT:'cardano',AVAXUSDT:'avalanche-2',SHIBUSDT:'shiba-inu',LINKUSDT:'chainlink',LTCUSDT:'litecoin',UNIUSDT:'uniswap',ATOMUSDT:'cosmos',NEARUSDT:'near',APTUSDT:'aptos',ARBUSDT:'arbitrum',OPUSDT:'optimism',INJUSDT:'injective-protocol',DOTUSDT:'polkadot',MATICUSDT:'matic-network',TRXUSDT:'tron',XLMUSDT:'stellar',ETCUSDT:'ethereum-classic',BCHUSDT:'bitcoin-cash',FILUSDT:'filecoin',LDOUSDT:'lido-dao',MKRUSDT:'maker',AAVEUSDT:'aave',SNXUSDT:'havven',CRVUSDT:'curve-dao-token',DYDXUSDT:'dydx',GMXUSDT:'gmx',RUNEUSDT:'thorchain',TONUSDT:'the-open-network',SUIUSDT:'sui',PEPEUSDT:'pepe',BONKUSDT:'bonk',WIFUSDT:'dogwifcoin',FLOKIUSDT:'floki',NOTUSDT:'notcoin',RENDERUSDT:'render-token',FETUSDT:'fetch-ai',TAOUSDT:'bittensor',HBARUSDT:'hedera-hashgraph',SANDUSDT:'the-sandbox',MANAUSDT:'decentraland',AXSUSDT:'axie-infinity',IMXUSDT:'immutable-x',ICPUSDT:'internet-computer',ALGOUSDT:'algorand',VETUSDT:'vechain',EGLDUSDT:'elrond-erd-2',FLOWUSDT:'flow',XMRUSDT:'monero',ZECUSDT:'zcash',DASHUSDT:'dash',KSMUSDT:'kusama',NEOUSDT:'neo',WAVESUSDT:'waves',KAVAUSDT:'kava',MOODENGUSDT:'moodeng',EIGENUSDT:'eigenlayer',STRKUSDT:'starknet',JUPUSDT:'jupiter-exchange-solana',PYTHUSDT:'pyth-network',WUSDT:'wormhole',ENAUSDT:'ethena',MKRUSDT:'maker',PENDLEUSDT:'pendle',SEIUSDT:'sei-network',TIAUSDT:'celestia',DYMUSDT:'dymension',ALTUSDT:'altlayer',MANTAUSDT:'manta-network',PORTALUSDT:'portal',PIXELUSDT:'pixels',RONINUSDT:'ronin',BOMEUSDT:'book-of-meme',ETHFIUSDT:'ether-fi',REZUSDT:'renzo',BBUSDT:'bouncebit',ZKUSDT:'zksync',LISTAUSDT:'lista-dao',ZROUSDT:'layerzero',IOUSDT:'io-net',ZKJUSDT:'polyhedra-network',MEWUSDT:'cat-in-a-dogs-world',DOGUSDT:'dogecoin20',KMNOUSDT:'komodo',BIOUSDT:'bio-protocol',MOVEUSDT:'movement',VIRTUALUSDT:'virtual-protocol',AIUSDT:'sleepless-ai',STGUSDT:'stargate-finance',HYPEUSDT:'hyperliquid',PNUTUSDT:'peanut-the-squirrel',ACTUSDT:'act-i-the-ai-prophecy',THEUSDT:'thena',ORCAUSDT:'orca',KAIAUSDT:'kaia',CHILLGUYUSDT:'chillguy'};
-  // coingecko numeric ids for the main coins (needed for their CDN url format)
-  const _cgIdNums={BTCUSDT:1,ETHUSDT:279,BNBUSDT:825,SOLUSDT:4128,XRPUSDT:44,DOGEUSDT:5,ADAUSDT:975,AVAXUSDT:12559,SHIBUSDT:11939,LINKUSDT:877,LTCUSDT:2,UNIUSDT:12504,ATOMUSDT:1481,NEARUSDT:10365,APTUSDT:26455,ARBUSDT:11841,OPUSDT:11840,INJUSDT:7226,DOTUSDT:6636,MATICUSDT:3890,TRXUSDT:1958,XLMUSDT:512,ETCUSDT:1321,BCHUSDT:1831,SUIUSDT:26375,TONUSDT:17980,PEPEUSDT:29850,FLOKIUSDT:10804,RENDERUSDT:11636,HBARUSDT:4642,SANDUSDT:12129,MANAUSDT:1966,AXSUSDT:6783,ICPUSDT:8916,ALGOUSDT:4030,VETUSDT:3077,XMRUSDT:328,ZECUSDT:1437,DASHUSDT:131};
-  // dynamic icon url cache — filled at runtime for unknown coins
+  // ── COIN ICONS ──
+  // Strategy: Binance CDN (instant, no API key, covers every Binance-listed coin)
+  //           → CoinGecko static map for well-known coins
+  //           → letter avatar (never blank)
+  // Binance CDN: https://bin.bnbstatic.com/image/admin_mgs_image_upload/20240x/xxx.png
+  // Easier: use the public Binance asset service used in their own web app
+  const _bnbIcon=(coin)=>`https://bin.bnbstatic.com/static/assets/newcms/${coin.toLowerCase()}.png`;
+  // CoinGecko static fallbacks for coins whose Binance CDN path differs
+  const _cgStatic={
+    BTC:'https://assets.coingecko.com/coins/images/1/small/bitcoin.png',
+    ETH:'https://assets.coingecko.com/coins/images/279/small/ethereum.png',
+    BNB:'https://assets.coingecko.com/coins/images/825/small/bnb-icon2_2x.png',
+    SOL:'https://assets.coingecko.com/coins/images/4128/small/solana.png',
+    XRP:'https://assets.coingecko.com/coins/images/44/small/xrp-symbol-white-128.png',
+    DOGE:'https://assets.coingecko.com/coins/images/5/small/dogecoin.png',
+    ADA:'https://assets.coingecko.com/coins/images/975/small/cardano.png',
+    AVAX:'https://assets.coingecko.com/coins/images/12559/small/Avalanche_Circle_RedWhite_Trans.png',
+    SHIB:'https://assets.coingecko.com/coins/images/11939/small/shiba.png',
+    LINK:'https://assets.coingecko.com/coins/images/877/small/chainlink-new-logo.png',
+    LTC:'https://assets.coingecko.com/coins/images/2/small/litecoin.png',
+    UNI:'https://assets.coingecko.com/coins/images/12504/small/uniswap-uni.png',
+    ATOM:'https://assets.coingecko.com/coins/images/1481/small/cosmos_hub.png',
+    NEAR:'https://assets.coingecko.com/coins/images/10365/small/near.jpg',
+    APT:'https://assets.coingecko.com/coins/images/26455/small/aptos_round.png',
+    ARB:'https://assets.coingecko.com/coins/images/16547/small/photo_2023-03-29_21.47.00.jpeg',
+    OP:'https://assets.coingecko.com/coins/images/25244/small/Optimism.png',
+    INJ:'https://assets.coingecko.com/coins/images/7226/small/Injective_symbol_-_colored.jpg',
+    DOT:'https://assets.coingecko.com/coins/images/12171/small/polkadot.png',
+    MATIC:'https://assets.coingecko.com/coins/images/4713/small/matic-token-icon.png',
+    TRX:'https://assets.coingecko.com/coins/images/1958/small/tron-xtz.png',
+    XLM:'https://assets.coingecko.com/coins/images/100/small/Stellar_symbol_black_RGB.png',
+    ETC:'https://assets.coingecko.com/coins/images/453/small/ethereum-classic-logo.png',
+    BCH:'https://assets.coingecko.com/coins/images/780/small/bitcoin-cash-circle.png',
+    SUI:'https://assets.coingecko.com/coins/images/26375/small/sui_asset.jpeg',
+    TON:'https://assets.coingecko.com/coins/images/17980/small/ton_symbol.png',
+    PEPE:'https://assets.coingecko.com/coins/images/29850/small/pepe-token.jpeg',
+    FLOKI:'https://assets.coingecko.com/coins/images/16746/small/PNG_image.png',
+    RENDER:'https://assets.coingecko.com/coins/images/11636/small/rndr.png',
+    HBAR:'https://assets.coingecko.com/coins/images/3688/small/hbar.png',
+    SAND:'https://assets.coingecko.com/coins/images/12129/small/sandbox_logo.jpg',
+    MANA:'https://assets.coingecko.com/coins/images/878/small/decentraland-mana.png',
+    AXS:'https://assets.coingecko.com/coins/images/13029/small/axie_infinity_logo.png',
+    ICP:'https://assets.coingecko.com/coins/images/14495/small/Internet_Computer_logo.png',
+    ALGO:'https://assets.coingecko.com/coins/images/4030/small/Algorand.png',
+    VET:'https://assets.coingecko.com/coins/images/1167/small/VET_Token_Icon.png',
+    XMR:'https://assets.coingecko.com/coins/images/69/small/monero_logo.png',
+    FIL:'https://assets.coingecko.com/coins/images/12817/small/filecoin.png',
+    AAVE:'https://assets.coingecko.com/coins/images/12645/small/AAVE.png',
+    RUNE:'https://assets.coingecko.com/coins/images/6595/small/Rune200x200.png',
+    WIF:'https://assets.coingecko.com/coins/images/33566/small/dogwifhat.jpg',
+    BONK:'https://assets.coingecko.com/coins/images/28600/small/bonk.jpg',
+    NOT:'https://assets.coingecko.com/coins/images/36072/small/notcoin.jpg',
+    TAO:'https://assets.coingecko.com/coins/images/28452/small/ARUsPeNQ_400x400.jpg',
+    JUP:'https://assets.coingecko.com/coins/images/34188/small/jup.png',
+    PYTH:'https://assets.coingecko.com/coins/images/31916/small/pyth.png',
+    ENA:'https://assets.coingecko.com/coins/images/36530/small/ethena.png',
+    SEI:'https://assets.coingecko.com/coins/images/28205/small/Sei_Logo_-_Transparent.png',
+    TIA:'https://assets.coingecko.com/coins/images/31967/small/tia.jpg',
+    HYPE:'https://assets.coingecko.com/coins/images/51012/small/hyperliquid.jpg',
+    VIRTUAL:'https://assets.coingecko.com/coins/images/36390/small/VIRTUAL.png',
+    MOVE:'https://assets.coingecko.com/coins/images/37846/small/movement-logo.png',
+    MOODENG:'https://assets.coingecko.com/coins/images/39895/small/moodeng.jpg',
+    PNUT:'https://assets.coingecko.com/coins/images/39589/small/pnut.jpg',
+    EIGEN:'https://assets.coingecko.com/coins/images/33839/small/eigen.png',
+    STRK:'https://assets.coingecko.com/coins/images/26433/small/starknet.png',
+    PENDLE:'https://assets.coingecko.com/coins/images/15069/small/Pendle_Logo_Normal-03.png',
+    GMX:'https://assets.coingecko.com/coins/images/18323/small/arbit.png',
+    DYDX:'https://assets.coingecko.com/coins/images/17500/small/hjnIm9bV.jpg',
+    LDO:'https://assets.coingecko.com/coins/images/13573/small/Lido_DAO.png',
+    MKR:'https://assets.coingecko.com/coins/images/1364/small/Mark_Maker.png',
+    SNX:'https://assets.coingecko.com/coins/images/3406/small/SNX.png',
+    CRV:'https://assets.coingecko.com/coins/images/12124/small/Curve.png',
+    IMX:'https://assets.coingecko.com/coins/images/17233/small/immutableX-symbol-BLK-RGB.png',
+    FLOW:'https://assets.coingecko.com/coins/images/13446/small/5f6294c0c7a8cda55cb1c936_Flow_Wordmark.png',
+    ZEC:'https://assets.coingecko.com/coins/images/486/small/circle-zcash-color.png',
+    DASH:'https://assets.coingecko.com/coins/images/19/small/dash-logo.png',
+    KSM:'https://assets.coingecko.com/coins/images/9568/small/m4zRhP5e_400x400.jpg',
+    NEO:'https://assets.coingecko.com/coins/images/480/small/NEO_512_512.png',
+    KAVA:'https://assets.coingecko.com/coins/images/9761/small/kava.png',
+    FET:'https://assets.coingecko.com/coins/images/5681/small/Fetch.jpg',
+    W:'https://assets.coingecko.com/coins/images/35087/small/wormhole.png',
+    ZK:'https://assets.coingecko.com/coins/images/38043/small/ZKSyncLogo.jpeg',
+    STG:'https://assets.coingecko.com/coins/images/24413/small/STG_LOGO.png',
+    ORCA:'https://assets.coingecko.com/coins/images/17547/small/Orca_Logo.png',
+    MSTR:'https://assets.coingecko.com/coins/images/7230/small/logo.png',
+  };
   if(!window._frIconCache) window._frIconCache={};
-  const iconHtml=(sym)=>{
-    const id=_cgIds[sym];
-    const num=_cgIdNums[sym];
-    const coin=sym.replace('USDT','').toLowerCase();
-    // if we already resolved this dynamically, use it
-    if(window._frIconCache[sym]){
-      return `<img src="${window._frIconCache[sym]}" width="16" height="16" style="border-radius:50%;vertical-align:middle;margin-right:5px;flex-shrink:0;object-fit:cover" onerror="this.style.visibility='hidden'">`;
-    }
-    // known coin via coingecko CDN
-    if(id&&num){
-      const url=`https://assets.coingecko.com/coins/images/${num}/small/${id}.png`;
-      window._frIconCache[sym]=url;
-      return `<img src="${url}" width="16" height="16" style="border-radius:50%;vertical-align:middle;margin-right:5px;flex-shrink:0;object-fit:cover" onerror="this.style.visibility='hidden'">`;
-    }
-    // known slug but no numeric id — try coingecko by slug
-    if(id){
-      const url=`https://assets.coingecko.com/coins/images/1/small/${id}.png`;
-      // async resolve: fetch the real url via CG search then patch all matching imgs
-      if(!window._frIconPending) window._frIconPending=new Set();
-      if(!window._frIconPending.has(sym)){
-        window._frIconPending.add(sym);
-        fetch(`https://api.coingecko.com/api/v3/search?query=${coin}`)
-          .then(r=>r.json()).then(d=>{
-            const hit=(d.coins||[]).find(c=>c.symbol.toLowerCase()===coin);
-            if(hit&&hit.thumb){
-              // use large thumb — replace /thumb/ with /small/ if available
-              const imgUrl=hit.thumb.replace('/thumb/','/small/');
-              window._frIconCache[sym]=imgUrl;
-              // patch any existing img elements with this sym
-              document.querySelectorAll(`[data-fr-icon="${sym}"]`).forEach(el=>{ el.src=imgUrl; el.style.visibility=''; });
-            }
-          }).catch(()=>{});
+  const _imgTag=(url,sym)=>`<img src="${url}" data-fr-icon="${sym}" width="16" height="16" style="border-radius:50%;vertical-align:middle;margin-right:5px;flex-shrink:0;object-fit:cover" onerror="_frIconError(this,'${sym}')">`;
+  const _letterTag=(sym,coin)=>`<span data-fr-icon="${sym}" style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:var(--sf2,#1a1a1a);font-size:7px;font-weight:700;color:var(--tx2,#888);vertical-align:middle;margin-right:5px;flex-shrink:0">${coin.slice(0,2).toUpperCase()}</span>`;
+  // called when an img 404s — try next fallback chain
+  if(!window._frIconError){
+    window._frIconError=function(el,sym){
+      const coin=sym.replace('USDT','').toLowerCase();
+      const tried=el.dataset.tried||'';
+      if(!tried.includes('cg')&&_cgStatic[coin.toUpperCase()]){
+        el.dataset.tried=(tried||'')+'cg';
+        el.src=_cgStatic[coin.toUpperCase()];
+      } else if(!tried.includes('jsdelivr')){
+        el.dataset.tried=(tried||'')+'jsdelivr';
+        el.src=`https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons/32/color/${coin}.png`;
+      } else {
+        // all CDNs failed — replace with letter avatar
+        el.dataset.tried=(tried||'')+'fail';
+        const span=document.createElement('span');
+        span.setAttribute('data-fr-icon',sym);
+        span.style.cssText='display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:var(--sf2,#1a1a1a);font-size:7px;font-weight:700;color:var(--tx2,#888);vertical-align:middle;margin-right:5px;flex-shrink:0';
+        span.textContent=coin.slice(0,2).toUpperCase();
+        el.replaceWith(span);
       }
-      // placeholder letter avatar while loading
-      return `<span data-fr-icon="${sym}" style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:var(--sf2,#1a1a1a);font-size:7px;font-weight:700;color:var(--tx2,#666);vertical-align:middle;margin-right:5px;flex-shrink:0">${coin.slice(0,2).toUpperCase()}</span>`;
+    };
+  }
+  const iconHtml=(sym)=>{
+    const coin=sym.replace('USDT','').toLowerCase();
+    // cached url from previous render
+    if(window._frIconCache[sym]) return _imgTag(window._frIconCache[sym],sym);
+    // CoinGecko static map — most reliable for major coins
+    if(_cgStatic[coin.toUpperCase()]){
+      const url=_cgStatic[coin.toUpperCase()];
+      window._frIconCache[sym]=url;
+      return _imgTag(url,sym);
     }
-    // total unknown — async lookup via CG search API
-    if(!window._frIconPending) window._frIconPending=new Set();
-    if(!window._frIconPending.has(sym)){
-      window._frIconPending.add(sym);
-      fetch(`https://api.coingecko.com/api/v3/search?query=${coin}`)
-        .then(r=>r.json()).then(d=>{
-          const hit=(d.coins||[]).find(c=>c.symbol.toLowerCase()===coin);
-          if(hit&&hit.thumb){
-            const imgUrl=hit.thumb.replace('/thumb/','/small/');
-            window._frIconCache[sym]=imgUrl;
-            document.querySelectorAll(`[data-fr-icon="${sym}"]`).forEach(el=>{
-              if(el.tagName==='IMG'){ el.src=imgUrl; el.style.visibility=''; }
-              else {
-                const img=document.createElement('img');
-                img.src=imgUrl; img.width=16; img.height=16;
-                img.style.cssText='border-radius:50%;vertical-align:middle;margin-right:5px;flex-shrink:0;object-fit:cover';
-                el.replaceWith(img);
-              }
-            });
-          }
-        }).catch(()=>{});
-    }
-    // letter fallback while async resolves
-    return `<span data-fr-icon="${sym}" style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:var(--sf2,#1a1a1a);font-size:7px;font-weight:700;color:var(--tx2,#666);vertical-align:middle;margin-right:5px;flex-shrink:0">${coin.slice(0,2).toUpperCase()}</span>`;
+    // Binance CDN — covers every Binance-listed coin, instant, no API
+    const bnbUrl=_bnbIcon(coin);
+    window._frIconCache[sym]=bnbUrl; // optimistic cache; onerror chain handles failures
+    return _imgTag(bnbUrl,sym);
   };
 
   const rows=ordered.map(({sym,d,avg,diverge},i)=>{
