@@ -19170,6 +19170,16 @@ function jnRenderDetail(){
         <span class="${t.side==='long'?'jn-side-long':'jn-side-short'}" style="font-size:9px;padding:3px 9px">${(t.side||'').toUpperCase()}</span>
         ${t.leverage>1?`<span style="font-size:9px;color:#888;background:#1a1a1a;padding:2px 8px;border-radius:3px;border:1px solid #222;font-weight:700">${t.leverage}×</span>`:''}
         ${t.tf?`<span style="font-size:9px;color:#5b7fff;background:rgba(91,127,255,0.08);padding:2px 8px;border-radius:3px;border:1px solid rgba(91,127,255,0.2);font-weight:700">${t.tf}</span>`:''}
+        ${(()=>{
+          if(!t.tf) return '';
+          const m2=t.tf.match(/^(\d+(?:\.\d+)?)\s*(m|h|D|W)$/i);
+          if(!m2) return '';
+          const n=parseFloat(m2[1]),u=m2[2].toUpperCase();
+          const mins=u==='M'?n:u==='H'?n*60:u==='D'?n*1440:u==='W'?n*10080:0;
+          if(!mins) return '';
+          const v=mins<5?'⚡ scalper':mins<60?'🔥 intraday':mins<1440?'📈 swing':'🏔 position trader';
+          return `<span style="font-size:9px;color:#1D9E75;background:rgba(29,158,117,0.08);padding:2px 8px;border-radius:3px;border:1px solid rgba(29,158,117,0.2);font-weight:700">${v}</span>`;
+        })()}
         ${t.exitType?`<span style="font-size:9px;color:#EF9F27;background:rgba(239,159,39,0.08);padding:2px 8px;border-radius:3px;border:1px solid rgba(239,159,39,0.2);font-weight:700">${t.exitType}</span>`:''}
         ${outcomeLabel?`<span style="font-size:10px;font-weight:700;padding:2px 10px;border-radius:4px;background:${t.pnl>=0?'rgba(0,196,122,0.08)':'rgba(224,85,85,0.08)'};color:${outcomeColor}">${outcomeLabel}</span>`:''}
         ${t.emotion?`<span style="font-size:18px">${t.emotion}</span>`:''}
