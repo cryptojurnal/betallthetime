@@ -435,6 +435,8 @@ body.t-sunset{--bg:#160a04;--panel:#1e0e06;--bd:#2e1808;--bd2:#281408;--sf:#1e10
 
 /* ── CONFETTI ── */
 .confetti{position:fixed;width:10px;height:10px;top:-10px;z-index:99999;pointer-events:none}
+@keyframes frFlashUp{0%{background:rgba(0,232,122,0.25)}100%{background:transparent}}
+@keyframes frFlashDn{0%{background:rgba(255,68,102,0.25)}100%{background:transparent}}
 @keyframes confettiFall{0%{transform:translateY(0) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
 
 /* ── SOUND TOGGLE ── */
@@ -9939,6 +9941,8 @@ function renderGuide(){
 
 // ── FUNDING RATE MONITOR ──
 var _frData={};        // {symbol: {binance,bybit,okx,nextTs}}
+var _frPrevData={};    // snapshot before last fetch — for cell flash
+var _frSparkHistory={}; // {symbol: [{ts,rate},...]} last 24h from binance
 var _frPinned=new Set(JSON.parse(localStorage.getItem('batt_fr_pinned')||'[]'));
 var _frSearch='';
 var _frTimer=null;
@@ -9952,12 +9956,32 @@ async function frFetchAll(){
   _frFetching=true;
   _frLastFetch=Date.now();
   frSetStatus('fetching...');
+  // snapshot for cell flash
+  _frPrevData={};
+  Object.keys(_frData).forEach(s=>{ _frPrevData[s]={..._frData[s]}; });
   try{
     await Promise.allSettled([frFetchBinance(),frFetchBybit(),frFetchOKX(),frFetchGate()]);
+    // fetch sparkline history for defaults (last 24h from binance)
+    frFetchSparks();
   }catch(e){}
   _frFetching=false;
   frRender();
   frSetStatus('updated '+new Date().toLocaleTimeString());
+}
+
+async function frFetchSparks(){
+  const now=Date.now();
+  const start=now-24*60*60*1000;
+  await Promise.allSettled(_FR_DEFAULTS.map(async sym=>{
+    try{
+      const url=`https://fapi.binance.com/fapi/v1/fundingRate?symbol=${sym}&startTime=${start}&endTime=${now}&limit=20`;
+      const r=await fetch(url);
+      const d=await r.json();
+      if(Array.isArray(d)&&d.length>0){
+        _frSparkHistory[sym]=d.map(x=>({ts:parseInt(x.fundingTime),rate:parseFloat(x.fundingRate)*100}));
+      }
+    }catch(e){}
+  }));
 }
 
 async function frFetchBinance(){
@@ -10044,14 +10068,51 @@ function frSetFilter(f){
   frRender();
 }
 
-function frFmtRate(v, maxAbs){
-  if(v==null||isNaN(v)) return '<span style="color:#2a2a2a">—</span>';
+function frSparkSVG(sym){
+  const pts=_frSparkHistory[sym];
+  if(!pts||pts.length<2) return '<span style="color:#222;font-size:8px">—</span>';
+  const rates=pts.map(p=>p.rate);
+  const mn=Math.min(...rates), mx=Math.max(...rates);
+  const range=mx-mn||0.0001;
+  const W=56,H=18;
+  const coords=rates.map((r,i)=>{
+    const x=(i/(rates.length-1))*W;
+    const y=H-((r-mn)/range)*(H-2)-1;
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+  const last=rates[rates.length-1];
+  const col=last>0?'#00c47a':'#ff4466';
+  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="display:block"><polyline points="${coords}" fill="none" stroke="${col}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
+}
+
+function frCopyArb(sym,d,diverge){
+  const fee=gs()?.FEE||{maker:0.02,taker:0.05};
+  const vals=[[d.binance,'binance'],[d.bybit,'bybit'],[d.okx,'okx'],[d.gate,'gate.io']].filter(([v])=>v!=null);
+  if(vals.length<2){showToast('not enough exchange data to copy arb','info');return;}
+  vals.sort((a,b)=>b[0]-a[0]);
+  const [highRate,highEx]=vals[0];
+  const [lowRate,lowEx]=vals[vals.length-1];
+  const spread=(highRate-lowRate).toFixed(4);
+  const feeCost=(fee.taker*2).toFixed(4);
+  const intervalsNeeded=feeCost/spread;
+  const coin=sym.replace('USDT','');
+  const txt=`── arb setup: ${coin} ──\nshort ${coin} on ${highEx} → receive +${highRate.toFixed(4)}% funding\nlong  ${coin} on ${lowEx} → pay    +${lowRate.toFixed(4)}% funding\nnet spread per interval: +${spread}%\nfee cost (2× taker): ${feeCost}%\nbreak-even: ${intervalsNeeded<1?'< 1':intervalsNeeded.toFixed(1)} interval(s) to cover fees\nnote: rates reset every 8h — confirm spread still holds before entry`;
+  navigator.clipboard.writeText(txt).then(()=>showToast('arb setup copied to clipboard ✓','success',2500)).catch(()=>showToast('copy failed — check clipboard permissions','info'));
+}
+
+function frFmtRate(v, maxAbs, sym, exKey){
+  if(v==null||isNaN(v)) return '<span style="color:#333">—</span>';
   const abs=Math.abs(v);
   const c=v>0.1?'#00e87a':v>0.01?'#00c47a':v>0?'#4ecf8a':v<-0.1?'#ff4466':v<-0.01?'#e05555':'#aa3333';
   const sign=v>=0?'+':'';
   const barW=maxAbs>0?Math.min(100,abs/maxAbs*100):0;
   const barC=v>=0?'rgba(0,232,122,0.35)':'rgba(255,68,102,0.35)';
-  return `<div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px">
+  const prev=sym&&exKey&&_frPrevData[sym]?_frPrevData[sym][exKey]:null;
+  const changed=prev!=null&&Math.abs(v-prev)>0.00005;
+  const flashUp=changed&&v>prev;
+  const flashDn=changed&&v<prev;
+  const flashStyle=flashUp?'animation:frFlashUp .8s ease-out':flashDn?'animation:frFlashDn .8s ease-out':'';
+  return `<div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;${flashStyle}">
     <span style="color:${c};font-weight:700;font-size:11px">${sign}${v.toFixed(4)}%</span>
     <div style="width:48px;height:3px;background:#1a1a1a;border-radius:2px;overflow:hidden">
       <div style="width:${barW}%;height:100%;background:${barC};border-radius:2px;transition:width .3s"></div>
@@ -10151,6 +10212,9 @@ function frRender(){
     return `<button onclick="frSetFilter('${f}')" style="background:${active?'#5b7fff':'#111'};border:1px solid ${active?'#5b7fff':'#252525'};border-radius:5px;color:${active?'#fff':'#666'};font-size:9px;padding:4px 10px;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .15s">${labels[f]}</button>`;
   }).join('');
 
+  // coin icon map (coingecko)
+  const _frIcons={BTCUSDT:'https://assets.coingecko.com/coins/images/1/small/bitcoin.png',ETHUSDT:'https://assets.coingecko.com/coins/images/279/small/ethereum.png',BNBUSDT:'https://assets.coingecko.com/coins/images/825/small/bnb-icon2_2x.png',SOLUSDT:'https://assets.coingecko.com/coins/images/4128/small/solana.png',XRPUSDT:'https://assets.coingecko.com/coins/images/44/small/xrp-symbol-white-128.png',DOGEUSDT:'https://assets.coingecko.com/coins/images/5/small/dogecoin.png',ADAUSDT:'https://assets.coingecko.com/coins/images/975/small/cardano.png',AVAXUSDT:'https://assets.coingecko.com/coins/images/12559/small/Avalanche_Circle_RedWhite_Trans.png',SHIBUSDT:'https://assets.coingecko.com/coins/images/11939/small/shiba.png',LINKUSDT:'https://assets.coingecko.com/coins/images/877/small/chainlink-new-logo.png',LTCUSDT:'https://assets.coingecko.com/coins/images/2/small/litecoin.png',UNIUSDT:'https://assets.coingecko.com/coins/images/12504/small/uni.jpg',ATOMUSDT:'https://assets.coingecko.com/coins/images/1481/small/cosmos_hub.png',NEARUSDT:'https://assets.coingecko.com/coins/images/10365/small/near.jpg'};
+
   const rows=ordered.map(({sym,d,avg,diverge},i)=>{
     const isPinned=_frPinned.has(sym);
     const isDefault=_FR_DEFAULTS.includes(sym);
@@ -10160,24 +10224,42 @@ function frRender(){
     const heatBg=avg==null?'':avg>0
       ?`rgba(0,196,122,${heat*0.06})`
       :`rgba(224,85,85,${heat*0.06})`;
-    // divergence badge
-    const divBadge=diverge>0.05?`<span style="font-size:7px;background:rgba(239,159,39,0.15);color:#EF9F27;padding:1px 4px;border-radius:3px;margin-left:4px;font-weight:700">div</span>`:'';
-    return `${showDivider?'<tr><td colspan="8" style="height:1px;background:#1a1a1a;padding:0"></td></tr>':''}
+    // arb spread: max - min across available exchanges
+    const exVals=[[d.binance,'binance'],[d.bybit,'bybit'],[d.okx,'okx'],[d.gate,'gate']].filter(([v])=>v!=null);
+    const spread=exVals.length>=2?Math.max(...exVals.map(([v])=>v))-Math.min(...exVals.map(([v])=>v)):null;
+    const fee=typeof gs==='function'?(gs()?.FEE?.taker||0.05):0.05;
+    const spreadFmt=spread!=null
+      ?`<div style="display:flex;flex-direction:column;align-items:flex-end;gap:1px">
+          <span style="color:${spread>fee*2?'#EF9F27':spread>0.01?'#888':'#333'};font-weight:700;font-size:10px">${spread>0?'+':''} ${spread.toFixed(4)}%</span>
+          ${spread>fee*2?`<span style="font-size:7px;color:#EF9F27;opacity:.7">arb ok</span>`:`<span style="font-size:7px;color:#333">fee: ${(fee*2).toFixed(3)}%</span>`}
+        </div>`
+      :'<span style="color:#222">—</span>';
+    // divergence badge + copy arb button
+    const hasDiv=diverge>0.05;
+    const divBadge=hasDiv?`<span style="font-size:7px;background:rgba(239,159,39,0.15);color:#EF9F27;padding:1px 4px;border-radius:3px;margin-left:4px;font-weight:700;cursor:pointer" title="copy arb setup" onclick="frCopyArb('${sym}',_frData['${sym}']||{},${diverge.toFixed(5)})">div ⧉</span>`:'';
+    // coin icon
+    const iconUrl=_frIcons[sym];
+    const iconHtml=iconUrl?`<img src="${iconUrl}" width="14" height="14" style="border-radius:50%;vertical-align:middle;margin-right:4px;opacity:.85" onerror="this.style.display='none'">`:'';
+    // sparkline
+    const spark=frSparkSVG(sym);
+    return `${showDivider?'<tr><td colspan="10" style="height:1px;background:#1a1a1a;padding:0"></td></tr>':''}
     <tr style="border-bottom:1px solid #0f0f0f;background:${isPinned?'rgba(91,127,255,0.05)':heatBg};transition:background .15s" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background='${isPinned?'rgba(91,127,255,0.05)':heatBg}'">
       <td style="padding:6px 8px;white-space:nowrap">
         <button onclick="frTogglePin('${sym}')" title="${isPinned?'unpin':'pin'}"
           style="background:none;border:none;cursor:pointer;font-size:10px;padding:0 4px 0 0;opacity:${isPinned?'1':'0.2'};transition:opacity .15s"
           onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='${isPinned?'1':'0.2'}'">📌</button>
-        <span style="font-size:11px;font-weight:700;color:${isPinned?'#5b7fff':isDefault?'#bbb':'#666'}">${sym.replace('USDT','')}</span>
+        ${iconHtml}<span style="font-size:11px;font-weight:700;color:${isPinned?'#5b7fff':isDefault?'#ddd':'#666'}">${sym.replace('USDT','')}</span>
         <span style="font-size:8px;color:#2a2a2a">/USDT</span>
         ${divBadge}
       </td>
-      <td style="padding:6px 10px;text-align:right">${frFmtRate(d.binance,maxAbs)}</td>
-      <td style="padding:6px 10px;text-align:right">${frFmtRate(d.bybit,maxAbs)}</td>
-      <td style="padding:6px 10px;text-align:right">${frFmtRate(d.okx,maxAbs)}</td>
-      <td style="padding:6px 10px;text-align:right">${frFmtRate(d.gate,maxAbs)}</td>
-      <td style="padding:6px 10px;text-align:right;border-left:1px solid #1a1a1a">${avg!=null?frFmtRate(avg,maxAbs):'<span style="color:#2a2a2a">—</span>'}</td>
+      <td style="padding:4px 6px;text-align:center">${spark}</td>
+      <td style="padding:6px 10px;text-align:right">${frFmtRate(d.binance,maxAbs,sym,'binance')}</td>
+      <td style="padding:6px 10px;text-align:right">${frFmtRate(d.bybit,maxAbs,sym,'bybit')}</td>
+      <td style="padding:6px 10px;text-align:right">${frFmtRate(d.okx,maxAbs,sym,'okx')}</td>
+      <td style="padding:6px 10px;text-align:right">${frFmtRate(d.gate,maxAbs,sym,'gate')}</td>
+      <td style="padding:6px 10px;text-align:right;border-left:1px solid #1a1a1a">${avg!=null?frFmtRate(avg,maxAbs,sym,'avg'):'<span style="color:#222">—</span>'}</td>
       <td style="padding:6px 10px;text-align:right">${frFmtAnnualized(avg)}</td>
+      <td style="padding:6px 10px;text-align:right">${spreadFmt}</td>
       <td style="padding:6px 10px;text-align:right;font-size:10px">${frFmtCountdown(d.nextTs)}</td>
     </tr>`;
   }).join('');
@@ -10194,31 +10276,33 @@ function frRender(){
       <div style="display:flex;gap:4px;flex-wrap:wrap">${filterBtns}</div>
       <button onclick="frFetchAll()" style="background:#111;border:1px solid #1e1e1e;border-radius:6px;color:#555;font-size:10px;padding:5px 10px;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .15s"
         onmouseover="this.style.color='#ccc'" onmouseout="this.style.color='#555'">↻ refresh</button>
-      <span id="fr-status" style="font-size:9px;color:#2a2a2a"></span>
-      <span style="font-size:9px;color:#222;margin-left:auto;white-space:nowrap">auto 30s · 📌${_frPinned.size}</span>
+      <span id="fr-status" style="font-size:9px;color:#444"></span>
+      <span style="font-size:9px;color:#333;margin-left:auto;white-space:nowrap">auto 30s · 📌${_frPinned.size}</span>
     </div>
     <div style="overflow-x:auto;border:1px solid #141414;border-radius:8px">
       <table style="width:100%;border-collapse:collapse;font-size:11px">
         <thead>
           <tr>
             <th style="${thBase};text-align:left;cursor:default">symbol</th>
+            <th style="${thBase};cursor:default;text-align:center">24h</th>
             <th style="${thBase};${_frSortCol==='binance'?thAct:''}" onclick="frSortBy('binance')">binance${sortArrow('binance')}</th>
             <th style="${thBase};${_frSortCol==='bybit'?thAct:''}" onclick="frSortBy('bybit')">bybit${sortArrow('bybit')}</th>
             <th style="${thBase};${_frSortCol==='okx'?thAct:''}" onclick="frSortBy('okx')">okx${sortArrow('okx')}</th>
             <th style="${thBase};${_frSortCol==='gate'?thAct:''}" onclick="frSortBy('gate')">gate.io${sortArrow('gate')}</th>
             <th style="${thBase};${_frSortCol==='avg'?thAct:''};border-left:1px solid #1a1a1a" onclick="frSortBy('avg')">avg${sortArrow('avg')}</th>
             <th style="${thBase};${_frSortCol==='annualized'?thAct:''}" onclick="frSortBy('annualized')">annualized${sortArrow('annualized')}</th>
+            <th style="${thBase};color:#EF9F27;cursor:default" title="max–min spread across exchanges. click 'div' badge to copy arb setup">arb spread</th>
             <th style="${thBase};cursor:default">next fund.</th>
           </tr>
         </thead>
         <tbody>
-          ${rows||'<tr><td colspan="8" style="text-align:center;padding:40px;color:#2a2a2a;font-size:12px">fetching rates...</td></tr>'}
+          ${rows||'<tr><td colspan="10" style="text-align:center;padding:40px;color:#333;font-size:12px">fetching rates...</td></tr>'}
         </tbody>
       </table>
     </div>
-    <div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center">
-      <span style="font-size:8px;color:#1e1e1e">+ = longs pay shorts · − = shorts pay longs · div = exchange divergence · annualized = rate × 3 × 365</span>
-      <span style="font-size:8px;color:#1e1e1e">binance · bybit · okx · gate.io</span>
+    <div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px">
+      <span style="font-size:8px;color:#2a2a2a">+ = longs pay shorts · − = shorts pay longs · div ⧉ = click to copy arb setup · arb spread = max–min across exchanges</span>
+      <span style="font-size:8px;color:#2a2a2a">press <kbd style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:3px;padding:0 3px;font-size:7px">F</kbd> to jump here</span>
     </div>`;
 }
 
@@ -14834,14 +14918,17 @@ function tpCalcROE(pos, currentPrice){
 // ── CEX STANDARD: ACCRUED FUNDING ──
 function tpCalcFunding(pos){
   if(!pos || pos.marketType === 'spot') return 0;
-  const fundingRate   = TP_STATE.fundingRates[pos.pair] ?? CEX_FEES[TP_STATE.exchange]?.defaultFunding ?? 0.01;
+  // prefer live rate from funding monitor (_frData) if available, fallback to TP_STATE cache, then default
+  const liveEx = TP_STATE.exchange==='binance'?'binance':TP_STATE.exchange==='bybit'?'bybit':TP_STATE.exchange==='okx'?'okx':null;
+  const liveRate = liveEx&&_frData[pos.pair]&&_frData[pos.pair][liveEx]!=null
+    ? _frData[pos.pair][liveEx]
+    : (TP_STATE.fundingRates[pos.pair] ?? (CEX_FEES[TP_STATE.exchange]?.defaultFunding ?? 0.01));
+  const fundingRate = liveRate;
   const hoursSinceOpen = (Date.now() - pos.openedAt) / 3600000;
   const interval       = CEX_FEES[TP_STATE.exchange]?.fundingInterval || 8;
   const fundingPeriods = Math.floor(hoursSinceOpen / interval);
   if(fundingPeriods === 0) return 0;
   const notional = pos.size;
-  // Positive funding rate: longs PAY, shorts RECEIVE
-  // Negative funding rate: longs RECEIVE, shorts PAY
   const sign = pos.side === 'long' ? -1 : 1;
   return sign * notional * (fundingRate / 100) * fundingPeriods;
 }
@@ -17456,6 +17543,14 @@ document.addEventListener('keydown', (e) => {
     return;
   }
   
+  // F for funding rates tab
+  if (e.key === 'f' || e.key === 'F') {
+    e.preventDefault();
+    const fundBtn = document.querySelector('#vt .tb[onclick*="fund"]');
+    if (fundBtn) fundBtn.click();
+    return;
+  }
+
   // Tab for presets panel
   if (e.key === 'Tab' && !e.shiftKey) {
     e.preventDefault();
