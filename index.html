@@ -1,4 +1,4 @@
-\<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -8466,6 +8466,7 @@ function toggleMonth(m){
   if(btn){btn.classList.toggle('open',!isOpen);btn.classList.toggle('closed',isOpen);}
 }
 function toggleZeroMonth(m){
+  _captureUndo();const s=gs();
   if(s.ZM.has(m)) s.ZM.delete(m);
   else s.ZM.add(m);
   try{localStorage.setItem('batt_'+TAB+'_zero',JSON.stringify({ZM:[...s.ZM]}));}catch(e){}
@@ -8499,11 +8500,8 @@ function toggleGlobal(){
   _silentCloudSync();
   const _pr=document.querySelector('.panel-right');
   const _sy=_pr?_pr.scrollTop:0;
-  const _rc=document.getElementById('right-content');
-  if(_rc){_rc.style.opacity='.5';}
-  render();
+  softUpdate();
   if(_pr) _pr.scrollTop=_sy;
-  if(_rc){requestAnimationFrame(()=>{_rc.style.opacity='1';});}
 }
 
 // ── QUICK APPLY ──
@@ -12095,7 +12093,8 @@ async function clearAllPresets(){
     }
     
     showToast('All presets deleted','info');
-    loadAccountTab();
+    presetRenderList();
+    if(typeof updateMemberStats==='function') updateMemberStats();
     
   }catch(e){
     showToast('Failed to delete presets','error');
