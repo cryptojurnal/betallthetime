@@ -9978,6 +9978,8 @@ async function frFetchSparks(){
       }
     }catch(e){}
   }));
+  // re-render once sparks are ready so the 24h column fills in
+  if(VIEW==='fund') frRender();
 }
 
 async function frFetchBinance(){
@@ -10078,7 +10080,7 @@ function frSetFilter(f){
 
 function frSparkSVG(sym){
   const pts=_frSparkHistory[sym];
-  if(!pts||pts.length<2) return '<span style="color:#222;font-size:8px">—</span>';
+  if(!pts||pts.length<2) return '<div style="width:56px;height:18px;background:var(--sf,#181818);border-radius:3px;animation:skeleton-pulse 1.4s ease infinite"></div>';
   const rates=pts.map(p=>p.rate);
   const mn=Math.min(...rates), mx=Math.max(...rates);
   const range=mx-mn||0.0001;
@@ -10109,7 +10111,9 @@ function frCopyArb(sym,d,diverge){
 }
 
 function frFmtRate(v, maxAbs, sym, exKey){
-  if(v==null||isNaN(v)) return '<span style="color:#333">—</span>';
+  if(v==null||isNaN(v)) return _frFetching
+    ?'<div style="width:52px;height:14px;background:var(--sf,#181818);border-radius:3px;animation:skeleton-pulse 1.4s ease infinite;margin-left:auto"></div>'
+    :'<span style="color:var(--tx3,#333)">—</span>';
   const abs=Math.abs(v);
   const c=v>0.1?'#00e87a':v>0.01?'#00c47a':v>0?'#4ecf8a':v<-0.1?'#ff4466':v<-0.01?'#e05555':'#aa3333';
   const sign=v>=0?'+':'';
@@ -10122,7 +10126,7 @@ function frFmtRate(v, maxAbs, sym, exKey){
   const flashStyle=flashUp?'animation:frFlashUp .8s ease-out':flashDn?'animation:frFlashDn .8s ease-out':'';
   return `<div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;${flashStyle}">
     <span style="color:${c};font-weight:700;font-size:11px">${sign}${v.toFixed(4)}%</span>
-    <div style="width:48px;height:3px;background:#1a1a1a;border-radius:2px;overflow:hidden">
+    <div style="width:48px;height:3px;background:var(--bd,#1a1a1a);border-radius:2px;overflow:hidden">
       <div style="width:${barW}%;height:100%;background:${barC};border-radius:2px;transition:width .3s"></div>
     </div>
   </div>`;
@@ -10328,7 +10332,9 @@ function frRender(){
 function frInit(){
   _FR_DEFAULTS.forEach(s=>{ if(!_frData[s]) _frData[s]={}; });
   frRender();
+  // fire both in parallel — sparks will re-render when done
   frFetchAll();
+  frFetchSparks();
   if(_frTimer) clearInterval(_frTimer);
   _frTimer=setInterval(()=>{
     if(VIEW==='fund') frFetchAll();
