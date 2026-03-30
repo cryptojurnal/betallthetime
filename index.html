@@ -7041,6 +7041,9 @@ function ljSyncExitType(val){
   // also update table row dropdown if visible
   const sel=document.querySelector(`select[onchange="onTradeExit(${m},${tno},this.value)"]`);
   if(sel) sel.value=val;
+  // show/hide SL+RR section
+  const slRr=document.getElementById('lj-sl-rr-section');
+  if(slRr) slRr.style.display=val==='price'?'block':'none';
   _silentCloudSync();
 }
 
@@ -7266,6 +7269,23 @@ function ljFormatMoneyInput(el){
   el.setSelectionRange(newPos,newPos);
 }
 
+function ljCalcRR(){
+  const rrEl=document.getElementById('lj-rr-display');
+  if(!rrEl) return;
+  const entry=parseFloat(document.getElementById('lj-entry')?.dataset.raw)||0;
+  const exit=parseFloat(document.getElementById('lj-exit')?.dataset.raw)||0;
+  const sl=parseFloat(document.getElementById('lj-sl')?.dataset.raw)||0;
+  if(!entry||!exit||!sl){rrEl.textContent='—';rrEl.style.color='#888';return;}
+  const side=window._ljSide||'long';
+  const reward=side==='long'?(exit-entry):(entry-exit);
+  const risk=side==='long'?(entry-sl):(sl-entry);
+  if(risk<=0){rrEl.textContent='SL wrong side';rrEl.style.color='#e05555';return;}
+  if(reward<=0){rrEl.textContent='exit wrong side';rrEl.style.color='#e05555';return;}
+  const rr=reward/risk;
+  rrEl.textContent='1 : '+rr.toFixed(2);
+  rrEl.style.color=rr>=2?'#00c47a':rr>=1?'#EF9F27':'#e05555';
+}
+
 function ljSyncActualMargin(notVal){
   const s=gs();
   const leverage=s.SPOT?1:s.LEV;
@@ -7414,14 +7434,14 @@ function ljShowLockModal(m, tno, draft=null){
       <span style="font-size:9px;background:rgba(91,127,255,0.1);color:#5b7fff;padding:1px 7px;border-radius:3px;border:1px solid rgba(91,127,255,0.2);font-weight:700">row #${_rowNo}</span>
     </div>
 
-    <!-- ROW 1: COCKPIT DATA (left) + SIDE TOGGLE (right) -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;align-items:stretch">
-      <!-- cockpit data -->
+    <!-- ROW 1: COCKPIT DATA (70%) + SIDE/TF/SL/RR (30%) -->
+    <div style="display:grid;grid-template-columns:7fr 3fr;gap:12px;margin-bottom:16px;align-items:stretch">
+      <!-- cockpit data (70%) -->
       <div style="background:#0f0f0f;border:1px solid #1e1e1e;border-radius:8px;padding:14px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
         <div><div style="font-size:8px;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">mode (lev)</div>
           <div style="font-size:11px;font-weight:700;color:#aaa">${s.SPOT?'spot ◈':`leverage · ${leverage}×`}</div>
         </div>
-        <div><div style="font-size:8px;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">proj. notional</div><div style="font-size:11px;font-weight:700;color:#888">$${notional.toLocaleString('en',{maximumFractionDigits:2})}</div></div>
+        <div><div style="font-size:8px;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">proj. notional</div><div style="font-size:11px;font-weight:700;color:#888">$${Math.round(notional).toLocaleString('en-US')}</div></div>
         <div><div style="font-size:8px;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">proj. margin</div><div style="font-size:11px;font-weight:700;color:#888">$${Math.round(margin).toLocaleString('en-US')}</div></div>
         <div><div style="font-size:8px;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">target</div><div style="font-size:11px;font-weight:700;color:#00c47a">${tgt.toFixed(2)}%</div></div>
         <div style="grid-column:span 2">
@@ -7435,7 +7455,7 @@ function ljShowLockModal(m, tno, draft=null){
         </div>
         <div>
           <div style="font-size:8px;color:#5b7fff;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">actual notional</div>
-          <input type="text" id="lj-actual-not" placeholder="${notional.toLocaleString('en-US',{maximumFractionDigits:0})}" inputmode="decimal"
+          <input type="text" id="lj-actual-not" placeholder="${Math.round(notional).toLocaleString('en-US')}" inputmode="decimal"
             style="width:100%;background:#0a0a0a;border:1px solid #1e3a6a;border-radius:4px;padding:3px 5px;font-size:10px;font-weight:700;color:#5b7fff;font-family:inherit"
             oninput="ljFormatMoneyInput(this);ljSyncActualMargin(this.dataset.raw);ljCalc()">
         </div>
@@ -7446,45 +7466,59 @@ function ljShowLockModal(m, tno, draft=null){
           <div style="font-size:8px;color:#888" id="lj-fee-rate-val">${feeRate}% ${s.FEE.method}</div>
         </div>
       </div>
-      <!-- side toggle -->
-      <div style="background:#0f0f0f;border:1px solid #1e1e1e;border-radius:8px;padding:14px;display:flex;flex-direction:column;justify-content:center">
-        <div style="font-size:8px;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;font-weight:700">side <span style="color:#e05555">*</span></div>
-        ${s.SPOT
-          ?`<div style="background:#0d0d0d;border:1px solid #1a1a1a;border-radius:7px;padding:12px;text-align:center">
-              <div style="font-size:18px;margin-bottom:4px">◈</div>
-              <div style="font-size:10px;color:#2a5a3a;font-weight:700">spot — long only</div>
-              <div style="font-size:8px;color:#2a2a2a;margin-top:2px">no short in spot mode</div>
-            </div>`
-          :`<div style="display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid #252525;border-radius:7px;overflow:hidden">
-              <button id="ljside-long" onclick="ljSetSide('long');ljFetchFundingDebounced()" style="padding:8px 6px;border:none;background:#0d1a10;color:#00c47a;font-size:11px;font-weight:800;cursor:pointer;outline:none;font-family:inherit;letter-spacing:.05em;border-right:1px solid #252525;transition:background .12s">▲ LONG</button>
-              <button id="ljside-short" onclick="ljSetSide('short');ljFetchFundingDebounced()" style="padding:8px 6px;border:none;background:#1a0d0d;color:#e05555;font-size:11px;font-weight:800;cursor:pointer;outline:none;font-family:inherit;letter-spacing:.05em;transition:background .12s">▼ SHORT</button>
-            </div>
-            <div id="lj-side-indicator" style="height:3px;border-radius:0 0 6px 6px;background:#00c47a;transition:all .15s;display:none"></div>`
-        }
-        <div style="margin-top:12px;border-top:1px solid #1e1e1e;padding-top:12px">
+      <!-- side + timeframe + SL/RR (30%) -->
+      <div style="background:#0f0f0f;border:1px solid #1e1e1e;border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:12px">
+        <!-- side -->
+        <div>
+          <div style="font-size:8px;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:700">side <span style="color:#e05555">*</span></div>
+          ${s.SPOT
+            ?`<div style="background:#0d0d0d;border:1px solid #1a1a1a;border-radius:7px;padding:8px;text-align:center">
+                <div style="font-size:10px;color:#2a5a3a;font-weight:700">◈ spot — long only</div>
+              </div>`
+            :`<div style="display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid #252525;border-radius:7px;overflow:hidden">
+                <button id="ljside-long" onclick="ljSetSide('long');ljFetchFundingDebounced()" style="padding:7px 4px;border:none;background:#0d1a10;color:#00c47a;font-size:10px;font-weight:800;cursor:pointer;outline:none;font-family:inherit;letter-spacing:.05em;border-right:1px solid #252525;transition:background .12s">▲ LONG</button>
+                <button id="ljside-short" onclick="ljSetSide('short');ljFetchFundingDebounced()" style="padding:7px 4px;border:none;background:#1a0d0d;color:#e05555;font-size:10px;font-weight:800;cursor:pointer;outline:none;font-family:inherit;letter-spacing:.05em;transition:background .12s">▼ SHORT</button>
+              </div>
+              <div id="lj-side-indicator" style="height:3px;border-radius:0 0 6px 6px;background:#00c47a;transition:all .15s;display:none"></div>`
+          }
+        </div>
+        <!-- timeframe -->
+        <div>
           <div style="font-size:8px;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:700">timeframe <span style="color:#e05555">*</span></div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:6px">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:4px">
             <select id="lj-tf" onchange="ljUpdateTfVerdict('preset',this.value)"
-              style="width:100%;background:#111;border:1px solid #252525;border-radius:7px;color:#ccc;font-size:12px;padding:7px 10px;font-family:inherit;outline:none;cursor:pointer;color-scheme:dark;box-sizing:border-box">
+              style="width:100%;background:#111;border:1px solid #252525;border-radius:7px;color:#ccc;font-size:11px;padding:6px 8px;font-family:inherit;outline:none;cursor:pointer;color-scheme:dark;box-sizing:border-box">
               <option value="">— preset —</option>
-              <option value="1m">1m</option>
-              <option value="3m">3m</option>
-              <option value="5m">5m</option>
-              <option value="15m">15m</option>
-              <option value="30m">30m</option>
-              <option value="45m">45m</option>
-              <option value="1h">1h</option>
-              <option value="2h">2h</option>
-              <option value="3h">3h</option>
-              <option value="4h">4h</option>
-              <option value="1D">1D</option>
-              <option value="1W">1W</option>
+              <option value="1m">1m</option><option value="3m">3m</option><option value="5m">5m</option>
+              <option value="15m">15m</option><option value="30m">30m</option><option value="45m">45m</option>
+              <option value="1h">1h</option><option value="2h">2h</option><option value="3h">3h</option>
+              <option value="4h">4h</option><option value="1D">1D</option><option value="1W">1W</option>
             </select>
-            <input id="lj-tf-custom" type="text" placeholder="custom e.g. 6h"
-              style="width:100%;background:#111;border:1px solid #252525;border-radius:7px;color:#ccc;font-size:12px;padding:7px 10px;font-family:inherit;outline:none;box-sizing:border-box;transition:opacity .15s"
+            <input id="lj-tf-custom" type="text" placeholder="e.g. 6h"
+              style="width:100%;background:#111;border:1px solid #252525;border-radius:7px;color:#ccc;font-size:11px;padding:6px 8px;font-family:inherit;outline:none;box-sizing:border-box"
               oninput="ljUpdateTfVerdict('custom',this.value)">
           </div>
-          <div id="lj-tf-verdict" style="font-size:10px;color:#555;min-height:16px"></div>
+          <div id="lj-tf-verdict" style="font-size:9px;color:#555;min-height:14px"></div>
+        </div>
+        <!-- SL + RR — only shown for price-based exit -->
+        <div id="lj-sl-rr-section" style="display:none;border-top:1px solid #1e1e1e;padding-top:10px">
+          <div style="font-size:8px;color:#EF9F27;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;font-weight:700">price exit</div>
+          <div style="margin-bottom:8px">
+            <div style="font-size:8px;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">stop loss <span style="color:#e05555">*</span></div>
+            <div style="position:relative">
+              <span style="position:absolute;left:8px;top:50%;transform:translateY(-50%);color:#444;font-size:11px;pointer-events:none">$</span>
+              <input id="lj-sl" type="text" inputmode="decimal" placeholder="0"
+                style="width:100%;background:#111;border:1px solid #252525;border-radius:6px;color:#e05555;font-size:12px;font-weight:700;padding:7px 8px 7px 20px;font-family:inherit;outline:none;box-sizing:border-box;transition:border-color .15s"
+                oninput="ljFormatMoneyInput(this);ljCalcRR()"
+                onfocus="this.style.borderColor='#e05555'"
+                onblur="this.style.borderColor='#252525'">
+            </div>
+          </div>
+          <div>
+            <div style="font-size:8px;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">risk/reward</div>
+            <div id="lj-rr-display" style="font-size:14px;font-weight:800;color:#888;padding:6px 0">—</div>
+            <div style="font-size:8px;color:#444">auto from entry · SL · exit</div>
+          </div>
         </div>
       </div>
     </div>
@@ -7572,22 +7606,22 @@ function ljShowLockModal(m, tno, draft=null){
         <div style="font-size:8px;color:#666;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:700">entry price <span style="color:#e05555">*</span></div>
         <div style="position:relative">
           <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#333;font-size:13px;font-weight:700;pointer-events:none">$</span>
-          <input id="lj-entry" type="number" step="any" placeholder="0.00"
-            style="width:100%;background:#111;border:1px solid #252525;border-radius:7px;color:#e8e8e8;font-size:15px;font-weight:700;padding:11px 10px 11px 24px;font-family:inherit;outline:none;box-sizing:border-box;transition:border-color .15s;-moz-appearance:textfield"
-            oninput="ljCalc();this.style.borderColor=this.value?'#00c47a':'#252525'"
+          <input id="lj-entry" type="text" inputmode="decimal" placeholder="0"
+            style="width:100%;background:#111;border:1px solid #252525;border-radius:7px;color:#e8e8e8;font-size:15px;font-weight:700;padding:11px 10px 11px 24px;font-family:inherit;outline:none;box-sizing:border-box;transition:border-color .15s"
+            oninput="ljFormatMoneyInput(this);ljCalc();ljCalcRR();this.style.borderColor=this.dataset.raw>0?'#00c47a':'#252525'"
             onfocus="this.style.borderColor='#00c47a'"
-            onblur="this.style.borderColor=this.value?'#2a4a3a':'#252525'">
+            onblur="this.style.borderColor=this.dataset.raw>0?'#2a4a3a':'#252525'">
         </div>
       </div>
       <div>
         <div style="font-size:8px;color:#666;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;font-weight:700">exit price <span style="color:#e05555">*</span></div>
         <div style="position:relative">
           <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#333;font-size:13px;font-weight:700;pointer-events:none">$</span>
-          <input id="lj-exit" type="number" step="any" placeholder="0.00"
-            style="width:100%;background:#111;border:1px solid #252525;border-radius:7px;color:#e8e8e8;font-size:15px;font-weight:700;padding:11px 10px 11px 24px;font-family:inherit;outline:none;box-sizing:border-box;transition:border-color .15s;-moz-appearance:textfield"
-            oninput="ljCalc();this.style.borderColor=this.value?'#00c47a':'#252525'"
+          <input id="lj-exit" type="text" inputmode="decimal" placeholder="0"
+            style="width:100%;background:#111;border:1px solid #252525;border-radius:7px;color:#e8e8e8;font-size:15px;font-weight:700;padding:11px 10px 11px 24px;font-family:inherit;outline:none;box-sizing:border-box;transition:border-color .15s"
+            oninput="ljFormatMoneyInput(this);ljCalc();ljCalcRR();this.style.borderColor=this.dataset.raw>0?'#00c47a':'#252525'"
             onfocus="this.style.borderColor='#00c47a'"
-            onblur="this.style.borderColor=this.value?'#2a4a3a':'#252525'">
+            onblur="this.style.borderColor=this.dataset.raw>0?'#2a4a3a':'#252525'">
         </div>
       </div>
     </div>
@@ -7798,8 +7832,8 @@ function ljSetSide(side){
 }
 
 function ljCalc(){
-  const entry=parseFloat(document.getElementById('lj-entry')?.value)||0;
-  const exit=parseFloat(document.getElementById('lj-exit')?.value)||0;
+  const entry=parseFloat(document.getElementById('lj-entry')?.dataset.raw)||0;
+  const exit=parseFloat(document.getElementById('lj-exit')?.dataset.raw)||0;
   if(!entry||!exit){document.getElementById('lj-calc').style.display='none';return;}
 
   const s=gs();
@@ -8002,8 +8036,8 @@ function ljPreviewTV(url, wrapId){
 async function ljConfirmLock(){
   const s=gs();
   const {m,tno}=_ljPending;
-  const entry=parseFloat(document.getElementById('lj-entry')?.value)||0;
-  const exit=parseFloat(document.getElementById('lj-exit')?.value)||0;
+  const entry=parseFloat(document.getElementById('lj-entry')?.dataset.raw)||0;
+  const exit=parseFloat(document.getElementById('lj-exit')?.dataset.raw)||0;
   // validation
   const errEl=document.getElementById('lj-error');
   const _tfSelV=document.getElementById('lj-tf')?.value||'';
@@ -8131,6 +8165,8 @@ async function ljConfirmLock(){
     notePsych,
     tf,
     exitType,
+    sl:parseFloat(document.getElementById('lj-sl')?.dataset.raw)||null,
+    rr:(()=>{const rrEl=document.getElementById('lj-rr-display');return rrEl&&rrEl.textContent.startsWith('1 :')?rrEl.textContent:null;})(),
     emotion,
     source:'cockpit',
     tvUrl,
@@ -8239,7 +8275,7 @@ async function ljSaveDraft(){
 async function ljSaveDraftCore(){
   const s=gs();
   const {m,tno}=_ljPending;
-  const entry=parseFloat(document.getElementById('lj-entry')?.value)||0;
+  const entry=parseFloat(document.getElementById('lj-entry')?.dataset.raw)||0;
   const errEl=document.getElementById('lj-error');
   if(!entry){
     const el=document.getElementById('lj-entry');
@@ -19181,6 +19217,8 @@ function jnRenderDetail(){
           return `<span style="font-size:9px;color:#1D9E75;background:rgba(29,158,117,0.08);padding:2px 8px;border-radius:3px;border:1px solid rgba(29,158,117,0.2);font-weight:700">${v}</span>`;
         })()}
         ${t.exitType?`<span style="font-size:9px;color:#EF9F27;background:rgba(239,159,39,0.08);padding:2px 8px;border-radius:3px;border:1px solid rgba(239,159,39,0.2);font-weight:700">${t.exitType}</span>`:''}
+        ${t.sl?`<span style="font-size:9px;color:#e05555;background:rgba(224,85,85,0.08);padding:2px 8px;border-radius:3px;border:1px solid rgba(224,85,85,0.2);font-weight:700">SL $${parseFloat(t.sl).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:4})}</span>`:''}
+        ${t.rr?`<span style="font-size:9px;color:#5b7fff;background:rgba(91,127,255,0.08);padding:2px 8px;border-radius:3px;border:1px solid rgba(91,127,255,0.2);font-weight:700">RR ${t.rr}</span>`:''}
         ${outcomeLabel?`<span style="font-size:10px;font-weight:700;padding:2px 10px;border-radius:4px;background:${t.pnl>=0?'rgba(0,196,122,0.08)':'rgba(224,85,85,0.08)'};color:${outcomeColor}">${outcomeLabel}</span>`:''}
         ${t.emotion?`<span style="font-size:18px">${t.emotion}</span>`:''}
         <span style="font-size:9px;color:#2a2a2a;margin-left:auto">${dateStr}</span>
