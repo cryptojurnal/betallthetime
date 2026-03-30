@@ -8240,22 +8240,15 @@ function ljGetDraftKey(m, tno){
 }
 
 function ljFindDraft(m, tno){
-  // find a draft trade in JN for this cockpit slot
-  // only search current preset's folder — don't bleed across presets
-  const activeFolderId=window._ACTIVE_PRESET
-    ? (JN.folders.find(f=>f.name===window._ACTIVE_PRESET.name)||{}).id
-    : null;
-  const folderIds=activeFolderId
-    ? [activeFolderId]
-    : Object.keys(JN.trades||{});
-  for(const fid of folderIds){
-    const found=(JN.trades[fid]||[]).find(t=>
-      t.status==='draft'&&t.cockpit&&
-      t.cockpit.tab===TAB&&t.cockpit.month===m&&t.cockpit.tradeNo===tno
-    );
-    if(found) return {trade:found, folderId:fid};
-  }
-  return null;
+  // no active preset = no draft context — never show drafts without preset
+  if(!window._ACTIVE_PRESET) return null;
+  const activeFolderId=(JN.folders.find(f=>f.name===window._ACTIVE_PRESET.name)||{}).id;
+  if(!activeFolderId) return null;
+  const found=(JN.trades[activeFolderId]||[]).find(t=>
+    t.status==='draft'&&t.cockpit&&
+    t.cockpit.tab===TAB&&t.cockpit.month===m&&t.cockpit.tradeNo===tno
+  );
+  return found?{trade:found,folderId:activeFolderId}:null;
 }
 
 async function ljDeleteDraft(){
