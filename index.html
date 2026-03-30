@@ -7282,7 +7282,8 @@ function ljCalcRR(){
   if(risk<=0){rrEl.textContent='SL wrong side';rrEl.style.color='#e05555';return;}
   if(reward<=0){rrEl.textContent='exit wrong side';rrEl.style.color='#e05555';return;}
   const rr=reward/risk;
-  rrEl.textContent='1 : '+rr.toFixed(2);
+  const rrClean=Number.isInteger(Math.round(rr*10)/10)?Math.round(rr).toString():(rr).toFixed(1);
+  rrEl.textContent='1 : '+rrClean;
   rrEl.style.color=rr>=2?'#00c47a':rr>=1?'#EF9F27':'#e05555';
 }
 
@@ -7447,16 +7448,30 @@ function ljShowLockModal(m, tno, draft=null){
           <div><div style="font-size:8px;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">proj. margin</div><div style="font-size:11px;font-weight:700;color:#888">$${Math.round(margin).toLocaleString('en-US')}</div></div>
           <div><div style="font-size:8px;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">target</div><div style="font-size:11px;font-weight:700;color:#00c47a">${tgt.toFixed(2)}%</div></div>
           <!-- exit type spans first 3 cols, target col free -->
-          <div style="grid-column:span 3">
+          <div style="grid-column:span 3;background:#0a0a0a;border:1px solid #252525;border-radius:6px;padding:8px">
             <div style="font-size:8px;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">exit type <span style="color:#e05555">*</span></div>
-            <select id="lj-exit-type" onchange="ljSyncExitType(this.value)" style="width:100%;background:#0a0a0a;border:1px solid #252525;border-radius:6px;color:#ccc;font-size:11px;padding:8px 12px;font-family:inherit;outline:none;cursor:pointer;color-scheme:dark">
+            <select id="lj-exit-type" onchange="ljSyncExitType(this.value)" style="width:100%;background:#0a0a0a;border:none;color:#ccc;font-size:11px;padding:2px 0;font-family:inherit;outline:none;cursor:pointer;color-scheme:dark">
               <option value="">— select exit type —</option>
               <option value="price">price-based (TP / SL / trail / partial)</option>
               <option value="signal">signal-based (flip / pullback / time)</option>
               <option value="conditional">conditional (BE / news / funding / liq%)</option>
             </select>
           </div>
-          <div></div><!-- 4th col spacer -->
+          <!-- setup type in 4th col -->
+          <div style="background:#0a0a0a;border:1px solid #252525;border-radius:6px;padding:8px">
+            <div style="font-size:8px;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">setup type</div>
+            <select id="lj-setup-type" style="width:100%;background:#0a0a0a;border:none;color:#ccc;font-size:11px;padding:2px 0;font-family:inherit;outline:none;cursor:pointer;color-scheme:dark">
+              <option value="">— type —</option>
+              <option value="breakout">breakout</option>
+              <option value="pullback">pullback</option>
+              <option value="reversal">reversal</option>
+              <option value="range">range</option>
+              <option value="momentum">momentum</option>
+              <option value="news">news play</option>
+              <option value="scalp">scalp</option>
+              <option value="other">other</option>
+            </select>
+          </div>
         </div>
         <!-- actual notional / margin + price exit (reserved space, no jump) -->
         <div style="border-top:1px solid #1a1a1a;padding-top:10px">
@@ -8177,6 +8192,7 @@ async function ljConfirmLock(){
     notePsych,
     tf,
     exitType,
+    setupType:document.getElementById('lj-setup-type')?.value||'',
     sl:parseFloat(document.getElementById('lj-sl')?.dataset.raw)||null,
     rr:(()=>{const rrEl=document.getElementById('lj-rr-display');return rrEl&&rrEl.textContent.startsWith('1 :')?rrEl.textContent:null;})(),
     emotion,
@@ -8314,6 +8330,7 @@ async function ljSaveDraftCore(){
   const notes=document.getElementById('lj-notes')?.value||'';
   const notePsych=document.getElementById('lj-notes-psych')?.value||'';
   const exitType=document.getElementById('lj-exit-type')?.value||'';
+  const setupType=document.getElementById('lj-setup-type')?.value||'';
   const _tfSel=document.getElementById('lj-tf')?.value||'';
   const _tfCustom=document.getElementById('lj-tf-custom')?.value||'';
   const tf=_tfCustom||_tfSel;
@@ -8359,6 +8376,7 @@ async function ljSaveDraftCore(){
     if(notePsych) t.notePsych=notePsych;
     if(tf) t.tf=tf;
     if(exitType) t.exitType=exitType;
+    if(setupType) t.setupType=setupType;
     t.updatedAt=Date.now();
     await jnSave();
     ljCloseModal();
@@ -19540,6 +19558,7 @@ function jnRenderDetail(){
           return `<span style="font-size:9px;color:#1D9E75;background:rgba(29,158,117,0.08);padding:2px 8px;border-radius:3px;border:1px solid rgba(29,158,117,0.2);font-weight:700">${v}</span>`;
         })()}
         ${t.exitType?`<span style="font-size:9px;color:#EF9F27;background:rgba(239,159,39,0.08);padding:2px 8px;border-radius:3px;border:1px solid rgba(239,159,39,0.2);font-weight:700">${t.exitType}</span>`:''}
+        ${t.setupType?`<span style="font-size:9px;color:#a855f7;background:rgba(168,85,247,0.08);padding:2px 8px;border-radius:3px;border:1px solid rgba(168,85,247,0.2);font-weight:700">${t.setupType}</span>`:''}
         ${t.sl?`<span style="font-size:9px;color:#e05555;background:rgba(224,85,85,0.08);padding:2px 8px;border-radius:3px;border:1px solid rgba(224,85,85,0.2);font-weight:700">SL $${parseFloat(t.sl).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:4})}</span>`:''}
         ${t.rr?`<span style="font-size:9px;color:#5b7fff;background:rgba(91,127,255,0.08);padding:2px 8px;border-radius:3px;border:1px solid rgba(91,127,255,0.2);font-weight:700">RR ${t.rr}</span>`:''}
         ${outcomeLabel?`<span style="font-size:10px;font-weight:700;padding:2px 10px;border-radius:4px;background:${t.pnl>=0?'rgba(0,196,122,0.08)':'rgba(224,85,85,0.08)'};color:${outcomeColor}">${outcomeLabel}</span>`:''}
