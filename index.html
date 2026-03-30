@@ -7139,9 +7139,9 @@ function toggleLock(m, tno){
     }
   }
 
-  // fresh lock — must have active preset
-  if(!window._ACTIVE_PRESET){
-    showToast('⚠ Load or save a preset first — journal needs a folder name','info',3000);
+  // fresh lock — must have at least one journal folder
+  if(!JN.folders||JN.folders.length===0){
+    showToast('⚠ No journal folders found — load or save a preset first','info',3000);
     return;
   }
   // enforce mandatory trade label
@@ -7389,17 +7389,23 @@ function ljShowLockModal(m, tno, draft=null){
   const cockpitEx=document.getElementById('fee-exchange')?.value||'binance';
   // calculate row number
   const _presetName=window._ACTIVE_PRESET?window._ACTIVE_PRESET.name:null;
-  const _jnFolder=_presetName?JN.folders.find(f=>f.name===_presetName):null;
+  const _defaultFolder=_presetName?JN.folders.find(f=>f.name===_presetName):JN.folders[0];
+  const _jnFolder=draft?JN.folders.find(f=>JN.trades[f.id]&&JN.trades[f.id].find(t=>t.id===draft.id)):_defaultFolder;
   const _jnTrades=_jnFolder?JN.trades[_jnFolder.id]||[]:[];
   // if editing a draft, show its actual position; otherwise show next row number
   const _draftIdx=draft?_jnTrades.findIndex(t=>t.id===draft.id):-1;
   const _rowNo=_draftIdx>=0?(_draftIdx+1):(_jnTrades.filter(t=>t.status!=='draft').length+1);
+  // store selected folder id for use when saving
+  window._ljSelectedFolderId=_jnFolder?_jnFolder.id:null;
   const box=document.getElementById('lj-box');
   box.innerHTML=`
     <!-- HEADER -->
     <div class="lj-title">🔒 Log Trade to Journal</div>
     <div class="lj-sub">
-      <span style="color:#888">folder:</span> <b style="color:#00c47a">${escHtml(window._ACTIVE_PRESET.name)}</b>
+      <span style="color:#888">folder:</span>
+      <select id="lj-folder-sel" onchange="window._ljSelectedFolderId=this.value" style="background:#111;border:0.5px solid #333;border-radius:4px;color:#00c47a;font-size:10px;font-weight:700;padding:1px 6px;font-family:inherit;cursor:pointer;outline:none">
+        ${JN.folders.map(f=>`<option value="${f.id}"${f.id===(_jnFolder?_jnFolder.id:'')?' selected':''}>${escHtml(f.name)}</option>`).join('')}
+      </select>
       <span style="color:#555;margin:0 6px">·</span>
       <span style="color:#888">month:</span> <b style="color:#ccc">${escHtml(mLabel)}</b>
       <span style="color:#555;margin:0 6px">·</span>
@@ -8086,11 +8092,18 @@ async function ljConfirmLock(){
   const tr=mo?mo.trades.find(t=>t.no===tno):null;
   const tLabel=getTL(m,tno)||('trade '+tno);
 
-  // find or create journal folder for this preset
-  const presetName=window._ACTIVE_PRESET.name;
-  let folder=JN.folders.find(f=>f.name===presetName);
+  // find or create journal folder — use selected folder from dropdown, or active preset, or first folder
+  let folder=null;
+  if(window._ljSelectedFolderId){
+    folder=JN.folders.find(f=>f.id===window._ljSelectedFolderId);
+  }
+  if(!folder&&window._ACTIVE_PRESET){
+    folder=JN.folders.find(f=>f.name===window._ACTIVE_PRESET.name);
+  }
+  if(!folder) folder=JN.folders[0];
   if(!folder){
     const color=JN_COLORS[JN.folders.length%JN_COLORS.length];
+    const presetName=window._ACTIVE_PRESET?window._ACTIVE_PRESET.name:'default';
     folder={id:'f'+Date.now(),name:presetName,color,type:s.SPOT?'spot':'lev',tags:[s.SPOT?'spot':'leverage'],createdAt:Date.now()};
     JN.folders.push(folder);
     JN.trades[folder.id]=[];
@@ -8181,7 +8194,14 @@ function ljGetDraftKey(m, tno){
 
 function ljFindDraft(m, tno){
   // find a draft trade in JN for this cockpit slot
-  for(const fid of Object.keys(JN.trades||{})){
+  // only search current preset's folder — don't bleed across presets
+  const activeFolderId=window._ACTIVE_PRESET
+    ? (JN.folders.find(f=>f.name===window._ACTIVE_PRESET.name)||{}).id
+    : null;
+  const folderIds=activeFolderId
+    ? [activeFolderId]
+    : Object.keys(JN.trades||{});
+  for(const fid of folderIds){
     const found=(JN.trades[fid]||[]).find(t=>
       t.status==='draft'&&t.cockpit&&
       t.cockpit.tab===TAB&&t.cockpit.month===m&&t.cockpit.tradeNo===tno
@@ -8264,11 +8284,18 @@ async function ljSaveDraftCore(){
   const _simTr=_simMo?_simMo.trades.find(t=>t.no===tno):null;
   const notional=_simTr?_simTr.not:s.NOT;
 
-  // find or create folder
-  const presetName=window._ACTIVE_PRESET.name;
-  let folder=JN.folders.find(f=>f.name===presetName);
+  // find or create folder — use selected folder from dropdown
+  let folder=null;
+  if(window._ljSelectedFolderId){
+    folder=JN.folders.find(f=>f.id===window._ljSelectedFolderId);
+  }
+  if(!folder&&window._ACTIVE_PRESET){
+    folder=JN.folders.find(f=>f.name===window._ACTIVE_PRESET.name);
+  }
+  if(!folder) folder=JN.folders[0];
   if(!folder){
     const color=JN_COLORS[JN.folders.length%JN_COLORS.length];
+    const presetName=window._ACTIVE_PRESET?window._ACTIVE_PRESET.name:'default';
     folder={id:'f'+Date.now(),name:presetName,color,type:s.SPOT?'spot':'lev',tags:[],createdAt:Date.now()};
     JN.folders.push(folder);
     JN.trades[folder.id]=[];
@@ -18808,7 +18835,7 @@ function jnRenderList(){
         </div>
         <div class="jn-tc pair">${t.pair||'—'}<span style="font-size:8px;color:#00c47a;background:rgba(0,196,122,0.08);border:1px solid rgba(0,196,122,0.15);border-radius:3px;padding:1px 5px;margin-left:4px;font-weight:700">⚡ cockpit</span></div>
         <div class="jn-tc"><span class="${t.side==='long'?'jn-side-long':'jn-side-short'}">${(t.side||'long').toUpperCase()}</span></div>
-        <div class="jn-tc">$${parseFloat(t.entry||0).toFixed(4)}</div>
+        <div class="jn-tc">$${(parseFloat(t.entry||0)).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:4})}</div>
         <div class="jn-tc" style="color:#333;font-size:9px">running…</div>
         <div class="jn-tc">$${parseFloat(t.size||0).toFixed(0)}</div>
         <div class="jn-tc" style="color:#555;font-size:9px">not closed</div>
@@ -18860,8 +18887,8 @@ function jnRenderList(){
           <div class="jn-tc date" style="display:flex;align-items:center;gap:6px"><span style="font-size:9px;color:#2a2a2a;font-weight:700;min-width:16px">${tradeNum}.</span>${ds}</div>
           <div class="jn-tc pair">${t.pair||'—'}${cockpitTag}</div>
           <div class="jn-tc"><span class="${t.side==='long'?'jn-side-long':'jn-side-short'}">${(t.side||'long').toUpperCase()}</span></div>
-          <div class="jn-tc">$${parseFloat(t.entry||0).toFixed(2)}</div>
-          <div class="jn-tc">$${parseFloat(t.exit||0).toFixed(2)}</div>
+          <div class="jn-tc">$${(parseFloat(t.entry||0)).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+          <div class="jn-tc">$${(parseFloat(t.exit||0)).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
           <div class="jn-tc">$${parseFloat(t.size||0).toFixed(0)}</div>
           <div class="jn-tc ${pCls}">$${pnlStr}</div>
           <div class="jn-tc ${pCls}">${pctStr}</div>
@@ -18941,7 +18968,7 @@ function jnRenderStats(){
         ["trades",sorted.length,"#ccc"],
         ["W / L",wins.length+" / "+losses.length,"#ccc"],
         ["total PnL",fmtM(totalPnl),totalPnl>=0?"#00c47a":"#e05555"],
-        ["avg RR",rr.toFixed(2)+"×",rr>=1?"#00c47a":"#e05555"],
+        ["avg RR",(rr).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+"×",rr>=1?"#00c47a":"#e05555"],
         ["avg win",fmtM(avgWin),"#00c47a"],
         ["avg loss",fmtM(avgLoss),"#e05555"],
         ["best trade",fmtM(bestTrade.pnl||0),"#00c47a"],
@@ -19106,21 +19133,21 @@ function jnRenderDetail(){
         <!-- target % row -->
         <div style="display:grid;grid-template-columns:140px 1fr 1fr 1fr;border-bottom:1px solid #141414">
           <div style="padding:9px 12px;font-size:9px;color:#444;font-weight:600">target % (levered)</div>
-          <div style="padding:9px 12px;font-size:12px;font-weight:700;color:#00c47a;border-left:1px solid #141414">${projTargetPct.toFixed(2)}%</div>
-          <div style="padding:9px 12px;font-size:12px;font-weight:700;color:${(directedMovePct*lev)>=0?'#00c47a':'#e05555'};border-left:1px solid #141414">${(directedMovePct*lev)>=0?'+':''}${(directedMovePct*lev).toFixed(2)}%</div>
-          <div style="padding:9px 12px;font-size:12px;font-weight:700;color:${vsTargetColor};border-left:1px solid #141414">${vsTarget!==null?(vsTarget>=0?'+':'')+vsTarget.toFixed(2)+'%':'—'}</div>
+          <div style="padding:9px 12px;font-size:12px;font-weight:700;color:#00c47a;border-left:1px solid #141414">${(projTargetPct).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}%</div>
+          <div style="padding:9px 12px;font-size:12px;font-weight:700;color:${(directedMovePct*lev)>=0?'#00c47a':'#e05555'};border-left:1px solid #141414">${(directedMovePct*lev)>=0?'+':''}${((directedMovePct*lev)).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}%</div>
+          <div style="padding:9px 12px;font-size:12px;font-weight:700;color:${vsTargetColor};border-left:1px solid #141414">${vsTarget!==null?(vsTarget>=0?'+':''()+vsTarget).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+'%':'—'}</div>
         </div>
         <!-- net PnL row -->
         <div style="display:grid;grid-template-columns:140px 1fr 1fr 1fr;border-bottom:1px solid #141414">
           <div style="padding:9px 12px;font-size:9px;color:#444;font-weight:600">net PnL</div>
           <div style="padding:9px 12px;font-size:12px;font-weight:700;color:${projPnl>=0?'#00c47a':'#e05555'};border-left:1px solid #141414">${projPnl>=0?'+':''}$${(projPnl).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
-          <div style="padding:9px 12px;font-size:12px;font-weight:700;color:${actualPnl>=0?'#00c47a':'#e05555'};border-left:1px solid #141414">${actualPnl>=0?'+':''}$${actualPnl.toFixed(4)}</div>
-          <div style="padding:9px 12px;font-size:12px;font-weight:700;color:${diffColor};border-left:1px solid #141414">${diffSign}$${diffPnl.toFixed(4)}</div>
+          <div style="padding:9px 12px;font-size:12px;font-weight:700;color:${actualPnl>=0?'#00c47a':'#e05555'};border-left:1px solid #141414">${actualPnl>=0?'+':''}$${(actualPnl).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:4})}</div>
+          <div style="padding:9px 12px;font-size:12px;font-weight:700;color:${diffColor};border-left:1px solid #141414">${diffSign}$${(diffPnl).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:4})}</div>
         </div>
         <!-- margin row — updated with actual -->
         <div style="display:grid;grid-template-columns:140px 1fr 1fr 1fr">
           <div style="padding:9px 12px;font-size:9px;color:#444;font-weight:600">margin used</div>
-          <div style="padding:9px 12px;font-size:12px;font-weight:700;color:#666;border-left:1px solid #141414">$${(notional/(ck.lev||1)).toFixed(2)}</div>
+          <div style="padding:9px 12px;font-size:12px;font-weight:700;color:#666;border-left:1px solid #141414">$${((notional/(ck.lev||1))).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
           <div style="padding:9px 12px;font-size:12px;font-weight:700;color:#888;border-left:1px solid #141414">$${(margin).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
           <div style="padding:9px 12px;font-size:10px;font-weight:600;color:#333;border-left:1px solid #141414">same</div>
         </div>
@@ -19181,8 +19208,8 @@ function jnRenderDetail(){
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
         <div style="background:#0a0a0a;border:1px solid ${pcColor}22;border-radius:8px;padding:16px">
           <div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px">net PnL · all-in</div>
-          <div style="font-size:26px;font-weight:900;color:${pcColor};letter-spacing:-.02em;line-height:1">${t.pnl>=0?'+':''}$${parseFloat(t.pnl||0).toFixed(4)}</div>
-          <div style="font-size:12px;color:${pcColor};opacity:.6;margin-top:6px">${actualMarginPct>=0?'+':''}${actualMarginPct.toFixed(2)}% on margin</div>
+          <div style="font-size:26px;font-weight:900;color:${pcColor};letter-spacing:-.02em;line-height:1">${t.pnl>=0?'+':''}$${(parseFloat(t.pnl||0)).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:4})}</div>
+          <div style="font-size:12px;color:${pcColor};opacity:.6;margin-top:6px">${actualMarginPct>=0?'+':''}${(actualMarginPct).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}% on margin</div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
           <div style="background:#0a0a0a;border:1px solid #1a1a1a;border-radius:8px;padding:12px">
@@ -19199,7 +19226,7 @@ function jnRenderDetail(){
           </div>
           <div style="background:#0a0a0a;border:1px solid #1a1a1a;border-radius:8px;padding:12px">
             <div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">margin</div>
-            <div style="font-size:11px;font-weight:700;color:#888">$${margin.toFixed(2)}</div>
+            <div style="font-size:11px;font-weight:700;color:#888">$${(margin).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
           </div>
         </div>
       </div>
@@ -19210,23 +19237,23 @@ function jnRenderDetail(){
         <div style="display:grid;grid-template-columns:repeat(4,1fr)">
           <div style="padding:12px 14px;border-right:1px solid #141414">
             <div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">gross PnL</div>
-            ${(()=>{const g=entry>0?(t.side==='long'?exit-entry:entry-exit)/entry*notional:0;return `<div style="font-size:12px;font-weight:700;color:${g>=0?'#00c47a':'#e05555'}">${g>=0?'+':''}$${Math.abs(g).toFixed(4)}</div>`;})()}
+            ${(()=>{const g=entry>0?(t.side==='long'?exit-entry:entry-exit)/entry*notional:0;return `<div style="font-size:12px;font-weight:700;color:${g>=0?'#00c47a':'#e05555'}">${g>=0?'+':''}$${(Math.abs(g)).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:4})}</div>`;})()}
           </div>
           <div style="padding:12px 14px;border-right:1px solid #141414">
             <div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">fee paid</div>
-            <div style="font-size:12px;font-weight:700;color:#e05555">-$${parseFloat(t.fee||0).toFixed(4)}</div>
+            <div style="font-size:12px;font-weight:700;color:#e05555">-$${(parseFloat(t.fee||0)).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:4})}</div>
             <div style="font-size:8px;color:#2a2a2a;margin-top:2px">open + close</div>
           </div>
           <div style="padding:12px 14px;border-right:1px solid #141414">
             ${(()=>{const fn=parseFloat(t.funding||0);
-              if(fn<0) return `<div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">funding</div><div style="font-size:12px;font-weight:700;color:#00c47a">+$${Math.abs(fn).toFixed(4)}</div><div style="font-size:8px;color:#2a5a3a;margin-top:2px">received ✓</div>`;
-              if(fn>0) return `<div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">funding paid</div><div style="font-size:12px;font-weight:700;color:#e05555">-$${fn.toFixed(4)}</div><div style="font-size:8px;color:#2a2a2a;margin-top:2px">${fundIntervals} intervals</div>`;
+              if(fn<0) return `<div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">funding</div><div style="font-size:12px;font-weight:700;color:#00c47a">+$${(Math.abs(fn)).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:4})}</div><div style="font-size:8px;color:#2a5a3a;margin-top:2px">received ✓</div>`;
+              if(fn>0) return `<div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">funding paid</div><div style="font-size:12px;font-weight:700;color:#e05555">-$${(fn).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:4})}</div><div style="font-size:8px;color:#2a2a2a;margin-top:2px">${fundIntervals} intervals</div>`;
               return `<div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">funding</div><div style="font-size:12px;font-weight:700;color:#222">$0.0000</div><div style="font-size:8px;color:#2a2a2a;margin-top:2px">none</div>`;
             })()}
           </div>
           <div style="padding:12px 14px">
             <div style="font-size:7px;color:#333;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">total cost</div>
-            <div style="font-size:12px;font-weight:700;color:#e05555">-$${(parseFloat(t.fee||0)+Math.max(0,parseFloat(t.funding||0))).toFixed(4)}</div>
+            <div style="font-size:12px;font-weight:700;color:#e05555">-$${(parseFloat(t.fee||0)+Math.max(0,(parseFloat(t.funding||0)))).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:4})}</div>
             <div style="font-size:8px;color:#2a2a2a;margin-top:2px">fee + funding</div>
           </div>
         </div>
@@ -19238,12 +19265,12 @@ function jnRenderDetail(){
         <div style="display:grid;grid-template-columns:repeat(4,1fr);background:#0a0a0a;border:1px solid #1a1a1a;border-radius:8px;overflow:hidden">
           <div class="jn-detail-field">
             <div class="jn-detail-lbl">raw move</div>
-            <div class="jn-detail-val" style="color:${rawMovePct>=0?'#00c47a':'#e05555'};font-weight:800">${rawMovePct>=0?'+':''}${rawMovePct.toFixed(4)}%</div>
+            <div class="jn-detail-val" style="color:${rawMovePct>=0?'#00c47a':'#e05555'};font-weight:800">${rawMovePct>=0?'+':''}${(rawMovePct).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:4})}%</div>
             <div style="font-size:8px;color:#333;margin-top:2px">${exit>entry?'↑ price up':'↓ price down'}</div>
           </div>
           <div class="jn-detail-field">
             <div class="jn-detail-lbl">directed (${t.side})</div>
-            <div class="jn-detail-val" style="color:${directedMovePct>=0?'#00c47a':'#e05555'};font-weight:800">${directedMovePct>=0?'+':''}${directedMovePct.toFixed(4)}%</div>
+            <div class="jn-detail-val" style="color:${directedMovePct>=0?'#00c47a':'#e05555'};font-weight:800">${directedMovePct>=0?'+':''}${(directedMovePct).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:4})}%</div>
             <div style="font-size:8px;color:#333;margin-top:2px">${directedMovePct>=0?'with you':'against you'}</div>
           </div>
           <div class="jn-detail-field">
@@ -19253,7 +19280,7 @@ function jnRenderDetail(){
           </div>
           <div class="jn-detail-field">
             <div class="jn-detail-lbl">needed for target</div>
-            <div class="jn-detail-val" style="color:${ck&&projTargetPct>0?'#555':'#222'}">${ck&&projTargetPct>0?(projTargetPct/lev).toFixed(4)+'%':'—'}</div>
+            <div class="jn-detail-val" style="color:${ck&&projTargetPct>0?'#555':'#222'}">${ck&&projTargetPct>0?((projTargetPct/lev)).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:4})+'%':'—'}</div>
             <div style="font-size:8px;color:#333;margin-top:2px">${ck&&projTargetPct>0?'raw price needed':'no projection'}</div>
           </div>
         </div>
