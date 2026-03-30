@@ -10028,20 +10028,32 @@ async function frFetchOKX(){
 
 async function frFetchGate(){
   try{
-    const r=await fetch('https://api.gateio.ws/api/v4/futures/usdt/contracts?limit=300');
+    // gate.io futures settlements endpoint — more CORS-friendly than contracts
+    const r=await fetch('https://api.gateio.ws/api/v4/futures/usdt/contracts?limit=500&settle=usdt',{headers:{'Accept':'application/json'}});
     const d=await r.json();
     (d||[]).forEach(x=>{
-      if(!x.funding_rate) return;
-      // gate uses BTC_USDT format
-      const sym=(x.name||'').replace('_','');
+      if(x.funding_rate==null) return; // allow 0, only skip null/undefined
+      // gate uses BTC_USDT format — replace ALL underscores
+      const sym=(x.name||'').replace(/_/g,'');
       if(!_frData[sym]) _frData[sym]={};
       _frData[sym].gate=parseFloat(x.funding_rate)*100;
-      // gate also provides next funding time
       if(x.funding_next_apply&&!_frData[sym].nextTs){
         _frData[sym].nextTs=parseInt(x.funding_next_apply)*1000;
       }
     });
-  }catch(e){}
+  }catch(e){
+    // fallback: try the public tickers endpoint
+    try{
+      const r2=await fetch('https://api.gateio.ws/api/v4/futures/usdt/tickers');
+      const d2=await r2.json();
+      (d2||[]).forEach(x=>{
+        if(x.funding_rate==null) return;
+        const sym=(x.contract||'').replace(/_/g,'');
+        if(!_frData[sym]) _frData[sym]={};
+        _frData[sym].gate=parseFloat(x.funding_rate)*100;
+      });
+    }catch(e2){}
+  }
 }
 
 function frSetStatus(msg){
@@ -10212,8 +10224,18 @@ function frRender(){
     return `<button onclick="frSetFilter('${f}')" style="background:${active?'var(--acc,#5b7fff)':'var(--btn,#111)'};border:1px solid ${active?'var(--acc,#5b7fff)':'var(--bd,#252525)'};border-radius:5px;color:${active?'var(--mhc,#fff)':'var(--tx2,#666)'};font-size:9px;padding:4px 10px;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .15s">${labels[f]}</button>`;
   }).join('');
 
-  // coin icon map (coingecko)
-  const _frIcons={BTCUSDT:'https://assets.coingecko.com/coins/images/1/small/bitcoin.png',ETHUSDT:'https://assets.coingecko.com/coins/images/279/small/ethereum.png',BNBUSDT:'https://assets.coingecko.com/coins/images/825/small/bnb-icon2_2x.png',SOLUSDT:'https://assets.coingecko.com/coins/images/4128/small/solana.png',XRPUSDT:'https://assets.coingecko.com/coins/images/44/small/xrp-symbol-white-128.png',DOGEUSDT:'https://assets.coingecko.com/coins/images/5/small/dogecoin.png',ADAUSDT:'https://assets.coingecko.com/coins/images/975/small/cardano.png',AVAXUSDT:'https://assets.coingecko.com/coins/images/12559/small/Avalanche_Circle_RedWhite_Trans.png',SHIBUSDT:'https://assets.coingecko.com/coins/images/11939/small/shiba.png',LINKUSDT:'https://assets.coingecko.com/coins/images/877/small/chainlink-new-logo.png',LTCUSDT:'https://assets.coingecko.com/coins/images/2/small/litecoin.png',UNIUSDT:'https://assets.coingecko.com/coins/images/12504/small/uni.jpg',ATOMUSDT:'https://assets.coingecko.com/coins/images/1481/small/cosmos_hub.png',NEARUSDT:'https://assets.coingecko.com/coins/images/10365/small/near.jpg'};
+  // coin icon — coingecko asset CDN uses coin id, map the common ones + fallback to symbol-based url
+  const _cgIds={BTCUSDT:'bitcoin',ETHUSDT:'ethereum',BNBUSDT:'binancecoin',SOLUSDT:'solana',XRPUSDT:'ripple',DOGEUSDT:'dogecoin',ADAUSDT:'cardano',AVAXUSDT:'avalanche-2',SHIBUSDT:'shiba-inu',LINKUSDT:'chainlink',LTCUSDT:'litecoin',UNIUSDT:'uniswap',ATOMUSDT:'cosmos',NEARUSDT:'near',APTUSDT:'aptos',ARBUSDT:'arbitrum',OPUSDT:'optimism',INJUSDT:'injective-protocol',DOTUSDT:'polkadot',MATICUSDT:'matic-network',TRXUSDT:'tron',XLMUSDT:'stellar',ETCUSDT:'ethereum-classic',BCHUSDT:'bitcoin-cash',FILUSDT:'filecoin',LDOUSDT:'lido-dao',MKRUSDT:'maker',AAVEUSDT:'aave',SNXUSDT:'havven',CRVUSDT:'curve-dao-token',DYDXUSDT:'dydx',GMXUSDT:'gmx',RUNEUSDT:'thorchain',TONUSDT:'the-open-network',SUIUSDT:'sui',PEPEUSDT:'pepe',BONKUSDT:'bonk',WIFUSDT:'dogwifcoin',FLOKIUSDT:'floki',NOTUSDT:'notcoin',RENDERUSDT:'render-token',FETUSDT:'fetch-ai',TAOUSDT:'bittensor',HBARUSDT:'hedera-hashgraph',SANDUSDT:'the-sandbox',MANAUSDT:'decentraland',AXSUSDT:'axie-infinity',IMXUSDT:'immutable-x',ICPUSDT:'internet-computer',ALGOUSDT:'algorand',VETUSDT:'vechain',EGLDUSDT:'elrond-erd-2',FLOWUSDT:'flow',XMRUSDT:'monero',ZECUSDT:'zcash',DASHUSDT:'dash',KSMUSDT:'kusama',NEOUSDT:'neo',WAVESUSDT:'waves',KAVAUSDT:'kava'};
+  // coingecko numeric ids for the main coins (needed for their CDN url format)
+  const _cgIdNums={BTCUSDT:1,ETHUSDT:279,BNBUSDT:825,SOLUSDT:4128,XRPUSDT:44,DOGEUSDT:5,ADAUSDT:975,AVAXUSDT:12559,SHIBUSDT:11939,LINKUSDT:877,LTCUSDT:2,UNIUSDT:12504,ATOMUSDT:1481,NEARUSDT:10365,APTUSDT:26455,ARBUSDT:11841,OPUSDT:11840,INJUSDT:7226,DOTUSDT:6636,MATICUSDT:3890,TRXUSDT:1958,XLMUSDT:512,ETCUSDT:1321,BCHUSDT:1831,SUIUSDT:26375,TONUSDT:17980,PEPEUSDT:29850,FLOKIUSDT:10804,RENDERUSDT:11636,HBARUSDT:4642,SANDUSDT:12129,MANAUSDT:1966,AXSUSDT:6783,ICPUSDT:8916,ALGOUSDT:4030,VETUSDT:3077,XMRUSDT:328,ZECUSDT:1437,DASHUSDT:131};
+  const iconHtml=(sym)=>{
+    const id=_cgIds[sym];
+    const num=_cgIdNums[sym];
+    const url=id&&num
+      ?`https://assets.coingecko.com/coins/images/${num}/small/${id}.png`
+      :`https://cdn.jsdelivr.net/gh/spothq/cryptocurrency-icons/32/color/${sym.replace('USDT','').toLowerCase()}.png`;
+    return `<img src="${url}" width="14" height="14" style="border-radius:50%;vertical-align:middle;margin-right:4px;opacity:.85" onerror="this.style.display='none'">`;
+  };
 
   const rows=ordered.map(({sym,d,avg,diverge},i)=>{
     const isPinned=_frPinned.has(sym);
@@ -10237,9 +10259,6 @@ function frRender(){
     // divergence badge + copy arb button
     const hasDiv=diverge>0.05;
     const divBadge=hasDiv?`<span style="font-size:7px;background:rgba(239,159,39,0.15);color:#EF9F27;padding:1px 4px;border-radius:3px;margin-left:4px;font-weight:700;cursor:pointer" title="copy arb setup" onclick="frCopyArb('${sym}',_frData['${sym}']||{},${diverge.toFixed(5)})">div ⧉</span>`:'';
-    // coin icon
-    const iconUrl=_frIcons[sym];
-    const iconHtml=iconUrl?`<img src="${iconUrl}" width="14" height="14" style="border-radius:50%;vertical-align:middle;margin-right:4px;opacity:.85" onerror="this.style.display='none'">`:'';
     // sparkline
     const spark=frSparkSVG(sym);
     return `${showDivider?`<tr><td colspan="10" style="height:1px;background:var(--bd,#1a1a1a);padding:0"></td></tr>`:''}
@@ -10248,7 +10267,7 @@ function frRender(){
         <button onclick="frTogglePin('${sym}')" title="${isPinned?'unpin':'pin'}"
           style="background:none;border:none;cursor:pointer;font-size:10px;padding:0 4px 0 0;opacity:${isPinned?'1':'0.2'};transition:opacity .15s"
           onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='${isPinned?'1':'0.2'}'">📌</button>
-        ${iconHtml}<span style="font-size:11px;font-weight:700;color:${isPinned?'var(--acc,#5b7fff)':isDefault?'var(--tx,#ddd)':'var(--tx2,#666)'}">${sym.replace('USDT','')}</span>
+        ${iconHtml(sym)}<span style="font-size:11px;font-weight:700;color:${isPinned?'var(--acc,#5b7fff)':isDefault?'var(--tx,#ddd)':'var(--tx2,#666)'}">${sym.replace('USDT','')}</span>
         <span style="font-size:8px;color:var(--tx3,#333)">/USDT</span>
         ${divBadge}
       </td>
