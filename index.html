@@ -9945,7 +9945,7 @@ var _frTimer=null;
 var _frLastFetch=0;
 var _frFetching=false;
 
-const _FR_DEFAULTS=['BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT','XRPUSDT','DOGEUSDT','ADAUSDT','AVAXUSDT','SHIBUSDT','DOTUSDT','LINKUSDT','MATICUSDT','LTCUSDT','UNIUSDT','ATOMUSDT','NEARUSDT','APTUSDT','ARBUSDT','OPUSDT','INJUSDT'];
+const _FR_DEFAULTS=['BTCUSDT','ETHUSDT','BNBUSDT','SOLUSDT','XRPUSDT','DOGEUSDT','ADAUSDT','AVAXUSDT'];
 
 async function frFetchAll(){
   if(_frFetching) return;
@@ -10047,10 +10047,10 @@ function frSetFilter(f){
 function frFmtRate(v, maxAbs){
   if(v==null||isNaN(v)) return '<span style="color:#2a2a2a">—</span>';
   const abs=Math.abs(v);
-  const c=v>0.1?'#00c47a':v>0.01?'#4ecf8a':v>0?'#2a6a3a':v<-0.1?'#e05555':v<-0.01?'#cf6a4e':'#6a2a2a';
+  const c=v>0.1?'#00e87a':v>0.01?'#00c47a':v>0?'#4ecf8a':v<-0.1?'#ff4466':v<-0.01?'#e05555':'#aa3333';
   const sign=v>=0?'+':'';
   const barW=maxAbs>0?Math.min(100,abs/maxAbs*100):0;
-  const barC=v>=0?'rgba(0,196,122,0.3)':'rgba(224,85,85,0.3)';
+  const barC=v>=0?'rgba(0,232,122,0.35)':'rgba(255,68,102,0.35)';
   return `<div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px">
     <span style="color:${c};font-weight:700;font-size:11px">${sign}${v.toFixed(4)}%</span>
     <div style="width:48px;height:3px;background:#1a1a1a;border-radius:2px;overflow:hidden">
@@ -10062,7 +10062,7 @@ function frFmtRate(v, maxAbs){
 function frFmtAnnualized(v){
   if(v==null||isNaN(v)) return '<span style="color:#2a2a2a">—</span>';
   const ann=v*3*365;
-  const c=ann>50?'#00c47a':ann>10?'#4ecf8a':ann>0?'#2a6a3a':ann<-50?'#e05555':ann<-10?'#cf6a4e':'#6a2a2a';
+  const c=ann>50?'#00e87a':ann>10?'#00c47a':ann>0?'#4ecf8a':ann<-50?'#ff4466':ann<-10?'#e05555':'#aa3333';
   const sign=ann>=0?'+':'';
   return `<span style="color:${c};font-weight:600;font-size:10px">${sign}${ann.toFixed(1)}%</span>`;
 }
