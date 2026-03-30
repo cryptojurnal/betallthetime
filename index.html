@@ -7434,39 +7434,69 @@ function ljShowLockModal(m, tno, draft=null){
       <span style="font-size:9px;background:rgba(91,127,255,0.1);color:#5b7fff;padding:1px 7px;border-radius:3px;border:1px solid rgba(91,127,255,0.2);font-weight:700">row #${_rowNo}</span>
     </div>
 
-    <!-- ROW 1: COCKPIT DATA (70%) + SIDE/TF/SL/RR (30%) -->
+    <!-- ROW 1: COCKPIT DATA (70%) + SIDE/TF (30%) -->
     <div style="display:grid;grid-template-columns:7fr 3fr;gap:12px;margin-bottom:16px;align-items:stretch">
       <!-- cockpit data (70%) -->
-      <div style="background:#0f0f0f;border:1px solid #1e1e1e;border-radius:8px;padding:14px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
-        <div><div style="font-size:8px;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">mode (lev)</div>
-          <div style="font-size:11px;font-weight:700;color:#aaa">${s.SPOT?'spot ◈':`leverage · ${leverage}×`}</div>
+      <div style="background:#0f0f0f;border:1px solid #1e1e1e;border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:12px">
+        <!-- top row: mode / notional / margin / target -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px">
+          <div><div style="font-size:8px;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">mode (lev)</div>
+            <div style="font-size:11px;font-weight:700;color:#aaa">${s.SPOT?'spot ◈':`leverage · ${leverage}×`}</div>
+          </div>
+          <div><div style="font-size:8px;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">proj. notional</div><div style="font-size:11px;font-weight:700;color:#888">$${Math.round(notional).toLocaleString('en-US')}</div></div>
+          <div><div style="font-size:8px;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">proj. margin</div><div style="font-size:11px;font-weight:700;color:#888">$${Math.round(margin).toLocaleString('en-US')}</div></div>
+          <div><div style="font-size:8px;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">target</div><div style="font-size:11px;font-weight:700;color:#00c47a">${tgt.toFixed(2)}%</div></div>
         </div>
-        <div><div style="font-size:8px;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">proj. notional</div><div style="font-size:11px;font-weight:700;color:#888">$${Math.round(notional).toLocaleString('en-US')}</div></div>
-        <div><div style="font-size:8px;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">proj. margin</div><div style="font-size:11px;font-weight:700;color:#888">$${Math.round(margin).toLocaleString('en-US')}</div></div>
-        <div><div style="font-size:8px;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">target</div><div style="font-size:11px;font-weight:700;color:#00c47a">${tgt.toFixed(2)}%</div></div>
-        <div style="grid-column:span 2">
-          <div style="font-size:8px;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">exit type <span style="color:#e05555">*</span></div>
-          <select id="lj-exit-type" onchange="ljSyncExitType(this.value)" style="width:100%;background:#0a0a0a;border:1px solid #252525;border-radius:6px;color:#ccc;font-size:11px;padding:6px 10px;font-family:inherit;outline:none;cursor:pointer;color-scheme:dark">
-            <option value="">— select exit type —</option>
-            <option value="price">price-based (TP / SL / trail / partial)</option>
-            <option value="signal">signal-based (flip / pullback / time)</option>
-            <option value="conditional">conditional (BE / news / funding / liq%)</option>
-          </select>
+        <!-- middle row: exit type + price exit SL/RR -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:start">
+          <div>
+            <div style="font-size:8px;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">exit type <span style="color:#e05555">*</span></div>
+            <select id="lj-exit-type" onchange="ljSyncExitType(this.value)" style="width:100%;background:#0a0a0a;border:1px solid #252525;border-radius:6px;color:#ccc;font-size:11px;padding:7px 10px;font-family:inherit;outline:none;cursor:pointer;color-scheme:dark">
+              <option value="">— select exit type —</option>
+              <option value="price">price-based (TP / SL / trail / partial)</option>
+              <option value="signal">signal-based (flip / pullback / time)</option>
+              <option value="conditional">conditional (BE / news / funding / liq%)</option>
+            </select>
+          </div>
+          <div id="lj-sl-rr-section" style="display:none">
+            <div style="font-size:8px;color:#EF9F27;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;font-weight:700">price exit</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:center">
+              <div>
+                <div style="font-size:8px;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">stop loss</div>
+                <div style="position:relative">
+                  <span style="position:absolute;left:8px;top:50%;transform:translateY(-50%);color:#444;font-size:11px;pointer-events:none">$</span>
+                  <input id="lj-sl" type="text" inputmode="decimal" placeholder="0"
+                    style="width:100%;background:#111;border:1px solid #252525;border-radius:6px;color:#e05555;font-size:12px;font-weight:700;padding:7px 8px 7px 20px;font-family:inherit;outline:none;box-sizing:border-box"
+                    oninput="ljFormatMoneyInput(this);ljCalcRR()"
+                    onfocus="this.style.borderColor='#e05555'"
+                    onblur="this.style.borderColor='#252525'">
+                </div>
+              </div>
+              <div>
+                <div style="font-size:8px;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">risk/reward</div>
+                <div id="lj-rr-display" style="font-size:16px;font-weight:800;color:#888">—</div>
+                <div style="font-size:8px;color:#444">price ratio</div>
+              </div>
+            </div>
+          </div>
         </div>
-        <div>
-          <div style="font-size:8px;color:#5b7fff;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">actual notional</div>
-          <input type="text" id="lj-actual-not" placeholder="${Math.round(notional).toLocaleString('en-US')}" inputmode="decimal"
-            style="width:100%;background:#0a0a0a;border:1px solid #1e3a6a;border-radius:4px;padding:3px 5px;font-size:10px;font-weight:700;color:#5b7fff;font-family:inherit"
-            oninput="ljFormatMoneyInput(this);ljSyncActualMargin(this.dataset.raw);ljCalc()">
-        </div>
-        <div id="lj-fee-cockpit-cell">
-          <div style="font-size:8px;color:#5b7fff;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">actual margin</div>
-          <div id="lj-actual-margin-display" style="font-size:11px;font-weight:700;color:#5b7fff;padding:3px 0">$${Math.round(margin).toLocaleString('en-US')}</div>
-          <div style="font-size:8px;color:#444;margin-top:1px">notional ÷ ${leverage}×</div>
-          <div style="font-size:8px;color:#888" id="lj-fee-rate-val">${feeRate}% ${s.FEE.method}</div>
+        <!-- bottom row: actual notional / actual margin -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding-top:8px;border-top:1px solid #1a1a1a">
+          <div>
+            <div style="font-size:8px;color:#5b7fff;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">actual notional</div>
+            <input type="text" id="lj-actual-not" placeholder="${Math.round(notional).toLocaleString('en-US')}" inputmode="decimal"
+              style="width:100%;background:#0a0a0a;border:1px solid #1e3a6a;border-radius:4px;padding:4px 6px;font-size:10px;font-weight:700;color:#5b7fff;font-family:inherit"
+              oninput="ljFormatMoneyInput(this);ljSyncActualMargin(this.dataset.raw);ljCalc()">
+          </div>
+          <div id="lj-fee-cockpit-cell">
+            <div style="font-size:8px;color:#5b7fff;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px">actual margin</div>
+            <div id="lj-actual-margin-display" style="font-size:11px;font-weight:700;color:#5b7fff;padding:4px 0">$${Math.round(margin).toLocaleString('en-US')}</div>
+            <div style="font-size:8px;color:#444;margin-top:1px">notional ÷ ${leverage}×</div>
+            <div style="font-size:8px;color:#888" id="lj-fee-rate-val">${feeRate}% ${s.FEE.method}</div>
+          </div>
         </div>
       </div>
-      <!-- side + timeframe + SL/RR (30%) -->
+      <!-- side + timeframe ONLY (30%) -->
       <div style="background:#0f0f0f;border:1px solid #1e1e1e;border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:12px">
         <!-- side -->
         <div>
@@ -7476,8 +7506,8 @@ function ljShowLockModal(m, tno, draft=null){
                 <div style="font-size:10px;color:#2a5a3a;font-weight:700">◈ spot — long only</div>
               </div>`
             :`<div style="display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid #252525;border-radius:7px;overflow:hidden">
-                <button id="ljside-long" onclick="ljSetSide('long');ljFetchFundingDebounced()" style="padding:7px 4px;border:none;background:#0d1a10;color:#00c47a;font-size:10px;font-weight:800;cursor:pointer;outline:none;font-family:inherit;letter-spacing:.05em;border-right:1px solid #252525;transition:background .12s">▲ LONG</button>
-                <button id="ljside-short" onclick="ljSetSide('short');ljFetchFundingDebounced()" style="padding:7px 4px;border:none;background:#1a0d0d;color:#e05555;font-size:10px;font-weight:800;cursor:pointer;outline:none;font-family:inherit;letter-spacing:.05em;transition:background .12s">▼ SHORT</button>
+                <button id="ljside-long" onclick="ljSetSide('long');ljFetchFundingDebounced()" style="padding:8px 4px;border:none;background:#0d1a10;color:#00c47a;font-size:10px;font-weight:800;cursor:pointer;outline:none;font-family:inherit;letter-spacing:.05em;border-right:1px solid #252525;transition:background .12s">▲ LONG</button>
+                <button id="ljside-short" onclick="ljSetSide('short');ljFetchFundingDebounced()" style="padding:8px 4px;border:none;background:#1a0d0d;color:#e05555;font-size:10px;font-weight:800;cursor:pointer;outline:none;font-family:inherit;letter-spacing:.05em;transition:background .12s">▼ SHORT</button>
               </div>
               <div id="lj-side-indicator" style="height:3px;border-radius:0 0 6px 6px;background:#00c47a;transition:all .15s;display:none"></div>`
           }
@@ -7499,26 +7529,6 @@ function ljShowLockModal(m, tno, draft=null){
               oninput="ljUpdateTfVerdict('custom',this.value)">
           </div>
           <div id="lj-tf-verdict" style="font-size:9px;color:#555;min-height:14px"></div>
-        </div>
-        <!-- SL + RR — only shown for price-based exit -->
-        <div id="lj-sl-rr-section" style="display:none;border-top:1px solid #1e1e1e;padding-top:10px">
-          <div style="font-size:8px;color:#EF9F27;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;font-weight:700">price exit</div>
-          <div style="margin-bottom:8px">
-            <div style="font-size:8px;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">stop loss <span style="color:#e05555">*</span></div>
-            <div style="position:relative">
-              <span style="position:absolute;left:8px;top:50%;transform:translateY(-50%);color:#444;font-size:11px;pointer-events:none">$</span>
-              <input id="lj-sl" type="text" inputmode="decimal" placeholder="0"
-                style="width:100%;background:#111;border:1px solid #252525;border-radius:6px;color:#e05555;font-size:12px;font-weight:700;padding:7px 8px 7px 20px;font-family:inherit;outline:none;box-sizing:border-box;transition:border-color .15s"
-                oninput="ljFormatMoneyInput(this);ljCalcRR()"
-                onfocus="this.style.borderColor='#e05555'"
-                onblur="this.style.borderColor='#252525'">
-            </div>
-          </div>
-          <div>
-            <div style="font-size:8px;color:#888;text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px">risk/reward</div>
-            <div id="lj-rr-display" style="font-size:14px;font-weight:800;color:#888;padding:6px 0">—</div>
-            <div style="font-size:8px;color:#444">auto from entry · SL · exit</div>
-          </div>
         </div>
       </div>
     </div>
