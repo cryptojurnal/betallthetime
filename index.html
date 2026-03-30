@@ -5700,24 +5700,19 @@ function onMP(m,v){
   softUpdate();
 }
 // ── SOFT UPDATE: re-sim + patch metrics + table without rebuilding chart ──
-// debounced input — prevents mid-decimal-typing interference
-// usage: oninput="dInput(this,callback,400)"
+// instant input — fires on every keystroke via rAF, no delay
+// delay param kept for API compat but ignored
 var _dInputTimers={};
 var _oldVals={};
 function dInput(el,fn,delay){
   const id=el.id||el.name||Math.random();
-  // capture undo state NOW — before any mutation — on first keystroke
+  // capture undo state on first keystroke
   if(!_dInputTimers[id]) _captureUndo();
-  if(_dInputTimers[id]) clearTimeout(_dInputTimers[id]);
-  _dInputTimers[id]=setTimeout(function(){
-    delete _dInputTimers[id];
+  _dInputTimers[id]=true;
+  requestAnimationFrame(function(){
+    _dInputTimers[id]=null;
     fn(el.value);
-    // micro-feedback: brief green glow on apply
-    el.style.transition='box-shadow .15s,border-color .15s';
-    el.style.boxShadow='0 0 0 2px rgba(0,196,122,0.3)';
-    el.style.borderColor='#00c47a';
-    setTimeout(()=>{el.style.boxShadow='';el.style.borderColor='';},400);
-  }, delay||400);
+  });
 }
 
 var _softUpdateTimer=null;
