@@ -9325,6 +9325,7 @@ function render(){
       <button class="tb ${VIEW==='guide'?'on':''}" onclick="setView('guide',this)">📖 guide book</button>
       <button class="tb ${VIEW==='sum'?'on':''}" onclick="setView('sum',this)">monthly summary</button>
       <button class="tb ${VIEW==='det'?'on':''}" onclick="setView('det',this)">full trade detail</button>
+      <button class="tb ${VIEW==='fund'?'on':''}" onclick="setView('fund',this)">📡 funding rates</button>
     </div>
     <span style="font-size:9px;color:var(--tx3);font-style:italic">${t('label_hint')}</span>
     ${isQ?idrWidget:''}
@@ -9884,15 +9885,35 @@ function setView(v,btn){
   if(btn)btn.classList.add('on');
   const tbl=document.getElementById('tbl');
   const gc=document.getElementById('guide-content');
+  const fc=document.getElementById('fund-content');
   if(v==='guide'){
     if(tbl) tbl.style.display='none';
+    if(fc) fc.style.display='none';
     if(gc){gc.style.display='';renderGuide();}
     return;
   }
-  // switching back from guide — just show table, hide guide
+  if(v==='fund'){
+    if(tbl) tbl.style.display='none';
+    if(gc) gc.style.display='none';
+    if(fc){fc.style.display='';frInit();}
+    else {
+      // create fund-content div
+      const tblEl=document.getElementById('tbl');
+      const parent=tblEl?tblEl.parentNode:document.getElementById('right-content');
+      if(parent){
+        const div=document.createElement('div');
+        div.id='fund-content';
+        div.style.cssText='padding:0 4px;';
+        parent.appendChild(div);
+        frInit();
+      }
+    }
+    return;
+  }
+  // switching back from guide/fund — show table
   if(gc) gc.style.display='none';
+  if(fc) fc.style.display='none';
   if(tbl) tbl.style.display='';
-  // if tbl was never built yet, do a full render
   if(!tbl){render();return;}
   renderTbl(sim());
 }
@@ -9902,6 +9923,191 @@ function renderGuide(){
   if(!gc)return;
   const html=LANG==='id'?GUIDE_HTML_ID:GUIDE_HTML;
   gc.innerHTML=`<div class="guide-wrap">${html}</div>`;
+}
+
+// ── FUNDING RATE MONITOR ──
+var _frData={};        // {symbol: {binance,bybit,okx,nextTs}}
+var _frPinned=new Set(JSON.parse(localStorage.getItem('batt_fr_pinned')||'[]'));
+var _frSearch='';
+var _frTimer=null;
+var _frLastFetch=0;
+var _frFetching=false;
+
+const _FR_DEFAULTS=['BTCUSDT','ETHUSDT','SOLUSDT','BNBUSDT','XRPUSDT','DOGEUSDT','ADAUSDT','AVAXUSDT','LINKUSDT','DOTUSDT','MATICUSDT','LTCUSDT','ATOMUSDT','NEARUSDT','APTUSDT','ARBUSDT','OPUSDT'];
+
+async function frFetchAll(){
+  if(_frFetching) return;
+  _frFetching=true;
+  _frLastFetch=Date.now();
+  frSetStatus('fetching...');
+  try{
+    await Promise.allSettled([frFetchBinance(),frFetchBybit(),frFetchOKX()]);
+  }catch(e){}
+  _frFetching=false;
+  frRender();
+  frSetStatus('updated '+new Date().toLocaleTimeString());
+}
+
+async function frFetchBinance(){
+  try{
+    const r=await fetch('https://fapi.binance.com/fapi/v1/premiumIndex');
+    const d=await r.json();
+    (d||[]).forEach(x=>{
+      const sym=x.symbol;
+      if(!_frData[sym]) _frData[sym]={};
+      _frData[sym].binance=parseFloat(x.lastFundingRate)*100;
+      _frData[sym].nextTs=parseInt(x.nextFundingTime);
+    });
+  }catch(e){}
+}
+
+async function frFetchBybit(){
+  try{
+    const r=await fetch('https://api.bybit.com/v5/market/tickers?category=linear&limit=200');
+    const d=await r.json();
+    ((d.result&&d.result.list)||[]).forEach(x=>{
+      if(!x.fundingRate) return;
+      const sym=x.symbol;
+      if(!_frData[sym]) _frData[sym]={};
+      _frData[sym].bybit=parseFloat(x.fundingRate)*100;
+      if(!_frData[sym].nextTs&&x.nextFundingTime) _frData[sym].nextTs=parseInt(x.nextFundingTime);
+    });
+  }catch(e){}
+}
+
+async function frFetchOKX(){
+  try{
+    const r=await fetch('https://www.okx.com/api/v5/public/funding-rate-summary?instType=SWAP');
+    const d=await r.json();
+    ((d.data)||[]).forEach(x=>{
+      const sym=(x.instId||'').replace('-USDT-SWAP','USDT').replace('-','');
+      if(!sym||!x.fundingRate) return;
+      if(!_frData[sym]) _frData[sym]={};
+      _frData[sym].okx=parseFloat(x.fundingRate)*100;
+    });
+  }catch(e){}
+}
+
+function frSetStatus(msg){
+  const el=document.getElementById('fr-status');
+  if(el) el.textContent=msg;
+}
+
+function frFmtRate(v){
+  if(v==null||isNaN(v)) return '<span style="color:#333">—</span>';
+  const c=v>0.05?'#00c47a':v<-0.05?'#e05555':v>0?'#6ecf97':'#f07070';
+  const sign=v>=0?'+':'';
+  return `<span style="color:${c};font-weight:700">${sign}${v.toFixed(4)}%</span>`;
+}
+
+function frFmtCountdown(ts){
+  if(!ts) return '—';
+  const ms=ts-Date.now();
+  if(ms<=0) return '<span style="color:#EF9F27">now</span>';
+  const h=Math.floor(ms/3600000);
+  const m=Math.floor((ms%3600000)/60000);
+  return `<span style="color:#555">${h}h ${m}m</span>`;
+}
+
+function frTogglePin(sym){
+  if(_frPinned.has(sym)) _frPinned.delete(sym);
+  else _frPinned.add(sym);
+  try{localStorage.setItem('batt_fr_pinned',JSON.stringify([..._frPinned]));}catch(e){}
+  frRender();
+}
+
+function frRender(){
+  const fc=document.getElementById('fund-content');
+  if(!fc||fc.style.display==='none') return;
+
+  // build symbol list — pinned first, then sorted by abs(binance rate)
+  let syms=Object.keys(_frData);
+  if(_frSearch){
+    const q=_frSearch.toUpperCase();
+    syms=syms.filter(s=>s.includes(q));
+  }
+  // sort by abs binance rate desc, pinned on top
+  const pinned=[..._frPinned].filter(s=>syms.includes(s));
+  const rest=syms.filter(s=>!_frPinned.has(s)).sort((a,b)=>{
+    const ra=Math.abs(_frData[a]?.binance||0);
+    const rb=Math.abs(_frData[b]?.binance||0);
+    return rb-ra;
+  });
+  const ordered=[...pinned,...rest];
+
+  const rows=ordered.map(sym=>{
+    const d=_frData[sym]||{};
+    const isPinned=_frPinned.has(sym);
+    const avg=((d.binance??null)!=null||(d.bybit??null)!=null||(d.okx??null)!=null)
+      ?[d.binance,d.bybit,d.okx].filter(v=>v!=null).reduce((a,v,_,arr)=>a+v/arr.length,0)
+      :null;
+    return `<tr style="border-bottom:1px solid #111;${isPinned?'background:rgba(91,127,255,0.04)':''}">
+      <td style="padding:7px 8px;white-space:nowrap">
+        <button onclick="frTogglePin('${sym}')" title="${isPinned?'unpin':'pin'}"
+          style="background:none;border:none;cursor:pointer;font-size:11px;padding:0 4px 0 0;opacity:${isPinned?'1':'0.25'};transition:opacity .15s"
+          onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='${isPinned?'1':'0.25'}'">📌</button>
+        <span style="font-size:11px;font-weight:700;color:${isPinned?'#5b7fff':'#ccc'}">${sym.replace('USDT','')}</span>
+        <span style="font-size:9px;color:#333">USDT</span>
+      </td>
+      <td style="padding:7px 10px;text-align:right">${frFmtRate(d.binance)}</td>
+      <td style="padding:7px 10px;text-align:right">${frFmtRate(d.bybit)}</td>
+      <td style="padding:7px 10px;text-align:right">${frFmtRate(d.okx)}</td>
+      <td style="padding:7px 10px;text-align:right">${avg!=null?frFmtRate(avg):'<span style="color:#333">—</span>'}</td>
+      <td style="padding:7px 10px;text-align:right;font-size:10px">${frFmtCountdown(d.nextTs)}</td>
+    </tr>`;
+  }).join('');
+
+  const thStyle='padding:7px 10px;font-size:8px;color:#444;text-transform:uppercase;letter-spacing:.07em;font-weight:700;text-align:right;border-bottom:1px solid #1a1a1a;white-space:nowrap';
+
+  fc.innerHTML=`
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+      <div style="font-size:13px;font-weight:700;color:#ccc">📡 funding rates</div>
+      <div style="position:relative;flex:1;min-width:160px;max-width:280px">
+        <span style="position:absolute;left:9px;top:50%;transform:translateY(-50%);color:#444;font-size:11px;pointer-events:none">🔍</span>
+        <input id="fr-search" type="text" placeholder="search pair..." value="${_frSearch}"
+          style="width:100%;background:#111;border:1px solid #252525;border-radius:6px;color:#ccc;font-size:11px;padding:6px 10px 6px 28px;font-family:inherit;outline:none;box-sizing:border-box"
+          oninput="_frSearch=this.value.toUpperCase();frRender()">
+      </div>
+      <button onclick="frFetchAll()" style="background:#111;border:1px solid #252525;border-radius:6px;color:#888;font-size:10px;padding:6px 12px;cursor:pointer;font-family:inherit;white-space:nowrap"
+        onmouseover="this.style.color='#ccc'" onmouseout="this.style.color='#888'">↻ refresh</button>
+      <span id="fr-status" style="font-size:9px;color:#333"></span>
+      <span style="font-size:9px;color:#2a2a2a;margin-left:auto">auto-refresh 30s · ${_frPinned.size} pinned</span>
+    </div>
+    <div style="overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:11px">
+        <thead>
+          <tr style="border-bottom:1px solid #1a1a1a">
+            <th style="${thStyle};text-align:left">symbol</th>
+            <th style="${thStyle}"><img src="https://cryptologos.cc/logos/binance-bnb-logo.png" style="width:10px;height:10px;vertical-align:middle;margin-right:3px" onerror="this.style.display='none'">binance</th>
+            <th style="${thStyle}">bybit</th>
+            <th style="${thStyle}">okx</th>
+            <th style="${thStyle};color:#5b7fff">avg</th>
+            <th style="${thStyle}">next funding</th>
+          </tr>
+        </thead>
+        <tbody id="fr-tbody">
+          ${rows||'<tr><td colspan="6" style="text-align:center;padding:40px;color:#333;font-size:12px">fetching rates...</td></tr>'}
+        </tbody>
+      </table>
+    </div>
+    <div style="margin-top:10px;font-size:8px;color:#252525;text-align:center">
+      positive rate = longs pay shorts · negative rate = shorts pay longs · data from Binance, Bybit, OKX public APIs
+    </div>`;
+}
+
+function frInit(){
+  // seed with defaults so table isn't empty
+  _FR_DEFAULTS.forEach(s=>{ if(!_frData[s]) _frData[s]={}; });
+  frRender();
+  frFetchAll();
+  // auto-refresh every 30s
+  if(_frTimer) clearInterval(_frTimer);
+  _frTimer=setInterval(()=>{
+    if(VIEW==='fund') frFetchAll();
+    else { clearInterval(_frTimer); _frTimer=null; }
+  },30000);
+  // countdown tick every minute
+  setInterval(()=>{ if(VIEW==='fund') frRender(); },60000);
 }
 
 // ── CONTROLS ──
