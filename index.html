@@ -9353,7 +9353,7 @@ function render(){
       <span id="spot-badge" class="spot-badge ${s.SPOT?'spot':'lev'}" style="margin:0;margin-right:8px;border-left:none;align-self:stretch;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:0 6px 6px 0">${s.SPOT?'◈ spot dashboard':'⚡ leverage dashboard'}<span class="spot-badge-sub">current mode</span></span>
     </div>
     <div class="top-panel-body" id="top-panel-body" style="max-height:2000px;opacity:1"><div class="top-panel-body-inner">${topBody}</div></div>
-  </div>`+togH+`<div class="tw"><table id="tbl"></table></div><div id="guide-content" style="display:none"></div><p class="ft">${LANG==='id'?'liq% = akun ÷ notional × 100 · lebih tinggi = lebih aman · target = 0 → trade dilewati':'liq% = account ÷ notional × 100 · higher = safer · set target = 0 to skip trade'}</p>`;
+  </div>`+togH+`<div class="tw"><table id="tbl"></table></div><div id="guide-content" style="display:none"></div><div id="fund-content" style="display:none;padding:0 4px"></div><p class="ft">${LANG==='id'?'liq% = akun ÷ notional × 100 · lebih tinggi = lebih aman · target = 0 → trade dilewati':'liq% = account ÷ notional × 100 · higher = safer · set target = 0 to skip trade'}</p>`;
   _applyTopPanel();
 
   // if chart already exists, transplant the live canvas back in so we don't recreate it
@@ -9461,18 +9461,7 @@ function render(){
   } else if(VIEW==='fund'){
     if(_tbl) _tbl.style.display='none';
     if(_gc) _gc.style.display='none';
-    if(_fc) _fc.style.display='';
-    else {
-      // fund-content got wiped by render — recreate it
-      const parent=_tbl?_tbl.parentNode:document.getElementById('right-content');
-      if(parent){
-        const div=document.createElement('div');
-        div.id='fund-content';
-        div.style.cssText='padding:0 4px;';
-        parent.appendChild(div);
-        frInit();
-      }
-    }
+    if(_fc){ _fc.style.display=''; frRender(); }
   } else {
     if(_gc) _gc.style.display='none';
     if(_fc) _fc.style.display='none';
@@ -9487,6 +9476,7 @@ function render(){
 
 function renderTbl(months){
   if(VIEW==='guide'){renderGuide();return;}
+  if(VIEW==='fund'){frRender();return;}
   const tbl=document.getElementById('tbl');if(!tbl)return;
   const s=gs();
   let h='';
@@ -9928,18 +9918,6 @@ function setView(v,btn){
     if(tbl) tbl.style.display='none';
     if(gc) gc.style.display='none';
     if(fc){fc.style.display='';frInit();}
-    else {
-      // create fund-content div
-      const tblEl=document.getElementById('tbl');
-      const parent=tblEl?tblEl.parentNode:document.getElementById('right-content');
-      if(parent){
-        const div=document.createElement('div');
-        div.id='fund-content';
-        div.style.cssText='padding:0 4px;';
-        parent.appendChild(div);
-        frInit();
-      }
-    }
     return;
   }
   // switching back from guide/fund — show table
