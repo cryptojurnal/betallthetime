@@ -9450,14 +9450,32 @@ function render(){
     }
   });
   renderTbl(months);
-  // sync guide/table visibility after render rebuilds DOM
+  // sync guide/table/fund visibility after render rebuilds DOM
   const _gc=document.getElementById('guide-content');
+  const _fc=document.getElementById('fund-content');
   const _tbl=document.getElementById('tbl');
   if(VIEW==='guide'){
     if(_tbl) _tbl.style.display='none';
+    if(_fc) _fc.style.display='none';
     if(_gc){_gc.style.display='';renderGuide();}
+  } else if(VIEW==='fund'){
+    if(_tbl) _tbl.style.display='none';
+    if(_gc) _gc.style.display='none';
+    if(_fc) _fc.style.display='';
+    else {
+      // fund-content got wiped by render — recreate it
+      const parent=_tbl?_tbl.parentNode:document.getElementById('right-content');
+      if(parent){
+        const div=document.createElement('div');
+        div.id='fund-content';
+        div.style.cssText='padding:0 4px;';
+        parent.appendChild(div);
+        frInit();
+      }
+    }
   } else {
     if(_gc) _gc.style.display='none';
+    if(_fc) _fc.style.display='none';
     if(_tbl) _tbl.style.display='';
   }
   // Re-show back button for logged-in users (render() recreates it with display:none)
@@ -10129,13 +10147,13 @@ function frFmtAnnualized(v){
 }
 
 function frFmtCountdown(ts){
-  if(!ts) return '<span style="color:#2a2a2a">—</span>';
+  if(!ts) return '<span style="color:var(--tx3,#333)">—</span>';
   const ms=ts-Date.now();
   if(ms<=0) return '<span style="color:#EF9F27;font-weight:700">now</span>';
   const h=Math.floor(ms/3600000);
   const m=Math.floor((ms%3600000)/60000);
   const urgent=ms<3600000;
-  return `<span style="color:${urgent?'#EF9F27':'#444'};font-weight:${urgent?'700':'400'}">${h}h ${m}m</span>`;
+  return `<span style="color:${urgent?'#EF9F27':'var(--tx2,#555)'};font-weight:${urgent?'700':'400'}">${h}h ${m}m</span>`;
 }
 
 function frTogglePin(sym){
@@ -10198,18 +10216,22 @@ function frRender(){
     return (getV(b)-getV(a))*_frSortDir;
   };
 
-  defaultItems.sort(sortFn);
+  defaultItems.sort((a,b)=>{
+    // when sorting by avg (default col), preserve CMC rank order for default coins
+    if(_frSortCol==='avg') return _FR_DEFAULTS.indexOf(a.sym)-_FR_DEFAULTS.indexOf(b.sym);
+    return sortFn(a,b);
+  });
   restItems.sort(sortFn);
   const ordered=[...pinnedItems,...defaultItems,...restItems];
 
-  const thBase='padding:8px 10px;font-size:8px;color:#444;text-transform:uppercase;letter-spacing:.07em;font-weight:700;text-align:right;border-bottom:2px solid #1a1a1a;white-space:nowrap;cursor:pointer;user-select:none;position:sticky;top:0;background:#080808;z-index:2';
-  const thAct='color:#5b7fff';
+  const thBase='padding:8px 10px;font-size:8px;color:var(--tx2,#666);text-transform:uppercase;letter-spacing:.09em;font-weight:700;text-align:right;border-bottom:1px solid var(--bd,#1e1e1e);white-space:nowrap;cursor:pointer;user-select:none;position:sticky;top:0;background:var(--sf,#111);z-index:2';
+  const thAct='color:var(--acc,#5b7fff)';
   const sortArrow=(col)=>_frSortCol===col?(_frSortDir===1?' ↓':' ↑'):'';
 
   const filterBtns=['all','extreme','negative','positive','nearzero'].map(f=>{
     const labels={all:'all',extreme:'extreme >0.1%',negative:'negative',positive:'positive',nearzero:'near zero'};
     const active=_frFilter===f;
-    return `<button onclick="frSetFilter('${f}')" style="background:${active?'#5b7fff':'#111'};border:1px solid ${active?'#5b7fff':'#252525'};border-radius:5px;color:${active?'#fff':'#666'};font-size:9px;padding:4px 10px;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .15s">${labels[f]}</button>`;
+    return `<button onclick="frSetFilter('${f}')" style="background:${active?'var(--acc,#5b7fff)':'var(--btn,#111)'};border:1px solid ${active?'var(--acc,#5b7fff)':'var(--bd,#252525)'};border-radius:5px;color:${active?'var(--mhc,#fff)':'var(--tx2,#666)'};font-size:9px;padding:4px 10px;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .15s">${labels[f]}</button>`;
   }).join('');
 
   // coin icon map (coingecko)
@@ -10242,14 +10264,14 @@ function frRender(){
     const iconHtml=iconUrl?`<img src="${iconUrl}" width="14" height="14" style="border-radius:50%;vertical-align:middle;margin-right:4px;opacity:.85" onerror="this.style.display='none'">`:'';
     // sparkline
     const spark=frSparkSVG(sym);
-    return `${showDivider?'<tr><td colspan="10" style="height:1px;background:#1a1a1a;padding:0"></td></tr>':''}
-    <tr style="border-bottom:1px solid #0f0f0f;background:${isPinned?'rgba(91,127,255,0.05)':heatBg};transition:background .15s" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background='${isPinned?'rgba(91,127,255,0.05)':heatBg}'">
+    return `${showDivider?`<tr><td colspan="10" style="height:1px;background:var(--bd,#1a1a1a);padding:0"></td></tr>`:''}
+    <tr style="border-bottom:1px solid var(--bd2,#0f0f0f);background:${isPinned?'rgba(91,127,255,0.05)':heatBg};transition:background .15s" onmouseover="this.style.background='rgba(128,128,128,0.06)'" onmouseout="this.style.background='${isPinned?'rgba(91,127,255,0.05)':heatBg}'">
       <td style="padding:6px 8px;white-space:nowrap">
         <button onclick="frTogglePin('${sym}')" title="${isPinned?'unpin':'pin'}"
           style="background:none;border:none;cursor:pointer;font-size:10px;padding:0 4px 0 0;opacity:${isPinned?'1':'0.2'};transition:opacity .15s"
           onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='${isPinned?'1':'0.2'}'">📌</button>
-        ${iconHtml}<span style="font-size:11px;font-weight:700;color:${isPinned?'#5b7fff':isDefault?'#ddd':'#666'}">${sym.replace('USDT','')}</span>
-        <span style="font-size:8px;color:#2a2a2a">/USDT</span>
+        ${iconHtml}<span style="font-size:11px;font-weight:700;color:${isPinned?'var(--acc,#5b7fff)':isDefault?'var(--tx,#ddd)':'var(--tx2,#666)'}">${sym.replace('USDT','')}</span>
+        <span style="font-size:8px;color:var(--tx3,#333)">/USDT</span>
         ${divBadge}
       </td>
       <td style="padding:4px 6px;text-align:center">${spark}</td>
@@ -10257,7 +10279,7 @@ function frRender(){
       <td style="padding:6px 10px;text-align:right">${frFmtRate(d.bybit,maxAbs,sym,'bybit')}</td>
       <td style="padding:6px 10px;text-align:right">${frFmtRate(d.okx,maxAbs,sym,'okx')}</td>
       <td style="padding:6px 10px;text-align:right">${frFmtRate(d.gate,maxAbs,sym,'gate')}</td>
-      <td style="padding:6px 10px;text-align:right;border-left:1px solid #1a1a1a">${avg!=null?frFmtRate(avg,maxAbs,sym,'avg'):'<span style="color:#222">—</span>'}</td>
+      <td style="padding:6px 10px;text-align:right;border-left:1px solid var(--bd,#1a1a1a)">${avg!=null?frFmtRate(avg,maxAbs,sym,'avg'):'<span style="color:var(--tx3,#333)">—</span>'}</td>
       <td style="padding:6px 10px;text-align:right">${frFmtAnnualized(avg)}</td>
       <td style="padding:6px 10px;text-align:right">${spreadFmt}</td>
       <td style="padding:6px 10px;text-align:right;font-size:10px">${frFmtCountdown(d.nextTs)}</td>
@@ -10266,20 +10288,20 @@ function frRender(){
 
   fc.innerHTML=`
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap">
-      <div style="font-size:13px;font-weight:700;color:#ccc;white-space:nowrap">📡 funding rates</div>
+      <div style="font-size:13px;font-weight:700;color:var(--tx,#ccc);white-space:nowrap">📡 funding rates</div>
       <div style="position:relative;min-width:140px;max-width:220px;flex:1">
-        <span style="position:absolute;left:9px;top:50%;transform:translateY(-50%);color:#333;font-size:11px;pointer-events:none">🔍</span>
+        <span style="position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--tx2,#444);font-size:11px;pointer-events:none">🔍</span>
         <input id="fr-search" type="text" placeholder="search..." value="${_frSearch}"
-          style="width:100%;background:#111;border:1px solid #1e1e1e;border-radius:6px;color:#ccc;font-size:11px;padding:6px 10px 6px 28px;font-family:inherit;outline:none;box-sizing:border-box"
+          style="width:100%;background:var(--inp,#111);border:1px solid var(--bd,#1e1e1e);border-radius:6px;color:var(--tx,#ccc);font-size:11px;padding:6px 10px 6px 28px;font-family:inherit;outline:none;box-sizing:border-box"
           oninput="_frSearch=this.value.toUpperCase();frRender()">
       </div>
       <div style="display:flex;gap:4px;flex-wrap:wrap">${filterBtns}</div>
-      <button onclick="frFetchAll()" style="background:#111;border:1px solid #1e1e1e;border-radius:6px;color:#555;font-size:10px;padding:5px 10px;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .15s"
-        onmouseover="this.style.color='#ccc'" onmouseout="this.style.color='#555'">↻ refresh</button>
-      <span id="fr-status" style="font-size:9px;color:#444"></span>
-      <span style="font-size:9px;color:#333;margin-left:auto;white-space:nowrap">auto 30s · 📌${_frPinned.size}</span>
+      <button onclick="frFetchAll()" style="background:var(--btn,#111);border:1px solid var(--bd,#1e1e1e);border-radius:6px;color:var(--tx2,#555);font-size:10px;padding:5px 10px;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .15s"
+        onmouseover="this.style.color='var(--tx,#ccc)'" onmouseout="this.style.color='var(--tx2,#555)'">↻ refresh</button>
+      <span id="fr-status" style="font-size:9px;color:var(--tx2,#444)"></span>
+      <span style="font-size:9px;color:var(--tx3,#333);margin-left:auto;white-space:nowrap">auto 30s · 📌${_frPinned.size}</span>
     </div>
-    <div style="overflow-x:auto;border:1px solid #141414;border-radius:8px">
+    <div style="overflow-x:auto;border:1px solid var(--bd,#141414);border-radius:8px">
       <table style="width:100%;border-collapse:collapse;font-size:11px">
         <thead>
           <tr>
@@ -10296,13 +10318,13 @@ function frRender(){
           </tr>
         </thead>
         <tbody>
-          ${rows||'<tr><td colspan="10" style="text-align:center;padding:40px;color:#333;font-size:12px">fetching rates...</td></tr>'}
+          ${rows||`<tr><td colspan="10" style="text-align:center;padding:40px;color:var(--tx2,#444);font-size:12px">fetching rates...</td></tr>`}
         </tbody>
       </table>
     </div>
     <div style="margin-top:8px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px">
-      <span style="font-size:8px;color:#2a2a2a">+ = longs pay shorts · − = shorts pay longs · div ⧉ = click to copy arb setup · arb spread = max–min across exchanges</span>
-      <span style="font-size:8px;color:#2a2a2a">press <kbd style="background:#1a1a1a;border:1px solid #2a2a2a;border-radius:3px;padding:0 3px;font-size:7px">F</kbd> to jump here</span>
+      <span style="font-size:8px;color:var(--tx3,#333)">+ = longs pay shorts · − = shorts pay longs · div ⧉ = click to copy arb setup · arb spread = max–min across exchanges</span>
+      <span style="font-size:8px;color:var(--tx3,#333)">press <kbd style="background:var(--sf,#1a1a1a);border:1px solid var(--bd,#2a2a2a);border-radius:3px;padding:0 3px;font-size:7px;color:var(--tx,#ccc)">F</kbd> to jump here</span>
     </div>`;
 }
 
