@@ -5481,7 +5481,7 @@ function getMLabel(m){return 'm'+String(m).padStart(2,'0');}
 // get actual journal result for a locked trade (tab+month+tradeNo)
 function getActualTrade(m, tno){
   if(typeof JN==='undefined'||!JN.folders||!window._ACTIVE_PRESET) return null;
-  const folder=JN.folders.find(f=>f.name===window._ACTIVE_PRESET.name);
+  const folder=_folderByPreset(window._ACTIVE_PRESET.name);
   if(!folder||!JN.trades[folder.id]) return null;
   return JN.trades[folder.id].find(t=>
     t.source==='cockpit'&&t.cockpit&&
@@ -6938,8 +6938,31 @@ function toggleTradePanel(){
   document.addEventListener('touchend',onUp);
 })();
 
-// ── ZERO MONTH TOGGLE ──
-// ── TRADE LOCK (executed trade — immutable) ──
+// ── PRESET → FOLDER LINK HELPER ──
+// case-insensitive, trimmed match so "MyPreset" links to "mypreset" folder etc.
+function _folderByPreset(presetName){
+  if(!presetName||typeof JN==='undefined'||!JN.folders) return null;
+  const key=presetName.trim().toLowerCase();
+  return JN.folders.find(f=>f.name.trim().toLowerCase()===key)||null;
+}
+
+// get or auto-create the journal folder for a preset name
+function _getOrCreatePresetFolder(presetName){
+  if(!presetName||typeof JN==='undefined') return null;
+  let folder=_folderByPreset(presetName);
+  if(!folder){
+    const s=typeof gs==='function'?gs():{};
+    const color=(typeof JN_COLORS!=='undefined'?JN_COLORS:['#00c47a'])[JN.folders.length%(typeof JN_COLORS!=='undefined'?JN_COLORS.length:1)];
+    folder={id:'f'+Date.now(),name:presetName,color,type:s.SPOT?'spot':'lev',tags:[],createdAt:Date.now()};
+    JN.folders.push(folder);
+    if(!JN.trades) JN.trades={};
+    JN.trades[folder.id]=[];
+    if(typeof jnSave==='function') jnSave();
+  }
+  return folder;
+}
+
+
 
 // silent auto-resave to active preset — no confirm, no modal
 async function _autoResaveActivePreset(){
@@ -7407,7 +7430,7 @@ function ljShowLockModal(m, tno, draft=null){
   const cockpitEx=document.getElementById('fee-exchange')?.value||'binance';
   // calculate row number
   const _presetName=window._ACTIVE_PRESET?window._ACTIVE_PRESET.name:null;
-  const _defaultFolder=_presetName?JN.folders.find(f=>f.name===_presetName):JN.folders[0];
+  const _defaultFolder=_presetName?_folderByPreset(_presetName):JN.folders[0];
   const _jnFolder=draft?JN.folders.find(f=>JN.trades[f.id]&&JN.trades[f.id].find(t=>t.id===draft.id)):_defaultFolder;
   const _jnTrades=_jnFolder?JN.trades[_jnFolder.id]||[]:[];
   // if editing a draft, show its actual position; otherwise show next row number
@@ -8156,7 +8179,7 @@ async function ljConfirmLock(){
     folder=JN.folders.find(f=>f.id===window._ljSelectedFolderId);
   }
   if(!folder&&window._ACTIVE_PRESET){
-    folder=JN.folders.find(f=>f.name===window._ACTIVE_PRESET.name);
+    folder=_getOrCreatePresetFolder(window._ACTIVE_PRESET.name);
   }
   if(!folder) folder=JN.folders[0];
   if(!folder){
@@ -8256,7 +8279,7 @@ function ljGetDraftKey(m, tno){
 function ljFindDraft(m, tno){
   // no active preset = no draft context — never show drafts without preset
   if(!window._ACTIVE_PRESET) return null;
-  const activeFolderId=(JN.folders.find(f=>f.name===window._ACTIVE_PRESET.name)||{}).id;
+  const activeFolderId=(_folderByPreset(window._ACTIVE_PRESET.name)||{}).id;
   if(!activeFolderId) return null;
   const found=(JN.trades[activeFolderId]||[]).find(t=>
     t.status==='draft'&&t.cockpit&&
@@ -8345,7 +8368,7 @@ async function ljSaveDraftCore(){
     folder=JN.folders.find(f=>f.id===window._ljSelectedFolderId);
   }
   if(!folder&&window._ACTIVE_PRESET){
-    folder=JN.folders.find(f=>f.name===window._ACTIVE_PRESET.name);
+    folder=_getOrCreatePresetFolder(window._ACTIVE_PRESET.name);
   }
   if(!folder) folder=JN.folders[0];
   if(!folder){
@@ -8441,7 +8464,7 @@ async function ljConfirmUnlock(m, tno, key){
     // remove from journal — find by cockpit reference
     const presetName=window._ACTIVE_PRESET?.name;
     if(presetName){
-      const folder=JN.folders.find(f=>f.name===presetName);
+      const folder=_folderByPreset(presetName);
       if(folder&&JN.trades[folder.id]){
         JN.trades[folder.id]=JN.trades[folder.id].filter(t=>
           !(t.source==='cockpit'&&t.cockpit&&t.cockpit.tab===TAB&&t.cockpit.month===m&&t.cockpit.tradeNo===tno)
@@ -11746,6 +11769,11 @@ async function presetLoad(id){
     // track active preset for auto-resave
     window._ACTIVE_PRESET = {id: preset.id, name: preset.name};
     try{localStorage.setItem('batt_active_preset',JSON.stringify({id:preset.id,name:preset.name}));}catch(e){}
+
+    // auto-create matching journal folder if it doesn't exist yet
+    if(typeof JN!=='undefined'&&JN.folders){
+      _getOrCreatePresetFolder(preset.name);
+    }
     const _pbl2=document.getElementById('auth-preset-lbl');
     const _pbc2=document.getElementById('auth-preset-clear');
     if(_pbl2){_pbl2.textContent='● '+preset.name;_pbl2.style.display='';}
@@ -19048,7 +19076,7 @@ function clearActivePreset(){
   // wipe JN drafts that belong to the active preset folder so 📝 badges clear
   try{
     if(window._ACTIVE_PRESET&&typeof JN!=='undefined'&&JN.folders&&JN.trades){
-      const folder=JN.folders.find(f=>f.name===window._ACTIVE_PRESET.name);
+      const folder=_folderByPreset(window._ACTIVE_PRESET.name);
       if(folder&&JN.trades[folder.id]){
         JN.trades[folder.id]=JN.trades[folder.id].filter(t=>t.status!=='draft');
         if(typeof jnSave==='function') jnSave();
