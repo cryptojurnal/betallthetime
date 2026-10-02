@@ -27,6 +27,7 @@ function mkState() {
     BT: [...DEF_BT],
     FR: [...DEF_FR],
     WD: {},
+    DEPO: {},
     ML: {},
     TL: {},
     MT: {},

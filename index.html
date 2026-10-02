@@ -1391,12 +1391,16 @@ tr.locked-row.actual-neutral{border-left:2px solid #EF9F27}
 tr.skip-row>td{color:var(--tx3);font-style:italic}
 tr.zero-row>td{color:var(--tx3);font-style:italic}
 
-/* inline WD input in table */
+/* inline WD & DEPO input in table */
 .wd-cell{display:flex;align-items:center;justify-content:flex-end;gap:4px}
 .wd-inp{width:70px;padding:2px 5px;font-size:10px;font-weight:700;border:0.5px solid var(--bd2);border-radius:8px;background:var(--inp);color:var(--tx);text-align:center;transition:all .2s;-moz-appearance:textfield}
 .wd-inp::-webkit-outer-spin-button,.wd-inp::-webkit-inner-spin-button{-webkit-appearance:none}
 .wd-inp:focus{outline:none;border-color:var(--acc)}
 .wd-inp.active{border-color:var(--acc);background:var(--wd-on);color:var(--wd-onc);font-weight:700}
+.depo-inp{width:70px;padding:2px 5px;font-size:10px;font-weight:700;border:0.5px solid var(--bd2);border-radius:8px;background:var(--inp);color:var(--tx);text-align:center;transition:all .2s;-moz-appearance:textfield}
+.depo-inp::-webkit-outer-spin-button,.depo-inp::-webkit-inner-spin-button{-webkit-appearance:none}
+.depo-inp:focus{outline:none;border-color:#00c47a}
+.depo-inp.active{border-color:#00c47a;background:rgba(0,196,122,0.12);color:#00c47a;font-weight:700}
 .mp-inp{width:52px;padding:2px 4px;font-size:10px;font-weight:700;border:0.5px solid var(--acc2);border-radius:8px;background:var(--inp);color:var(--tx);text-align:center;transition:all .2s;-moz-appearance:textfield}
 .mp-inp::-webkit-outer-spin-button,.mp-inp::-webkit-inner-spin-button{-webkit-appearance:none}
 .mp-inp:focus{outline:none;border-color:var(--acc2)}
@@ -5026,7 +5030,7 @@ let FEE_LIVE={rate:null, exchange:'binance', symbol:'BTCUSDT', loading:false};
 // TABS is an ordered array of tab descriptors
 // built-in tabs: id='36' name='36-month', id='q' name='quarter'
 // custom tabs: id='c1','c2',... name=user-defined, max 5 custom per panel (built-in + custom ≤ 7 total)
-function mkState(){return{P:1000,LEV:5,NOT:2500,KPI:1.0,BT:[...DEF_BT],FR:[...DEF_FR],WD:{},ML:{},TL:{},MT:{},ZM:new Set([]),MP:{},LK:new Set([]),SPOT:false,CF:true,FEE:{maker:0.02,taker:0.05,funding:0.01,interval:8,holds:1,method:'taker'}};}
+function mkState(){return{P:1000,LEV:5,NOT:2500,KPI:1.0,BT:[...DEF_BT],FR:[...DEF_FR],WD:{},DEPO:{},ML:{},TL:{},MT:{},ZM:new Set([]),MP:{},LK:new Set([]),SPOT:false,CF:true,FEE:{maker:0.02,taker:0.05,funding:0.01,interval:8,holds:1,method:'taker'}};}
 const S={
   '36': mkState(),
   'q':  mkState(),
@@ -5055,6 +5059,7 @@ function _deepCopyS(src){
       ZM:t.ZM?new Set(t.ZM):new Set(),
       LK:t.LK?new Set(t.LK):new Set(),
       WD:t.WD?{...t.WD}:{},
+      DEPO:t.DEPO?{...t.DEPO}:{},
       MP:t.MP?{...t.MP}:{},
       ML:t.ML?{...t.ML}:{},
       TL:t.TL?{...t.TL}:{},
@@ -5187,6 +5192,7 @@ function saveSection(sec){
   if(sec==='pos') data={LEV:s.LEV,NOT:s.NOT,KPI:s.KPI,CF:s.CF};
   if(sec==='trades') data={BT:[...s.BT],FR:[...s.FR]};
   if(sec==='wd') data={WD:{...s.WD}};
+  if(sec==='depo') data={DEPO:{...s.DEPO}};
   if(sec==='labels') data={ML:{...s.ML},TL:{...s.TL}};
   if(sec==='zero') data={ZM:[...s.ZM]};
   if(sec==='fee') data={FEE:{...s.FEE},SPOT:s.SPOT};
@@ -5208,7 +5214,7 @@ function loadAll(){
     try{
       const allTabIds=['36','q',...CUSTOM_TABS.map(t=>t.id)];
       allTabIds.forEach(tab=>{
-        ['cap','pos','trades','wd','labels','zero','fee','lk'].forEach(sec=>{
+        ['cap','pos','trades','wd','depo','labels','zero','fee','lk'].forEach(sec=>{
           const oldKey='wz_'+tab+'_'+sec;
           const newKey='batt_'+tab+'_'+sec;
           // only copy if old key exists and new key doesn't yet
@@ -5230,7 +5236,7 @@ function loadAll(){
   const allTabIds=['36','q',...CUSTOM_TABS.map(t=>t.id)];
   allTabIds.forEach(tab=>{
     if(!S[tab])S[tab]=mkState();
-    ['cap','pos','trades','wd','labels','zero','fee','lk'].forEach(sec=>{
+    ['cap','pos','trades','wd','depo','labels','zero','fee','lk'].forEach(sec=>{
       const key='batt_'+tab+'_'+sec;
       try{
         const raw=localStorage.getItem(key);
@@ -5240,6 +5246,7 @@ function loadAll(){
         if(sec==='pos'){if(d.LEV)S[tab].LEV=d.LEV;if(d.NOT)S[tab].NOT=d.NOT;if(d.KPI)S[tab].KPI=d.KPI;if(typeof d.CF!=='undefined')S[tab].CF=d.CF;}
         if(sec==='trades'){if(d.BT)S[tab].BT=[...d.BT];if(d.FR)S[tab].FR=[...d.FR];}
         if(sec==='wd'&&d.WD)S[tab].WD={...d.WD};
+        if(sec==='depo'&&d.DEPO)S[tab].DEPO={...d.DEPO};
         if(sec==='labels'){if(d.ML)S[tab].ML={...d.ML};if(d.TL)S[tab].TL={...d.TL};}
         if(sec==='zero'&&d.ZM)S[tab].ZM=new Set(d.ZM);
         if(sec==='lk')S[tab].LK=d.LK?new Set(d.LK):new Set();
@@ -5553,16 +5560,19 @@ function sim(){
   const zeroSet=s.ZM;
   const total=isQ?3:TOTAL;
   const months=[];
-  let acc=s.P,banked=0;
+  let acc=s.P,banked=0,totalDeposits=0;
   // carry-forward: track last active trade's notional
   // on first month, seed from INIT_NOT setting
   let prevLastNotional=s.NOT;
 
   for(let m=1;m<=total;m++){
     const lb=getMLabel(m),isZ=zeroSet.has(m);
+    const depoAmt=parseFloat(s.DEPO&&s.DEPO[m])||0;
+    acc+=depoAmt;
+    totalDeposits+=depoAmt;
     if(isZ){
       // zero month: notional plan pauses, carry stays unchanged
-      months.push({m,lb,isZ:true,sA:acc,eA:acc,gA:acc,wd:0,banked,nw:acc+banked,trades:[],pct:0,
+      months.push({m,lb,isZ:true,sA:acc,eA:acc,gA:acc,wd:0,depo:depoAmt,banked,totalDeposits,nw:acc+banked,trades:[],pct:0,
         postLiq:null,initNot:prevLastNotional,liqT1:acc/prevLastNotional*100,mp:1});
       continue;
     }
@@ -5572,7 +5582,7 @@ function sim(){
     const cf=s.CF!==false;
     const cfBase=cf?prevLastNotional:s.NOT;
     // spot CF off: position resets to capital each month; spot CF on: follows account balance (default)
-    const initNot=s.SPOT?(cf?acc:s.P):(cfBase*mp);
+    const initNot=s.SPOT?(cf?acc:(s.P+totalDeposits)):(cfBase*mp);
     const liqT1=s.SPOT?100:(acc/initNot*100);
     const{bt:mBT,fr:mFR}=getMonthTrades(m);
     const{trades,endAcc:gA,endAccF:gAF,lastNotional:ln}=runSeq(acc,s.LEV,initNot,mBT,mFR,s.KPI,s.SPOT,cf,m);
@@ -5595,7 +5605,7 @@ function sim(){
     const postLiq=wd>0&&!bust?(fA/prevLN*100):null;
     const pct=(effectiveGAF-acc)/acc*100;
     prevLastNotional=prevLN;
-    months.push({m,lb,isZ:false,sA:acc,eA:bust?0:fA,gA,gAF:effectiveGAF,wd,banked,nw:(bust?0:fA)+banked,trades,pct,postLiq,initNot,liqT1,mp,feePaid:monthFeePaid,bust});
+    months.push({m,lb,isZ:false,sA:acc,eA:bust?0:fA,gA,gAF:effectiveGAF,wd,depo:depoAmt,banked,totalDeposits,nw:(bust?0:fA)+banked,trades,pct,postLiq,initNot,liqT1,mp,feePaid:monthFeePaid,bust});
     if(bust) break;
     acc=fA;
   }
@@ -6506,12 +6516,14 @@ function _softUpdateCore(){
   const avgPct=act.length?act.reduce((a,r)=>a+r.pct,0)/act.length:0;
   const {actTr,wins,losses,net:mp}=seqStats(s);
   const liqT1=s.P/s.NOT*100;
-  const tr=(last.nw/s.P-1)*100;
+  const totalDeposits=last.totalDeposits||0;
+  const totalPrincipal=s.P+totalDeposits;
+  const tr=totalPrincipal>0?((last.nw/totalPrincipal)-1)*100:0;
 
   // patch metric cards by re-rendering only .metrics div
   const metricsEl=document.querySelector('.metrics');
   if(metricsEl){
-    const cagr=isQ?null:(Math.pow(Math.max(last.nw,s.P)/s.P,1/3)-1)*100;
+    const cagr=isQ?null:(totalPrincipal>0?(Math.pow(Math.max(last.nw,totalPrincipal)/totalPrincipal,1/3)-1)*100:0);
     const m1M=!isQ?months.find(r=>r.nw>=1000000):null;
     const btcPrice = window.LIVE_BTC_PRICE || 85000; // fallback price
     const endBalanceBTC = last.eA / btcPrice;
@@ -6519,9 +6531,9 @@ function _softUpdateCore(){
     if(isQ){
       mh=`
         <div class="mc"><div class="mll">${t('q_end_lbl')}</div><div class="mvv" style="color:var(--acc2)">${fmt(last.eA)}</div><div class="ms">${fIDR(last.eA)}</div></div>
-        <div class="mc"><div class="mll">${t('total_gain_lbl')}</div><div class="mvv" style="color:var(--acc2)">+${tr.toFixed(1)}%</div><div class="ms">${fmt(last.eA-s.P)}</div></div>
+        <div class="mc"><div class="mll">${t('total_gain_lbl')}</div><div class="mvv" style="color:var(--acc2)">+${tr.toFixed(1)}%</div><div class="ms">${fmt(last.eA-totalPrincipal)}</div></div>
         <div class="mc"><div class="mll">${t('nw_lbl')}</div><div class="mvv" style="color:var(--acc)">${fmt(last.nw)}</div><div class="ms">${fIDR(last.nw)}</div></div>
-        <div class="mc"><div class="mll">${t('banked_lbl')}</div><div class="mvv">${fmt(last.banked)}</div><div class="ms">3 ${t('months')}</div></div>
+        <div class="mc"><div class="mll">${t('banked_lbl')}${totalDeposits>0?' · DEPO':''}</div><div class="mvv">${fmt(last.banked)}</div><div class="ms">${totalDeposits>0?'banked '+fmt(last.banked)+' · depo +'+fmt(totalDeposits):('3 '+t('months'))}</div></div>
         <div class="mc"><div class="mll">${t('avg_lbl')}</div><div class="mvv">${avgPct.toFixed(1)}%</div><div class="ms">${t('per_active_month')}</div></div>
         <div class="mc"><div class="mll">₿ equivalent</div><div class="mvv" style="color:#f7931a">${endBalanceBTC.toFixed(4)}</div><div class="ms">Q3 acct · @ $${btcPrice.toLocaleString()}</div></div>
         <div class="mc"><div class="mll">${t('seq_net_lbl')}</div><div class="mvv" style="color:${mp>=0?'#1D9E75':'#E24B4A'}">${mp>0?'+':''}${mp.toFixed(1)}%</div><div class="ms">${wins}W / ${losses}L · ${actTr} ${t('active_trades')}</div></div>
@@ -6533,13 +6545,15 @@ function _softUpdateCore(){
     } else {
       // 1-year metrics (month 12)
       const m12 = months[11]; // index 11 = month 12
+      const y1Depo = m12 ? (m12.totalDeposits || 0) : 0;
+      const y1Prin = s.P + y1Depo;
       const y1Nw = m12 ? m12.nw : s.P;
-      const y1Ret = ((y1Nw / s.P) - 1) * 100;
+      const y1Ret = y1Prin > 0 ? ((y1Nw / y1Prin) - 1) * 100 : 0;
       mh=`
         <div class="mc"><div class="mll">${t('cagr_lbl')}</div><div class="mvv" style="color:var(--acc2)" data-key="cagr">${cagr.toFixed(1)}%</div><div class="ms">${t('cagr_sub')}</div></div>
-        <div class="mc"><div class="mll">${t('total_ret_lbl')}</div><div class="mvv">${tr>9999?(tr/1000).toFixed(0)+'k%':tr.toFixed(0)+'%'}</div><div class="ms">${t('total_ret_sub',fmt(s.P))}</div></div>
+        <div class="mc"><div class="mll">${t('total_ret_lbl')}</div><div class="mvv">${tr>9999?(tr/1000).toFixed(0)+'k%':tr.toFixed(0)+'%'}</div><div class="ms">${t('total_ret_sub',fmt(totalPrincipal))}</div></div>
         <div class="mc"><div class="mll">${t('nw_lbl')}</div><div class="mvv" style="color:var(--acc2)" data-key="nw">${fmt(last.nw)}</div><div class="ms">${t('nw_sub')} · ${fIDR(last.nw)}</div></div>
-        <div class="mc"><div class="mll">${t('banked_lbl')}</div><div class="mvv" style="color:var(--acc)" data-key="banked">${fmt(last.banked)}</div><div class="ms">${t('banked_sub')}</div></div>
+        <div class="mc"><div class="mll">${t('banked_lbl')}${totalDeposits>0?' · DEPO':''}</div><div class="mvv" style="color:var(--acc)" data-key="banked">${fmt(last.banked)}</div><div class="ms">${totalDeposits>0?'banked '+fmt(last.banked)+' · depo +'+fmt(totalDeposits):t('banked_sub')}</div></div>
         <div class="mc"><div class="mll">${t('end_acct_lbl')}</div><div class="mvv" data-key="eA">${fmt(last.eA)}</div><div class="ms">${months.filter(r=>!r.isZ).length}/${months.length} active · ${fIDR(last.eA)}</div></div>
         <div class="mc"><div class="mll">₿ equivalent</div><div class="mvv" style="color:#f7931a">${endBalanceBTC.toFixed(4)}</div><div class="ms">${months.filter(r=>!r.isZ).length}/${months.length} · @ $${btcPrice.toLocaleString()}</div></div>
         <div class="mc"><div class="mll">${t('milestone_lbl')}</div><div class="mvv" style="color:${m1M?'var(--acc2)':'#E24B4A'}">${m1M?getMLabel(m1M.m):t('beyond36')}</div><div class="ms">${m1M?t('milestone_hit')+getMLabel(m1M.m):t('milestone_miss')}</div></div>
@@ -6591,7 +6605,7 @@ function _softUpdateCore(){
   }
   // patch table only — skip if user is actively typing in a trade input
   const _active=document.activeElement;
-  const _isTyping=_active&&(_active.id&&(_active.id.startsWith('mbt-')||_active.id.startsWith('mfr-')||_active.id.startsWith('wd-inp')));
+  const _isTyping=_active&&(_active.id&&(_active.id.startsWith('mbt-')||_active.id.startsWith('mfr-')||_active.id.startsWith('wd-inp')||_active.id.startsWith('depo-inp')));
   if(!_isTyping) renderTbl(months);
   // update notional comp row (actual margin, fm%, liq%)
   updComp();
@@ -6603,6 +6617,15 @@ function onWdInline(m,v){
   try{localStorage.setItem('batt_'+TAB+'_wd',JSON.stringify({WD:{...gs().WD}}));}catch(e){}
   _silentCloudSync();
   softUpdate(); // renderTbl handles warnings inline
+}
+
+function onDepoInline(m,v){
+  _captureUndo();const val=parseFloat(v)||0;
+  if(!gs().DEPO) gs().DEPO={};
+  gs().DEPO[m]=val;
+  try{localStorage.setItem('batt_'+TAB+'_depo',JSON.stringify({DEPO:{...gs().DEPO}}));}catch(e){}
+  _silentCloudSync();
+  softUpdate();
 }
 
 function setLang(lang){
@@ -9185,8 +9208,10 @@ function render(){
   const act=months.filter(r=>!r.isZ);
   const avgPct=act.length?act.reduce((a,r)=>a+r.pct,0)/act.length:0;
   const {actTr,wins,losses,net:mp,upside:mpUp,downside:mpDown}=seqStats(s);
-  const cagr=isQ?null:(Math.pow(Math.max(last.nw,s.P)/s.P,1/3)-1)*100;
-  const tr=(last.nw/s.P-1)*100;
+  const totalDeposits=last.totalDeposits||0;
+  const totalPrincipal=s.P+totalDeposits;
+  const cagr=isQ?null:(totalPrincipal>0?(Math.pow(Math.max(last.nw,totalPrincipal)/totalPrincipal,1/3)-1)*100:0);
+  const tr=totalPrincipal>0?((last.nw/totalPrincipal)-1)*100:0;
   const m1M=!isQ?months.find(r=>r.nw>=1000000):null;
   const totalFeesPaid=months.filter(r=>!r.isZ).reduce((a,r)=>a+(r.feePaid||0),0);
   const wv=(val,color='')=>{
@@ -9250,9 +9275,9 @@ function render(){
     const endBalanceBTC = last.eA / btcPrice;
     mh+=`
       <div class="mc"><div class="mll">${t('q_end_lbl')}</div>${wv(fmt(last.eA),'var(--acc2)')}${ws(fIDR(last.eA))}</div>
-      <div class="mc"><div class="mll">${t('total_gain_lbl')}</div>${wv('+'+tr.toFixed(1)+'%','var(--acc2)')}${ws(fmt(last.eA-s.P))}</div>
+      <div class="mc"><div class="mll">${t('total_gain_lbl')}</div>${wv('+'+tr.toFixed(1)+'%','var(--acc2)')}${ws(fmt(last.eA-totalPrincipal))}</div>
       <div class="mc"><div class="mll">${t('nw_lbl')}</div>${wv(fmt(last.nw),'var(--acc)')}${ws(fIDR(last.nw))}</div>
-      <div class="mc"><div class="mll">${t('banked_lbl')}</div><div class="mvv">${fmt(last.banked)}</div><div class="ms">3 ${t('months')}</div></div>
+      <div class="mc"><div class="mll">${t('banked_lbl')}${totalDeposits>0?' · DEPO':''}</div><div class="mvv">${fmt(last.banked)}</div><div class="ms">${totalDeposits>0?'banked '+fmt(last.banked)+' · depo +'+fmt(totalDeposits):('3 '+t('months'))}</div></div>
       <div class="mc"><div class="mll">${t('avg_lbl')}</div><div class="mvv">${avgPct.toFixed(1)}%</div><div class="ms">${t('per_active_month')}</div></div>
       <div class="mc"><div class="mll">₿ equivalent</div><div class="mvv" style="color:#f7931a">${endBalanceBTC.toFixed(4)}</div><div class="ms">Q3 acct · @ $${btcPrice.toLocaleString()}</div></div>
       <div class="mc"><div class="mll">${t('seq_net_lbl')}</div><div class="mvv" style="color:${mp>=0?'#1D9E75':'#E24B4A'}">${mp>0?'+':''}${mp.toFixed(1)}%</div><div class="ms">${wins}W / ${losses}L · ${actTr} ${t('active_trades')}</div></div>
@@ -9267,13 +9292,15 @@ function render(){
     const endBalanceBTC = last.eA / btcPrice;
     // 1-year metrics (month 12)
     const m12 = months[11]; // index 11 = month 12
+    const y1Depo = m12 ? (m12.totalDeposits || 0) : 0;
+    const y1Prin = s.P + y1Depo;
     const y1Nw = m12 ? m12.nw : s.P;
-    const y1Ret = ((y1Nw / s.P) - 1) * 100;
+    const y1Ret = y1Prin > 0 ? ((y1Nw / y1Prin) - 1) * 100 : 0;
     mh+=`
       <div class="mc"><div class="mll">${t('cagr_lbl')}</div><div class="mvv" style="color:var(--acc2)" data-key="cagr">${cagr.toFixed(1)}%</div><div class="ms">${t('cagr_sub')}</div></div>
-      <div class="mc"><div class="mll">${t('total_ret_lbl')}</div><div class="mvv">${tr>9999?(tr/1000).toFixed(0)+'k%':tr.toFixed(0)+'%'}</div><div class="ms">${t('total_ret_sub',fmt(s.P))}</div></div>
+      <div class="mc"><div class="mll">${t('total_ret_lbl')}</div><div class="mvv">${tr>9999?(tr/1000).toFixed(0)+'k%':tr.toFixed(0)+'%'}</div><div class="ms">${t('total_ret_sub',fmt(totalPrincipal))}</div></div>
       <div class="mc"><div class="mll">${t('nw_lbl')}</div><div class="mvv" style="color:var(--acc2)" data-key="nw">${fmt(last.nw)}</div><div class="ms">${t('nw_sub')} · ${fIDR(last.nw)}</div></div>
-      <div class="mc"><div class="mll">${t('banked_lbl')}</div><div class="mvv" style="color:var(--acc)" data-key="banked">${fmt(last.banked)}</div><div class="ms">${t('banked_sub')}</div></div>
+      <div class="mc"><div class="mll">${t('banked_lbl')}${totalDeposits>0?' · DEPO':''}</div><div class="mvv" style="color:var(--acc)" data-key="banked">${fmt(last.banked)}</div><div class="ms">${totalDeposits>0?'banked '+fmt(last.banked)+' · depo +'+fmt(totalDeposits):t('banked_sub')}</div></div>
       <div class="mc"><div class="mll">${t('end_acct_lbl')}</div><div class="mvv" data-key="eA">${fmt(last.eA)}</div><div class="ms">${months.filter(r=>!r.isZ).length}/${months.length} active · ${fIDR(last.eA)}</div></div>
       <div class="mc"><div class="mll">₿ equivalent</div><div class="mvv" style="color:#f7931a">${endBalanceBTC.toFixed(4)}</div><div class="ms">${months.filter(r=>!r.isZ).length}/${months.length} · @ $${btcPrice.toLocaleString()}</div></div>
       <div class="mc"><div class="mll">${t('milestone_lbl')}</div><div class="mvv" style="color:${m1M?'var(--acc2)':'#E24B4A'}">${m1M?getMLabel(m1M.m):t('beyond36')}</div><div class="ms">${m1M?t('milestone_hit')+getMLabel(m1M.m):t('milestone_miss')}</div></div>
@@ -9506,7 +9533,7 @@ function renderTbl(months){
       <th style="width:12%">end<br><span style="font-weight:400;color:var(--tx3);text-transform:none;letter-spacing:0;font-size:8px">acct balance</span></th>
       <th style="width:5%;text-align:center">monthly%</th>
       <th style="width:5%;text-align:center">net gain</th>
-      <th style="width:18%;text-align:center">withdrawal ✏️</th>
+      <th style="width:18%;text-align:center">depo / withdrawal ✏️</th>
       <th style="width:6%;text-align:center">banked</th>
       <th style="width:9%">NW</th>
       <th style="width:4%">${s.SPOT?'—':'liq t1'}</th>
@@ -9528,6 +9555,7 @@ function renderTbl(months){
       const _lastT=actTr.length?actTr[actTr.length-1]:null;
       const ll=_lastT?(_lastT.hasActual&&_lastT.not>0?_lastT.accAF/_lastT.not*100:_lastT.liq):0;
       const wdVal=s.WD[mo.m]||0;
+      const depoVal=(s.DEPO&&s.DEPO[mo.m])||0;
       // Wipe state: show error row instead of calculated values
       if(IS_WIPED){
         const fmVal = s.NOT/s.LEV/s.P*100;
@@ -9554,7 +9582,7 @@ function renderTbl(months){
       }
       h+=`<tr>
         <td style="white-space:nowrap"><input class="lbl-sum" value="${getML(mo.m)}" placeholder="e.g. JAN 26" oninput="this.value=this.value.toUpperCase()" onchange="onMonthLabel(${mo.m},this.value.toUpperCase())" onclick="this.select()" style="width:72px"> <span title="jump to full detail" onclick="event.stopPropagation();jumpToDetail(${mo.m})" style="cursor:pointer;font-size:9px;color:var(--acc2);padding:1px 4px;border:0.5px solid var(--acc2);border-radius:3px;user-select:none;margin-left:2px" onmouseover="this.style.background='var(--btno)'" onmouseout="this.style.background='transparent'">→</span> <span onclick="toggleZeroMonth(${mo.m})" title="set as zero month" style="cursor:pointer;font-size:9px;color:var(--tx3);padding:1px 4px;border:0.5px solid var(--bd2);border-radius:3px;user-select:none" onmouseover="this.style.color='var(--acc)'" onmouseout="this.style.color='var(--tx3)'">⊘</span>${mo.mp>1?'<span style="background:#EAF3DE;color:#3B6D11;font-size:9px;padding:1px 4px;border-radius:3px;font-weight:700;margin-left:2px">⚡'+mo.mp.toFixed(1)+'×</span>':''}</td>
-        <td>${fmt(mo.sA)}</td>
+        <td>${fmt(mo.sA)}${mo.depo>0?'<br><span style="font-size:8px;color:#00c47a;font-weight:700">+'+fmt(mo.depo)+'</span>':''}</td>
         <td style="text-align:center">${(()=>{
           const _act=mo.trades.filter(t=>!t.skip);
           const _allLk=_act.length>0&&_act.every(t=>t.hasActual);
@@ -9568,7 +9596,7 @@ function renderTbl(months){
         <td style="color:var(--acc2);font-weight:700">${mo.wd>0?'<span style="color:var(--tx2);font-size:10px">'+fmt(mo.gA)+'</span> <span style="color:#E24B4A;font-size:9px">−'+fmt(mo.wd)+'</span><br><span style="font-weight:700">'+fmt(mo.eA)+'</span>':fmt(mo.eA)}</td>
         <td>${mo.pct.toFixed(1)}%</td>
         <td>+${fmt(gain)}</td>
-        <td><div class="wd-cell" style="flex-wrap:wrap;gap:2px"><input type="number" class="wd-inp${wdVal>0?' active':''}" id="wd-inp-${mo.m}" value="${wdVal||''}" min="0" step="1" placeholder="0" onchange="onWdInline(${mo.m},this.value)" onblur="onWdInline(${mo.m},this.value)">${(()=>{
+        <td><div class="wd-cell" style="flex-wrap:wrap;gap:3px;justify-content:center"><div style="display:flex;align-items:center;gap:2px"><span style="font-size:8px;color:#00c47a;font-weight:700">+</span><input type="number" class="depo-inp${depoVal>0?' active':''}" id="depo-inp-${mo.m}" value="${depoVal||''}" min="0" step="1" placeholder="depo" onchange="onDepoInline(${mo.m},this.value)" onblur="onDepoInline(${mo.m},this.value)" style="width:52px;padding:2px 4px;font-size:10px;border-radius:4px;border:0.5px solid ${depoVal>0?'#00c47a':'var(--bd2)'};background:${depoVal>0?'rgba(0,196,122,0.1)':'transparent'};color:${depoVal>0?'#00c47a':'var(--tx)'};font-weight:700"></div><div style="display:flex;align-items:center;gap:2px"><span style="font-size:8px;color:#ff8888;font-weight:700">−</span><input type="number" class="wd-inp${wdVal>0?' active':''}" id="wd-inp-${mo.m}" value="${wdVal||''}" min="0" step="1" placeholder="wd" onchange="onWdInline(${mo.m},this.value)" onblur="onWdInline(${mo.m},this.value)" style="width:52px;padding:2px 4px;font-size:10px"></div>${(()=>{
   const _avail=mo.gAF||mo.eA||0;
   const _gain=_avail-(mo.sA||0);
   const _ov=wdVal>_avail;
@@ -9626,6 +9654,7 @@ function renderTbl(months){
       const _lastActTr=actTr.length?actTr[actTr.length-1]:null;
       const ll=_lastActTr?(_lastActTr.hasActual&&_lastActTr.not>0?_lastActTr.accAF/_lastActTr.not*100:_lastActTr.liq):0;
       const wdVal=s.WD[mo.m]||0;
+      const depoVal=(s.DEPO&&s.DEPO[mo.m])||0;
       if(IS_WIPED){
         const fmVal = s.NOT/s.LEV/s.P*100;
         const isFmError = fmVal > 100;
@@ -9660,6 +9689,7 @@ function renderTbl(months){
         <td style="font-size:9px;padding:4px 5px">
           <div style="font-size:7px;color:var(--mhs);opacity:.7;margin-bottom:1px">start · acc balance</div>
           <b>${fmt(mo.sA)}</b>
+          ${mo.depo>0?'<div style="font-size:8px;color:#00c47a;margin-top:1px">depo +'+fmt(mo.depo)+'</div>':''}
         </td>
         <td style="font-size:9px;padding:4px 5px">
           <div style="font-size:7px;color:var(--mhs);opacity:.7;margin-bottom:1px">${s.SPOT?'size×':'push×'}</div>
@@ -9692,8 +9722,16 @@ function renderTbl(months){
         </td>
         <td></td>
         <td style="font-size:9px;text-align:right;padding:4px 5px">
-          <div style="font-size:7px;color:var(--mhs);opacity:.7;margin-bottom:2px">withdraw ✏️</div>
-          <input type="number" class="wd-inp${wdVal>0?' active':''}" id="wd-inp-d-${mo.m}" value="${wdVal||''}" min="0" step="1" placeholder="0" onchange="onWdInline(${mo.m},this.value)" onblur="onWdInline(${mo.m},this.value)" style="width:60px;padding:2px 4px;font-size:10px">
+          <div style="display:flex;gap:5px;justify-content:flex-end;align-items:flex-end">
+            <div>
+              <div style="font-size:7px;color:#00c47a;opacity:.9;margin-bottom:2px">depo +$</div>
+              <input type="number" class="depo-inp${depoVal>0?' active':''}" id="depo-inp-d-${mo.m}" value="${depoVal||''}" min="0" step="1" placeholder="0" onchange="onDepoInline(${mo.m},this.value)" onblur="onDepoInline(${mo.m},this.value)" style="width:48px;padding:2px 3px;font-size:10px;border-radius:4px;border:0.5px solid ${depoVal>0?'#00c47a':'var(--mhs)'};background:${depoVal>0?'rgba(0,196,122,0.15)':'transparent'};color:${depoVal>0?'#00c47a':'var(--mhc)'};font-weight:700">
+            </div>
+            <div>
+              <div style="font-size:7px;color:var(--mhs);opacity:.7;margin-bottom:2px">withdraw -$</div>
+              <input type="number" class="wd-inp${wdVal>0?' active':''}" id="wd-inp-d-${mo.m}" value="${wdVal||''}" min="0" step="1" placeholder="0" onchange="onWdInline(${mo.m},this.value)" onblur="onWdInline(${mo.m},this.value)" style="width:48px;padding:2px 3px;font-size:10px">
+            </div>
+          </div>
         </td>
         <td></td>
         <td></td>
@@ -17345,6 +17383,7 @@ function openMonteCarlo() {
         BT: [...orig.BT],
         FR: [...orig.FR],
         WD: { ...orig.WD },
+        DEPO: { ...orig.DEPO },
         ML: { ...orig.ML },
         TL: { ...orig.TL },
         MP: { ...orig.MP },

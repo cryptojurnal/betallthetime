@@ -136,19 +136,22 @@ function sim() {
   const zeroSet = s.ZM;
   const total = isQ ? 3 : TOTAL;
   const months = [];
-  let acc = s.P, banked = 0;
+  let acc = s.P, banked = 0, totalDeposits = 0;
   let prevLastNotional = s.NOT;
 
   for (let m = 1; m <= total; m++) {
     const lb = getMLabel(m), isZ = zeroSet.has(m);
+    const depoAmt = parseFloat(s.DEPO && s.DEPO[m]) || 0;
+    acc += depoAmt;
+    totalDeposits += depoAmt;
     if (isZ) {
-      months.push({ m, lb, isZ: true, sA: acc, eA: acc, gA: acc, wd: 0, banked, nw: acc + banked, trades: [], pct: 0, postLiq: null, initNot: prevLastNotional, liqT1: acc / prevLastNotional * 100, mp: 1 });
+      months.push({ m, lb, isZ: true, sA: acc, eA: acc, gA: acc, wd: 0, depo: depoAmt, banked, totalDeposits, nw: acc + banked, trades: [], pct: 0, postLiq: null, initNot: prevLastNotional, liqT1: acc / prevLastNotional * 100, mp: 1 });
       continue;
     }
     const mp = parseFloat(s.MP[m]) || 1.0;
     const cf = s.CF !== false;
     const cfBase = cf ? prevLastNotional : s.NOT;
-    const initNot = s.SPOT ? (cf ? acc : s.P) : (cfBase * mp);
+    const initNot = s.SPOT ? (cf ? acc : (s.P + totalDeposits)) : (cfBase * mp);
     const liqT1 = s.SPOT ? 100 : (acc / initNot * 100);
     const { bt: mBT, fr: mFR } = getMonthTrades(m);
     const { trades, endAcc: gA, endAccF: gAF, lastNotional: ln } = runSeq(acc, s.LEV, initNot, mBT, mFR, s.KPI, s.SPOT, cf, m);
@@ -171,7 +174,7 @@ function sim() {
     const postLiq = wd > 0 && !bust ? (fA / prevLN * 100) : null;
     const pct = (effectiveGAF - acc) / acc * 100;
     prevLastNotional = prevLN;
-    months.push({ m, lb, isZ: false, sA: acc, eA: bust ? 0 : fA, gA, gAF: effectiveGAF, wd, banked, nw: (bust ? 0 : fA) + banked, trades, pct, postLiq, initNot, liqT1, mp, feePaid: monthFeePaid, bust });
+    months.push({ m, lb, isZ: false, sA: acc, eA: bust ? 0 : fA, gA, gAF: effectiveGAF, wd, depo: depoAmt, banked, totalDeposits, nw: (bust ? 0 : fA) + banked, trades, pct, postLiq, initNot, liqT1, mp, feePaid: monthFeePaid, bust });
     if (bust) break;
     acc = fA;
   }
