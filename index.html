@@ -5737,8 +5737,10 @@ function onPushUp(m,v){
 }
 
 function onMP(m,v){
-  const val=parseFloat(v)||1.0;
+  _captureUndo();
+  const val=v===''?1.0:(parseFloat(v)||1.0);
   gs().MP[m]=Math.max(1,val);
+  try{localStorage.setItem('batt_'+TAB+'_mp',JSON.stringify({MP:{...gs().MP}}));}catch(e){}
   const el=document.getElementById('mp-inp-d-'+m)||document.getElementById('mp-inp-'+m);
   if(el) el.classList.toggle('active',val>1);
   _silentCloudSync();
@@ -6638,9 +6640,9 @@ function _softUpdateCore(){
     _applyChartErrorStyle();
     ch.update('none');
   }
-  // patch table only — skip if user is actively typing in a trade input
+  // patch table only — skip if user is actively typing in a trade or push input
   const _active=document.activeElement;
-  const _isTyping=_active&&(_active.id&&(_active.id.startsWith('mbt-')||_active.id.startsWith('mfr-')||_active.id.startsWith('wd-inp')||_active.id.startsWith('depo-inp')));
+  const _isTyping=_active&&(_active.id&&(_active.id.startsWith('mbt-')||_active.id.startsWith('mfr-')||_active.id.startsWith('wd-inp')||_active.id.startsWith('depo-inp')||_active.id.startsWith('mp-inp')||_active.classList.contains('mp-inp')));
   if(!_isTyping) renderTbl(months);
   // update notional comp row (actual margin, fm%, liq%)
   updComp();
@@ -9729,7 +9731,7 @@ function renderTbl(months){
         <td style="font-size:9px;padding:4px 5px">
           <div style="font-size:7px;color:var(--mhs);opacity:.8;margin-bottom:1px">${s.SPOT?'size×':'push×'}</div>
           <div style="display:flex;align-items:center;gap:3px">
-            <input type="number" class="mp-inp${(s.MP[mo.m]||1)>1?' active':''}" id="mp-inp-d-${mo.m}" value="${s.MP[mo.m]>1?s.MP[mo.m]:''}" min="1" max="10" step="0.1" placeholder="1" oninput="dInput(this,v=>onMP(${mo.m},v),400)" style="width:34px;padding:1px 3px;font-size:9px;border:0.5px solid var(--mhs);border-radius:8px;background:transparent;color:var(--mhc);font-weight:700;-moz-appearance:textfield">
+            <input type="number" class="mp-inp${(s.MP[mo.m]||1)>1?' active':''}" id="mp-inp-d-${mo.m}" value="${s.MP[mo.m]>1?s.MP[mo.m]:''}" min="1" step="any" placeholder="1" onchange="onMP(${mo.m},this.value)" onblur="onMP(${mo.m},this.value)" oninput="dInput(this,v=>onMP(${mo.m},v),500)" style="width:34px;padding:1px 3px;font-size:9px;border:0.5px solid var(--mhs);border-radius:8px;background:transparent;color:var(--mhc);font-weight:700;-moz-appearance:textfield">
             ${mo.mp>1?'<span style="font-size:7px;background:#EAF3DE;color:#3B6D11;padding:0 3px;border-radius:2px;font-weight:700">⚡'+mo.mp.toFixed(1)+'×</span>':''}
           </div>
         </td>
