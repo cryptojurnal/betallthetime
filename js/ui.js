@@ -34,6 +34,7 @@ function mkState() {
     ZM: new Set([]),
     MP: {},
     LK: new Set([]),
+    CM: new Set([]),
     SPOT: false,
     CF: true,
     FEE: { maker: 0.02, taker: 0.05, funding: 0.01, interval: 8, holds: 1, method: 'taker' }

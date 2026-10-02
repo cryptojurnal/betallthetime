@@ -5084,7 +5084,7 @@ let FEE_LIVE={rate:null, exchange:'binance', symbol:'BTCUSDT', loading:false};
 // TABS is an ordered array of tab descriptors
 // built-in tabs: id='36' name='36-month', id='q' name='quarter'
 // custom tabs: id='c1','c2',... name=user-defined, max 5 custom per panel (built-in + custom ≤ 7 total)
-function mkState(){return{P:1000,LEV:5,NOT:2500,KPI:1.0,BT:[...DEF_BT],FR:[...DEF_FR],WD:{},DEPO:{},ML:{},TL:{},MT:{},ZM:new Set([]),MP:{},LK:new Set([]),SPOT:false,CF:true,FEE:{maker:0.02,taker:0.05,funding:0.01,interval:8,holds:1,method:'taker'}};}
+function mkState(){return{P:1000,LEV:5,NOT:2500,KPI:1.0,BT:[...DEF_BT],FR:[...DEF_FR],WD:{},DEPO:{},ML:{},TL:{},MT:{},ZM:new Set([]),MP:{},LK:new Set([]),CM:new Set([]),SPOT:false,CF:true,FEE:{maker:0.02,taker:0.05,funding:0.01,interval:8,holds:1,method:'taker'}};}
 const S={
   '36': mkState(),
   'q':  mkState(),
@@ -5112,6 +5112,7 @@ function _deepCopyS(src){
       FR:t.FR?[...t.FR]:[],
       ZM:t.ZM?new Set(t.ZM):new Set(),
       LK:t.LK?new Set(t.LK):new Set(),
+      CM:t.CM?new Set(t.CM):new Set(),
       WD:t.WD?{...t.WD}:{},
       DEPO:t.DEPO?{...t.DEPO}:{},
       MP:t.MP?{...t.MP}:{},
@@ -5250,6 +5251,7 @@ function saveSection(sec){
   if(sec==='labels') data={ML:{...s.ML},TL:{...s.TL}};
   if(sec==='zero') data={ZM:[...s.ZM]};
   if(sec==='fee') data={FEE:{...s.FEE},SPOT:s.SPOT};
+  if(sec==='cm') data={CM:s.CM?[...s.CM]:[]};
   try{localStorage.setItem(key,JSON.stringify(data));flashSave('save-'+sec);}catch(e){}
   _silentCloudSync();
 }
@@ -5268,7 +5270,7 @@ function loadAll(){
     try{
       const allTabIds=['36','q',...CUSTOM_TABS.map(t=>t.id)];
       allTabIds.forEach(tab=>{
-        ['cap','pos','trades','wd','depo','labels','zero','fee','lk'].forEach(sec=>{
+        ['cap','pos','trades','wd','depo','labels','zero','fee','lk','cm'].forEach(sec=>{
           const oldKey='wz_'+tab+'_'+sec;
           const newKey='batt_'+tab+'_'+sec;
           // only copy if old key exists and new key doesn't yet
@@ -5290,7 +5292,7 @@ function loadAll(){
   const allTabIds=['36','q',...CUSTOM_TABS.map(t=>t.id)];
   allTabIds.forEach(tab=>{
     if(!S[tab])S[tab]=mkState();
-    ['cap','pos','trades','wd','depo','labels','zero','fee','lk'].forEach(sec=>{
+    ['cap','pos','trades','wd','depo','labels','zero','fee','lk','cm'].forEach(sec=>{
       const key='batt_'+tab+'_'+sec;
       try{
         const raw=localStorage.getItem(key);
@@ -5310,6 +5312,7 @@ function loadAll(){
         if(sec==='labels'){if(d.ML)S[tab].ML={...d.ML};if(d.TL)S[tab].TL={...d.TL};}
         if(sec==='zero'&&d.ZM)S[tab].ZM=new Set(d.ZM);
         if(sec==='lk')S[tab].LK=d.LK?new Set(d.LK):new Set();
+        if(sec==='cm'&&d.CM)S[tab].CM=new Set(d.CM);
         if(sec==='fee'){if(d.FEE)S[tab].FEE={...S[tab].FEE,...d.FEE};if(d.SPOT!==undefined)S[tab].SPOT=d.SPOT;}
       }catch(e){}
     });
@@ -7137,7 +7140,7 @@ async function _autoResaveActivePreset(){
   ['36','q',...(typeof CUSTOM_TABS!=='undefined'?CUSTOM_TABS.map(t=>t.id):[])].forEach(tid=>{
     if(!S||!S[tid])return;
     const s=S[tid];
-    snapshot[tid]={...s,ZM:s.ZM?[...s.ZM]:[],LK:s.LK?[...s.LK]:[]};
+    snapshot[tid]={...s,ZM:s.ZM?[...s.ZM]:[],LK:s.LK?[...s.LK]:[],CM:s.CM?[...s.CM]:[]};
   });
   snapshot._meta={
     activeTab:typeof TAB!=='undefined'?TAB:'36',
@@ -8663,7 +8666,7 @@ function _silentCloudSyncNow(){
       ['36','q',...(typeof CUSTOM_TABS!=='undefined'?CUSTOM_TABS.map(t=>t.id):[])].forEach(id=>{
         if(!S||!S[id])return;
         const s=S[id];
-        snapshot[id]={...s,ZM:s.ZM?[...s.ZM]:[],LK:s.LK?[...s.LK]:[]};
+        snapshot[id]={...s,ZM:s.ZM?[...s.ZM]:[],LK:s.LK?[...s.LK]:[],CM:s.CM?[...s.CM]:[]};
       });
       const r=await fetch(AUTH_URL+'/data/save',{
         method:'POST',
@@ -8705,7 +8708,7 @@ function _silentCloudSync(){
       ['36','q',...(typeof CUSTOM_TABS!=='undefined'?CUSTOM_TABS.map(t=>t.id):[])].forEach(id=>{
         if(!S||!S[id])return;
         const s=S[id];
-        snapshot[id]={...s,ZM:s.ZM?[...s.ZM]:[],LK:s.LK?[...s.LK]:[]};
+        snapshot[id]={...s,ZM:s.ZM?[...s.ZM]:[],LK:s.LK?[...s.LK]:[],CM:s.CM?[...s.CM]:[]};
       });
       const r=await fetch(AUTH_URL+'/data/save',{
         method:'POST',
@@ -8727,13 +8730,28 @@ function isLocked(m, tno){
 }
 
 function toggleMonth(m){
+  const s=gs();
+  if(!s.CM) s.CM=new Set();
+  if(Array.isArray(s.CM)) s.CM=new Set(s.CM);
+  const isCurrentlyCollapsed = s.CM.has(m);
+  if(isCurrentlyCollapsed){
+    s.CM.delete(m);
+  } else {
+    s.CM.add(m);
+  }
+  try{localStorage.setItem('batt_'+TAB+'_cm',JSON.stringify({CM:[...s.CM]}));}catch(e){}
+  _silentCloudSync();
   const tbl=document.getElementById('tbl');
   if(!tbl) return;
   const rows=tbl.querySelectorAll('[data-mo="'+m+'"]');
   const btn=tbl.querySelector('.mo-toggle-btn[data-mo="'+m+'"]');
-  const isOpen=btn&&btn.classList.contains('open');
-  rows.forEach(r=>r.classList.toggle('mo-collapsed',isOpen));
-  if(btn){btn.classList.toggle('open',!isOpen);btn.classList.toggle('closed',isOpen);}
+  const willBeCollapsed = !isCurrentlyCollapsed;
+  rows.forEach(r=>r.classList.toggle('mo-collapsed',willBeCollapsed));
+  if(btn){
+    btn.classList.toggle('open',!willBeCollapsed);
+    btn.classList.toggle('closed',willBeCollapsed);
+    btn.textContent = willBeCollapsed ? '▸' : '▾';
+  }
 }
 function toggleZeroMonth(m){
   _captureUndo();const s=gs();
@@ -9821,6 +9839,7 @@ function renderTbl(months){
         return;
       }
       const mLabel=getML(mo.m);
+      const isCollapsed = s.CM && (s.CM instanceof Set ? s.CM.has(mo.m) : Array.isArray(s.CM) ? s.CM.includes(mo.m) : false);
       const monthFeeTotal=mo.trades.filter(t=>!t.skip).reduce((a,t)=>a+(t.feePaid||0),0);
       const endDisp=mo.wd>0?'<span style="opacity:.75;font-size:9px">'+fmt(mo.gA)+'</span><span style="color:#ff8888;font-size:9px"> −'+fmt(mo.wd)+'</span> → <b>'+fmt(mo.eA)+'</b>':'<b>'+fmt(mo.eA)+'</b>';
       // month header — values aligned under exact column headers (13 cols)
@@ -9828,7 +9847,7 @@ function renderTbl(months){
       h+=`<tr class="mh">
         <td style="text-align:left;padding:4px 4px 4px 6px">
           <div style="display:flex;align-items:center;gap:3px">
-            <button class="mo-toggle-btn open" data-mo="${mo.m}" onclick="toggleMonth(${mo.m})" title="collapse/expand">▾</button>
+            <button class="mo-toggle-btn ${isCollapsed?'closed':'open'}" data-mo="${mo.m}" onclick="toggleMonth(${mo.m})" title="collapse/expand">${isCollapsed?'▸':'▾'}</button>
             <input class="lbl-in" value="${mLabel}" placeholder="e.g. JAN 26" oninput="this.value=this.value.toUpperCase()" onchange="onMonthLabel(${mo.m},this.value.toUpperCase())" onclick="this.select()" style="width:56px">
             <span onclick="toggleZeroMonth(${mo.m})" title="zero month" style="cursor:pointer;font-size:8px;color:var(--mhs);opacity:.6;padding:0 3px;border:0.5px solid var(--mhs);border-radius:2px;user-select:none">⊘</span>
           </div>
@@ -9883,7 +9902,7 @@ function renderTbl(months){
         <td></td>
         <td></td>
       </tr>
-      <tr class="mo-subhdr" data-mo="${mo.m}" style="background:var(--bg)">
+      <tr class="mo-subhdr${isCollapsed?' mo-collapsed':''}" data-mo="${mo.m}" style="background:var(--bg)">
         <td style="font-size:7px;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;text-align:left;border-bottom:0.5px solid var(--bd2)">trade</td>
         <td style="font-size:7px;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2)">${s.SPOT?'size':'notional'}</td>
         <td style="font-size:7px;color:var(--tx3);text-transform:uppercase;letter-spacing:.04em;padding:2px 5px;border-bottom:0.5px solid var(--bd2)">${s.SPOT?'size':'margin'}</td>
@@ -9905,7 +9924,7 @@ function renderTbl(months){
           if(!GLOBAL_MODE){
             const mt=gs().MT[mo.m];
             const btVal=mt?mt.bt[t.no-1]:0;
-                        h+=`<tr class="skip-row mo-body" data-mo="${mo.m}">
+            h+=`<tr class="skip-row mo-body${isCollapsed?' mo-collapsed':''}" data-mo="${mo.m}">
               <td style="padding-left:8px;text-align:left"><input class="lbl-in lbl-trade" value="${tLabel}" oninput="this.value=this.value.toUpperCase()" onchange="onTradeLabel(${mo.m},${t.no},this.value.toUpperCase())" placeholder="trade ${t.no}..." onchange="onTradeLabel(${mo.m},${t.no},this.value)" onclick="this.select()"></td>
               <td colspan="4" style="color:var(--tx3);font-size:9px;font-style:italic">skipped</td>
               <td><div class="tg-cell" style="width:54px"><button class="tg-btn" onclick="manStep('bt',${mo.m},${t.no-1},-0.5)" tabindex="-1">−</button><input type="number" id="mbt-${mo.m}-${t.no-1}" value="${btVal}" min="-500" max="500" step="0.5" placeholder="tgt%" style="flex:1;min-width:0;padding:1px 0;font-size:9px;text-align:center;border:none;background:transparent;color:var(--acc);font-weight:700;-moz-appearance:textfield" oninput="dInput(this,v=>onManualBT(${mo.m},${t.no-1},v),400)"><button class="tg-btn" onclick="manStep('bt',${mo.m},${t.no-1},0.5)" tabindex="-1">+</button></div></td>
@@ -9914,7 +9933,7 @@ function renderTbl(months){
               <td></td>
             </tr>`;
           } else {
-            h+=`<tr class="skip-row mo-body" data-mo="${mo.m}"><td style="padding-left:10px;text-align:left;color:var(--tx3);font-size:9px">${tLabel}</td><td colspan="11" style="text-align:center"><span class="sk">skipped · target = 0</span></td><td></td><td></td></tr>`;
+            h+=`<tr class="skip-row mo-body${isCollapsed?' mo-collapsed':''}" data-mo="${mo.m}"><td style="padding-left:10px;text-align:left;color:var(--tx3);font-size:9px">${tLabel}</td><td colspan="11" style="text-align:center"><span class="sk">skipped · target = 0</span></td><td></td><td></td></tr>`;
           }
           return;
         }
@@ -9933,7 +9952,7 @@ function renderTbl(months){
           else if(t.actualCp>=0) outcomeClass='actual-neutral';
           else outcomeClass='actual-miss';
         }
-        const lkRowAttr=lk?('class="locked-row mo-body'+( outcomeClass?' '+outcomeClass:'')+'" data-mo="'+mo.m+'"'):'class="mo-body" data-mo="'+mo.m+'"'+(isT1Push?' style="background:rgba(96,192,48,0.06)"':'');
+        const lkRowAttr=lk?('class="locked-row mo-body'+(isCollapsed?' mo-collapsed':'')+( outcomeClass?' '+outcomeClass:'')+'" data-mo="'+mo.m+'"'):'class="mo-body'+(isCollapsed?' mo-collapsed':'')+'" data-mo="'+mo.m+'"'+(isT1Push?' style="background:rgba(96,192,48,0.06)"':'');
         // before→after helper: strikethrough proj, show actual in color
         const ba=(projVal,actualVal,actualColor)=>
           ha?`<span style="color:var(--tx3);text-decoration:line-through;font-size:8px;opacity:.45">${projVal}</span><br><span style="color:${actualColor};font-weight:800;font-size:10px">${actualVal}</span>`
@@ -10017,7 +10036,7 @@ function renderTbl(months){
       // dynamic + add trade button row for this month
       if(!mo.isZ && !IS_WIPED){
         const canDelLast = mo.trades.length > 1 && !isLocked(mo.m, mo.trades.length);
-        h+=`<tr class="mo-body" data-mo="${mo.m}" style="background:rgba(255,255,255,0.015)">
+        h+=`<tr class="mo-body${isCollapsed?' mo-collapsed':''}" data-mo="${mo.m}" style="background:rgba(255,255,255,0.015)">
           <td colspan="14" style="text-align:left;padding:5px 8px">
             <div style="display:flex;align-items:center;gap:6px">
               <button onclick="addTradeSlot(${mo.m})" style="background:transparent;border:0.5px dashed var(--bd2);color:var(--acc2);border-radius:4px;padding:3px 9px;font-size:8px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:3px;transition:all .2s" onmouseover="this.style.borderColor='var(--acc2)';this.style.background='var(--btno)'" onmouseout="this.style.borderColor='var(--bd2)';this.style.background='transparent'">+ add trade to ${getML(mo.m)} (T${mo.trades.length+1})</button>
@@ -10035,7 +10054,7 @@ function renderTbl(months){
         const grossCol=mo.pct>=0?'#5DC96A':'#E24B4A';
         const sb='background:#111827;border-top:1px solid #1e2a3a;border-bottom:1px solid #1e2a3a;padding:10px 8px;vertical-align:middle';
         const wdRound=Math.round(mo.wd);
-        h+=`<tr class="mo-sep" data-mo="${mo.m}">
+        h+=`<tr class="mo-sep${isCollapsed?' mo-collapsed':''}" data-mo="${mo.m}">
           <!-- col1: label + net -->
           <td style="${sb};text-align:left;padding-left:12px">
             <div style="font-size:8px;font-weight:700;color:#6b7fa8;letter-spacing:.07em;text-transform:uppercase;margin-bottom:4px">end of ${getML(mo.m)}</div>
@@ -10074,7 +10093,7 @@ function renderTbl(months){
           <!-- col14: note → empty -->
           <td style="${sb}"></td>
         </tr>
-        <tr class="mo-gap" data-mo="${mo.m}"><td colspan="14" style="height:10px;background:var(--bg);border:none;padding:0"></td></tr>`;
+        <tr class="mo-gap${isCollapsed?' mo-collapsed':''}" data-mo="${mo.m}"><td colspan="14" style="height:10px;background:var(--bg);border:none;padding:0"></td></tr>`;
       }
     });
   }
@@ -11264,7 +11283,7 @@ async function authSave(){
     ['36','q',...CUSTOM_TABS.map(t=>t.id)].forEach(id=>{
       if(!S[id])return;
       const s=S[id];
-      snapshot[id]={...s,ZM:s.ZM?[...s.ZM]:[],LK:s.LK?[...s.LK]:[]};
+      snapshot[id]={...s,ZM:s.ZM?[...s.ZM]:[],LK:s.LK?[...s.LK]:[],CM:s.CM?[...s.CM]:[]};
     });
     const r=await fetch(AUTH_URL+'/data/save',{
       method:'POST',
@@ -11579,7 +11598,7 @@ async function authSaveWithToast(){
     ['36','q',...CUSTOM_TABS.map(t=>t.id)].forEach(id=>{
       if(!S[id])return;
       const s=S[id];
-      snapshot[id]={...s,ZM:s.ZM?[...s.ZM]:[],LK:s.LK?[...s.LK]:[]};
+      snapshot[id]={...s,ZM:s.ZM?[...s.ZM]:[],LK:s.LK?[...s.LK]:[],CM:s.CM?[...s.CM]:[]};
     });
     const r=await fetch(AUTH_URL+'/data/save',{
       method:'POST',
@@ -11674,16 +11693,28 @@ document.addEventListener('keydown',function(e){
       if(!tbl) return;
       const btns=tbl.querySelectorAll('.mo-toggle-btn');
       if(!btns.length) return;
+      const s=gs();
+      if(!s.CM) s.CM=new Set();
+      if(Array.isArray(s.CM)) s.CM=new Set(s.CM);
       const anyOpen=[...btns].some(b=>b.classList.contains('open'));
       btns.forEach(b=>{
-        const m=b.getAttribute('data-mo');
-        if(m){
-          const rows=tbl.querySelectorAll('[data-mo="'+m+'"]');
+        const mStr=b.getAttribute('data-mo');
+        const m=Number(mStr);
+        if(mStr!==null){
+          const rows=tbl.querySelectorAll('[data-mo="'+mStr+'"]');
           rows.forEach(r=>r.classList.toggle('mo-collapsed',anyOpen));
           b.classList.toggle('open',!anyOpen);
           b.classList.toggle('closed',anyOpen);
+          b.textContent = anyOpen ? '▸' : '▾';
+          if(anyOpen){
+            s.CM.add(m);
+          } else {
+            s.CM.delete(m);
+          }
         }
       });
+      try{localStorage.setItem('batt_'+TAB+'_cm',JSON.stringify({CM:[...s.CM]}));}catch(e){}
+      _silentCloudSync();
       showToast(anyOpen?'all months collapsed':'all months expanded','info',1500);
     }
   }
@@ -11746,7 +11777,7 @@ async function presetSaveConfirm(){
   ['36','q',...(typeof CUSTOM_TABS!=='undefined'?CUSTOM_TABS.map(t=>t.id):[])].forEach(id=>{
     if(!S||!S[id])return;
     const s=S[id];
-    snapshot[id]={...s,ZM:s.ZM?[...s.ZM]:[],LK:s.LK?[...s.LK]:[]};
+    snapshot[id]={...s,ZM:s.ZM?[...s.ZM]:[],LK:s.LK?[...s.LK]:[],CM:s.CM?[...s.CM]:[]};
   });
   snapshot._meta={
     activeTab:typeof activeTab!=='undefined'?activeTab:'36',
@@ -11931,6 +11962,7 @@ async function presetLoad(id){
       }
       if(snapshot[tabId].ZM) S[tabId].ZM=new Set(snapshot[tabId].ZM);
       if(snapshot[tabId].LK) S[tabId].LK=new Set(snapshot[tabId].LK);
+      if(snapshot[tabId].CM) S[tabId].CM=new Set(snapshot[tabId].CM);
     });
     
     // restore theme
@@ -12058,7 +12090,7 @@ async function presetResave(id, name){
   ['36','q',...(typeof CUSTOM_TABS!=='undefined'?CUSTOM_TABS.map(t=>t.id):[])].forEach(tid=>{
     if(!S||!S[tid])return;
     const s=S[tid];
-    snapshot[tid]={...s,ZM:s.ZM?[...s.ZM]:[],LK:s.LK?[...s.LK]:[]};
+    snapshot[tid]={...s,ZM:s.ZM?[...s.ZM]:[],LK:s.LK?[...s.LK]:[],CM:s.CM?[...s.CM]:[]};
   });
   snapshot._meta={
     activeTab:typeof activeTab!=='undefined'?activeTab:'36',
@@ -12934,6 +12966,7 @@ async function importData(event){
         Object.assign(S[tabId],data.state[tabId]);
         if(data.state[tabId].ZM) S[tabId].ZM=new Set(data.state[tabId].ZM);
         if(data.state[tabId].LK) S[tabId].LK=new Set(data.state[tabId].LK);
+        if(data.state[tabId].CM) S[tabId].CM=new Set(data.state[tabId].CM);
       });
       
       // Restore prefs
@@ -13266,6 +13299,8 @@ async function authRestoreSession(){
             });
           }
           if(parsed[tabId].ZM) S[tabId].ZM=new Set(parsed[tabId].ZM);
+          if(parsed[tabId].LK) S[tabId].LK=new Set(parsed[tabId].LK);
+          if(parsed[tabId].CM) S[tabId].CM=new Set(parsed[tabId].CM);
         });
         // re-sync controls with loaded data
         syncControls();
@@ -13915,6 +13950,7 @@ async function loadSharedPreset(shareCode){
       Object.assign(S[tabId],snapshot[tabId]);
       if(snapshot[tabId].ZM) S[tabId].ZM=new Set(snapshot[tabId].ZM);
       if(snapshot[tabId].LK) S[tabId].LK=new Set(snapshot[tabId].LK);
+      if(snapshot[tabId].CM) S[tabId].CM=new Set(snapshot[tabId].CM);
     });
     
     // Restore theme
@@ -17188,13 +17224,14 @@ function undo() {
   Object.keys(S).forEach(k=>{
     if(S[k]&&Array.isArray(S[k].ZM)) S[k].ZM=new Set(S[k].ZM);
     if(S[k]&&Array.isArray(S[k].LK)) S[k].LK=new Set(S[k].LK);
+    if(S[k]&&Array.isArray(S[k].CM)) S[k].CM=new Set(S[k].CM);
   });
   // cancel any pending debounced inputs — prevents stale values firing after restore
   Object.keys(_dInputTimers).forEach(k=>{clearTimeout(_dInputTimers[k]);delete _dInputTimers[k];});
   // cancel pending undo capture so restored state isn't immediately snapshotted
   if(_undoTimer){clearTimeout(_undoTimer);_undoTimer=null;_undoSnap=null;}
   if(typeof saveSection==='function'){
-    ['cap','pos','trades','fee'].forEach(sec=>saveSection(sec));
+    ['cap','pos','trades','fee','cm'].forEach(sec=>saveSection(sec));
   }
   syncControls();
   render();
@@ -17217,6 +17254,7 @@ function redo() {
   Object.keys(S).forEach(k=>{
     if(S[k]&&Array.isArray(S[k].ZM)) S[k].ZM=new Set(S[k].ZM);
     if(S[k]&&Array.isArray(S[k].LK)) S[k].LK=new Set(S[k].LK);
+    if(S[k]&&Array.isArray(S[k].CM)) S[k].CM=new Set(S[k].CM);
   });
   Object.keys(_dInputTimers).forEach(k=>{clearTimeout(_dInputTimers[k]);delete _dInputTimers[k];});
   if(_undoTimer){clearTimeout(_undoTimer);_undoTimer=null;_undoSnap=null;}
