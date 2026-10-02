@@ -14016,6 +14016,7 @@ function closeTradingPage() {
     page.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
     page.style.opacity = '0';
     page.style.transform = 'scale(0.96) translateY(10px)';
+    setTimeout(() => {
       page.classList.remove('visible');
       page.style.opacity = '';
       page.style.transform = '';
@@ -18355,7 +18356,7 @@ async function updateTicker() {
       html += `
         <div class="ticker-item">
           <span class="ticker-symbol">${item.symbol.replace('USDT','')}</span>
-          <span class="ticker-price">$${price.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: price > 100 ? 0 : 2})}</span>
+          <span class="ticker-price">$${price.toLocaleString('en-US', {minimumFractionDigits: price > 100 ? 0 : 2, maximumFractionDigits: price > 100 ? 2 : 4})}</span>
           <span class="ticker-change ${change >= 0 ? 'up' : 'down'}">${change >= 0 ? '+' : ''}${change.toFixed(2)}%</span>
         </div>
       `;
