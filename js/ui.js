@@ -11,10 +11,10 @@ let IS_WIPED = false;
 let lbl_w = false;
 let bustMonth = null;
 
-const DEF_BT = [0,0,0,0,0,0,0,0,0,0];
+const DEF_BT = [0];
 const DEF_ML = {};
 const DEF_TL = {};
-const DEF_FR = [0,0,0,0,0,0,0,0,0,0];
+const DEF_FR = [0];
 const ZERO_36_DEF = [6,11,17,22,30,35];
 const TOTAL = 36;
 

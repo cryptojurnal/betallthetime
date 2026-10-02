@@ -77,8 +77,9 @@ function runSeq(startAcc, lev, initNot, bt, fr, kpi, isSpot, cf, month) {
   let acc = startAcc, not = isSpot ? startAcc : initNot;
   let accF = startAcc;
   const trades = [];
-  for (let i = 0; i < 10; i++) {
-    const skip = bt[i] === 0;
+  const tradesLen = (Array.isArray(bt) && bt.length > 0) ? bt.length : 1;
+  for (let i = 0; i < tradesLen; i++) {
+    const skip = (bt[i] || 0) === 0;
     const am = isSpot ? not : not / lev;
     const fm = isSpot ? 100 : am / accF * 100;
     const liq = isSpot ? 999 : accF / not * 100;
