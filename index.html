@@ -14016,11 +14016,14 @@ function closeTradingPage() {
     page.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
     page.style.opacity = '0';
     page.style.transform = 'scale(0.96) translateY(10px)';
-    setTimeout(() => {
       page.classList.remove('visible');
       page.style.opacity = '';
       page.style.transform = '';
       mbnSetActive('trade');
+      const userBar = document.getElementById('auth-user-bar');
+      const aiFab = document.getElementById('ai-fab');
+      if(userBar) userBar.style.display = '';
+      if(aiFab) aiFab.style.display = '';
       const hub = document.getElementById('trade-hub');
       if(hub){
         hub.style.display='flex';
@@ -16677,13 +16680,29 @@ window.addEventListener('resize',function(){
       if(_wasDragged){_wasDragged=false;e.stopImmediatePropagation();return;}
     },true);
   });
-  window.addEventListener('DOMContentLoaded',function(){
+  function clampAiFab(){
     var f=document.getElementById('ai-fab');
     if(!f)return;
     try{
       var saved=_safeJSON(localStorage.getItem('batt_ai_pos'), null);
-      if(saved){f.style.left=saved.x+'px';f.style.top=saved.y+'px';f.style.right='auto';f.style.bottom='auto';}
+      if(saved && typeof saved.x === 'number' && typeof saved.y === 'number'){
+        var zoom=parseFloat(getComputedStyle(document.documentElement).zoom)||1;
+        var W=window.innerWidth/zoom, H=window.innerHeight/zoom;
+        var fabW=f.offsetWidth/zoom||50, fabH=f.offsetHeight/zoom||50;
+        var clampX=Math.max(8,Math.min(saved.x, W-fabW-8));
+        var clampY=Math.max(8,Math.min(saved.y, H-fabH-8));
+        f.style.left=clampX+'px';
+        f.style.top=clampY+'px';
+        f.style.right='auto';
+        f.style.bottom='auto';
+      }
     }catch(ex){}
+  }
+  window.addEventListener('DOMContentLoaded',function(){
+    var f=document.getElementById('ai-fab');
+    if(!f)return;
+    clampAiFab();
+    window.addEventListener('resize', clampAiFab);
     window.addEventListener('mousemove',onMove);
     window.addEventListener('touchmove',onMove,{passive:false});
     window.addEventListener('mouseup',onUp);
@@ -16709,6 +16728,24 @@ window.addEventListener('resize',function(){
   var _rafId=null, _lastX=0, _lastY=0;
   window._ubWasDragged=false;
   
+  function clampUserBar(){
+    var u=document.getElementById('auth-user-bar');
+    if(!u)return;
+    try{
+      var saved=_safeJSON(localStorage.getItem('batt_ub_pos'), null);
+      if(saved && typeof saved.x === 'number' && typeof saved.y === 'number'){
+        var zoom=parseFloat(getComputedStyle(document.documentElement).zoom)||1;
+        var W=window.innerWidth/zoom, H=window.innerHeight/zoom;
+        var ubW=u.offsetWidth/zoom||140, ubH=u.offsetHeight/zoom||28;
+        var clampX=Math.max(8,Math.min(saved.x, W-ubW-8));
+        var clampY=Math.max(8,Math.min(saved.y, H-ubH-8));
+        u.style.left=clampX+'px';
+        u.style.top=clampY+'px';
+        u.style.right='auto';
+      }
+    }catch(ex){}
+  }
+
   function onDown(e){
     ub=document.getElementById('auth-user-bar');
     if(!ub)return;
@@ -16761,11 +16798,8 @@ window.addEventListener('resize',function(){
   window.addEventListener('DOMContentLoaded',function(){
     var u=document.getElementById('auth-user-bar');
     if(!u)return;
-    // restore saved position
-    try{
-      var saved=_safeJSON(localStorage.getItem('batt_ub_pos'), null);
-      if(saved){u.style.left=saved.x+'px';u.style.top=saved.y+'px';u.style.right='auto';}
-    }catch(ex){}
+    clampUserBar();
+    window.addEventListener('resize',clampUserBar);
     // attach drag listeners
     window.addEventListener('mousemove',onMove);
     window.addEventListener('touchmove',onMove,{passive:false});
