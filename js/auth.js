@@ -37,18 +37,33 @@ async function authConnectEVM(){
     }
     const address = accounts[0].toLowerCase();
     
-    // 2. Create SIWE (Sign-In with Ethereum) challenge
+    // 2. Create clean challenge message
     const issuedAt = new Date().toISOString();
     const nonce = Math.random().toString(36).substring(2, 12) + Date.now().toString(36);
     const domain = window.location.hostname || 'betallthetime.fun';
-    const message = domain + ' wants you to sign in with your Ethereum account:\n' + address + '\n\nWelcome to BATT! Sign in to access your trading cockpit, presets, and journal.\n\nURI: ' + window.location.origin + '\nVersion: 1\nNonce: ' + nonce + '\nIssued At: ' + issuedAt;
+    const message = 'Welcome to BATT (' + domain + ')!\n\nSign in to access your trading cockpit, presets, and journal.\n\nWallet: ' + address + '\nNonce: ' + nonce + '\nTimestamp: ' + issuedAt;
+    
+    // Convert to hex for universal personal_sign compatibility
+    const encoder = new TextEncoder();
+    const msgBytes = encoder.encode(message);
+    const hexMsg = '0x' + Array.from(msgBytes).map(b => b.toString(16).padStart(2, '0')).join('');
     
     // 3. Request signature (0 gas, 100% free)
     if(btn) btn.innerHTML = '<span class="spin">↻</span> sign in wallet...';
-    const signature = await window.ethereum.request({
-      method: 'personal_sign',
-      params: [message, address]
-    });
+    let signature = null;
+    try {
+      signature = await window.ethereum.request({
+        method: 'personal_sign',
+        params: [hexMsg, address]
+      });
+    } catch(err) {
+      if(err && err.code === 4001) throw err;
+      // Fallback for providers expecting [message, address]
+      signature = await window.ethereum.request({
+        method: 'personal_sign',
+        params: [message, address]
+      });
+    }
     
     if(!signature){
       throw new Error('Signature cancelled');
