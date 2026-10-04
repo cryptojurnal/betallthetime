@@ -19,12 +19,33 @@ function _updateWeb3Badge(chain){
   }
 }
 
+let _eip6963Providers = [];
+if(typeof window !== 'undefined'){
+  window.addEventListener('eip6963:announceProvider', function(e){
+    if(e && e.detail && !_eip6963Providers.some(p => p.info && p.info.uuid === e.detail.info.uuid)){
+      _eip6963Providers.push(e.detail);
+    }
+  });
+  try { window.dispatchEvent(new Event('eip6963:requestProvider')); } catch(e){}
+}
+
 function _getEVMProvider(){
+  // 1. Check EIP-6963 announced MetaMask
+  const mmAnnounced = _eip6963Providers.find(p => p.info && p.info.name && p.info.name.toLowerCase().includes('metamask'));
+  if(mmAnnounced && mmAnnounced.provider) return mmAnnounced.provider;
+
+  // 2. Check window.ethereum.providers array
   if(window.ethereum && window.ethereum.providers && window.ethereum.providers.length){
-    return window.ethereum.providers.find(p => p.isMetaMask && !p.isPhantom) ||
-           window.ethereum.providers.find(p => p.isMetaMask) ||
-           window.ethereum.providers[0];
+    const mm = window.ethereum.providers.find(p => p.isMetaMask && !p.isPhantom);
+    if(mm) return mm;
+    const rabby = window.ethereum.providers.find(p => p.isRabby);
+    if(rabby) return rabby;
+    const anyMM = window.ethereum.providers.find(p => p.isMetaMask);
+    if(anyMM) return anyMM;
+    return window.ethereum.providers[0];
   }
+
+  // 3. Fallback to direct window.ethereum
   return window.ethereum;
 }
 
