@@ -1,5 +1,5 @@
 // Service Worker for Bet All The Time PWA
-const CACHE_NAME = 'batt-v4';
+const CACHE_NAME = 'batt-v5';
 const OFFLINE_URL = '/offline.html';
 
 // Assets to cache on install

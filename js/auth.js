@@ -19,9 +19,20 @@ function _updateWeb3Badge(chain){
   }
 }
 
+function _getEVMProvider(){
+  if(window.ethereum && window.ethereum.providers && window.ethereum.providers.length){
+    return window.ethereum.providers.find(p => p.isMetaMask && !p.isPhantom) ||
+           window.ethereum.providers.find(p => p.isMetaMask) ||
+           window.ethereum.providers[0];
+  }
+  return window.ethereum;
+}
+
 async function authConnectEVM(){
   const btn = document.getElementById('auth-evm-btn');
-  if(!window.ethereum){
+  const provider = _getEVMProvider();
+  
+  if(!provider){
     showToast('No EVM wallet found. Install MetaMask, Rabby, or Coinbase Wallet.', 'error', 3500);
     window.open('https://metamask.io/download/', '_blank');
     return;
@@ -31,7 +42,7 @@ async function authConnectEVM(){
   
   try{
     // 1. Request accounts
-    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+    const accounts = await provider.request({ method: 'eth_requestAccounts' });
     if(!accounts || !accounts.length){
       throw new Error('No accounts selected');
     }
@@ -43,7 +54,7 @@ async function authConnectEVM(){
     const domain = window.location.hostname || 'betallthetime.fun';
     const message = 'Welcome to BATT (' + domain + ')!\n\nSign in to access your trading cockpit, presets, and journal.\n\nWallet: ' + address + '\nNonce: ' + nonce + '\nTimestamp: ' + issuedAt;
     
-    // Convert to hex for universal personal_sign compatibility
+    // Convert to hex for standard personal_sign compatibility
     const encoder = new TextEncoder();
     const msgBytes = encoder.encode(message);
     const hexMsg = '0x' + Array.from(msgBytes).map(b => b.toString(16).padStart(2, '0')).join('');
@@ -52,17 +63,25 @@ async function authConnectEVM(){
     if(btn) btn.innerHTML = '<span class="spin">↻</span> sign in wallet...';
     let signature = null;
     try {
-      signature = await window.ethereum.request({
+      signature = await provider.request({
         method: 'personal_sign',
         params: [hexMsg, address]
       });
     } catch(err) {
       if(err && err.code === 4001) throw err;
-      // Fallback for providers expecting [message, address]
-      signature = await window.ethereum.request({
-        method: 'personal_sign',
-        params: [message, address]
-      });
+      // Fallback for providers expecting [message, address] or reversed params
+      try {
+        signature = await provider.request({
+          method: 'personal_sign',
+          params: [message, address]
+        });
+      } catch(err2) {
+        if(err2 && err2.code === 4001) throw err2;
+        signature = await provider.request({
+          method: 'personal_sign',
+          params: [address, hexMsg]
+        });
+      }
     }
     
     if(!signature){
@@ -99,8 +118,8 @@ async function authConnectEVM(){
     _updateWeb3Badge('evm');
     authOnSuccess({ token, user: userObj, is_new: false });
     
-    if(window.ethereum.on){
-      window.ethereum.on('accountsChanged', function(newAccounts){
+    if(provider.on){
+      provider.on('accountsChanged', function(newAccounts){
         if(!newAccounts || !newAccounts.length || newAccounts[0].toLowerCase() !== address){
           authLogout();
         }
