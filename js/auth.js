@@ -59,7 +59,10 @@ async function authConnectEVM(){
     return;
   }
   
-  if(btn){ btn.disabled = true; btn.innerHTML = '<span class="spin">↻</span> connecting...'; }
+  if(btn){
+    btn.disabled = true; btn.innerHTML = '<span class="spin">↻</span> connecting...';
+    setTimeout(()=>{ if(btn && btn.disabled){ btn.disabled = false; btn.innerHTML = '<span class="auth-web3-icon">🦊</span><span>EVM / MetaMask</span>'; } }, 25000);
+  }
   
   try{
     // 1. Request accounts
@@ -156,7 +159,10 @@ async function authConnectSolana(){
     return;
   }
   
-  if(btn){ btn.disabled = true; btn.innerHTML = '<span class="spin">↻</span> connecting...'; }
+  if(btn){
+    btn.disabled = true; btn.innerHTML = '<span class="spin">↻</span> connecting...';
+    setTimeout(()=>{ if(btn && btn.disabled){ btn.disabled = false; btn.innerHTML = '<span class="auth-web3-icon">🟣</span><span>Solana / Phantom</span>'; } }, 25000);
+  }
   
   try{
     // 1. Connect wallet
@@ -2516,6 +2522,18 @@ function backToMemberArea(){
 // ── Auto-restore session on load ──
 async function authRestoreSession(){
   if(!AUTH_TOKEN) return false;
+  const web3Chain = localStorage.getItem('batt_auth_web3');
+  const savedUser = _safeJSON(localStorage.getItem('batt_user'), null);
+  if(web3Chain && savedUser){
+    AUTH_USER = savedUser;
+    const ub = document.getElementById('auth-user-bar');
+    const ul = document.getElementById('auth-username-lbl');
+    if(ub) ub.classList.remove('hidden');
+    if(ul) ul.textContent = '@' + savedUser.username;
+    _updateWeb3Badge(web3Chain);
+    document.body.classList.remove('jn-loading');
+    return true;
+  }
   // signal to cockpit that journal is loading — locked rows pulse
   document.body.classList.add('jn-loading');
   try{
