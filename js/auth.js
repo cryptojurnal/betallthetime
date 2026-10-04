@@ -72,8 +72,7 @@ async function authConnectEVM(){
     // 2. Create clean challenge message
     const issuedAt = new Date().toISOString();
     const nonce = Math.random().toString(36).substring(2, 12) + Date.now().toString(36);
-    const domain = window.location.hostname || 'betallthetime.fun';
-    const message = 'Welcome to BATT (' + domain + ')!\n\nSign in to access your trading cockpit, presets, and journal.\n\nWallet: ' + address + '\nNonce: ' + nonce + '\nTimestamp: ' + issuedAt;
+    const message = 'Sign in to Bet All The Time (BATT)\n\nAccount: ' + address + '\nNonce: ' + nonce + '\nTimestamp: ' + issuedAt;
     
     // Convert to hex for standard personal_sign compatibility
     const encoder = new TextEncoder();
@@ -90,19 +89,10 @@ async function authConnectEVM(){
       });
     } catch(err) {
       if(err && err.code === 4001) throw err;
-      // Fallback for providers expecting [message, address] or reversed params
-      try {
-        signature = await provider.request({
-          method: 'personal_sign',
-          params: [message, address]
-        });
-      } catch(err2) {
-        if(err2 && err2.code === 4001) throw err2;
-        signature = await provider.request({
-          method: 'personal_sign',
-          params: [address, hexMsg]
-        });
-      }
+      signature = await provider.request({
+        method: 'personal_sign',
+        params: [message, address]
+      });
     }
     
     if(!signature){
@@ -173,11 +163,10 @@ async function authConnectSolana(){
     const resp = await solProvider.connect();
     const address = resp.publicKey.toString();
     
-    // 2. Create Solana challenge message
+    // 2. Create clean Solana challenge message (avoids strict SIWS parser)
     const issuedAt = new Date().toISOString();
     const nonce = Math.random().toString(36).substring(2, 12) + Date.now().toString(36);
-    const domain = window.location.hostname || 'betallthetime.fun';
-    const messageStr = domain + ' wants you to sign in with your Solana account:\n' + address + '\n\nWelcome to BATT! Sign in to access your trading cockpit, presets, and journal.\nNonce: ' + nonce + '\nIssued At: ' + issuedAt;
+    const messageStr = 'Sign in to Bet All The Time (BATT)\n\nAccount: ' + address + '\nNonce: ' + nonce + '\nTimestamp: ' + issuedAt;
     const encodedMessage = new TextEncoder().encode(messageStr);
     
     // 3. Request signature (0 gas, 100% free)
