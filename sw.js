@@ -1,5 +1,5 @@
 // Service Worker for Bet All The Time PWA
-const CACHE_NAME = 'batt-v7';
+const CACHE_NAME = 'batt-v8';
 const OFFLINE_URL = '/offline.html';
 
 // Assets to cache on install
@@ -7,14 +7,14 @@ const CACHE_ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/css/styles.css',
-  '/js/shims.js',
-  '/js/navigation.js',
-  '/js/calculator.js',
-  '/js/auth.js',
-  '/js/ai.js',
-  '/js/journal.js',
-  '/js/pwa.js',
+  '/css/styles.css?v=7',
+  '/js/shims.js?v=7',
+  '/js/navigation.js?v=7',
+  '/js/calculator.js?v=7',
+  '/js/auth.js?v=7',
+  '/js/ai.js?v=7',
+  '/js/journal.js?v=7',
+  '/js/pwa.js?v=7',
   'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js'
 ];
 

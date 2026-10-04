@@ -22,6 +22,10 @@ function _safeJSON(str, fallback){
 }
 
 if('serviceWorker' in navigator){
+  var _swRefreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', function(){
+    if(!_swRefreshing){ _swRefreshing = true; window.location.reload(); }
+  });
   window.addEventListener('load',()=>{
     navigator.serviceWorker.register('/sw.js').then(r=>{r.update().catch(()=>{});}).catch(()=>{});
   });
