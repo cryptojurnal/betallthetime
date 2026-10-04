@@ -84,6 +84,7 @@ async function authConnectEVM(){
     
     // 3. Request signature (0 gas, 100% free)
     if(btn) btn.innerHTML = '<span class="spin">↻</span> sign in wallet...';
+    showToast('Please confirm in the MetaMask window (check taskbar if hidden).', 'info', 4500);
     let signature = null;
     try {
       signature = await provider.request({
@@ -177,6 +178,7 @@ async function authConnectSolana(){
     
     // 3. Request signature (0 gas, 100% free)
     if(btn) btn.innerHTML = '<span class="spin">↻</span> sign in wallet...';
+    showToast('Please confirm in the Phantom window (check taskbar if hidden).', 'info', 4500);
     const signed = await solProvider.signMessage(encodedMessage, 'utf8');
     
     let signatureHex = '';
