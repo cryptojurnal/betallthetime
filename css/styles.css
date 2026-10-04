@@ -2300,3 +2300,15 @@ body.t-light .acj-hero-badge{background:rgba(24,95,165,.08);border-color:rgba(24
 }
 .l3-menu-item:hover{background:var(--sf,#1a1a1a);color:var(--tx,#e0e0e0)}
 .l3-menu-item-icon{font-size:15px;flex-shrink:0}
+
+/* ── WEB3 CRYPTO WALLET AUTH ── */
+.auth-web3-row{display:flex;gap:8px;margin-bottom:6px;width:100%}
+.auth-web3-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;padding:9px 6px;background:rgba(255,255,255,0.02);color:#ddd;border:0.5px solid #222;border-radius:4px;font-size:10px;font-weight:700;cursor:pointer;letter-spacing:.02em;transition:all .2s;font-family:inherit}
+.auth-web3-btn:hover{border-color:#00c47a;background:rgba(0,196,122,0.08);color:#fff;box-shadow:0 0 12px rgba(0,196,122,0.15)}
+.auth-web3-btn.evm:hover{border-color:#f6851b;background:rgba(246,133,27,0.08);box-shadow:0 0 12px rgba(246,133,27,0.15)}
+.auth-web3-btn.solana:hover{border-color:#ab9ff2;background:rgba(171,159,242,0.08);box-shadow:0 0 12px rgba(171,159,242,0.15)}
+.auth-web3-btn:disabled{opacity:.5;cursor:wait}
+.auth-web3-icon{font-size:13px;line-height:1}
+.auth-web3-badge{display:inline-flex;align-items:center;gap:3px;font-size:8px;padding:1px 5px;border-radius:3px;font-weight:800;letter-spacing:.04em;text-transform:uppercase}
+.auth-web3-badge.evm{background:rgba(246,133,27,0.15);color:#f6851b;border:0.5px solid rgba(246,133,27,0.3)}
+.auth-web3-badge.solana{background:rgba(171,159,242,0.15);color:#ab9ff2;border:0.5px solid rgba(171,159,242,0.3)}

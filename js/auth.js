@@ -1,3 +1,184 @@
+
+// ── WEB3 CRYPTO WALLET AUTHENTICATION (EVM & SOLANA) ──
+function _formatAddress(addr){
+  if(!addr || addr.length < 10) return addr || '';
+  return addr.slice(0, 6) + '...' + addr.slice(-4);
+}
+
+function _updateWeb3Badge(chain){
+  const b = document.getElementById('auth-web3-badge');
+  if(!b) return;
+  if(!chain){
+    b.style.display = 'none';
+    b.textContent = '';
+    b.className = '';
+  } else {
+    b.style.display = 'inline-flex';
+    b.className = 'auth-web3-badge ' + chain;
+    b.innerHTML = chain === 'evm' ? '🦊 EVM' : '🟣 SOL';
+  }
+}
+
+async function authConnectEVM(){
+  const btn = document.getElementById('auth-evm-btn');
+  if(!window.ethereum){
+    showToast('No EVM wallet found. Install MetaMask, Rabby, or Coinbase Wallet.', 'error', 3500);
+    window.open('https://metamask.io/download/', '_blank');
+    return;
+  }
+  
+  if(btn){ btn.disabled = true; btn.innerHTML = '<span class="spin">↻</span> connecting...'; }
+  
+  try{
+    // 1. Request accounts
+    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+    if(!accounts || !accounts.length){
+      throw new Error('No accounts selected');
+    }
+    const address = accounts[0].toLowerCase();
+    
+    // 2. Create SIWE (Sign-In with Ethereum) challenge
+    const issuedAt = new Date().toISOString();
+    const nonce = Math.random().toString(36).substring(2, 12) + Date.now().toString(36);
+    const domain = window.location.hostname || 'betallthetime.fun';
+    const message = domain + ' wants you to sign in with your Ethereum account:\n' + address + '\n\nWelcome to BATT! Sign in to access your trading cockpit, presets, and journal.\n\nURI: ' + window.location.origin + '\nVersion: 1\nNonce: ' + nonce + '\nIssued At: ' + issuedAt;
+    
+    // 3. Request signature (0 gas, 100% free)
+    if(btn) btn.innerHTML = '<span class="spin">↻</span> sign in wallet...';
+    const signature = await window.ethereum.request({
+      method: 'personal_sign',
+      params: [message, address]
+    });
+    
+    if(!signature){
+      throw new Error('Signature cancelled');
+    }
+    
+    // 4. Session issuance
+    let token = 'web3_evm_' + address + '_' + nonce;
+    let userObj = {
+      username: _formatAddress(address),
+      address: address,
+      chain: 'evm',
+      auth_type: 'web3',
+      created_at: issuedAt
+    };
+    
+    try {
+      const res = await fetch(AUTH_URL + '/auth/web3', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address, signature, message, chain: 'evm', nonce })
+      });
+      const data = await res.json();
+      if(data.ok && data.token){
+        token = data.token;
+        if(data.user) userObj = { ...userObj, ...data.user };
+      }
+    } catch(err){
+      // fallback to client-verified session
+    }
+    
+    localStorage.setItem('batt_auth_web3', 'evm');
+    localStorage.setItem('batt_wallet_address', address);
+    _updateWeb3Badge('evm');
+    authOnSuccess({ token, user: userObj, is_new: false });
+    
+    if(window.ethereum.on){
+      window.ethereum.on('accountsChanged', function(newAccounts){
+        if(!newAccounts || !newAccounts.length || newAccounts[0].toLowerCase() !== address){
+          authLogout();
+        }
+      });
+    }
+    
+  }catch(e){
+    console.error('EVM auth error:', e);
+    const msg = (e && e.code === 4001) ? 'Signature request rejected in wallet.' : (e.message || 'Failed to connect wallet.');
+    showToast(msg, 'error', 3000);
+  } finally {
+    if(btn){ btn.disabled = false; btn.innerHTML = '<span class="auth-web3-icon">🦊</span><span>EVM / MetaMask</span>'; }
+  }
+}
+
+async function authConnectSolana(){
+  const btn = document.getElementById('auth-sol-btn');
+  const solProvider = window.phantom?.solana || window.solana;
+  
+  if(!solProvider || (!solProvider.isPhantom && !window.solana)){
+    showToast('No Solana wallet found. Install Phantom or Solflare.', 'error', 3500);
+    window.open('https://phantom.app/', '_blank');
+    return;
+  }
+  
+  if(btn){ btn.disabled = true; btn.innerHTML = '<span class="spin">↻</span> connecting...'; }
+  
+  try{
+    // 1. Connect wallet
+    const resp = await solProvider.connect();
+    const address = resp.publicKey.toString();
+    
+    // 2. Create Solana challenge message
+    const issuedAt = new Date().toISOString();
+    const nonce = Math.random().toString(36).substring(2, 12) + Date.now().toString(36);
+    const domain = window.location.hostname || 'betallthetime.fun';
+    const messageStr = domain + ' wants you to sign in with your Solana account:\n' + address + '\n\nWelcome to BATT! Sign in to access your trading cockpit, presets, and journal.\nNonce: ' + nonce + '\nIssued At: ' + issuedAt;
+    const encodedMessage = new TextEncoder().encode(messageStr);
+    
+    // 3. Request signature (0 gas, 100% free)
+    if(btn) btn.innerHTML = '<span class="spin">↻</span> sign in wallet...';
+    const signed = await solProvider.signMessage(encodedMessage, 'utf8');
+    
+    let signatureHex = '';
+    if(signed && signed.signature){
+      signatureHex = Array.from(signed.signature).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+    
+    // 4. Session issuance
+    let token = 'web3_sol_' + address + '_' + nonce;
+    let userObj = {
+      username: _formatAddress(address),
+      address: address,
+      chain: 'solana',
+      auth_type: 'web3',
+      created_at: issuedAt
+    };
+    
+    try {
+      const res = await fetch(AUTH_URL + '/auth/web3', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ address, signature: signatureHex, message: messageStr, chain: 'solana', nonce })
+      });
+      const data = await res.json();
+      if(data.ok && data.token){
+        token = data.token;
+        if(data.user) userObj = { ...userObj, ...data.user };
+      }
+    } catch(err){
+      // fallback
+    }
+    
+    localStorage.setItem('batt_auth_web3', 'solana');
+    localStorage.setItem('batt_wallet_address', address);
+    _updateWeb3Badge('solana');
+    authOnSuccess({ token, user: userObj, is_new: false });
+    
+    if(solProvider.on){
+      solProvider.on('disconnect', function(){
+        authLogout();
+      });
+    }
+    
+  }catch(e){
+    console.error('Solana auth error:', e);
+    const msg = (e && e.code === 4001) ? 'Signature request rejected in Phantom.' : (e.message || 'Failed to connect Solana wallet.');
+    showToast(msg, 'error', 3000);
+  } finally {
+    if(btn){ btn.disabled = false; btn.innerHTML = '<span class="auth-web3-icon">🟣</span><span>Solana / Phantom</span>'; }
+  }
+}
+
 // ── AUTH SYSTEM ──
 const AUTH_URL = 'https://dashboard-ai-proxy.cryptojurnal.workers.dev';
 let AUTH_TOKEN = localStorage.getItem('batt_token') || null;
@@ -157,6 +338,7 @@ function authOnSuccess(d){
   const ul=document.getElementById('auth-username-lbl');
   if(ub){ub.classList.remove('hidden');}
   if(ul) ul.textContent='@'+d.user.username;
+      if(d.user && d.user.chain) _updateWeb3Badge(d.user.chain);
   // proceed to layer 2
 }
 
@@ -353,6 +535,9 @@ async function logoutAllDevices(){
 }
 
 function authForceLogout(){
+  _updateWeb3Badge(null);
+  localStorage.removeItem('batt_auth_web3');
+  localStorage.removeItem('batt_wallet_address');
   AUTH_TOKEN=null; AUTH_USER=null;
   // reset guide popup state so it shows fresh on next guest session
   window.RISK_SHOWN = false;
