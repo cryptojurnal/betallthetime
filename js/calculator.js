@@ -1453,9 +1453,7 @@ async function removeMonthTable(m){
         } else if(mi > targetM){
           newTL[`${mi - 1}-${tno}`] = s.TL[k];
         }
-        // if mi === targetM, deleted
-      } else {
-        newTL[k] = s.TL[k];
+        // if mi === targetM, it is completely deleted
       }
     });
     s.TL = newTL;
@@ -4914,7 +4912,12 @@ function onMonthLabel(m,v){
   _silentCloudSync();
 } 
 function onTradeLabel(m,t,v){
-  gs().TL[m+'-'+t]=v.trim();
+  const clean = (v || '').trim();
+  if(!clean || clean.toLowerCase() === ('trade ' + t).toLowerCase()){
+    delete gs().TL[m+'-'+t];
+  } else {
+    gs().TL[m+'-'+t] = clean;
+  }
   try{localStorage.setItem('batt_'+TAB+'_labels',JSON.stringify({ML:{...gs().ML},TL:{...gs().TL}}));}catch(e){}
   _silentCloudSync();
 }
@@ -5902,7 +5905,7 @@ function renderTbl(months){
             const mt=gs().MT[mo.m];
             const btVal=mt?mt.bt[t.no-1]:0;
             h+=`<tr class="skip-row mo-body${isCollapsed?' mo-collapsed':''}" data-mo="${mo.m}">
-              <td style="padding-left:8px;text-align:left"><input class="lbl-in lbl-trade" value="${tLabel}" oninput="this.value=this.value.toUpperCase()" onchange="onTradeLabel(${mo.m},${t.no},this.value.toUpperCase())" placeholder="trade ${t.no}..." onchange="onTradeLabel(${mo.m},${t.no},this.value)" onclick="this.select()"></td>
+              <td style="padding-left:8px;text-align:left"><input class="lbl-in lbl-trade" value="${tLabel}" placeholder="trade ${t.no}..." oninput="onTradeLabel(${mo.m},${t.no},this.value)" onchange="onTradeLabel(${mo.m},${t.no},this.value)" onclick="this.select()"></td>
               <td colspan="4" style="color:var(--tx3);font-size:9px;font-style:italic">skipped</td>
               <td><div class="tg-cell" style="width:54px"><button class="tg-btn" onclick="manStep('bt',${mo.m},${t.no-1},-0.5)" tabindex="-1">−</button><input type="number" id="mbt-${mo.m}-${t.no-1}" value="${btVal}" min="-500" max="500" step="0.5" placeholder="tgt%" style="flex:1;min-width:0;padding:1px 0;font-size:9px;text-align:center;border:none;background:transparent;color:var(--acc);font-weight:700;-moz-appearance:textfield" oninput="dInput(this,v=>onManualBT(${mo.m},${t.no-1},v),400)"><button class="tg-btn" onclick="manStep('bt',${mo.m},${t.no-1},0.5)" tabindex="-1">+</button></div></td>
               <td colspan="7" style="color:var(--tx3);font-size:9px;text-align:center;font-style:italic">set target > 0 to activate</td>
@@ -5946,7 +5949,7 @@ function renderTbl(months){
               <button class="lock-btn${lk?' locked':isDraft?' draft':''}" onclick="toggleLock(${mo.m},${t.no})" title="${lk?'🔒 locked · cannot undo':isDraft?'📝 open position · click to close & lock':'mark as executed'}" style="${lk?'cursor:default;':isDraft?'border-color:#f59e0b;color:#f59e0b;background:rgba(245,158,11,0.08);':''}">
                 ${lk?'🔒':isDraft?'📝':'○'}
               </button>
-              <input class="lbl-in lbl-trade${lk?' locked-overlay':''}" value="${tLabel}" placeholder="trade ${t.no}..." onchange="onTradeLabel(${mo.m},${t.no},this.value)" onclick="this.select()"${lk?' disabled':''}>
+              <input class="lbl-in lbl-trade${lk?' locked-overlay':''}" value="${tLabel}" placeholder="trade ${t.no}..." oninput="onTradeLabel(${mo.m},${t.no},this.value)" onchange="onTradeLabel(${mo.m},${t.no},this.value)" onclick="this.select()"${lk?' disabled':''}>
             </div>
           </td>
           <td style="font-weight:600;${isT1Push?'color:var(--acc2)':''}">${fmt(t.not)}${isT1Push?' <span style="font-size:7px;background:#EAF3DE;color:#3B6D11;padding:0 3px;border-radius:2px;font-weight:700">⚡</span>':''}</td>
