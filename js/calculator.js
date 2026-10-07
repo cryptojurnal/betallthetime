@@ -1273,30 +1273,81 @@ async function removeTradeSlot(idx, m){
   const s=gs();
   const tNum = (idx !== undefined ? idx + 1 : (m && s.MT[m]?.bt ? s.MT[m].bt.length : s.BT.length));
   const mLabel = m ? getML(m) : 'all months';
+  const seqName = (m && s.TL ? s.TL[m+'-'+tNum] : null) || (s.TL ? s.TL[tNum] : null) || '';
+  const seqLabelText = seqName ? `trade sequence <b>T${tNum} ("${seqName}")</b>` : `trade sequence <b>T${tNum}</b>`;
   const confirmed = (typeof showConfirm === 'function')
     ? await showConfirm({
         icon: '🗑️',
         type: 'danger',
-        title: `Delete Sequence T${tNum}?`,
-        message: `Are you sure you want to delete trade sequence <b>T${tNum}</b> in <b>${mLabel}</b>?`,
+        title: `Delete Sequence T${tNum}${seqName ? ' (' + seqName + ')' : ''}?`,
+        message: `Are you sure you want to delete ${seqLabelText} in <b>${mLabel}</b>?`,
         confirmText: 'Delete Sequence',
         cancelText: 'Cancel'
       })
-    : confirm(`Are you sure you want to delete trade sequence T${tNum} in ${mLabel}?`);
+    : confirm(`Are you sure you want to delete sequence T${tNum}${seqName ? ' (' + seqName + ')' : ''} in ${mLabel}?`);
   if (!confirmed) return;
 
   _captureUndo();
   if(m && !GLOBAL_MODE){
-    if(s.MT[m] && s.MT[m].bt && s.MT[m].bt.length > 1){
+    if(!s.MT[m]) s.MT[m] = { bt: [...s.BT], fr: [...s.FR] };
+    if(s.MT[m].bt && s.MT[m].bt.length > 1){
       const removeIndex = idx !== undefined ? idx : (s.MT[m].bt.length - 1);
+      const targetT = removeIndex + 1;
+      const curSlots = s.MT[m].bt.length;
       s.MT[m].bt.splice(removeIndex, 1);
       if(s.MT[m].fr) s.MT[m].fr.splice(removeIndex, 1);
+
+      // Clean and shift sequence names (TL) & exitTypes for month m
+      if(s.TL){
+        delete s.TL[m+'-'+targetT];
+        for(let k = targetT + 1; k <= curSlots; k++){
+          if(s.TL[m+'-'+k] !== undefined){
+            s.TL[m+'-'+(k-1)] = s.TL[m+'-'+k];
+            delete s.TL[m+'-'+k];
+          }
+        }
+      }
+      if(s.MT[m] && s.MT[m].exitTypes){
+        delete s.MT[m].exitTypes[targetT];
+        for(let k = targetT + 1; k <= curSlots; k++){
+          if(s.MT[m].exitTypes[k] !== undefined){
+            s.MT[m].exitTypes[k-1] = s.MT[m].exitTypes[k];
+            delete s.MT[m].exitTypes[k];
+          }
+        }
+      }
     }
   } else {
     if(s.BT.length > 1){
       const removeIndex = idx !== undefined ? idx : (s.BT.length - 1);
+      const targetT = removeIndex + 1;
+      const curSlots = s.BT.length;
       s.BT.splice(removeIndex, 1);
       if(s.FR) s.FR.splice(removeIndex, 1);
+
+      // Shift across months
+      const curM = getTotalMonths(s);
+      for(let mon = 1; mon <= curM; mon++){
+        if(s.TL){
+          delete s.TL[mon+'-'+targetT];
+          for(let k = targetT + 1; k <= curSlots; k++){
+            if(s.TL[mon+'-'+k] !== undefined){
+              s.TL[mon+'-'+(k-1)] = s.TL[mon+'-'+k];
+              delete s.TL[mon+'-'+k];
+            }
+          }
+        }
+        if(s.MT && s.MT[mon] && s.MT[mon].exitTypes){
+          delete s.MT[mon].exitTypes[targetT];
+          for(let k = targetT + 1; k <= curSlots; k++){
+            if(s.MT[mon].exitTypes[k] !== undefined){
+              s.MT[mon].exitTypes[k-1] = s.MT[mon].exitTypes[k];
+              delete s.MT[mon].exitTypes[k];
+            }
+          }
+        }
+      }
+
       Object.keys(s.MT).forEach(k=>{
         if(s.MT[k] && Array.isArray(s.MT[k].bt) && s.MT[k].bt.length > removeIndex){
           s.MT[k].bt.splice(removeIndex, 1);
@@ -1307,6 +1358,7 @@ async function removeTradeSlot(idx, m){
     }
   }
   saveSection('trades');
+  saveSection('labels');
   try{
     const slotPref=_safeJSON(localStorage.getItem('batt_slot_pref'), {});
     slotPref[TAB]={BT:[...s.BT],FR:[...s.FR]};
@@ -1362,7 +1414,7 @@ async function removeMonthTable(m){
         icon: '🗑️',
         type: 'danger',
         title: `Delete Table ${mLabel}?`,
-        message: `Are you sure you want to delete table <b>${mLabel}</b>? All trade sequences, deposits, withdrawals, and locked actuals in this table will be permanently removed.`,
+        message: `Are you sure you want to delete table <b>${mLabel}</b>? All trade sequences, sequence names, deposits, withdrawals, and locked actuals in this table will be permanently removed.`,
         confirmText: 'Delete Table',
         cancelText: 'Keep Table'
       })
@@ -1387,6 +1439,27 @@ async function removeMonthTable(m){
   shiftKeyedObj(s.WD);
   shiftKeyedObj(s.DEPO);
   shiftKeyedObj(s.MP);
+
+  // Shift and clean trade sequence labels (TL)
+  if(s.TL && typeof s.TL === 'object'){
+    const newTL = {};
+    Object.keys(s.TL).forEach(k => {
+      const parts = k.split('-');
+      if(parts.length === 2){
+        const mi = parseInt(parts[0]);
+        const tno = parts[1];
+        if(mi < targetM){
+          newTL[k] = s.TL[k];
+        } else if(mi > targetM){
+          newTL[`${mi - 1}-${tno}`] = s.TL[k];
+        }
+        // if mi === targetM, deleted
+      } else {
+        newTL[k] = s.TL[k];
+      }
+    });
+    s.TL = newTL;
+  }
 
   const shiftSet = (setObj) => {
     if(!setObj || !(setObj instanceof Set)) return;
