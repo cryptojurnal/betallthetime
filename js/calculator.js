@@ -847,10 +847,10 @@ let FEE_LIVE={rate:null, exchange:'binance', symbol:'BTCUSDT', loading:false};
 // TABS is an ordered array of tab descriptors
 // built-in tabs: id='36' name='36-month', id='q' name='quarter'
 // custom tabs: id='c1','c2',... name=user-defined, max 5 custom per panel (built-in + custom ≤ 7 total)
-function mkState(){return{P:1000,LEV:5,NOT:2500,KPI:1.0,BT:[...DEF_BT],FR:[...DEF_FR],WD:{},DEPO:{},ML:{},TL:{},MT:{},ZM:new Set([]),MP:{},LK:new Set([]),CM:new Set([]),SPOT:false,CF:true,FEE:{maker:0.02,taker:0.05,funding:0.01,interval:8,holds:1,method:'taker'}};}
+function mkState(){return{P:1000,LEV:5,NOT:2500,KPI:1.0,NMO:36,BT:[...DEF_BT],FR:[...DEF_FR],WD:{},DEPO:{},ML:{},TL:{},MT:{},ZM:new Set([]),MP:{},LK:new Set([]),CM:new Set([]),SPOT:false,CF:true,FEE:{maker:0.02,taker:0.05,funding:0.01,interval:8,holds:1,method:'taker'}};}
 const S={
   '36': mkState(),
-  'q':  mkState(),
+  'q':  Object.assign(mkState(), { NMO: 3 }),
 };
 // Custom tab registry
 let CUSTOM_TABS=[]; // [{id:'36_c1',name:'my plan'},{id:'q_c1',name:'q plan'}]
@@ -871,6 +871,7 @@ function _deepCopyS(src){
     // deep copy all nested plain objects so mutations don't bleed into snapshots
     out[tabId]={
       ...t,
+      NMO:t.NMO,
       BT:t.BT?[...t.BT]:[],
       FR:t.FR?[...t.FR]:[],
       ZM:t.ZM?new Set(t.ZM):new Set(),
@@ -916,6 +917,11 @@ function gs(){
   return s;
 }
 function isQTab(id){return id==='q'||id.startsWith('q_c');}
+function getTotalMonths(s){
+  const st = s || (typeof gs === 'function' ? gs() : null);
+  if (st && typeof st.NMO === 'number' && st.NMO > 0) return st.NMO;
+  return (typeof isQTab === 'function' && isQTab(TAB)) ? 3 : 36;
+}
 
 // ── TAB BAR — two rows ──
 function renderTabBar(){
@@ -1008,7 +1014,7 @@ function saveSection(sec){
   let data={};
   if(sec==='cap') data={P:s.P};
   if(sec==='pos') data={LEV:s.LEV,NOT:s.NOT,KPI:s.KPI,CF:s.CF};
-  if(sec==='trades') data={BT:[...s.BT],FR:[...s.FR]};
+  if(sec==='trades') data={BT:[...s.BT],FR:[...s.FR],NMO:s.NMO};
   if(sec==='wd') data={WD:{...s.WD}};
   if(sec==='depo') data={DEPO:{...s.DEPO}};
   if(sec==='labels') data={ML:{...s.ML},TL:{...s.TL}};
@@ -1069,6 +1075,7 @@ function loadAll(){
             S[tab].BT = st.bt;
             S[tab].FR = st.fr;
           }
+          if(d.NMO && typeof d.NMO === 'number') S[tab].NMO = d.NMO;
         }
         if(sec==='wd'&&d.WD)S[tab].WD={...d.WD};
         if(sec==='depo'&&d.DEPO)S[tab].DEPO={...d.DEPO};
@@ -1262,9 +1269,23 @@ function addTradeSlot(m){
   softUpdate();
 }
 
-function removeTradeSlot(idx, m){
-  _captureUndo();
+async function removeTradeSlot(idx, m){
   const s=gs();
+  const tNum = (idx !== undefined ? idx + 1 : (m && s.MT[m]?.bt ? s.MT[m].bt.length : s.BT.length));
+  const mLabel = m ? getML(m) : 'all months';
+  const confirmed = (typeof showConfirm === 'function')
+    ? await showConfirm({
+        icon: '🗑️',
+        type: 'danger',
+        title: `Delete Sequence T${tNum}?`,
+        message: `Are you sure you want to delete trade sequence <b>T${tNum}</b> in <b>${mLabel}</b>?`,
+        confirmText: 'Delete Sequence',
+        cancelText: 'Cancel'
+      })
+    : confirm(`Are you sure you want to delete trade sequence T${tNum} in ${mLabel}?`);
+  if (!confirmed) return;
+
+  _captureUndo();
   if(m && !GLOBAL_MODE){
     if(s.MT[m] && s.MT[m].bt && s.MT[m].bt.length > 1){
       const removeIndex = idx !== undefined ? idx : (s.MT[m].bt.length - 1);
@@ -1292,6 +1313,117 @@ function removeTradeSlot(idx, m){
     localStorage.setItem('batt_slot_pref',JSON.stringify(slotPref));
   }catch(e){}
   _silentCloudSync();
+  softUpdate();
+}
+
+function addMonthTable(){
+  _captureUndo();
+  const s = gs();
+  const curMonths = getTotalMonths(s);
+  s.NMO = curMonths + 1;
+  const newM = s.NMO;
+  if(!s.MT) s.MT = {};
+  if(!s.MT[newM]){
+    s.MT[newM] = { bt: [...s.BT], fr: [...s.FR] };
+  }
+  saveSection('trades');
+  _silentCloudSync();
+  if(!GLOBAL_MODE && typeof qaRefreshMonths === 'function') qaRefreshMonths();
+  softUpdate();
+  setTimeout(()=>{
+    const el = document.querySelector(`[data-mo="${newM}"]`);
+    if(el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 100);
+}
+
+async function removeMonthTable(m){
+  const s = gs();
+  const curMonths = getTotalMonths(s);
+  if(curMonths <= 1){
+    if(typeof showConfirm === 'function'){
+      await showConfirm({
+        icon: '⚠️',
+        type: 'warning',
+        title: 'Cannot Delete Table',
+        message: 'You must have at least 1 month table in your plan.',
+        confirmText: 'OK',
+        cancelText: ''
+      });
+    } else {
+      alert('You must have at least 1 month table in your plan.');
+    }
+    return;
+  }
+  const targetM = (m !== undefined && m !== null) ? parseInt(m) : curMonths;
+  const mLabel = getML(targetM);
+
+  const confirmed = (typeof showConfirm === 'function')
+    ? await showConfirm({
+        icon: '🗑️',
+        type: 'danger',
+        title: `Delete Table ${mLabel}?`,
+        message: `Are you sure you want to delete table <b>${mLabel}</b>? All trade sequences, deposits, withdrawals, and locked actuals in this table will be permanently removed.`,
+        confirmText: 'Delete Table',
+        cancelText: 'Keep Table'
+      })
+    : confirm(`Are you sure you want to delete table ${mLabel}?`);
+  if (!confirmed) return;
+
+  _captureUndo();
+
+  const shiftKeyedObj = (obj) => {
+    if(!obj || typeof obj !== 'object') return;
+    delete obj[targetM];
+    for(let i = targetM + 1; i <= curMonths; i++){
+      if(obj[i] !== undefined){
+        obj[i - 1] = obj[i];
+        delete obj[i];
+      }
+    }
+  };
+
+  shiftKeyedObj(s.ML);
+  shiftKeyedObj(s.MT);
+  shiftKeyedObj(s.WD);
+  shiftKeyedObj(s.DEPO);
+  shiftKeyedObj(s.MP);
+
+  const shiftSet = (setObj) => {
+    if(!setObj || !(setObj instanceof Set)) return;
+    const newSet = new Set();
+    setObj.forEach(item => {
+      if(typeof item === 'number'){
+        if(item < targetM) newSet.add(item);
+        else if(item > targetM) newSet.add(item - 1);
+      } else if(typeof item === 'string'){
+        const parts = item.split('-');
+        if(parts.length === 2){
+          const mi = parseInt(parts[0]);
+          const tno = parts[1];
+          if(mi < targetM) newSet.add(item);
+          else if(mi > targetM) newSet.add(`${mi - 1}-${tno}`);
+        } else {
+          newSet.add(item);
+        }
+      }
+    });
+    setObj.clear();
+    newSet.forEach(v => setObj.add(v));
+  };
+
+  shiftSet(s.ZM);
+  shiftSet(s.LK);
+  shiftSet(s.CM);
+
+  s.NMO = curMonths - 1;
+
+  saveSection('trades');
+  saveSection('wd');
+  saveSection('depo');
+  saveSection('labels');
+  saveSection('zero');
+  _silentCloudSync();
+  if(!GLOBAL_MODE && typeof qaRefreshMonths === 'function') qaRefreshMonths();
   softUpdate();
 }
 
@@ -1463,7 +1595,7 @@ function sim(){
   const s=gs();
   const isQ=isQTab(TAB);
   const zeroSet=s.ZM;
-  const total=isQ?3:TOTAL;
+  const total=getTotalMonths(s);
   const months=[];
   let acc=s.P,banked=0,totalDeposits=0;
   // carry-forward: track last active trade's notional
@@ -4568,7 +4700,7 @@ function toggleGlobal(){
 function qaRefreshMonths(){
   const sel = document.getElementById('qa-month');
   if(!sel) return;
-  const maxM = TAB==='q' ? 3 : (TAB==='36' ? 36 : (parseInt(TAB)||36));
+  const maxM = getTotalMonths();
   const cur = sel.value;
   sel.innerHTML = '<option value="">select...</option>';
   for(let i=1;i<=maxM;i++){
@@ -4612,7 +4744,7 @@ function qaApply(){
   const msg=document.getElementById('qa-msg');
   const m=parseInt(monthEl?.value);
   const s=gs();
-  const maxM=TAB==='q'?3:36;
+  const maxM=getTotalMonths();
   if(!m||m<1||m>maxM){
     if(msg){msg.textContent=`enter a valid month (1–${maxM})`;msg.style.color='#E24B4A';}
     return;
@@ -5509,7 +5641,7 @@ function renderTbl(months){
         return;
       }
       h+=`<tr>
-        <td style="white-space:nowrap"><input class="lbl-sum" value="${getML(mo.m)}" placeholder="e.g. JAN 26" oninput="this.value=this.value.toUpperCase()" onchange="onMonthLabel(${mo.m},this.value.toUpperCase())" onclick="this.select()" style="width:72px"> <span title="jump to full detail" onclick="event.stopPropagation();jumpToDetail(${mo.m})" style="cursor:pointer;font-size:9px;color:var(--acc2);padding:1px 4px;border:0.5px solid var(--acc2);border-radius:3px;user-select:none;margin-left:2px" onmouseover="this.style.background='var(--btno)'" onmouseout="this.style.background='transparent'">→</span> <span onclick="toggleZeroMonth(${mo.m})" title="set as zero month" style="cursor:pointer;font-size:9px;color:var(--tx3);padding:1px 4px;border:0.5px solid var(--bd2);border-radius:3px;user-select:none" onmouseover="this.style.color='var(--acc)'" onmouseout="this.style.color='var(--tx3)'">⊘</span>${mo.mp>1?'<span style="background:#EAF3DE;color:#3B6D11;font-size:9px;padding:1px 4px;border-radius:3px;font-weight:700;margin-left:2px">⚡'+mo.mp.toFixed(1)+'×</span>':''}</td>
+        <td style="white-space:nowrap"><input class="lbl-sum" value="${getML(mo.m)}" placeholder="e.g. JAN 26" oninput="this.value=this.value.toUpperCase()" onchange="onMonthLabel(${mo.m},this.value.toUpperCase())" onclick="this.select()" style="width:72px"> <span title="jump to full detail" onclick="event.stopPropagation();jumpToDetail(${mo.m})" style="cursor:pointer;font-size:9px;color:var(--acc2);padding:1px 4px;border:0.5px solid var(--acc2);border-radius:3px;user-select:none;margin-left:2px" onmouseover="this.style.background='var(--btno)'" onmouseout="this.style.background='transparent'">→</span> <span onclick="toggleZeroMonth(${mo.m})" title="set as zero month" style="cursor:pointer;font-size:9px;color:var(--tx3);padding:1px 4px;border:0.5px solid var(--bd2);border-radius:3px;user-select:none" onmouseover="this.style.color='var(--acc)'" onmouseout="this.style.color='var(--tx3)'">⊘</span> <span onclick="removeMonthTable(${mo.m})" title="delete month table" style="cursor:pointer;font-size:9px;color:var(--tx3);padding:1px 4px;border:0.5px solid var(--bd2);border-radius:3px;user-select:none;margin-left:2px" onmouseover="this.style.color='#E24B4A';this.style.borderColor='#E24B4A'" onmouseout="this.style.color='var(--tx3)';this.style.borderColor='var(--bd2)'">✕</span>${mo.mp>1?'<span style="background:#EAF3DE;color:#3B6D11;font-size:9px;padding:1px 4px;border-radius:3px;font-weight:700;margin-left:2px">⚡'+mo.mp.toFixed(1)+'×</span>':''}</td>
         <td>${fmt(mo.sA)}${mo.depo>0?'<br><span style="font-size:8px;color:#00c47a;font-weight:700">+'+fmt(mo.depo)+'</span>':''}</td>
         <td style="text-align:center">${(()=>{
           const _act=mo.trades.filter(t=>!t.skip);
@@ -5545,13 +5677,21 @@ function renderTbl(months){
     });
     // show halted rows for months after bust
     if(bustMonth){
-      const total=isQTab(TAB)?3:36;
+      const total=getTotalMonths();
       for(let mm=bustMonth.m+1;mm<=total;mm++){
         h+=`<tr style="opacity:.35">
           <td style="color:var(--tx3);font-style:italic;padding:4px 8px">${getML(mm)||getMLabel(mm)}</td>
           <td colspan="11" style="color:var(--tx3);font-size:9px;text-align:center;font-style:italic">— halted · account busted at ${getML(bustMonth.m)} · fix withdrawal above to resume —</td>
         </tr>`;
       }
+    }
+    // + add month table button row
+    if(!IS_WIPED){
+      h+=`<tr style="background:var(--bg);border-top:1px solid var(--bd2)">
+        <td colspan="12" style="text-align:center;padding:10px 8px">
+          <button onclick="addMonthTable()" style="background:transparent;border:0.5px dashed var(--bd2);color:var(--acc2);border-radius:4px;padding:5px 14px;font-size:9px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:4px;transition:all .2s" onmouseover="this.style.borderColor='var(--acc2)';this.style.background='var(--btno)'" onmouseout="this.style.borderColor='var(--bd2)';this.style.background='transparent'">+ add month table (${getML(getTotalMonths()+1)})</button>
+        </td>
+      </tr>`;
     }
   } else {
     h=`<colgroup><col style="width:13%"><col style="width:9%"><col style="width:7%"><col style="width:5%"><col style="width:5%"><col style="width:7%"><col style="width:7%"><col style="width:7%"><col style="width:6%"><col style="width:6%"><col style="width:6%"><col style="width:7%"><col style="width:8%"><col style="width:8%"></colgroup><thead><tr>
@@ -5613,6 +5753,7 @@ function renderTbl(months){
             <button class="mo-toggle-btn ${isCollapsed?'closed':'open'}" data-mo="${mo.m}" onclick="toggleMonth(${mo.m})" title="collapse/expand">${isCollapsed?'▸':'▾'}</button>
             <input class="lbl-in" value="${mLabel}" placeholder="e.g. JAN 26" oninput="this.value=this.value.toUpperCase()" onchange="onMonthLabel(${mo.m},this.value.toUpperCase())" onclick="this.select()" style="width:56px">
             <span onclick="toggleZeroMonth(${mo.m})" title="zero month" style="cursor:pointer;font-size:8px;color:var(--mhs);opacity:.6;padding:0 3px;border:0.5px solid var(--mhs);border-radius:2px;user-select:none">⊘</span>
+            <span onclick="removeMonthTable(${mo.m})" title="delete month table" style="cursor:pointer;font-size:8px;color:var(--mhs);opacity:.6;padding:0 3px;border:0.5px solid var(--mhs);border-radius:2px;user-select:none;margin-left:2px" onmouseover="this.style.color='#E24B4A';this.style.borderColor='#E24B4A';this.style.opacity='1'" onmouseout="this.style.color='var(--mhs)';this.style.borderColor='var(--mhs)';this.style.opacity='.6'">✕</span>
           </div>
         </td>
         <td style="font-size:9px;padding:4px 5px">
@@ -5859,6 +6000,13 @@ function renderTbl(months){
         <tr class="mo-gap${isCollapsed?' mo-collapsed':''}" data-mo="${mo.m}"><td colspan="14" style="height:10px;background:var(--bg);border:none;padding:0"></td></tr>`;
       }
     });
+    if(!IS_WIPED){
+      h+=`<tr style="background:var(--bg);border-top:1px solid var(--bd2)">
+        <td colspan="14" style="text-align:center;padding:12px 8px">
+          <button onclick="addMonthTable()" style="background:transparent;border:0.5px dashed var(--bd2);color:var(--acc2);border-radius:4px;padding:6px 16px;font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:5px;transition:all .2s" onmouseover="this.style.borderColor='var(--acc2)';this.style.background='var(--btno)'" onmouseout="this.style.borderColor='var(--bd2)';this.style.background='transparent'">+ add month table (${getML(getTotalMonths()+1)})</button>
+        </td>
+      </tr>`;
+    }
   }
   if(VIEW!=='guide') tbl.innerHTML=h+'</tbody>';
 }
